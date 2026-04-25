@@ -25,3 +25,67 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: VLA
+      description: 具身智能领域VLA与WAM相关论文检索
+      enabled: true
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: VLA
+          keyword_cn: 视觉-语言-动作模型
+          query: Vision-Language-Action models in embodied AI
+        - keyword: Embodied AI
+          keyword_cn: 具身智能
+          query: Embodied intelligence and robotic learning
+        - keyword: Foundation Models
+          keyword_cn: 机器人基础模型
+          query: Robotic foundation models for manipulation
+        - keyword: Robot Manipulation
+          keyword_cn: 机器人操控
+          query: End-to-end robotic manipulation tasks
+      intent_queries:
+        - query: State of the art Vision Language Action models for embodied intelligence
+          query_cn: 具身智能中最先进的视觉 语言 动作模型
+          enabled: true
+          source: manual
+          note: ''
+        - query: Integration of large language models with robotic action spaces
+          query_cn: 大语言模型与机器人动作空间的集成
+          enabled: true
+          source: manual
+          note: ''
+        - query: End to end learning for complex robotic manipulation tasks
+          query_cn: 复杂机器人操作任务的端到端学习
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-04-25T05:33:17.081Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
+  biorxiv:
+    papers_table: biorxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_biorxiv_papers_exact
+    vector_rpc_exact: match_biorxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_biorxiv_papers_bm25
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
