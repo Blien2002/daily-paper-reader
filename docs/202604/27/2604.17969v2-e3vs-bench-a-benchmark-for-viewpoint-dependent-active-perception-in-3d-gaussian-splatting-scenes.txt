@@ -1,0 +1,736 @@
+Title: E3VS-Bench: A Benchmark for Viewpoint-Dependent Active Perception in 3D Gaussian Splatting Scenes
+
+URL Source: https://arxiv.org/pdf/2604.17969v2
+
+Published Time: Fri, 24 Apr 2026 00:35:02 GMT
+
+Number of Pages: 32
+
+Markdown Content:
+# E3VS-Bench: A Benchmark for Viewpoint-Dependent Active Perception in 3D Gaussian Splatting Scenes 
+
+Koya Sakamoto 1, Taiki Miyanishi 1, Daichi Azuma 1, Shuhei Kurita 2, Shu Morikuni 1, Naoya Chiba 3, Motoaki Kawanabe 4, Yusuke Iwasawa 1, and Yutaka Matsuo 1 
+
+> 1
+
+The University of Tokyo, Japan  
+
+> 2
+
+National Institute of Informatics, Japan  
+
+> 3
+
+The University of Osaka, Japan  
+
+> 4
+
+Advanced Telecommunications Research Institute International, Japan 
+
+Abstract. Visual search in 3D environments requires embodied agents to actively explore their surroundings and acquire task-relevant evidence. However, existing visual search and embodied AI benchmarks, includ-ing EQA, typically rely on static observations or constrained egocen-tric motion, and thus do not explicitly evaluate fine-grained viewpoint-dependent phenomena that arise under unrestricted 5-DoF viewpoint control in real-world 3D environments, such as visibility changes caused by vertical viewpoint shifts, revealing contents inside containers, and dis-ambiguating object attributes that are only observable from specific an-gles. To address this limitation, we introduce E3VS-Bench, a benchmark for embodied 3D visual search where agents must control their viewpoints in 5-DoF to gather viewpoint-dependent evidence for question answering. E3VS-Bench consists of 99 high-fidelity 3D scenes reconstructed using 3D Gaussian Splatting and 2,014 question-driven episodes. 3D Gaussian Splatting enables photorealistic free-viewpoint rendering that preserves fine-grained visual details (e.g., small text and subtle attributes) often degraded in mesh-based simulators, thereby allowing the construction of questions that cannot be answered from a single view and instead re-quire active inspection across viewpoints in 5-DoF. We evaluate multiple state-of-the-art VLMs and compare their performance with humans. De-spite strong 2D reasoning ability, all models exhibit a substantial gap from humans, highlighting limitations in active perception and coherent viewpoint planning specifically under full 5-DoF viewpoint changes. 
+
+1 Introduction 
+
+Active perception refers to an agent’s ability to actively control its sensory ap-paratus to acquire task-relevant information, rather than passively receiving observations from the environment [1]. This concept emphasizes that intelli-gent behavior arises from the tight coupling between perception and action. In 
+
+> arXiv:2604.17969v2 [cs.CV] 23 Apr 2026
+
+2 K. Sakamoto et al. Question: Where is the production area of the eggs?    
+
+> 2D Visual Search 3D Visual Search
+> Answer: From British. Answer: Cannot Answer
+> because the label is not visible.
+
+Fig. 1. Overview of the proposed Embodied 3D Visual Search (E3VS) task. Unlike 2D visual search, E3VS requires an agent to actively control its 5-DoF viewpoint to resolve occlusions and acquire fine-grained visual evidence, such as the production area label on an egg carton. 
+
+modern embodied AI, active perception enables agents to selectively acquire task-relevant information from environmental observations by actively control-ling their viewpoints and exploring the environment [9]. Such active control is essential for understanding 3D structure and for acquiring information that can-not be obtained from a single static observation. However, existing benchmarks and agents remain largely constrained to two-dimensional behaviors [23,32], and therefore do not fully capture or evaluate these capabilities in real-world 3D environments. Visual search has long been studied in psychology and neuroscience as the process of locating targets through goal-directed and saliency-driven attention [30, 33, 34]. Inspired by these studies, recent computer vision works have explored visual search using multimodal models [17,35,40]. However, these evaluation en-vironments remain confined to static 2D image observations. As a result, they cannot capture the spatial reasoning challenges that arise in real 3D environ-ments, such as occlusions, geometric relations, and depth ambiguity. Within em-bodied AI, Embodied Question Answering (EQA) requires an agent to navigate within a 3D environment to gather visual evidence and answer a question [8,28]. However, most existing EQA settings treat the agent as a 2D moving camera restricted to planar navigation and limited view rotation. Such settings do not fully evaluate the viewpoint control required for realistic 3D perception. In real-world environments, a target object may be visible from an initial viewpoint, yet its identifying attributes, such as labels or fine-grained text, remain unreadable; acquiring such information requires actively adjusting the viewpoint. This type of viewpoint-dependent evidence remains largely unexplored in existing bench-marks. While recent tasks such as Aerial VLN [16, 19] extend navigation into 3D space, their primary focus is large-scale trajectory following toward distant goals. They do not evaluate the fine-grained viewpoint control required for active in-spection. In these situations, the ability to manipulate the 5-DoF viewpoint itself becomes the key to revealing hidden information. To address this gap, we introduce E3VS-Bench , a benchmark for Embodied 3D Visual Search (E3VS), where agents must actively control their viewpoints in 3D space with full 5-DoF to acquire task-relevant visual evidence for ques-E3VS-Bench 3
+
+tion answering. The benchmark contains 99 high-fidelity reconstructed scenes and 2,014 question-driven episodes. E3VS-Bench is built upon publicly available scenes reconstructed using 3D Gaussian Splatting (3DGS) [13]. 3DGS enables photorealistic free-viewpoint rendering that preserves subtle visual details, such as fine-grained text and brand logos, which are often degraded in traditional mesh-based representations; importantly, this high-fidelity rendering makes it possible to define tasks where critical visual evidence is only observable from specific viewpoints, thereby necessitating active viewpoint control in 3D space. This capability enables viewpoint-dependent questions that cannot be answered from a single observation and instead require active viewpoint exploration. To ensure that benchmark performance reflects genuine exploration ability rather than prior knowledge or favorable initial viewpoints, we introduce a rigor-ous episode filtering pipeline based on a VLM-as-a-judge framework. This process removes episodes that can be solved without meaningful viewpoint transitions. Our main contributions are summarized as follows: 
+
+– We study E3VS , a setting where agents must acquire task-relevant visual evidence through 5-DoF viewpoint control. 
+
+– We present E3VS-Bench , a benchmark built on 99 photorealistic 3D Gaus-sian Splatting scenes and 2,014 human-annotated question-driven episodes for evaluating viewpoint-dependent reasoning and active perception in 3D environments, where fine-grained viewpoint control is required to acquire task-relevant visual evidence. 
+
+– We conduct a comprehensive evaluation of state-of-the-art VLMs and reveal that current models struggle with active viewpoint planning and exploration despite strong performance on conventional 2D reasoning tasks. 
+
+2 Related Work 
+
+Visual Search. Classical visual search studies in psychology and neuroscience [30, 33, 34] investigate how humans locate target objects among distractors through goal-directed and saliency-driven attention. Inspired by these findings, recent computer vision studies have explored visual search using deep and multimodal models [17, 29, 35, 41]. Pixel Reasoner introduces curiosity-driven reinforcement learning in pixel space, while SEAL [35] and DyFo [17] enhance multimodal models with dynamic focus mechanisms. Thyme [41] further improves visual search through supervised fine-tuning and reinforcement learning. To evalu-ate such capabilities, several benchmarks have been proposed, including Mini-O3 [15], H*Bench [40], and O3-Bench [18]. Mini-O3 collects challenging vi-sual search problems requiring exploratory reasoning, while H*Bench simulates pseudo-actions such as turn_left and turn_right using panoramic images. O3-Bench requires models to reference multiple image regions during reasoning. However, these evaluation environments remain limited to static 2D imagery and therefore cannot evaluate occlusion reasoning or spatial relationships that arise in 3D environments. 4 K. Sakamoto et al.                                         
+
+> Dataset Active Env. Source DoF Episodes
+> ScanQA [2] ✗Mesh ScanNet –41,363 SQA3D [21] ✗Mesh ScanNet –33,400 REVERIE [24] ✓Mesh Matterport3D 2 DoF (Graph-based) 21,702 EQA [8] ✓Mesh House3D 2 DoF 5,281 MP3D-EQA [32] ✓Mesh Matterport3D 2 DoF 1,136 OpenEQA [22] ✓Mesh Matterport3D 2 DoF 1,600
+> E3VS-Bench ✓3D-GS SceneSplat++ 6 DoF 2,014
+> Table 1. Comparison with related embodied QA and 3D visual grounding datasets. E3VS-Bench uses 3DGS scenes with 6-DoF viewpoint control for occlusion-aware active perception.
+
+Active Perception and Exploration. Building upon the concept of active perception [1,4], recent embodied AI studies investigate how agents move or ad-just viewpoints to obtain informative observations for downstream tasks. These approaches include active perception for object understanding and manipula-tion [14, 36, 37], as well as exploration-driven strategies that encourage agents to seek novel or semantically meaningful observations [5, 27, 39]. Most of these methods focus on improving perception for specific objectives such as object de-tection or navigation. Building upon this line of work, our setting studies how agents actively acquire task-relevant visual evidence through fine-grained 5-DoF viewpoint control for language-guided reasoning. 
+
+Question Answering in 3D Scene. Question answering in 3D environments has been explored in two main paradigms: scene-centric 3D-QA and embod-ied question answering. Scene-centric approaches reason directly over recon-structed 3D representations without requiring physical movement. For exam-ple, ScanQA [2] performs question answering on indoor scenes represented as point clouds, extending the ScanRefer [6] paradigm from 3D object grounding to QA. SQA3D [21] introduces situated reasoning from a specific pose but re-lies on pre-defined observations. These approaches assume access to complete scene representations and therefore do not evaluate how agents actively acquire missing visual evidence. EQA instead requires an agent to navigate a 3D envi-ronment to answer natural-language questions [8, 22, 32]. Subsequent studies en-hance relational reasoning through structured knowledge representations, scene graphs, and long-horizon planning strategies [7,10,26]. Simulation platforms such as Habitat [25] enable benchmarks including MP3D-EQA [32] and EXPRESS-BENCH [12], where agents navigate indoor reconstructions to collect observa-tions relevant to the question. However, these navigation-centric settings often treat the agent as a 2D moving camera and therefore do not evaluate fine-grained viewpoint control required to reveal task-relevant visual details. Table 1 summarizes major 3D scene QA and EQA datasets. Although these datasets vary in scale, question diversity, and scene realism, they typically rely on mesh or point-cloud reconstructions that restrict viewpoint interaction and limit photometric fidelity. As a result, they do not explicitly evaluate how viewpoint-dependent observations influence question answering. In contrast, E3VS-Bench E3VS-Bench 5
+
+enables agents to actively explore photorealistic 3DGS environments with full 5-DoF viewpoint control to acquire question-relevant visual evidence that may be hidden from conventional perspectives. This setting allows systematic evaluation of viewpoint-dependent reasoning in realistic 3D environments. 
+
+3 Benchmark Design and Construction 
+
+We present E3VS-Bench, a benchmark for evaluating active perception in free-viewpoint 3D environments. Unlike existing embodied tasks (e.g., EQA [32]) that rely on limited camera motion, our benchmark requires agents to select viewpoints that reveal task-relevant evidence not observable from a single view. By embedding such viewpoint-dependent constraints in photorealistic 3D scenes with unrestricted camera control, E3VS-Bench evaluates viewpoint planning and occlusion-aware spatial reasoning. 
+
+3.1 Task Formulation Problem Setup. We formulate E3VS as an active perception task for ques-tion answering in photorealistic 3D environments. Unlike conventional 2D visual search [17, 35] or EQA [32], where agents typically move on a ground plane with limited viewpoint control, E3VS requires agents to adjust their viewpoints in 3D space to resolve occlusions, depth ambiguities, and fine-grained visual details. Formally, an episode is defined by a triplet (S, q, v 0), where S denotes a 3D scene reconstructed using 3DGS, q is a natural-language question, and v0
+
+represents the initial camera viewpoint. At each discrete time step t ∈ [0 , T ], the agent receives an egocentric RGB observation Ot ∈ RH×W ×3 rendered from the scene at viewpoint vt. The initial viewpoint v0 is centered on the target object; however, the target may be partially or fully occluded by other objects in the scene. 
+
+Action Space. We represent the agent’s state at time t as a viewpoint vt =(xt, y t, z t, θ t, ϕ t) ∈ R5, where (xt, y t, z t) denote the 3D Cartesian coordinates and (θt, ϕ t) represent the yaw and pitch angles. The agent interacts with the environment through a discrete 5-DoF action space A, where each action at ∈A corresponds to either a translation, a rotation, or termination. The state transition follows the environment dynamics 
+
+vt+1 = E(vt, a t). (1) If the agent collides with the environment after executing at, the state remains unchanged, i.e., vt+1 = vt.
+
+Success Criteria. Each episode is associated with a set of human-annotated answerable viewpoints Vans and a corresponding goal image Ogoal rendered from 
+
+v ∈ V ans . Upon executing the stop action at step T , the agent provides a predicted answer ˆy based on the final observation OT and the question q.6 K. Sakamoto et al. (1) 3D Scene Curation        
+
+> (4) Viewpoint Labeling (5) Blind QA and VQA Filtering
+> (2) QA Generation
+> VLM
+> 𝑄𝐴 !
+> (3) Invalid QA Filtering
+> 𝑄𝐴 "𝑄𝐴 !
+> VLM
+> 𝑄𝐴 #𝑄𝐴 "𝑉𝑖𝑒𝑤𝑝𝑜𝑖𝑛𝑡
+> 𝐴𝑛𝑠𝑤𝑒𝑟𝑎𝑏𝑖𝑙𝑖𝑡𝑦
+> 𝑄𝐴 "𝑉𝑖𝑒𝑤𝑝𝑜𝑖𝑛𝑡
+> 𝐴𝑛𝑠𝑤𝑒𝑟𝑎𝑏𝑖𝑙𝑖𝑡𝑦
+
+Fig. 2. Dataset construction pipeline for E3VS-Bench. The pipeline consists of five stages: (1) 3D scene curation from SceneSplat++ [20], (2) QA generation using a VLM, (3) invalid QA filtering with human verification, (4) viewpoint labeling to identify answerable viewpoints, and (5) answerability filtering to remove questions solvable without viewpoint transitions. 
+
+To evaluate the correctness of open-vocabulary responses, we employ a VLM-as-a-judge framework, following LLM-Match in OpenEQA [22]. Specifically, an evaluator model J (e.g., GPT-5.1) receives the agent’s final observation OT
+
+(Ostop ), the question q, the predicted answer ˆy, the ground-truth answer y, and the human-annotated goal image Ogoal to compute a score S:
+
+S = J(OT , q, ˆy, y, O goal ), (2) where S ∈ { 1, . . . , 5} denotes the degree of semantic and perceptual alignment, with 5 being perfectly correct and 1 being entirely incorrect. This metric allows for a flexible yet rigorous assessment of the agent’s active perception capability. 
+
+3.2 Dataset Construction Pipeline 
+
+In this section, we present an overview of the question–answer creation pipeline used to construct E3VS-Bench. Fig. 2 shows the dataset construction process consists of five stages: (1) 3D scene curation , (2) QA generation , (3) invalid QA filtering , (4) viewpoint labeling , and (5) answerability filtering . After the answerability filtering stage, We apply additional data cleaning steps. We briefly describe each stage below and provide detailed explanations in the following subsections. See supplementary for details. 
+
+3D Scene Curation. First, we manually curate 105 high quality reconstructed scenes from SceneSplat++ [20], which represents 3D environments from Scan-Net++ [38] using 3DGS [13]. Unlike traditional mesh-based representations that often suffer from texture degradation and geometric oversmoothing, 3DGS pre-serves the photometric fidelity necessary for reliable viewpoint-dependent rea-soning. As shown in Fig. 3, traditional meshes often lack the photorealistic textures needed to capture subtle visual attributes, such as text on a plastic bag or brand logos. The photorealistic rendering of 3DGS enables fine-grained, viewpoint-dependent evaluation of embodied agent perception. 
+
+QA Generation. To generate high-quality question–answer pairs at scale, we employ a three-stage automated pipeline powered by VLM, specifically Gemini E3VS-Bench 7
+
+2.5 Flash . (1) We select object categories with few instances per scene. For each instance, we compute a viewing distance so that its projected object bounding box spans roughly three-fifths of the image along either axis. We then uniformly sample viewpoints on a sphere centered at the object and render the corre-sponding multi-view images. (2) We use a VLM to filter the generated views, discarding images where the object is heavily occluded, outside the reconstruc-tion bounds, or visually ambiguous. (3) Using the remaining valid multi view images, the VLM synthesizes candidate question answer pairs that cover a broad spectrum of visual reasoning, including intrinsic attributes (e.g., color, material, and branding) and extrinsic spatial relations. This pipeline generates 27,877 QAs across 7,578 instances. Question: What word is prominently displayed   
+
+> in white letters on the red band of the black jar?
+> a) Mesh
+> Answer: The image is too
+> blurry to make out any text.
+> b) 3D GS
+> Answer: WHEY
+
+Fig. 3. Comparison of rendering quality between traditional mesh-based (ScanNet++) and 3D Gaus-sian Splatting (SceneSplat++). 3DGS preserves sharp textures for small text (e.g., "WHEY" label), which is crucial for viewpoint-dependent visual reasoning. 
+
+Invalid QA Filtering. We perform hu-man filtering of QA candidates and anno-tate viewpoint answerability. Annotators ver-ify each candidate against predefined cri-teria (see Appendix), removing ambiguous, multi-interpretable, or objectively unanswer-able questions. Inaccurate answers are cor-rected accordingly. The overall human anno-tation process required approximately 1,120 hours of manual effort. 
+
+Viewpoint Labeling. For each retained question, expert annotators select viewpoints that contain sufficient information to an-swer it. Physically invalid viewpoints, such as those intersecting 3D geometry, are discarded. The annotations are further verified by an-other annotator to ensure quality and consis-tency. Finally, unanswerable viewpoints serve as episode starting positions, while answerable viewpoints serve as goal positions. 
+
+Answerability Filtering. To ensure the benchmark properly evaluates active exploration, we remove questions answerable from prior knowledge alone and episodes solvable from the initial viewpoint. For filtering, we use GPT-5.1 . We perform VQA in both a blind setting (without visual input) and from the des-ignated start viewpoint, evaluating response correctness on a 1–5 scale via a VLM-as-a-Judge protocol (see Section 3.1 for details). QA pairs scoring 3 or above in either setting are excluded, where the threshold is chosen as the mid-point of the 1–5 scale to conservatively filter out cases that show any indication of being answerable without active exploration. The remaining episodes cannot be solved from prior knowledge or the initial observation alone, and require active 5-DoF viewpoint transitions and deliberate information gathering for accurate answers. 8 K. Sakamoto et al. Object                
+
+> Search
+> (397)
+> Counting
+> (333)
+> Object
+> State
+> (159)
+> Context-
+> guided Search
+> (155)
+> Object
+> Attribute
+> (149)
+> Spatial
+> Reasoning
+> (85)
+> (a) Question Category Distribution
+> 010 20 30
+> Number of unique scenes
+> hallway
+> gym
+> first aid room
+> winter garden
+> bedroom
+> conference room
+> classroom
+> living room / lounge
+> storage / basement / garage
+> bathroom
+> kitchen
+> office
+> bedroom / hotel
+> apartment
+> 1
+> 1
+> 1
+> 1
+> 2
+> 2
+> 2
+> 4
+> 4
+> 5
+> 8
+> 18
+> 21
+> 29
+> (b) Scene Type Distribution
+> 0.00 0.05 0.10 0.15
+> Density
+> move_forward
+> move_backward
+> move_right
+> move_left
+> move_up
+> move_down
+> look_up
+> look_down
+> turn_right
+> turn_left
+> stop
+> (c) Action Distribution
+> 510 15 20 25
+> Number of words
+> 0
+> 100
+> 200
+> Frequency
+> (d) Question Length Distribution
+> 0510 15 20 25
+> Number of words
+> 0
+> 100
+> 200
+> Frequency
+> (e) Answer Length Distribution
+
+Fig. 4. Dataset Distribution. Each figure represents (a) question category distribu-tion of unique QA pairs classified by GPT 5.1 . (b) scene type distribution. (c) action distribution. (d) the number of words in each question. (e) the number of words in each answer. 
+
+3.3 Dataset Statistics and Analysis 
+
+After meticulous filtering, our dataset contains 99 scenes, 2,014 episodes derived from 1290 unique question-answer pairs. Fig. 4 shows that the dataset covers diverse scene categories and exhibits a wide distribution of question and answer lengths. The final benchmark focuses on six question categories that broadly evaluate an agent’s capability in active perception and spatial reasoning, illus-trated in Fig. 5. These categories test an agent’s ability to (1) perform Object Search (OS) by locating specific items explicitly mentioned in the question, (2) recognize Object States (OST) by identifying conditions such as whether an ob-ject is open or closed, which requires the agent to navigate to a viewpoint where the state is clearly observable, (3) identify Object Attributes (OA) to discern physical characteristics and features, (4) conduct Context-guided Search (CGS) to find objects based on their functional utility or situational context when the object name itself is not provided, (5) perform Spatial Reasoning (SR) to eval-uate relative positions, and size relationships, and (6) perform Counting (CNT) to quantify instances of a specific object class within the environment. In addition, the action distribution in Fig. 4(c) shows that all action types are well utilized, including those beyond planar navigation, suggesting the need for 5-DoF active viewpoint control. Notably, move_backward is more frequent than move_forward , indicating that gaining context by moving away from the target is often necessary. Moreover, move_up is the most frequent action, and 
+
+look_down appears more often than look_up , suggesting that relevant visual evidence is often obtained by observing target objects from lateral or slightly elevated viewpoints rather than from below. 
+
+4 Evaluation Protocol and Baselines 
+
+We design evaluation settings to assess whether vision–language models (VLMs) can actively acquire visual evidence through viewpoint control in 3D environ-E3VS-Bench 9Context -guided Search Context -guided Search    
+
+> Start Goal
+> Q: Where can one store a large collection of binders and
+> documents in an organized manner?
+> A: On the metal shelving unit with multiple horizontal shelves
+
+Context -guided Search Counting    
+
+> Q: How many distinct sections or planks make up the length of
+> the long wooden table's surface?
+> A: 2
+
+Context -guided Search Object Attribute   
+
+> Q: What text is visible on the front of the plastic sack?
+> A: 'cat litter' is visible
+
+Context -guided Search Object Search   
+
+> Q: Where is the black office chair with five wheels?
+> A: Next to the round red table and a black cabinet
+
+Context -guided Search Spatial Reasoning    
+
+> Q: Are the books taller or shorter than the base of the blender?
+> A: The books are taller than the base of the blender
+
+Context -guided Search Object State          
+
+> Q: Is the large brown box on the floor open or closed?
+> A: Open
+> Start Goal Start Goal
+> Start Goal Start Goal Start Goal
+
+Fig. 5. Examples of E3VS task defined in our dataset. Each example illustrates a dis-tinct reasoning type that requires viewpoint control in reconstructed 3D environments. 
+
+ments. In particular, we evaluate whether agents can resolve spatial ambiguities such as occlusions and depth uncertainty by actively selecting informative view-points. 
+
+4.1 E3VS Framework for VLMs 
+
+To evaluate VLMs on the E3VS task, we implement a closed-loop perception–action framework in which the model iteratively selects actions based on egocentric ob-servations. At each time step t, the agent receives an observation Ot rendered from the 3DGS scene G at its current viewpoint vt = ( x, y, z, θ, ϕ ). The VLM processes Ot together with the question and selects an action at ∈ A . This pro-cess continues until the agent executes a stop action, after which the model generates the final answer. To interface VLMs with the environment, we construct a structured prompt that conditions the model on both the environment configuration and the current interaction state. The prompt consists of two components: 
+
+– System Prompt: Defines the world coordinate system (Z-axis as up) and the constraints of the action space, including fixed translation ( 0.25 m ) and rotation ( 30 ◦) intervals. 
+
+– User Prompt: Provides task input and dynamic state information, includ-ing the question, the current observation image, step count, 3D coordinates, the previous action, and feedback such as collision detection. Unless otherwise specified, our experiments use a single-frame observation setting without additional reasoning modules to establish a clear baseline. Full prompt templates are provided in the Appendix. 10 K. Sakamoto et al. 
+
+4.2 Baseline Models 
+
+To examine different levels of perceptual access and spatial reasoning, we define five categories of baseline agents: (1) blind VLMs, (2) VQA at Start, (3) VQA at Birdview, (4) VQA at Goal, and (5) 2D Visual Search at Start. Together, these baselines form a progressive spectrum of perceptual conditions, ranging from no visual input to privileged viewpoints, providing a structured reference for interpreting the performance of embodied agents in the E3VS benchmark. 
+
+(1) Blind VLMs. In this setting, models are asked to answer questions using only textual input without any visual observation. This baseline measures how well models can infer answers from linguistic cues and prior knowledge alone. 
+
+(2–4) VQA from Fixed Viewpoints. In these settings, VLMs perform visual question answering from a single static image captured at a predefined viewpoint, without any viewpoint movement. 
+
+VQA at Start uses the image from the initial viewpoint and evaluates whether the question can be answered without exploration. 
+
+VQA at Goal uses an image from human-annotated answerable viewpoints, representing an upper bound where sufficient visual evidence is available. 
+
+VQA at Birdview provides a bird’s-eye view image captured from directly above the scene, offering a global overview of the environment. This setting evaluates whether holistic scene information alone is sufficient to answer the question. Despite this global visibility, many questions in E3VS-Bench require fine-grained, viewpoint-dependent evidence (e.g., text, object states, or occluded regions), which cannot be resolved without moving to appropriate viewpoints. 
+
+(5) 2D Visual Search at Start. In this setting, models explore a single image through actions such as cropping and region selection. This baseline examines whether questions can be solved by image-space exploration alone without 3D viewpoint transitions. We adopt representative 2D visual search methods such as SEAL [35] and DyFo [17] to demonstrate the limitations of image-based search compared to embodied visual search in 3D environments. 
+
+5 Experiments 
+
+5.1 Experimental Setting Dataset Split. The dataset is split into train, validation, and test sets at the scene level. The train set contains 1,406 episodes from 900 question–answer pairs across 68 scenes, the validation set contains 231 episodes from 132 pairs across 10 scenes for model selection and hyperparameter tuning, and the test set contains 377 episodes from 258 pairs across 21 scenes for final evaluation. All splits are going to be publicly released. In this work, we focus on evaluating zero-shot VLM-based frameworks. 
+
+Evaluation Metrics. We evaluate models from three aspects: answer correct-ness, exploration efficiency and navigation safety. Regarding answer correctness, E3VS-Bench 11 
+
+we employ a VLM-as-a-judge framework in accordance with OpenEQA [22], us-ing GPT 5.1 as the evaluator. The judge VLM receives the predicted response and ground-truth answer, along with the end and goal images, and outputs a score of 5 for correct predictions and 1 for incorrect ones. The validity of this met-ric is supported by a Spearman correlation coefficient of ρ = 0 .54 with human evaluation, suggesting reasonable agreement with human judgments. Further-more, exploration efficiency is quantified by the average number of steps, while navigation safety is measured using Collision Rate, defined as a binary indicator that takes the value 1 if a collision occurs at least once within an episode and 0 otherwise. 
+
+Baseline Settings. Across the baseline settings, we evaluate a diverse set of proprietary and open-source models, including Gemini 2.5 Pro/Flash , Gemini 3.0 Pro/Flash , GPT 5.1 , and open-source models such as Qwen3-VL 8B/30B ,
+
+InternVL3.5-8B , and Step3-VL-10B . These models are evaluated under embod-ied E3VS agent settings, while a subset of models is used for static baselines to enable controlled comparison. For static baseline settings, we evaluate represen-tative models including Gemini 2.5 Flash , GPT 5.1 , and Qwen3-VL-8B . To avoid potential evaluation bias, GPT 5.1 is excluded from the blind and start-view set-tings, as it was used during dataset filtering. To ensure fair comparison across models, GPT-5.1 is used for answer generation in all E3VS agent conditions except Human. Since episodes answerable by GPT-5.1 from the start viewpoint were removed during dataset filtering (see Section 3.2), using a different model for answer generation would introduce model-specific bias and compromise com-parability. 
+
+Implementation Details. We use images with a resolution of 512 × 512 pixels and a field of view (FOV) of 90 ◦. Each episode is limited to a maximum of 25 steps, providing a sufficient exploration budget while preventing excessively long trajectories. For locomotion actions, the agent moves 0.25 m per step, while rotation actions rotate the camera by 30 ◦ in place. When reasoning is disabled, the maximum output token length is set to 128. When reasoning is enabled, this limit is increased to 256 or more depending on the model. If the model fails to output an action command within the maximum token length, the agent defaults to executing a move_forward action. 
+
+5.2 Main Results 
+
+We evaluate a wide range of VLMs on the E3VS-Bench, categorized into static baselines and E3VS agents. The results are summarized in Table 2, 3. 
+
+Performance Across Model Families on E3VS. The evaluation on E3VS shows that Gemini 3.0 Flash substantially outperforms all other models across nearly all categories. In contrast, GPT 5.1 performs comparably to open-source models such as Qwen3-VL-8B and Step3-VL-10B , and overall these models achieve scores only slightly above a Random Action baseline. This suggests that while current VLMs possess strong 2D image recognition capabilities, they show 12 K. Sakamoto et al.                                                                                                    
+
+> Model OS OST OA CGS SR CNT Avg. Steps Coll.
+> Random Action 2.38 2.18 2.60 2.20 2.50 2.00 2.28 10.15 0.39
+> Proprietary Models
+> Gemini 2.5 Pro 3.14 2.36 2.45 2.60 2.25 2.04 2.54 7.80 0.31 Gemini 3.0 Flash 3.21 2.82 3.18 3.53 2.75 1.88 2.79 11.29 0.43 Gemini 3.0 Pro 3.07 2.55 3.18 3.40 3.00 1.96 2.75 10.17 0.34 GPT 5.1 2.90 2.18 2.53 2.73 2.25 1.88 2.42 15.04 0.49
+> Open Source Models
+> Qwen3-VL-8B [3] 2.86 2.36 2.60 3.13 1.88 1.96 2.46 18.73 0.30 Qwen3-VL-30B [3] 2.67 2.09 2.60 2.47 2.25 1.84 2.32 14.18 0.50 InternVL3.5-8B [31] 2.66 2.18 2.24 2.60 2.12 1.60 2.21 10.85 0.65 Step3-VL-10B [11] 2.38 2.27 2.38 3.13 2.50 1.64 2.24 11.16 0.42 Human 3.12 3.59 4.06 4.06 3.35 3.59 3.53 11.21 -
+
+Table 2. Main results on E3VS-Bench. We evaluate various baseline models across six fine-grained question types. All values except Steps and Coll. are VLM judge scores on a scale of 1 to 5 where a higher score indicates better performance. Steps and Coll. denote the average number of Navigation Steps and collision rate respectively. 
+
+Model OS OST OA CGS SR CNT Avg. 
+
+Static Baselines (No Agent Movement) 
+
+Blind VLM 
+
+Gemini 2.5 Flash 1.72 2.00 2.09 1.67 1.88 1.72 1.82 Qwen3-VL-8B 1.38 2.64 1.58 2.20 1.50 1.52 1.67 
+
+2D Visual Search at Start 
+
+SEAL [35] 1.62 2.45 1.44 1.53 2.50 1.32 1.68 DyFO [17] 1.90 2.45 1.44 1.67 2.00 1.80 1.86 
+
+VQA at Start 
+
+Gemini 2.5 Flash 2.21 2.64 1.73 2.33 2.12 2.00 2.14 Qwen3-VL-8B 2.10 2.82 1.87 2.20 2.12 1.56 2.02 
+
+VQA at Birdview 
+
+Gemini 2.5 Flash 1.31 1.64 1.44 1.67 1.75 1.48 1.48 GPT 5.1 1.48 2.09 1.58 2.20 1.62 1.16 1.55 Qwen3-VL-8B 1.55 2.18 2.09 1.80 1.38 1.12 1.59 
+
+VQA at Goal 
+
+Gemini 2.5 Flash 3.79 3.27 3.84 4.20 3.50 3.16 3.58 GPT 5.1 4.17 3.36 3.91 4.20 3.00 2.88 3.60 Qwen3-VL-8B 3.07 3.55 3.40 4.20 3.00 2.20 3.03 Human 4.25 3.82 4.47 4.25 4.14 3.82 4.12 
+
+Table 3. Comparison of static baselines on E3VS-Bench. The large performance gap between ’VQA at Start’ and ’VQA at Goal’ indicates that initial viewpoints are often insufficient, necessitating active exploration. 
+
+limitations in 3D visual search settings that require viewpoint changes. A sub-stantial gap also remains between current models and human performance. 
+
+Near-Sufficient Viewpoint Control for SR. For SR, Gemini 3.0 Pro achieves performance on E3VS (Table 2) that is comparable to its VQA at Goal perfor-mance (Table 3), which serves as an upper bound given sufficient visual evidence. This indicates that the model already possesses a strong capability for viewpoint control tailored to SR, enabling it to actively adjust its viewpoint and acquire the visual evidence needed to infer spatial relationships such as relative distance, position, and size between objects. 
+
+Comparison of OS and CGS. Models often perform better on CGS than on explicit OS (Table 2). CGS queries can often be solved by recognizing relevant objects or functional zones (e.g., “where to store binders”). In contrast, OS re-quires not only recognizing the target object but also understanding its spatial E3VS-Bench 13 
+
+relations and placement in the scene. This additional spatial reasoning likely increases task complexity and leads to lower performance. 
+
+Challenges in CNT. The CNT category shows a large performance gap. Ta-ble 3 indicates that models already struggle in the 2D single-view setting, and performance further degrades in the full E3VS setting (Table 2). Humans, how-ever, achieve high scores (3.82) when provided with the goal viewpoint. This gap highlights a fundamental capability gap in current VLMs. Counting re-quires evidence to be accumulated across a 5-DoF trajectory, which standard EQA approaches based on a single observation cannot handle effectively. 
+
+Emerging Viewpoint Capability for SR. SR questions require understand-ing geometric relationships such as relative positions, distances, and size com-parisons between objects. Crucially, the quality of such geometric evidence is highly viewpoint-dependent; for example, comparing object heights is signifi-cantly easier from a lateral viewpoint than from an oblique or top-down view. In this context, Gemini 3.0 Pro achieves E3VS performance (Table 2) comparable to the VQA at Goal setting (Table 3), which represents an upper bound with sufficient visual evidence. This suggests that the model is not only capable of recognizing spatial relationships but also of selecting viewpoints that improve the observability of such relationships. These results indicate that the model can actively adjust its viewpoint to acquire geometrically informative observations, effectively integrating viewpoint selection as part of SR. 
+
+Limited Gain from Viewpoint Selection in OST. OST questions typically involve binary decisions (e.g., open vs. closed), which can often be predicted from prior knowledge or dataset bias even without sufficient visual evidence. Importantly, during dataset construction, episodes that GPT 5.1 could answer correctly from the initial viewpoint were filtered out. However, similar filtering was not applied to other models such as Qwen or Gemini. As a result, VQA at Start performance for these models still reflects the influence of bias. Empirically, we observe that the VQA at Start performance of Qwen3-VL-8B is comparable to the E3VS performance of Gemini 3.0 Flash evaluated with GPT 5.1 as the judge. This suggests that active viewpoint selection yields only marginal im-provements beyond compensating for such biases. Furthermore, once the target object is identified, it is often clear whether the current viewpoint is sufficient to determine its state, and the viewpoint required to resolve the uncertainty is relatively predictable (e.g., as shown in Fig. 5). In this sense, OST primarily reduces to a combination of viewpoint selection and path planning, rather than an exploratory problem. Despite this, the observed performance gains remain limited. This indicates that models still struggle either to identify the appropri-ate target viewpoint or to predict the sequence of actions required to reach it, even when the desired viewpoint is relatively clear. 
+
+High Viewpoint Sensitivity in OA. OA questions require identifying fine-grained, instance-specific properties of a target object, such as text, material, color, or subtle visual features. While the target object itself is explicitly specified (as in OS), it is often unclear from the initial viewpoint where the relevant 14 K. Sakamoto et al.                                              
+
+> Model OS OST OA CGS SR CNT Avg. Steps Coll.
+> Gemini 3.0 Flash 3.21 2.82 3.18 3.53 2.75 1.88 2.79 11.29 0.43 Gemini 3.0 Flash+Th. 3.21 2.82 2.96 3.27 3.00 2.00 2.79 19.80 0.41 GPT 5.1 2.90 2.18 2.53 2.73 2.25 1.88 2.42 15.04 0.49 GPT 5.1+Th. 2.97 2.64 3.25 2.87 2.38 2.16 2.70 13.78 0.38
+
+Table 4. Ablation study on the effect of the thinking process on E3VS-Bench. Th. indicates whether the model performs the Thinking process. 1 3 5    
+
+> Number of Input Frames
+> 2.2
+> 2.4
+> 2.6
+> 2.8
+> 3.0
+> 3.2
+> VLM Judge Score
+> Gemini 3.0 Flash
+> Qwen3-VL-8B
+> 135
+> Number of Input Frames
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> Avg. Navigation Steps  Gemini 3.0 Flash
+> Qwen3-VL-8B
+> 135
+> Number of Input Frames
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> Collision Rate
+> Gemini 3.0 Flash
+> Qwen3-VL-8B
+
+Fig. 6. Effect of the number of input frames on E3VS performance. While more frames do not significantly impact the VLM judge score, they consistently lead to more efficient navigation (fewer steps) and safer trajectories (lower collision rates). 
+
+visual evidence is located on the object. This shifts the problem from viewpoint selection to exploration: unlike OST, where the relevant observation region is relatively predictable (e.g., a door for determining open/closed), OA requires the agent to actively explore the object to discover where informative visual evidence resides for each instance. Empirically, while Gemini 3.0 models achieve relatively high performance on OA, other models perform at or below the Random Action baseline. This highlights the difficulty of acquiring fine-grained visual evidence through 5-DoF active viewpoint control, suggesting that OA is highly sensitive to viewpoint selection and requires both exploratory viewpoint discovery and detailed visual recognition. 
+
+5.3 Ablation Study Impact of Internal Reasoning. We analyze the effect of thinking-related pa-rameters on E3VS performance without using explicit reasoning prompts (Ta-ble 4). For GPT 5.1 , increasing the thinking budget consistently improves per-formance, suggesting that additional internal computation benefits viewpoint planning and decision making. In contrast, Gemini 3.0 Flash shows little sensi-tivity to the reasoning budget. Overall, the effectiveness of increased reasoning appears to be model-dependent, though the cause remains unclear and may re-late to differences in architecture or training data. 
+
+Effect of Memory. We study the effect of temporal information by varying the number of input frames (1, 3, and 5) for Gemini 3.0 Flash and Qwen3-VL-8B . As shown in Fig. 6, multi-frame inputs do not significantly improve VLM Judge scores, but consistently reduce navigation steps and collision rates. Step reduction is likely due to fewer action “deadlocks,” where single-frame agents repeat the same actions. Collision reduction appears to result from im-proved action–observation understanding, enabling better anticipation of view-point changes and more effective collision avoidance. E3VS-Bench 15                                                   
+
+> Model Init. at Goal OS OST OA CGS SR CNT Avg. Steps Coll.
+> Qwen3-VL-8B ✗2.86 2.36 2.60 3.13 1.88 1.96 2.46 18.73 0.30 Qwen3-VL-8B ✓3.90 3.36 3.84 3.93 2.75 2.56 3.38 12.06 0.23 Gemini 3.0 Flash ✗3.21 2.82 3.18 3.53 2.75 1.88 2.79 11.29 0.43 Gemini 3.0 Flash ✓4.21 3.55 3.33 3.93 3.25 2.38 3.41 6.60 0.29
+
+Table 5. Ablation study with goal-initialized viewpoints, where the initial viewpoint is set to the goal viewpoint containing sufficient visual evidence. This removes the need for exploration and isolates the model’s ability to recognize visual evidence and make appropriate stopping decisions. 
+
+Decoupling Recognition and Exploration via Observable Evidence. We investigate whether VLMs can correctly recognize visual evidence and terminate the episode when the required information is already visible from the current viewpoint. To this end, we construct a setting where the initial view contains sufficient visual evidence to answer the question, removing the need for further exploration. As shown in Table 5, both models achieve strong performance under this condition, approaching the VQA at Goal performance of GPT 5.1 reported in Table 3. However, their stopping behaviors differ notably. Gemini 3.0 Flash 
+
+terminates efficiently, requiring only 6.60 steps on average, whereas Qwen3-VL-8B takes nearly twice as many steps (12.06), suggesting that Qwen3-VL-8B 
+
+tends to continue exploring even when sufficient visual evidence is already avail-able. Across most question types, Gemini 3.0 Flash outperforms Qwen3-VL-8B ,indicating stronger overall evidence utilization. In contrast, for OA questions, 
+
+Qwen3-VL-8B achieves substantially higher scores, implying a stronger ability to recognize fine-grained object properties and make stopping decisions based on such cues. Interestingly, this trend reverses in the standard E3VS setting with unanswerable initial viewpoints, where Gemini consistently outperforms 
+
+Qwen3-VL-8B . This suggests that the two models exhibit different strengths: Gemini is more effective at actively exploring to acquire missing information, whereas Qwen3-VL-8B shows stronger capability in recognizing fine-grained vi-sual attributes when evidence is present, but does not consistently translate this recognition into appropriate stopping behavior. 
+
+5.4 Qualitative Results 
+
+Fig. 7 provides a qualitative comparison between the viewpoints selected by hu-mans and those selected by Gemini 3.0 Flash . A prominent observation is the difference in viewpoint quality. Human-selected viewpoints are typically intuitive in that they deliberately position the camera to capture clear visual evidence re-quired to answer the question, often centering the target object or revealing discriminative features necessary for the decision. In contrast, the “answerable” viewpoints reached by agents are frequently sub-optimal, as they do not always capture sufficient visual evidence even when the target object is partially vis-ible. The VLM-as-a-judge framework strictly penalizes responses if the visual evidence required to support the answer is not explicitly present in the final observation. For instance, as shown in the first row and second column of Fig. 7, 
+
+Gemini 3.0 Flash stops at a viewpoint where the task-relevant features are not sufficiently visible, resulting in a low judge score. This observation highlights the 16 K. Sakamoto et al. Q: Is the lid of the cooking pot present and covering the opening?                                
+
+> A: No, the lid is not present and covering the opening. ✓
+> Start End (Gemini) End (Human)
+> A: No. ✓
+> Q: How many buttons or switches are on the base of the electric kettle?
+> A: 1. ×
+> Start End (Gemini) End (Human)
+> A: 1. ✓
+> Q: Where is the portable heater located in the room?
+> A: The portable heater is on the floor in front of the kitchen cabinets... ×
+> Start End (Gemini) End (Human)
+> A: In the front of a shelf and next to the hanger. ✓
+> Q: Is the red and black bag upright or lying on its side?
+> A: Lying on its side. ×
+> Start End (Gemini) End (Human)
+> A: It is standing upright. ✓
+> Q: How many paper trays are on the front of the copier?
+> A: Three. ×
+> Start End (Gemini) End (Human)
+> A: 4. ✓
+> Q: Are the books taller or shorter than the base of the blender?
+> A: The books are taller than the base of the blender. ✓
+> Start End (Gemini) End (Human)
+> A: Taller. ✓
+
+Fig. 7. Qualitative Results. The orange bars represent the predicted answers after visual search by Gemini 3.0 Flash , while the blue bars indicate the human performance results. 
+
+importance of actively selecting viewpoints that reveal sufficient visual evidence, which remains a challenging capability for current VLM-based agents. 
+
+6 Conclusion 
+
+In this paper, we introduced E3VS-Bench , a benchmark for viewpoint-dependent active perception in photorealistic 3D Gaussian Splatting environments. E3VS requires agents to manipulate viewpoints in 5-DoF to acquire task-critical ev-idence. The benchmark consists of 99 high-fidelity scenes and 2,014 episodes covering diverse reasoning types, including object search, spatial reasoning, at-tribute recognition, and counting. We evaluated a range of state-of-the-art pro-prietary and open-source VLMs under both static and active settings. While several models demonstrate strong 2D visual reasoning ability, all evaluated sys-tems exhibit a substantial performance gap compared to human performance on E3VS. These results suggest that current VLM-based agents still lack robust viewpoint planning in 3D environments. 
+
+Limitations. We adopt a VLM-as-a-judge framework to evaluate open-vocabulary answers. However, we observe a relatively weak correlation between human evalu-ation and VLM-based judging. In some cases, the agent’s final observation differs substantially from the human-annotated goal viewpoint while receiving a simi-E3VS-Bench 17 
+
+lar judge score, indicating that current automated evaluation may insufficiently capture viewpoint adequacy. 
+
+Future Work. This work focuses on zero-shot evaluation without exploiting the train/validation splits for optimization. We release each split to facilitate future learning-based agents. 
+
+Acknowledgments. This work was supported by JST PRESTO (Grant Num-ber JPMJPR22P8), JST CRONOS (Grant Number JPMJCS24K6), and JSPS KAKENHI (Grant Number 25K03177), Japan. 
+
+References 
+
+1. Aloimonos, Y., Weiss, I., Bandyopadhyay, A.: Active vision. International Journal of Computer Vision 1, 333–356 (1988) 2. Azuma, D., Miyanishi, T., Kurita, S., Kawanabe, M.: Scanqa: 3d question answer-ing for spatial scene understanding. In: IEEE Conf. Comput. Vis. Pattern Recog. pp. 19129–19139 (June 2022) 3. Bai, S., Cai, Y., Chen, R., Chen, K., Chen, X., Cheng, Z., Deng, L., Ding, W., Gao, C., Ge, C., Ge, W., Guo, Z., Huang, Q., Huang, J., Huang, F., Hui, B., Jiang, S., Li, Z., Li, M., Li, M., Li, K., Lin, Z., Lin, J., Liu, X., Liu, J., Liu, C., Liu, Y., Liu, D., Liu, S., Lu, D., Luo, R., Lv, C., Men, R., Meng, L., Ren, X., Ren, X., Song, S., Sun, Y., Tang, J., Tu, J., Wan, J., Wang, P., Wang, P., Wang, Q., Wang, Y., Xie, T., Xu, Y., Xu, H., Xu, J., Yang, Z., Yang, M., Yang, J., Yang, A., Yu, B., Zhang, F., Zhang, H., Zhang, X., Zheng, B., Zhong, H., Zhou, J., Zhou, F., Zhou, J., Zhu, Y., Zhu, K.: Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 (2025) 4. Bajcsy, R.: Active perception. Proceedings of the IEEE 76 (8), 966–1005 (1988) 5. Chaplot, D.S., Jiang, H., Gupta, S., Gupta, A.: Semantic curiosity for active visual learning. In: Eur. Conf. Comput. Vis. (2020) 6. Chen, D.Z., Chang, A.X., Nießner, M.: Scanrefer: 3d object localization in rgb-d scans using natural language. In: Eur. Conf. Comput. Vis. (2020) 7. Cheng, K., Li, Z., Sun, X., Min, B.C., Bedi, A.S., Bera, A.: Efficienteqa: An ef-ficient approach to open-vocabulary embodied question answering. In: IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) (2025) 8. Das, A., Datta, S., Gkioxari, G., Lee, S., Parikh, D., Batra, D.: Embodied Question Answering. In: IEEE Conf. Comput. Vis. Pattern Recog. (2018) 9. Feng, T., Wang, X., Jiang, Y.G., Zhu, W.: Embodied ai: From llms to world models. arXiv preprint arXiv:2509.20021 (2025) 10. Ginting, M.F., Kim, D.K., Meng, X., Reinke, A.M., Krishna, B.J., Kayhani, N., Peltzer, O., Fan, D., Shaban, A., Kim, S.K., Kochenderfer, M., Agha-mohammadi, A.a., Omidshafiei, S.: Enter the mind palace: Reasoning and planning for long-term active embodied question answering. In: Proc. Conference on Robot Learning (CoRL) (2025) 11. Huang, A., Yao, C., Han, C., Wan, F., Guo, H., Lv, H., Zhou, H., Wang, J., Zhou, J., Sun, J., Hu, J., Lin, K., Zhao, L., Huang, M., Yuan, S., Qu, W., Wang, X., Lai, Y., Zhao, Y., Zhang, Y., Shi, Y., Chen, Y., Weng, Z., Meng, Z., Li, A., Kong, A., Dong, B., Wan, C., Wang, D., Qi, D., Li, D., Yu, E., Li, G., Yin, H., Zhou, H., Zhang, H., Yan, H., Zhou, H., Peng, H., Zhang, J., Lv, J., Fu, J., Cheng, J., Zhou, J., Yin, J., Xie, J., Wu, J., Zhang, J., Liu, J., Tan, K., Yan, K., Chen, L., Chen, L., Li, M., Zhao, Q., Sun, Q., Pang, S., Fan, S., Shang, S., Zhang, S., You, T., Ji, W., 18 K. Sakamoto et al. Xie, W., Yang, X., Hou, X., Jiao, X., Ren, X., Kong, X., Huang, X., Wu, X., Chen, X., Wang, X., Zhang, X., Wei, Y., Li, Y., Xu, Y., Shen, Y., Peng, Y., Peng, Y., Zhou, Y., Li, Y., Yang, Y., Zhang, Y., Xie, Z., Huang, Z., Lu, Z., Fan, Z., Cheng, Z., Jiang, D., Han, Q., Zhang, X., Zhu, Y., Ge, Z.: Step3-vl-10b technical report. arXiv preprint arXiv:2601.09668 (2026) 12. Jiang, K., Liu, Y., Chen, W., Luo, J., Chen, Z., Pan, L., Li, G., Lin, L.: Beyond the destination: A novel benchmark for exploration-aware embodied question an-swering. In: Int. Conf. Comput. Vis. pp. 9091–9101 (October 2025) 13. Kerbl, B., Kopanas, G., Leimkühler, T., Drettakis, G.: 3D Gaussian splatting for real-time radiance field rendering. ACM Transactions on Graphics (TOG) 42 (4), 1–14 (July 2023) 14. Kerr, J., Hari, K., Weber, E., Kim, C.M., Yi, B., Bonnen, T., Goldberg, K., Kanazawa, A.: Eye, robot: Learning to look to act with a bc-rl perception-action loop. In: Proc. Conference on Robot Learning (CoRL) (2025), http://arxiv.org/ abs/2506.10968 
+
+15. Lai, X., Li, J., Li, W., Liu, T., Li, T., Zhao, H.: Mini-o3: Scaling up reasoning patterns and interaction turns for visual search. In: Int. Conf. Learn. Represent. (2026) 16. Lee, J., Miyanishi, T., Kurita, S., Sakamoto, K., Azuma, D., Matsuo, Y., Inoue, N.: Citynav: Language-goal aerial navigation dataset with geographic information. In: Int. Conf. Comput. Vis. pp. 5912–5922 (October 2025) 17. Li, G., Xu, J., Zhao, Y., Peng, Y.: Dyfo: A training-free dynamic focus visual search for enhancing lmms in fine-grained visual understanding. In: IEEE Conf. Comput. Vis. Pattern Recog. pp. 9098–9108 (June 2025) 18. Li, K., Yao, L., Wu, J., Yu, T., Chen, J., Bai, H., Hou, L., Hong, L., Zhang, W., Zhang, N.L.: Insight-o3: Empowering multimodal foundation models with gener-alized visual search. In: Int. Conf. Learn. Represent. (2026) 19. Liu, S., Zhang, H., Qi, Y., Wang, P., Zhang, Y., Wu, Q.: Aerialvln: Vision-and-language navigation for uavs. In: Int. Conf. Comput. Vis. pp. 15384–15394 (October 2023) 20. Ma, M., Ma, Q., Li, Y., Cheng, J., Yang, R., Ren, B., Popovic, N., Wei, M., Sebe, N., Van Gool, L., et al.: Scenesplat++: A large dataset and comprehensive benchmark for language gaussian splatting. In: Proc. Annual Conference on Neural Information Processing Systems (NeurIPS) (2025) 21. Ma, X., Yong, S., Zheng, Z., Li, Q., Liang, Y., Zhu, S.C., Huang, S.: Sqa3d: Situated question answering in 3d scenes. In: Int. Conf. Learn. Represent. (2023) 22. Majumdar, A., Ajay, A., Zhang, X., Putta, P., Yenamandra, S., Henaff, M., Sil-wal, S., Mcvay, P., Maksymets, O., Arnaud, S., Yadav, K., Li, Q., Newman, B., Sharma, M., Berges, V., Zhang, S., Agrawal, P., Bisk, Y., Batra, D., Kalakrishnan, M., Meier, F., Paxton, C., Sax, S., Rajeswaran, A.: Openeqa: Embodied question answering in the era of foundation models. In: IEEE Conf. Comput. Vis. Pattern Recog. (2024) 23. Qi, Y., Wu, Q., Anderson, P., Wang, X., Wang, W.Y., Shen, C., van den Hengel, A.: Reverie: Remote embodied visual referring expression in real indoor environments. In: IEEE Conf. Comput. Vis. Pattern Recog. (2020) 24. Qi, Y., Wu, Q., Anderson, P., Wang, X., Wang, W.Y., Shen, C., Hengel, A.v.d.: Reverie: Remote embodied visual referring expression in real indoor environments. In: IEEE Conf. Comput. Vis. Pattern Recog. (June 2020) 25. Savva, M., Kadian, A., Maksymets, O., Zhao, Y., Wijmans, E., Jain, B., Straub, J., Liu, J., Koltun, V., Malik, J., Parikh, D., Batra, D.: Habitat: A platform for embodied ai research. In: Int. Conf. Comput. Vis. (October 2019) E3VS-Bench 19 26. Saxena, S., Buchanan, B., Paxton, C., Chen, B., Vaskevicius, N., Palmieri, L., Francis, J., Kroemer, O.: Grapheqa: Using 3d semantic scene graphs for real-time embodied question answering. In: Proc. Conference on Robot Learning (CoRL) (2025) 27. Scarpellini, G., Rosa, S., Morerio, P., Natale, L., Bue, A.D.: Look around and learn: self-improving object detection by exploration. In: Eur. Conf. Comput. Vis. (2024) 28. Shridhar, M., Thomason, J., Gordon, D., Bisk, Y., Han, W., Mottaghi, R., Zettle-moyer, L., Fox, D.: Alfred: A benchmark for interpreting grounded instructions for everyday tasks. In: IEEE Conf. Comput. Vis. Pattern Recog. (June 2020) 29. Su, A., Wang, H., Ren, W., Lin, F., Chen, W.: Pixel reasoner: Incentivizing pixel-space reasoning with curiosity-driven reinforcement learning. In: Proc. Annual Con-ference on Neural Information Processing Systems (NeurIPS) (2025) 30. Torralba, A., Oliva, A., Castelhano, M.S., Henderson, J.M.: Contextual guidance of eye movements and attention in real-world scenes. Psychological Review (2006) 31. Wang, W., Gao, Z., Gu, L., Pu, H., Cui, L., Wei, X., Liu, Z., Jing, L., Ye, S., Shao, J., et al.: Internvl3. 5: Advancing open-source multimodal models in versatility, reasoning, and efficiency. arXiv preprint arXiv:2508.18265 (2025) 32. Wijmans, E., Datta, S., Maksymets, O., Das, A., Gkioxari, G., Lee, S., Essa, I., Parikh, D., Batra, D.: Embodied Question Answering in Photorealistic Environ-ments with Point Cloud Perception. In: IEEE Conf. Comput. Vis. Pattern Recog. pp. 6659–6668 (2019) 33. Wolfe, J.M.: Visual search: How do we find what we are looking for? Annual Review of Vision Science 6, 539–562 (Sep 2020). https://doi.org/10.1146/annurev-vision-091718-015048 
+
+34. Wolfe, J.M., Vo, M.L.H., Evans, K.K., Greene, M.R.: Visual search in scenes in-volves selective and nonselective pathways. Trends in Cognitive Sciences (2011) 35. Wu, P., Xie, S.: V*: Guided visual search as a core mechanism in multimodal llms. In: IEEE Conf. Comput. Vis. Pattern Recog. pp. 13084–13094 (June 2024) 36. Xiong, H., Xu, X., Wu, J., Hou, Y., Bohg, J., Song, S.: Vision in action: Learn-ing active perception from human demonstrations. In: Proc. Conference on Robot Learning (CoRL) (2025) 37. Yang, J., Ren, Z., Xu, M., Chen, X., Crandall, D., Parikh, D., Batra, D.: Embodied amodal recognition: Learning to move to perceive objects. In: Int. Conf. Comput. Vis. pp. 2040–2050 (2019) 38. Yeshwanth, C., Liu, Y.C., Nießner, M., Dai, A.: Scannet++: A high-fidelity dataset of 3d indoor scenes. In: Int. Conf. Comput. Vis. pp. 12–22 (2023) 39. Yin, T., Mei, Z., Sun, T., Zha, L., Zhou, E., Bao, J., Yamane, M., Shorinwa, O., Majumdar, A.: Womap: World models for embodied open-vocabulary object localization. In: Proc. Conference on Robot Learning (CoRL) (2025) 40. Yu, H., Han, Y., Zhang, X., Yin, B., Chang, B., Han, X., Liu, X., Zhang, J., Pavone, M., Feng, C., Xie, S., Li, Y.: Thinking in 360 °: Humanoid visual search in the wild (2025), https://arxiv.org/abs/2511.20351 
+
+41. Zhang, Y.F., Lu, X., Yin, S., Fu, C., Chen, W., Hu, X., Wen, B., Jiang, K., Liu, C., Zhang, T., et al.: Thyme: Think beyond images. arXiv preprint arXiv:2508.11630 (2025) E3VS-Bench 1
+
+A Appendix 
+
+This supplementary material provides additional details that complement the main paper. We describe the dataset construction pipeline, implementation de-tails for E3VS, the prompts used in the E3VS framework, and the evaluation protocol used for VLM-as-a-judge. In addition to this document, we provide the source code, benchmark scripts, a subset of the dataset, and the project page (HTML files) as separate supplementary materials accompanying this submis-sion. 
+
+B Dataset Construction Pipeline Details 
+
+The overall dataset construction pipeline is described in the main paper. In this section, we provide additional details for the stages that involve automated filtering or manual verification, including viewpoint filtering, QA generation, human annotation, initial viewpoint filtering, and counting modification. 
+
+B.1 Viewpoint Filtering and QA Generation 
+
+In Step 2 of the dataset construction pipeline, we filter viewpoints for QA gen-eration following 3D scene curation (Step 1). We retain viewpoints that satisfy the same_object condition, which requires that the target object class is clearly visible in the image rather than ambiguous. Viewpoints that do not satisfy this condition are discarded. This criterion also implicitly removes many invalid view-points, such as those outside the scene or penetrating scene geometry, where the target object cannot be clearly observed. The prompt used for this stage is shown in Fig. 8 and qualitative examples of the viewpoint filtering results are shown in Fig. 9. The filtered images are then provided to the VLM to generate QA candi-dates. The prompt used for QA generation is shown in Fig. 11, and examples of generated QA pairs are presented in Fig. 10. 
+
+B.2 Invalid QA Filtering 
+
+In Step 3 of the dataset construction pipeline, human annotators verify auto-matically generated question–answer (QA) pairs and remove invalid questions. For the remaining valid questions, annotators also correct the associated answers when necessary. 
+
+Annotation Setup. For each QA candidate, annotators are provided with (1) a video capturing the entire scene, (2) the question and its pre-generated answer, (3) candidate viewpoint images around the target object, and (4) the object category of the target instance. 2 K. Sakamoto et al.              
+
+> Prompt for Target Object Visibility Detection.
+> You are an expert in object detection. Please analyze this image and deter-mine if a [OBJECT_CLASS_NAME] is clearly visible in the image. Please answer the following question with only ’Yes’ or ’No’. Is there a [OB-JECT_CLASS_NAME] clearly visible in this image? Important:
+> –Answer “Yes” only if you can clearly see a [OBJECT_CLASS_NAME] in the image
+> –Answer “No” if the [OBJECT_CLASS_NAME] is not visible, partially visible, or unclear
+> –Ignore image quality, lighting, or rendering artifacts - focus only on object visibility. Your answer must be only “Yes” or “No”. Asecond image is provided as abinary mask (white=target, black=background). Use it as additional context.
+> Fig. 8. Prompt for Target Object Visibility Detection.
+
+Invalid QA Filtering. A question is considered valid only if all of the following conditions are satisfied; otherwise the QA pair is removed. 1. Single-View Answerability. The question must be answerable from a sin-gle image observation. Questions requiring multiple viewpoints or lacking sufficient visual evidence are rejected. 2. Question Validity. The description in the question must correctly reflect the attributes or state of the target object. Questions containing incorrect descriptions are rejected. 3. Object Specificity. The question must uniquely identify the target object within the scene. Questions are rejected if multiple similar objects exist and the target cannot be unambiguously determined. 4. Object Centering. The target object should appear near the center of the image. Questions are rejected if the object is outside the frame or located at an extreme boundary. 5. Instance Name Matching. The object referenced in the question must correspond to the annotated instance name of the target object. 6. Image ID Exclusion. Questions must not explicitly refer to image identi-fiers such as “A1” or “A2”. For example: “What is the color of the rectangular frame surrounding the window glass in images A1 and A2?” Answer Correction. After invalid questions are removed, annotators review the pre-generated answers for the remaining QA pairs. If an answer is incorrect, it is revised to reflect the correct observation from the images. Answers are required E3VS-Bench 3   
+
+> Fig. 9. Qualitative examples of viewpoint filtering by the VLM. Accepted viewpoints are highlighted with green bounding boxes, while filtered viewpoints are highlighted with red bounding boxes.
+> Fig. 10. Examples of Generated Question-answer pairs by Gemini 2.5 Flash .
+
+to be concise, objective, and based only on visually observable information. Spec-ulative or inferred descriptions that are not directly supported by visual evidence are not allowed. 
+
+B.3 Viewpoint Labeling 
+
+After QA verification and answer correction, annotators label the candidate viewpoints associated with each question. The goal of this step is to identify which viewpoints allow the question to be answered and to remove physically invalid viewpoints. 
+
+Viewpoint Annotation Setup. For each question, annotators are provided with a set of candidate viewpoint images captured around the target object. Using the corrected question and answer as reference, annotators inspect each viewpoint to determine whether the question can be answered from that image. 4 K. Sakamoto et al. 
+
+Answerable Viewpoint Identification. Annotators identify the subset of view-points from which the question can be correctly answered. A viewpoint is con-sidered answerable if the image provides sufficient visual evidence to determine the answer without relying on additional viewpoints. If multiple viewpoints sat-isfy this condition, all of them are marked as answerable. 
+
+Invalid Viewpoint Identification. Annotators also identify viewpoints that are physically implausible or visually corrupted. Such viewpoints typically occur when the camera position intersects with scene geometry (e.g., objects, walls, or floors), producing severe rendering artifacts such as fog-like occlusions, or when the viewpoint lies outside the valid indoor space. These viewpoints are marked as invalid and excluded from consideration. 
+
+B.4 Penetrated Initial Viewpoint Filtering 
+
+Following Step 5 (answerability filtering), we conduct an additional round of hu-man annotation to remove remaining invalid viewpoints. Although earlier stages include VLM-based filtering and human annotation, we observe that some in-valid viewpoints still remain in the dataset. Annotators inspect the image corresponding to the agent’s initial position of each episode and remove episodes where the viewpoint is invalid (e.g., penetrated viewpoints). Examples of the filtering results are shown in Fig. 12. 
+
+B.5 Counting Modification and Filtering 
+
+Finally, we refine counting questions and remove invalid QA pairs. We observe that many questions in the Counting category contain viewpoint-dependent ex-pressions that do not reflect the actual object structure in the environment. To address this issue, we remove viewpoint-specific phrases such as “visible”, “clearly visible”, “in this view”, and “in the provided images”. For example: 
+
+– Before: How many XXX are clearly visible on YYYY? 
+
+– After: How many XXX are on YYYY? 
+
+This modification reformulates the questions to reflect the structural proper-ties of the target objects rather than a specific viewpoint (Fig. 13). Subsequently, we verify the associated answers automatically. If the answers remain viewpoint-dependent or inconsistent with the object structure, the corresponding QA pairs are filtered out. The prompt used for this filtering process is shown in Fig. 14. 
+
+C Implementation Details 
+
+We report the inference configurations used to evaluate the VLMs in our bench-mark, including decoding settings, reasoning configurations, and output length limits. E3VS-Bench 5
+
+Decoding. All models are evaluated using deterministic decoding with tempera-ture = 0 , i.e., without sampling. However, some models (e.g., GPT 5.1 ) do not allow the temperature to be set to exactly zero via the API. For such models, we use the default decoding configuration provided by the API. 
+
+Reasoning configuration. For Gemini models, we control internal reasoning us-ing the parameter thinking_level. Unless otherwise specified, we use think-ing_level=minimal for Gemini 3.0 , and thinking_level=medium in ablation ex-periments requiring explicit reasoning. For GPT 5.1 , reasoning is controlled via reasoning_effort. By default, we set reasoning_effort=none, while the reasoning ablation setting and the VQA module use reasoning_effort=medium. 
+
+Maximum output tokens. The maximum number of output tokens is configured depending on the model:          
+
+> Model Max output tokens
+> Gemini 2.5 Pro 128
+> Gemini 3.0 Flash 128
+> Gemini 3.0 Pro 256
+> GPT 5.1 128
+> Qwen3-VL-8B 128
+> Qwen3-VL-30B 128
+> InternVL3.5-8B 128
+> Step3-VL-10B 2,048
+
+We use a larger limit for Step3-VL-10B because the model explicitly outputs reasoning traces, which substantially increases the token length. Using a smaller limit may truncate the output before the final action token is produced, which results in frequent fallback actions (e.g., move_forward ) triggered by our excep-tion handling. For Gemini 3.0 Pro , we set the limit to 256 tokens instead of 128. Although the model is instructed to output only discrete actions, it occasionally generates intermediate reasoning text, which may exceed the smaller token limit. 
+
+D E3VS Framework Details 
+
+We report the system and user prompts used in the E3VS framework for VLM-based agents in Fig. 15 and Fig. 16. The system prompt defines the task setting and the expected response format, while the user prompt provides the current observation and the question to be answered. The model is required to produce answers grounded in the visual evidence of the observation image. 6 K. Sakamoto et al. 
+
+E VLM-as-a-judge Details 
+
+Since answers in E3VS-Bench are open-vocabulary, exact string matching is inadequate for evaluation. We therefore adopt a VLM-as-a-judge framework. The judge model receives the question q, predicted answer apred , ground-truth answer agt , the goal image Ogoal , and the agent’s end image Oend . The end image corresponds to the final observation used by the agent to generate its answer, enabling the judge to verify whether the prediction is supported by the available visual evidence. The goal image is additionally provided to account for valid but unannotated answers. In particular, spatial descriptions often admit multiple correct expres-sions (e.g., “next to the chair” or “next to the table”). In some cases, an instance different from the pre-defined target instance may still serve as a valid target object if it leads to the correct answer. To handle such cases, we additionally use the end image for verification. By referencing the goal image, the judge can resolve such ambiguities and treat semantically correct alternatives as valid. The judge outputs a score σ ∈ { 1, 2, 3, 4, 5}, where 1 indicates an incorrect answer and 5 indicates a correct answer. The full prompt used for the judge model is shown in Fig. 17. Compared to OpenEQA, where ground-truth answers typically consist of short phrases or single words, the answers in E3VS-Bench are often longer and contain more descriptive expressions. As a result, semantically correct predic-tions may exhibit greater lexical variation with respect to the reference answers. This characteristic makes exact or near-exact matching more difficult and can naturally reduce the correlation between automated judging and human evalu-ation. In addition, our evaluation protocol requires the judge to verify whether the predicted answer is supported by the available visual evidence in the end image, which further increases the difficulty of automated assessment. Despite these challenges, we observe a moderate correlation (Spearman’s ρ = 0 .54 ), in-dicating that the VLM-based judge still provides a reasonable proxy for human assessment. E3VS-Bench 7
+
+Prompt for Generating Subset Sensitive QAs. 
+
+Reference images A1..A[NUM_OF_IMAGES] follow: Question category descriptions: 
+
+– Object Search : Questions that locate the target object or ask about its position (e.g., ’What is under the table?’ ’Where is the red box?’). 
+
+– Context-guided Search : Questions that infer the target object from functional con-text without naming it explicitly (e.g., ’Where can I wash my hands?’ ’Where could I place dirty dishes?’). 
+
+– Object Attribute : Questions about observable attributes of the object such as color, shape, texture, labels, or count (e.g., ’What color is the lamp?’ ’Does the keyboard have a numeric pad?’). 
+
+– Object State : Questions about the state or condition of the object, including open/-closed, on/off, running/stopped, cluttered/organized, etc. (e.g., ’Is the door closed?’ ’Is the water running?’). 
+
+– Spatial Reasoning : Questions about 3D spatial relationships, relative positions, or comparisons between objects (e.g., ’Which is taller, the speaker or the plant?’). 
+
+– Counting : Questions about the number of objects (e.g., ’How many balls are there on the large wooden desk?’). Object list in this scene: [NUM_OF_THE_INSTANCES] [INSTANCE_CATEGORY], ... (use this list specifically for Context-guided Search). You will see [NUM_OF_IMAGES] images of the same object instance (A1..A[NUM_OF_IMAGES]). Propose creative and diverse questions about the [OBJECT_CATEOGY] only. The goal is to generate a wide variety of questions, covering different aspects of the object. Think about the object’s function, its parts, its relationship to its environment, and any interesting details you can observe. "Questions must be strictly about properties or parts of the target object itself, not the background scene, lighting, camera, reflections, shadows, or other objects. IMPORTANT: Formulate questions that help identify and distinguish this specific target object within a scene. For Context-guided Search questions, focus on the functional use or purpose without explicitly naming the object type. For other question types, include identifying attributes such as: color, size, shape, material, brand, text/labels, specific features, or unique characteristics, OR include spatial or positional context such as: orientation, placement, position relative to other objects, or spatial relationships. For example, for Context-guided Search: ’Where would be the best place to prepare food?’ instead of ’What color is the kitchen counter?’. For other types: ’What color is the cylindrical bottle on the table?’ or ’What brand name is written on the red object?’. Propose questions that can be answered using only a subset of these images (i.e., answerable for some images but not all). Prefer questions relying on view-dependent details (e.g., small logos, text, backside color, connection points, ports, visible buttons). DO NOT create questions about damage, scratches, wear, defects, or any quality issues that might be caused by 3D reconstruction artifacts. For each question, provide the correct answer based on what you can observe in the reference images of the [OBJECT_CATEOGY]. The answer should be concise and factual, describing what is visible in the images where the question is answerable. Generate exactly one question for EACH of the following categories: Object Search ,
+
+Context-guided Search , Object Attribute , Object State , Spatial Reasoning , Counting .Return a strict JSON array ’questions’ with up to 6 items. Each item must include keys: category (one of the listed), question (string), answer (string). No extra text. 
+
+Fig. 11. Prompt for Generating Subset Sensitive QAs. 8 K. Sakamoto et al. 
+
+Fig. 12. Qualitative results of the penetrated viewpoint filtering. Viewpoints are marked red if they are filtered out due to camera penetration through scene geom-etry (e.g., walls or objects). Otherwise, they are marked green to indicate valid initial viewpoints for E3VS. E3VS-Bench 9
+
+Prompt for Counting Question Modification 
+
+You are a dataset construction assistant for a Navigation + VQA benchmark. Your task is to minimally edit counting questions so that they require STRUCTURAL understanding of objects, not surface-level visual counting. IMPORTANT: This is a CONSTRAINED, MINIMAL rewrite task. You must preserve the original question as much as possible. The rewritten question MUST: 
+
+– Remove or replace surface-level, view-dependent words (e.g., “visible”, “clearly visible”, “in this view”) 
+
+– Refer to the total number implied by the object itself 
+
+– Preserve the original sentence structure and wording as much as possible 
+
+– Preserve the original counting target exactly You MAY: 
+
+– Delete unnecessary words or short phrases 
+
+– Replace words with minimal equivalents (e.g., remove “visible”) 
+
+– Add very short phrases like “in total” ONLY if strictly necessary You MUST NOT: 
+
+– Add explanatory phrases such as “based on its structure” 
+
+– Rephrase the entire sentence 
+
+– Introduce new objects or attributes 
+
+– Change the question style or intent 
+
+– Refer to images, viewpoints, or visibility Prefer deletion over addition. If a sentence works after removing view-dependent words, do not add anything. Examples: Original: how many visible hinges are there on the white door? Rewritten: how many hinges are there on the white door? Original: how many distinct horizontal surfaces make up the windowsill in this view? Rewritten: how many distinct horizontal surfaces make up the windowsill? Original: how many words are clearly visible on the spine of the red book? Rewritten: how many words are on the spine of the red book? Rewrite the following counting question to be structure-based. Original question: [QUESTION] Return only the rewritten question. 
+
+Fig. 13. Prompt for Counting Question Modification 10 K. Sakamoto et al. 
+
+Prompt for Filtering Invalid Counting QAs 
+
+You are an expert data curator for a Robot Navigation and Visual Question Answering (VQA) benchmark. Your task is to determine if a counting QA pair is ’valid’ or ’invalid’ based on the relationship between the Image, Question, and Ground Truth (GT) answer. Core Filtering Logic: 
+
+– REJECT: The GT count results from partial visibility, occlusion, or cam-era clipping of a standard object. Example: A sofa clearly has 4 legs, but the camera only captures 1, and GT says "1" → INVALID 
+
+– KEEP: The GT count represents the actual physical structure of the object shown, even if unconventional. Example: A tripod or Y-shaped trash bin physically has 3 legs, all visible/accounted for, and GT says "3" → VALID Detailed Criteria: 1. Occlusion & Clipping Check: 
+
+– Is the object partially hidden by other furniture or clutter? 
+
+– If YES and the GT count is very low (1 or 2) compared to the actual number of common parts, it is likely INVALID 2. Structural Plausibility: 
+
+– For the specific object in the image, is the GT count physically plau-sible for a complete product? 
+
+– Trash bins, stools, or side tables often have 3 legs → This is VALID 
+
+– Large sofas, heavy cabinets, or standard dining chairs with only 1-2 legs → INVALID (unless wall-mounted, which is rare) 3. Ambiguity Check: 
+
+– If a human looking at the image would say "There are probably more parts hidden," but GT gives a low count, the task is poor quality →
+
+INVALID Please respond with only ’valid’ or ’invalid’. Question: [QUESTION] GT Answer: [ANSWER] 
+
+Fig. 14. Prompt for Filtering Invalid Counting QAs. E3VS-Bench 11 
+
+System Prompt for Embodied 3D Visual Search 
+
+You are an agent controlling a camera in a 3D environment. Your goal is to navigate to the best viewpoint to answer the user’s question about the scene. The world coordinate system has Z as the up-axis. You will be given your current position, up to 1 recent observation frames (including the current frame). The information is shown in chronological or-der. Note: At the initial viewpoint (step 0), the target object is centered in the view. However, it may be partially or fully occluded by other objects. 
+
+Movement Actions: Based on the user’s question, your state, and the observation(s), choose the next action to reach the best viewpoint. AVAILABLE ACTIONS: move_forward, move_backward, move_left, move_right, move_up, move_down, turn_left, turn_right, look_up, look_down, stop 
+
+– Each ’move’ action translates the camera by 0.25 meters 
+
+– Each ’turn’ or ’look’ action rotates it by 30 degrees 
+
+– Once at an optimal viewpoint, use the ’stop’ action 
+
+– Forward/Backward Movement (move_forward, move_backward): These actions move you along the camera’s view direction (camera coordinate axis), which means you will move up or down if the camera is tilted. OUTPUT FORMAT: Output exactly one action in this format: action: move_forward Example: action: move_forward 
+
+Fig. 15. System prompt for Embodied 3D Visual Search. 
+
+User Prompt for Embodied 3D Visual Search 
+
+Question: ’how many legs support the table?’ Current step: 9 Your current state: 
+
+– Position (X, Y, Z): (1.00, 2.00, 3.00) 
+
+– Last action: move_forward 
+
+– Last action result: Collision occurred. You remained at the same position. 
+
+Fig. 16. User prompt for Embodied 3D Visual Search 12 K. Sakamoto et al. 
+
+System Prompt for VLM-as-a-Judge 
+
+You are a discerning and fair judge evaluating a Vision-Language Model’s performance in a Navigation + VQA task. Your goal is to determine if the Model’s RESPONSE provides a visually grounded and correct answer to the QUESTION. Input Data: 1. END_IMAGE: The actual view seen by the model at the end of navigation. 2. GOAL_IMAGE: The image used to derive the ground-truth answer. 3. QUESTION: The query asked. 4. RESPONSE: The model’s answer. 5. REFERENCE INFO: One example of a correct answer. 
+
+Core Principles 
+
+– Visual Grounding is Paramount: The answer MUST be derived from the END_IMAGE. 
+
+– No Blind Guessing: Even if the RESPONSE matches the REFERENCE INFO, it is incorrect if the object is NOT visible in the END_IMAGE. 
+
+– Object Existence: An object is considered to exist only if it is clearly visible in the END_IMAGE. Do not accept assumptions based on room layout. 
+
+– Reference Semantics: The REFERENCE INFO and GOAL_IMAGE define the type of object expected. The RESPONSE must match this semantic identity (e.g., if Reference is "Chair", "Table" is wrong, even if a table is visible). 
+
+Evaluation Logic 
+
+Step 1: False Negative Check (Strict) 
+
+– If the RESPONSE denies the possibility of answering (e.g., "not possible", "cannot find", "nowhere", "I don’t see"), while the REFERENCE INFO indicates a valid answer: 
+
+→ Score 1 Step 2: Spatial Dimensionality Check (Strict for "Where" questions) 
+
+– If the QUESTION asks for a location: 
+
+• Does the RESPONSE describe the position using 2D image coordinates (e.g., "right side of the image", "bottom corner")? 
+
+• Instead of 3D spatial relationships (e.g., "on the table", "next to the chair")? 
+
+– If yes (uses 2D only): → Score 1 Step 3: Object Existence & Identity Validation (Critical) 
+
+– Identify all objects referenced in the RESPONSE. 
+
+– For each referenced object: 1. Visibility: Is the object clearly and unambiguously visible in the END_IMAGE? (Reject hallucinations or objects inferred from dark/blurry areas). 2. Identity: Does the visual appearance in END_IMAGE match the object name in the RESPONSE? 
+
+• Example Failure: Calling a "Mop" a "Toilet Brush". 
+
+• Example Failure: Calling a "Table" a "Chair". 
+
+• Use GOAL_IMAGE to resolve ambiguity about what the target object looks like. 
+
+– If any referenced object is invisible or misidentified (wrong category): → Score 1 Step 4: Visual & Spatial Consistency Check 
+
+– Verify the spatial relationship (e.g., "on", "under", "next to"). 
+
+– Strict Preposition Check: 
+
+• "Next to" is incorrect if the object is "On" a surface. 
+
+• "Under" is incorrect if the object is "Next to" or "In front of". 
+
+– If the spatial description implies a relationship not supported by the END_IMAGE pixels: → Score 1 Step 5: Final Verdict & Reference Comparison Case A: RESPONSE matches REFERENCE INFO (Word-for-word or exact meaning) E3VS-Bench 13 
+
+– CRITICAL VERIFICATION: Do NOT automatically award 5. 
+
+– Check theEND_IMAGE: Is the object/location described actually visible in the current view? 
+
+• If the object is occluded, out of frame, too dark, or invisible in the END_IMAGE (implying the model guessed correctly by chance or dataset bias): → Score 1 (Blind Guessing) 
+
+• If the REFERENCE INFO itself seems wrong based on the END_IMAGE (anno-tation error) and the model followed it blindly against visual evidence: → Score 1
+
+• If the object is visible and the answer is visually correct: → Score 5 Case B: RESPONSE does NOT match REFERENCE INFO 
+
+– The RESPONSE is a Valid Alternative (Score 5) ONLY if: 1. It refers to objects validated in Step 3 (Clearly visible). 2. It satisfies the same semantic intent as the REFERENCE/GOAL. 
+
+• Acceptable: Synonyms ("Trash can" vs "Bin"), Shape approximations ("Cir-cular" vs "Oval"), Hypernyms ("Furniture" vs "Chair" - if accurate). 
+
+• Unacceptable: Different object categories ("Table" vs "Chair"), contradicting attributes ("Red" vs "Blue"). 3. It is visually consistent with the END_IMAGE. 
+
+– If it fails any of these: → Score 1 
+
+– If it is a valid alternative: → Score 5 
+
+Output Format 
+
+Reasoning: [Explain the score based on the steps above. Explicitly mention if the object was visible in END_IMAGE and if the Identity matched.] Your mark: [Integer from 1 to 5] 
+
+Fig. 17. System Prompt for VLM-as-a-Judge
