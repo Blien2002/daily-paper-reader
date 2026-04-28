@@ -1,0 +1,450 @@
+Title: Instruction-as-State: Environment-Guided and State-Conditioned Semantic Understanding for Embodied Navigation
+
+URL Source: https://arxiv.org/pdf/2604.18223v1
+
+Published Time: Tue, 21 Apr 2026 02:30:16 GMT
+
+Number of Pages: 38
+
+Markdown Content:
+# Instruction-as-State: Environment-Guided and State-Conditioned Semantic Understanding for Embodied Navigation 
+
+Zhen Liu a,b,1 , Yuhan Liu a,b , Jinjun Wang a,b , Jianyi Liu a,b,2 , Wei Song c,Jingwen Fu d,3 
+
+> a
+
+National Key Laboratory of Human-Machine Hybrid Augmented Intelligence, China 
+
+> b
+
+The Institute of Artificial Intelligence and Robotics, Xi’an Jiaotong University, Xian Ning West Road No. 28, Xi’an, 710049, Shaanxi, China 
+
+> c
+
+School of Information Science and Technology, North China University of Technology, 100144, Beijing, China 
+
+> d
+
+Zhongguancun Academy, Zhongguancun, Beijing, 100190, Beijing, China 
+
+Abstract 
+
+Vision-and-Language Navigation requires agents to follow natural-language instructions in visually changing environments. A central challenge is the dynamic entanglement between language and observations: the meaning of instruction shifts as the agent’s field of view and spatial context evolve. However, many existing models encode the instruction as a static global representation, limiting their ability to adapt instruction meaning to the current visual context. We therefore model instruction understanding as an Instruction-as-State variable: a decision-relevant, token-level instruction state that evolves step by step conditioned on the agent’s perceptual state, where the perceptual state denotes the observation-grounded navigation con-text at each step. To realize this principle, we introduce State-Entangled Environment-Guided Instruction Understanding (S-EGIU), a coarse-to-fine framework for state-conditioned segment activation and token-level semantic refinement. At the coarse level, S-EGIU activates the instruction segment whose semantics align with the current observation. At the fine level, it refines the activated segment through observation-guided token grounding 
+
+> 1
+
+E-mail: zhenliu9773@gmail.com. 
+
+> 2
+
+Corresponding author. E-mail: jyliu@xjtu.edu.cn. 
+
+> 3
+
+Project leader. E-mail: fujingwen@bza.edu.cn. 
+
+> arXiv:2604.18223v1 [cs.CV] 20 Apr 2026
+
+and contextual modeling, sharpening its internal semantics under the cur-rent observation. Together, these stages maintain an instruction state that is continuously updated according to the agent’s perceptual state during navi-gation. S-EGIU delivers strong performance on several key metrics, including a +2.68% SPL gain on REVERIE Test Unseen, and demonstrates consistent efficiency gains across multiple VLN benchmarks, underscoring the value of dynamic instruction–perception entanglement. 
+
+Keywords: 
+
+Vision-and-Language Navigation, Instruction Understanding 
+
+1. Introduction 
+
+VLN requires agents to interpret natural-language instructions while op-erating in continuously changing visual environments [1, 2]. To execute an instruction, an agent must ground landmarks, spatial relations, and actions in its real-time visual observations, meaning that the usefulness of each in-struction cue depends on the agent’s perceptual state, which refers to the observation-grounded navigation context at the current step [3, 4]. A cen-tral challenge arises from the dynamic entanglement between instruction and perception: instruction semantics are not interpreted independently of the visual context, but are continuously shaped by what the agent currently sees. An instruction cue becomes meaningful only when its associated scene ele-ments enter view, and its semantic role may shift as visibility and spatial context evolve. However, most existing VLN models [5, 6] encode the en-tire instruction as a static global representation, preventing the model from updating instruction relevance as the agent moves through the environment. This disconnect from the evolving perceptual state hinders the agent’s ability to determine which instruction components are currently applicable. Although prior VLN studies have explored joint text–vision embeddings [7], semantic decomposition [8], and data augmentation through speaker mod-els [9], these approaches all rely on a static, full-instruction representation that remains fixed throughout the navigation trajectory. This assumption contradicts the nature of embodied navigation, where the relevance of each instruction segment depends on the agent’s current observation: a landmark becomes meaningful only when it enters view, directional cues vary with orientation, and spatial relations must be reinterpreted as the environment changes. 2Recent efforts have attempted to mitigate this limitation by incorporat-ing sub-instruction structures. Sub-Instruction Aware VLN [10] decomposes the full instruction into smaller textual segments and models their sequen-tial order, MLANet [5] introduces multi-level attention to highlight phrase-level cues, and the Sub-Instruction and Local Map Relationship Enhanced Model [11] integrates local map priors to strengthen spatial grounding. While these approaches introduce useful structural decomposition, their segmenta-tion and activation mechanisms remain text-driven or map-driven rather than conditioned on the agent’s perceptual state. As a result, sub-instructions may be activated prematurely (before their referents enter view) or may linger after the visual evidence disappears, limiting their ability to track which in-struction fragment is truly relevant under the current viewpoint. Because static or predefined sub-instruction structures cannot adjust to the agent’s evolving observations, existing VLN models fail to reveal which parts of the instruction are currently applicable or when new segments should become active. This mismatch motivates our Instruction-as-State perspective. In-stead of treating the instruction as a fixed sentence embedding, we model in-struction understanding as a dynamic latent state for decision making whose content is updated at each step conditioned on the agent’s perceptual state (i.e., the observation-grounded navigation context). We use the term “state” to emphasize that this instruction representation is trajectory-evolving and decision-relevant, rather than a static textual encoding.  
+
+> Figure 1: Example of dynamic instruction semantics in VLN. At each viewpoint, the agent selects a perceptually relevant sub-instruction (color-coded) and refines its meaning by emphasizing key tokens, illustrating the Instruction-as-State behavior modeled by S-EGIU.
+
+3VLN instructions typically contain multiple navigation steps and targets whose relevance depends on the agent’s current observation. For example, the instruction “ Walk through the bedroom. Through the doorway next to the sink ... ” encodes a sequence of semantics whose relevance depends on the observation-grounded context that defines the perceptual state at different steps (see Fig. 1). As the agent approaches the bedroom, the sub-instruction “Walk through the bedroom ” becomes the currently active instruction seg-ment, while downstream clauses remain inactive until their associated land-marks enter view. Within the active sub-instruction, token-level importance, such as the relevance of “ bedroom ”, also shifts as new visual evidence appears. This sub-instruction-level activation and token-level modulation illustrate the dynamic entanglement between instruction semantics and the agent’s observation-grounded context, demonstrating that instruction meaning can-not remain globally fixed. To address this challenge, we propose the State-Entangled Environment-Guided Instruction Understanding (S-EGIU) framework, which enables the dynamic interaction between instruction state and the agent’s evolving per-ceptual state. Instead of treating the instruction as a fixed, globally rel-evant description, S-EGIU uses real-time perceptual input to identify and update the instruction components that are meaningful at each point along the navigation trajectory. Under this formulation, the instruction is treated as a dynamic latent state variable for decision making rather than a static sentence-level representation. S-EGIU operates in two hierarchical stages: Coarse-Grained Instruction Processing (CGIP) and Fine-Grained Instruction Processing (FGIP). CGIP segments the instruction into structured sub-instructions and activates the one that is most relevant under the agent’s perceptual state, while sup-pressing content whose relevance has not yet emerged. FGIP then performs perception-guided semantic refinement on the active sub-instruction, adjust-ing token-level importance so that spatial references, entities, and directional semantics reflect what the agent currently observes. Through this coarse-to-fine refinement conditioned on the agent’s perceptual state, S-EGIU enables instruction state to evolve naturally with perception, supporting reliable guidance in both seen and unseen environments. We evaluate S-EGIU across three widely used VLN benchmarks—R2R, SOON, and REVERIE—which collectively span short-horizon navigation, long compositional instructions, and object-centric grounding. Across datasets, S-EGIU consistently improves trajectory efficiency while maintaining com-4petitive navigation success against strong baselines. Notably, it achieves strong performance, including a +2.68% SPL gain on REVERIE Test Un-seen, demonstrating the advantage of dynamically updating the instruction state under the perceptual state. The key contributions of this work are summarized as follows: 
+
+• We propose S-EGIU, a framework that models instruction understand-ing as a dynamically evolving process conditioned on the agent’s per-ceptual state, overcoming the limitation of static instruction encodings in VLN. 
+
+• We introduce a coarse-to-fine instruction modeling architecture that operationalizes the Instruction-as-State perspective: CGIP activates the sub-instruction that is most relevant under the perceptual state, while FGIP performs perception-guided refinement of the active sub-instruction. 
+
+• We demonstrate the effectiveness of S-EGIU on R2R, SOON, and REVERIE, achieving consistent efficiency gains while maintaining com-petitive navigation success across these benchmarks, including a +2.68% SPL gain on REVERIE Test Unseen. 
+
+2. Related Work 
+
+2.1. Vision-and-Language Navigation 
+
+Vision-and-Language Navigation (VLN) aims to enable embodied agents to follow natural-language instructions in visually complex indoor environ-ments. Early VLN systems relied on handcrafted visual features and rule-based navigation heuristics, which offered limited generalization to unseen environments. The Room-to-Room (R2R) benchmark [3] shifted VLN to-ward end-to-end learning, enabling neural agents to map natural-language instructions to navigation actions at scale. Subsequent research has ad-vanced VLN from multiple perspectives, including cross-modal grounding, long-horizon reasoning, global planning, and data augmentation. Attention-and memory-based models [12, 13] enhanced grounding by integrating textual semantics with panoramic visual observations. Transformer-based agents and map-centered architectures have further advanced long-horizon reasoning and global planning in VLN [14, 12, 15, 16]. Data augmentation approaches such 5as Speaker Follower [9] further improved grounding by generating synthetic instructions. Recent VLN research has also begun to explore large language models (LLMs) and large vision-language models (LVLMs) for embodied naviga-tion. Representative works such as NavGPT [17], NaVid [18], and NavGPT-2 [19] incorporate foundation-model-based reasoning, multimodal ground-ing, or large-scale visual-language pretraining to enhance navigation deci-sion making. These methods highlight the growing importance of explicit reasoning and general-purpose multimodal representations in VLN, as also summarized in recent survey literature [20]. 
+
+2.2. Instruction Understanding in VLN 
+
+Instruction modeling plays a central role in VLN, and prior work has explored a range of language-encoding strategies aimed at improving cross-modal grounding. Early systems used recurrent networks for sequential in-struction encoding [3], followed by attention-based models that highlight po-tentially relevant phrases within long instructions [26]. Transformer-based encoders [27] improve global reasoning over instruction tokens, while graph-based models [28] capture multi-scale semantic structure to enhance cross-modal grounding. Memory-driven architectures such as Episodic Trans-former [4] and Think-Global, Act-Local [14] further enhance instruction ground-ing by incorporating episodic or persistent contextual memory. Despite these advances in language encoding and cross-modal fusion, many existing VLN methods still rely on globally encoded instruction rep-resentations, without explicitly modeling how instruction relevance evolves with the agent’s perceptual state. Even methods with progress estimation or dynamic attention [12, 26] mainly adjust token importance or cross-modal alignment, rather than explicitly updating instruction semantics as new vi-sual evidence appears during navigation. As a result, they provide limited support for determining which sub-instructions are currently most appli-cable and how their semantic relevance should be updated step by step. Motivated by this limitation, our work explicitly models instruction under-standing under the perceptual state and updates the semantics of relevant sub-instructions accordingly during navigation. 63. Method 
+
+In this section, we first formalize the VLN task and then present our State-Entangled Environment-Guided Instruction Understanding (S-EGIU) frame-work. S-EGIU is built upon the instruction-as-state principle, which treats the instruction not as a fixed text embedding but as an evolving instruc-tion state that is updated in a step-wise manner conditioned on the agent’s perceptual evidence along the trajectory. To operationalize this principle, S-EGIU performs a coarse-to-fine update at every navigation step through two modules: Coarse-Grained Instruction Processing (CGIP), which estimates a clause-relevance distribution under the current visual evidence and activates the most relevant sub-instruction through top-1 routing, and Fine-Grained Instruction Processing (FGIP), which refines the token-level semantics of this activated sub-instruction using current visual evidence. Together, these components produce a dynamically evolving instruction state that supports perception-aligned navigation decisions throughout the trajectory. 
+
+3.1. VLN Task Definition 
+
+VLN requires an embodied agent to navigate in a photorealistic 3D envi-ronment by following a natural-language instruction. Let the instruction be a token sequence I = {w1, . . . , w L}. At each time step t, the agent observes a 36-view panoramic observation and encodes it as a visual feature Vt ∈ RN ×d
+
+(perceptual state), where N denotes the number of visual tokens and d is the hidden dimension, and selects an action at from the set of navigable view-points. The objective is to execute the instruction by producing a trajectory 
+
+τ = ( a1, . . . , a T ) that reaches the target location. 
+
+3.2. State-Entangled Environment-Guided Instruction Understanding 
+
+Building on the Instruction-as-State formulation, S-EGIU updates the instruction state at each navigation step through a two-stage coarse-to-fine procedure (Fig. 2). At each navigation step t, the model maintains a token-level instruction state St−1 ∈ RL×d and the current panoramic observation 
+
+Vt, where L is the instruction length and d is the hidden dimension. The initial state S0 is derived from the full-instruction encoder output. CGIP first performs sub-instruction-level reasoning on the full instruction to esti-mate a clause-relevance distribution under the current observation Vt, and activates the most relevant segment through top-1 routing. FGIP then re-fines the activated segment through perception-guided token grounding and 7Figure 2: Overview of the S-EGIU framework. CGIP estimates a clause-relevance distri-bution under the current visual context and activates the most strongly grounded sub-instruction through top-1 routing. FGIP then applies perception-guided token refinement to update the instruction state, which is passed to the navigation policy. 
+
+contextual encoding, and fuses the refined representation back into the full instruction-state space to obtain the updated instruction state St.For example, in the instruction “ Go to the second-level bedroom with a sink by the door and turn off the lamp above the sink ”, only the latter sub-instruction becomes perceptually grounded when the sink and lamp en-ter view. CGIP identifies this sub-instruction, and FGIP refines its token representations conditioned on the current observation Vt, producing an in-struction state aligned with the agent’s perceptual state. This example also illustrates why panoramic observation is used as the perceptual state: rel-evant landmarks and directional cues may appear across different viewing directions. Potentially irrelevant panoramic context is mitigated by first ac-tivating the grounded sub-instruction in CGIP and then refining only its associated token states in FGIP. Algorithm 1 summarizes the update process and, for readability, presents the inference-time top-1 routing; during train-ing, the same activation is implemented via a straight-through relaxation over the clause-relevance distribution αt.8Algorithm 1: Coarse-to-Fine Instruction-State Update in S-EGIU 
+
+Input: Instruction I, observation Vt, instruction states S0 and St−1
+
+Output: Updated instruction state St 
+
+> 1
+
+Stage 1: CGIP  
+
+> 2
+
+Sub-Instruction Generator:  
+
+> 3
+
+C ← Segment( I) 
+
+> 4
+
+ˆC ← RefineSeg( C) 
+
+> 5
+
+Sub-Instruction Picker:  
+
+> 6
+
+r ← Score(CrossAttn( S0, V t))  
+
+> 7
+
+ϕt,k ← P 
+
+> i∈Tk
+
+wt(i) ri 
+
+> 8
+
+αt ← softmax( ϕt), 
+
+> 9
+
+k∗ ← arg max k αt,k  
+
+> 10
+
+Stage 2: FGIP  
+
+> 11
+
+Instruction Refiner:  
+
+> 12
+
+˜T ← CrossAttn( St−1[Tk∗ ], V t) 
+
+> 13
+
+ˆRt ← Trans( ˜T ) 
+
+> 14
+
+Rt ← Scatter( ˆRt, T k∗ ) 
+
+> 15
+
+Fusion:  
+
+> 16
+
+St ← St−1 + g ⊙ (Rt − St−1) 
+
+> 17
+
+return St
+
+3.3. Instruction-as-State Formulation 
+
+We formulate instruction understanding as the step-wise update of an evolving instruction state conditioned on the agent’s perceptual state along the trajectory. Let S0 ∈ RL×d denote the initial instruction state derived from the full instruction I. At each navigation step t, the agent observes a panoramic visual feature Vt and updates the previous instruction state St−1
+
+to a new state St via 
+
+St = f (St−1, S 0, I, V t). (1) The update function consists of two operations: (i) identifying which sub-instruction is currently relevant under the observation, and (ii) refining its token-level semantics based on perceptual state. To describe these opera-tions, we denote by CrossAttn( X, Y ) a cross-attention operation in which X
+
+provides the queries and Y provides the keys and values. Accordingly, we 9decompose the step-wise update into a coarse-to-fine structure: 
+
+Tk∗ = fCGIP (S0, I, V t), (2) 
+
+St = fFGIP (St−1, T k∗ , V t). (3) Here, Tk∗ denotes the token index set of the sub-instruction activated by CGIP. CGIP operates on the initial instruction state S0 as a stable seman-tic anchor for coarse clause-level selection. We intentionally avoid using the evolving state St−1 in this stage, because early grounding errors may accu-mulate over time and progressively bias subsequent coarse sub-instruction activation. In contrast, FGIP operates on the previous-step state St−1 to perform observation-conditioned fine-grained refinement within the activated segment and fuse it back into the full instruction state. This coarse-stable and fine-adaptive decomposition improves robustness while preserving dynamic instruction-state evolution. This formulation establishes the theoretical foundation of S-EGIU: in-struction semantics are represented as a state that evolves with the agent’s viewpoint, rather than as a fixed text embedding, enabling dynamic entan-glement between instruction interpretation and real-time perception. 
+
+3.4. Coarse-Grained Instruction Processing 
+
+VLN instructions are often compositional, containing multiple seman-tic clauses whose relevance depends on the agent’s perceptual state. CGIP serves as the first stage of the Instruction-as-State hierarchy and produces a coarse structural prior by estimating a clause-relevance distribution under the current visual observation and activating the most strongly grounded sub-instruction at step t. By filtering out perceptually invalid or inactive clauses, CGIP reduces the semantic hypothesis space and establishes a grounded structural scaffold for the fine-grained refinement executed by FGIP. 
+
+Sub-Instruction Generator. Given the full instruction I, CGIP first con-structs a structured set of candidate semantic units through a two-stage segmentation procedure. The goal is to recover clause-level navigation steps that align with the instruction’s underlying temporal and spatial structure. 
+
+Rule-based coarse segmentation. We begin with a lightweight rule-based clause detector, 
+
+C = {Ck}mk=1 = Segment( I), (4) 10 where {Ck}mk=1 denotes the initial set of coarse instruction clauses produced by the rule-based segmentation module. The segmentation module identi-fies candidate boundaries associated with common navigational conjunctions (e.g., “and”, “then”, “after”) and structural markers such as punctuation. This step captures high-level semantic transitions typically found in VLN instruc-tions, yielding an initial set of coarse clauses. However, real-world instruc-tions exhibit diverse syntactic patterns, and conjunctions may appear inside descriptive phrases (e.g., “the room with a table and a chair”), causing over-segmentation or missed boundaries. 
+
+Learnable boundary refinement. To obtain segments that more faith-fully correspond to true navigation subgoals, we introduce a learnable refine-ment module: ˆC = { ˆCk} ˆmk=1 = RefineSeg( C). (5) Let the instruction I contain L tokens. The coarse candidate set C pro-duced by Segment induces an initial boundary set B(0) ⊆ { 1, . . . , L − 1},where each boundary position i denotes the gap between the i-th and (i + 1) -th tokens. Based on this coarse segmentation, RefineSeg re-evaluates each inter-token candidate boundary position and predicts a refined boundary confidence as 
+
+ˆbi = σ MLP([ hi; hi+1 ; pi; ψi ]) , i = 1 , . . . , L − 1, (6) 
+
+ˆB = { i | ˆbi > δ b, i = 1 , . . . , L − 1 }, (7) 
+
+ˆC = Split( I, ˆB), ˆm = | ˆB| + 1 , (8) where hi and hi+1 are the contextualized representations of the two neigh-boring tokens from the instruction encoder, pi = 1[i ∈ B (0) ] is the coarse boundary prior induced by C, 1[·] denotes the indicator function, and ψi is a local semantic coherence cue derived from neighboring token representa-tions. Here, δb is a fixed boundary threshold, ˆB is the set of predicted refined boundary positions, and Split( ·) partitions the instruction token sequence according to these boundary positions to form the refined candidate set ˆC,where ˆm is the number of refined sub-instructions. By jointly considering these signals, RefineSeg suppresses spurious rule-based boundaries and recovers missing boundaries when the semantics in-dicate a genuine shift in navigational intent. The module does not require explicit boundary annotations. Instead, the boundary scorer is learned from 11 the same training data as the navigation model, with the rule-based bound-aries providing coarse structural priors and the downstream navigation ob-jective encouraging task-relevant boundary refinement. This yields a refined and semantically coherent candidate set ˆC, which is passed to the subsequent sub-instruction selection stage in Algorithm 1. 
+
+Sub-Instruction Picker. To determine which refined sub-instruction is cur-rently grounded in the visual observation, CGIP evaluates the perceptual rel-evance of each candidate. We first compute token–region alignment via multi-head cross-attention between the initial instruction state and the panoramic visual feature: 
+
+r = Score(CrossAttn( S0, V t)) , (9) where S0 provides the queries and Vt provides the keys and values. Let Ut =CrossAttn( S0, V t) denote the resulting cross-attended token representations. We then instantiate Score( ·) as a lightweight token-wise predictor applied to 
+
+Ut:
+
+r = σ(UtWr + br), (10) where Wr ∈ Rd×1 and br ∈ R are learnable parameters and σ(·) is the sigmoid function. This yields a token-wise visual relevance vector r ∈ [0 , 1] L, where the scalar ri measures how strongly token i is grounded under the current observation Vt.For each refined sub-instruction ˆCk, let Tk ⊆ { 1, . . . , L } denote the set of token positions belonging to ˆCk. We aggregate the token-wise relevance scores {ri | i ∈ Tk} with step-dependent weighting to obtain a state-conditioned groundedness score: 
+
+ϕt,k = X
+
+> i∈Tk
+
+wt(i) ri, (11) where ϕt,k measures how strongly the semantics of ˆCk are supported by the current observation Vt. Here, wt(i) is a clause-wise normalized token-importance weight computed at step t, which modulates each token’s con-tribution when aggregating token groundedness into the segment-level score 
+
+ϕt,k . Intuitively, even within a candidate clause, only a subset of tokens is in-formative under the current observation (e.g., landmarks or spatial relations), while others contribute less. In implementation, we derive wt(i) from the cross-attended token representations Ut introduced above. Specifically, we compute an unnormalized token importance score ˜wt(i) = exp(MLP w(Ut[i])) 
+
+12 and normalize it within each candidate sub-instruction: 
+
+wt(i) = ˜wt(i)
+
+P 
+
+> j∈Tk
+
+˜wt(j) (i ∈ Tk), (12) so that wt(i) ∈ (0 , 1) and P 
+
+> i∈Tk
+
+wt(i) = 1 . This within-clause normalization stabilizes the groundedness aggregation and emphasizes the most informa-tive tokens when computing ϕt,k , and it is used only for within-step clause aggregation rather than any across-step temporal smoothing. The clause-relevance distribution is computed as 
+
+αt = softmax( ϕt), (13) where ϕt = [ ϕt, 1, . . . , ϕ t, ˆm] ∈ R ˆm denotes the clause-score vector, and αt ∈
+
+∆ ˆm−1 is the resulting differentiable clause-relevance distribution. During training, we adopt a straight-through top-1 routing strategy: the forward pass uses 
+
+k∗ = arg max  
+
+> k
+
+αt,k , (14) to preserve discrete active-clause reasoning in FGIP, while gradients are back-propagated through αt,k . During inference, we use the same top-1 routing without the straight-through gradient estimator. The activated ˆCk∗ defines the coarse structural prior by retaining only per-ceptually supported content while suppressing inactive or irrelevant clauses. Equivalently, CGIP outputs the token index set Tk∗ and its corresponding token mask, which together serve as the structural prior for the fine-grained semantic refinement in FGIP. 
+
+3.5. Fine-Grained Instruction Processing 
+
+While CGIP identifies which sub-instruction is perceptually grounded at step t, the tokens within that sub-instruction do not contribute equally to navigation. Landmarks, directional terms, and spatial relations become more informative once their visual referents are observed, whereas less grounded tokens should contribute less to the state update. FGIP performs this state-conditioned token refinement, transforming the selected sub-instruction into a visually grounded instruction-state update whose internal emphasis adapts to the agent’s moment-to-moment perceptual state. 13 Instruction Refiner. Let St−1 denote the instruction state from the previ-ous navigation step, and let Tk∗ denote the token indices corresponding to the sub-instruction selected by CGIP. FGIP first performs token-level visual grounding to determine which words in Tk∗ are semantically active under the current observation Vt. Multi-head cross-attention integrates linguistic and visual features: ˜T = CrossAttn( St−1[Tk∗ ], V t), (15) producing visually modulated token embeddings. Here, St−1[Tk∗ ] ∈ R|Tk∗ |× d
+
+denotes the token states at the positions selected by CGIP and serves as the query, while the panoramic visual feature Vt provides the keys and values. This operation allows tokens whose visual referents appear in the scene (e.g., “sink”, “hallway”, “left”) to receive strong activation, while tokens lacking visual grounding are naturally suppressed. Although cross-attention establishes token–region alignment, the inter-nal structure of the selected sub-instruction (e.g., modifier relations, phrase boundaries, and compositional semantics) must also be preserved. We there-fore apply a lightweight Transformer encoder to the selected token states: 
+
+ˆRt = Trans( ˜T ), (16) where ˆRt ∈ R|Tk∗ |× d denotes the refined representation of the selected sub-instruction after local contextual modeling. To integrate this refined segment back into the instruction state, we scatter it to the original token positions: 
+
+Rt = Scatter( ˆRt, T k∗ ), (17) where Rt ∈ RL×d is the full-state representation whose entries are updated only at the selected token positions and remain unchanged elsewhere. This refinement branch is optimized jointly with the downstream navigation ob-jective, so that gradients from action prediction encourage the two-step update to produce a representation that jointly captures fine-grained per-ceptual grounding and the internal linguistic coherence of the selected sub-instruction. 
+
+State Update via Gated Fusion. FGIP incorporates the refined sub-instruction representation into the instruction state using a gated residual update: 
+
+St = St−1 + g ⊙ (Rt − St−1), (18) 14 where g ∈ (0 , 1) L×d is a learnable element-wise gate that adaptively controls how much the refined representation updates each token state. In implemen-tation, we compute g token-wise from the previous instruction state and the refined representation: 
+
+g = σ(MLP g([LN( St−1); LN( Rt)])) , (19) where [·; ·] denotes concatenation along the feature dimension, LN( ·) is Lay-erNorm, and MLP g is a two-layer MLP. Intuitively, tokens with strong per-ceptual support receive larger updates, while tokens with weak or ambiguous evidence remain close to their previous values. This gated fusion mechanism prevents semantic drift, maintains stabil-ity across navigation steps, and ensures that the instruction state evolves only when justified by the current observation. Through this refinement-and-update pipeline, FGIP produces a viewpoint-aligned, state-conditioned instruction representation for downstream navigation decisions. 
+
+3.6. Training Objective 
+
+S-EGIU is trained end-to-end using a hybrid imitation learning (IL) and reinforcement learning (RL) objective. IL provides short-horizon supervision that stabilizes the instruction–state update process, while RL optimizes long-horizon navigation performance through interaction with the environment. 
+
+Imitation Learning. IL supervises decision making using teacher-forced cross-entropy. Under the straight-through clause routing described in CGIP, gradi-ents from teacher-forced action prediction propagate through both FGIP and the clause-relevance distribution in CGIP, thereby providing end-to-end su-pervision for coarse sub-instruction activation and fine-grained token ground-ing. This encourages the coarse-to-fine instruction state to remain consistent with the oracle trajectory and the agent’s perceptual state. 
+
+Reinforcement Learning. RL is implemented using an Advantage Actor–Critic (A2C) objective, which encourages policies that yield high navigation re-wards. The instruction state produced by CGIP and FGIP serves as part of the policy input, allowing RL to further optimize how instruction semantics evolve under long-horizon interaction beyond teacher-forced demonstrations. 15 Overall Loss. The model is optimized with a weighted combination of the IL and RL terms: 
+
+L = LRL + λ LIL , (20) where λ controls the strength of the supervised signal. This hybrid training objective ensures both stability during early learning and strong performance in long-horizon, dynamically grounded navigation. 
+
+4. Experiments 
+
+We evaluate S-EGIU on three widely used VLN benchmarks: R2R, SOON, and REVERIE. Together, they cover short-horizon navigation, long compo-sitional instructions, and object-centric grounding. These datasets provide complementary challenges for assessing state-conditioned instruction model-ing under diverse navigation settings, including evolving semantic relevance, viewpoint dependence, and fine-grained visual grounding. All experiments follow standard VLN evaluation protocols and compare against representa-tive and competitive prior VLN methods. For several mechanism families not originally reported under our REVERIE protocol, we additionally provide controlled DUET-based plug-in comparisons to contextualize representative mechanism families under the same backbone. 
+
+4.1. Datasets 
+
+R2R [3] contains short, concise navigation instructions paired with rela-tively simple trajectories. It primarily evaluates fine-grained grounding abil-ity and generalization to unseen environments, providing a clean setting to assess instruction grounding and generalization under short-horizon semantic transitions. SOON [38] features long-horizon navigation trajectories with multi-step, compositional instructions. Semantic relevance shifts significantly as the agent progresses, making SOON a challenging benchmark for evaluating in-struction modeling under long-horizon perceptual and semantic changes. REVERIE [33] augments navigation with object-centric grounding: the agent must localize target objects specified in the instruction after reaching the goal region. This requires precise token-level grounding and percep-tual disambiguation, making it a strong testbed for fine-grained instruction grounding and perceptual disambiguation. 16 4.2. Evaluation Metrics 
+
+We adopt standard VLN evaluation metrics to assess both navigation suc-cess and path efficiency. Success Rate (SR) measures whether the agent stops within the target region, while Oracle Success Rate (OSR) reports whether the agent reaches the success radius at any point during the trajectory. Tra-jectory Length (TL) evaluates the path length, and Success weighted by Path Length (SPL) combines success with path optimality. For SOON, we additionally report Relative Goal SPL (RGSPL), which reflects goal proximity while penalizing inefficient trajectories. Together, these metrics provide a comprehensive evaluation of navigation success, path efficiency, and progress toward the goal. 
+
+4.3. Implementation Details 
+
+We adopt DUET [14] as the base model because its modular and repro-ducible architecture facilitates controlled evaluation of the proposed state-conditioned instruction updates. Compared with larger foundation-model-based systems, DUET provides a cleaner setting for isolating mechanism-level contributions in ablations and comparative studies. All experiments are implemented in PyTorch and trained on NVIDIA RTX 3090 GPUs. We optimize S-EGIU using Adam with a learning rate of 
+
+1 × 10 −5 for 20k steps. Early stopping is applied based on validation SPL, and the final model is chosen according to the best unseen-validation perfor-mance. Unless otherwise stated, we follow DUET’s original dataset-specific training recipe and keep the optimization setting aligned with the corre-sponding DUET baseline for fair comparison. Following the standard DUET setting, we use pre-extracted frozen ViT-B/16 panoramic visual tokens as the perceptual input Vt for the coarse-to-fine instruction-state updates. All experiments follow standard VLN evaluation protocols to ensure fair and consistent comparison with previous methods. 
+
+Controlled plug-in baselines. To contextualize the proposed state-conditioned instruction updates against representative mechanism families in recent VLN research, we implement controlled plug-ins within the same DUET backbone [14], inspired by compact memory, exploration/backtracking, retrieval memory, planning priors, and coarse-to-fine grounding, following MapNav, E2BA, VLMaps, iPPD, and C2F-VG, respectively [29, 39, 40, 41, 42]. Since these methods are not all originally reported under the exact REVERIE protocol used in this paper, and their full systems may introduce 17 additional modules or assumptions that are not directly comparable, we dis-till only the core mechanism of each family into the same DUET framework for a controlled comparison. All plug-ins therefore share the same perceptual input (frozen ViT-B/16 panoramic tokens), training schedule, and evalua-tion scripts as DUET, while excluding additional system assumptions such as external mapping, external planners, or extra supervision. The full im-plementation scope and default settings are provided in the supplementary material. 
+
+4.4. Main Results 
+
+We first report the main benchmark results on REVERIE, R2R, and SOON in Tables 1, 2, and 3, respectively. We then provide two addi-tional analyses to further contextualize the proposed mechanism: a controlled DUET plug-in comparison on REVERIE and a backbone transfer study on R2R. Definitions of the controlled plug-ins, their default settings, the full REVERIE plug-in results, and the extended backbone transfer results are provided in the supplementary material. 
+
+Results on REVERIE. Table 1 shows that S-EGIU consistently im-proves trajectory efficiency over strong baselines on the challenging object-centric REVERIE benchmark. On Val Unseen, S-EGIU improves SR (48.37%) and SPL (35.70%) over DUET (46.98% SR, 33.73% SPL), indicating more accurate instruction-conditioned decisions under unseen environments. On Test Unseen, S-EGIU achieves the best SPL (38.74%), demonstrating more efficient navigation while maintaining competitive OSR/SR compared with DUET. 
+
+Controlled plug-in comparison on REVERIE. Table 1 shows that, under the same DUET backbone and matched training/evaluation proto-col, different mechanism families yield clearly different gains. In particular, planning-prior and coarse-to-fine grounding plug-ins are more effective than compact-memory or retrieval-style variants on unseen splits. Compared with these controlled plug-ins, our method achieves the best SPL on both Val Unseen and Test Unseen (35.70 and 38.74), while also reducing trajectory length from 22.11 to 21.06 and from 21.59 to 17.53, respectively. These re-sults suggest that, under a fixed backbone, the main benefit of our method lies not in adding an auxiliary mechanism alone, but in improving decision efficiency through state-conditioned instruction updates. 
+
+Results on R2R. Table 2 presents results on R2R, which focuses on con-cise instruction-following. On Val Unseen, S-EGIU improves SR (74%) and 18 Table 1: REVERIE results on Val Seen, Val Unseen, and Test Unseen. Beyond stan-dard baselines, we additionally report five controlled plug-in variants instantiated in the same DUET backbone [14], corresponding to representative mechanism families inspired by MapNav [29], E2BA [39], VLMaps [40], iPPD [41], and C2F-VG [42]. Methods marked with † are our distilled mechanism-level plug-ins evaluated under the REVERIE protocol, rather than the original full systems reported in their respective papers; detailed imple-mentation scope and default settings are provided in the supplementary material.                                                                                                                                                                    
+
+> Val Seen Val Unseen Test Unseen Model TL (↓)OSR (↑)SR (↑)SPL (↑)TL (↓)OSR (↑)SR (↑)SPL (↑)TL (↓)OSR (↑)SR (↑)SPL (↑)Seq2Seq [3] 12.88 35.70 29.59 24.01 11.07 8.07 4.20 2.84 10.89 6.88 3.99 3.09 SMNA [7] 7.54 43.29 41.25 39.61 9.07 11.28 8.15 6.44 9.23 8.39 5.80 4.53 RecBERT [36] 13.44 53.90 51.79 47.96 16.78 35.02 30.67 24.90 15.86 32.91 29.61 23.99 HAMT [37] 12.79 47.65 43.29 40.19 14.08 36.84 32.95 30.20 13.62 33.41 30.40 26.67 DUET [14] 13.86 73.86 71.75 63.94 22.11 51.07 46.98 33.73 21.59 59.61 52.51 36.06 MapNav †[29] 13.28 71.75 70.13 63.16 21.15 50.33 47.12 33.76 19.42 56.21 51.86 36.58 E2BA †[39] 12.68 70.91 69.78 63.57 20.74 49.84 45.98 34.68 18.97 55.63 50.42 37.11 VLMaps †[40] 14.23 73.44 71.40 62.57 22.30 51.26 47.03 34.10 20.41 56.84 51.79 36.72 iPPD †[41] 13.91 74.70 72.17 63.76 22.37 53.22 48.99 34.81 20.26 58.11 53.36 37.48 C2F-VG †[42] 13.41 74.42 72.61 64.53 21.10 52.43 48.31 34.83 19.28 57.66 52.91 37.63
+> Ours 11.93 76.32 74.91 71.05 21.06 52.15 48.37 35.70 17.53 54.63 51.92 38.74
+
+Table 2: Performance comparison on the R2R dataset for the Val Unseen and Test Unseen splits. 
+
+Val Unseen Test Unseen Model TL (↓) NE (↓) SR (↑) SPL (↑) TL (↓) NE (↓) SR (↑) SPL (↑)Seq2Seq [3] 8.39 7.81 22 - 8.13 7.85 20 18 RecBERT [36] 12.01 3.93 63 57 12.35 4.09 63 57 HAMT [37] 11.46 2.29 66 61 12.27 3.93 65 60 DUET [14] 13.94 3.31 72 60 14.73 3.65 69 59 
+
+Ours 13.33 3.37 74 61 13.96 3.43 68 60 
+
+SPL (61%) over DUET (72% SR, 60% SPL), while reducing trajectory length (13.33 vs. 13.94). Navigation error remains comparable (3.37 m vs. 3.31 m), suggesting that the main benefit on R2R lies in more efficient execution and a higher success rate rather than a uniformly lower endpoint error. On Test Unseen, S-EGIU achieves the highest SPL (60%) and competitive SR (68%), indicating improved path efficiency with competitive generalization in unseen environments. 
+
+Results on SOON. Table 3 reports results on SOON, a long-horizon benchmark characterized by multiple sub-instructions and frequent context transitions. On the Val Unseen split, S-EGIU attains comparable SR (35.69%) to DUET while achieving higher SPL (24.95% vs. 22.58%) and a shorter TL (33.10 vs. 36.20), indicating more efficient path execution. A similar pattern holds on Test Unseen, where S-EGIU improves SPL (23.61%) and substan-19 Table 3: Performance comparison on the SOON dataset for Val Unseen and Test Unseen splits.                                                    
+
+> Val Unseen Test Unseen Model TL (↓)OSR (↑)SR (↑)SPL (↑)RGSPL (↑)TL (↓)OSR (↑)SR (↑)SPL (↑)RGSPL (↑)GBE [38] 28.96 28.54 19.52 13.34 1.16 27.88 21.45 12.90 9.23 0.45 DUET [14] 36.20 50.91 36.28 22.58 3.75 41.83 43.00 33.44 21.42 4.17 Ours 33.10 47.17 35.69 24.95 3.47 37.37 40.82 31.76 23.61 3.95
+
+Table 4: Generalization of S-EGIU across different backbones on R2R. We report Val Seen and Val Unseen results under matched within-backbone protocols. ∆SR and ∆SPL denote absolute gains over the corresponding baseline.                                                                                                                      
+
+> Val Seen Val Unseen Model TL (↓)NE (↓)SR (↑)∆SR SPL (↑)∆SPL TL (↓)NE (↓)SR (↑)∆SR SPL (↑)∆SPL
+> DUET[14] 12.32 2.28 79 –73 –13.94 3.31 72 –60 –DUET + S-EGIU 12.00 2.24 81 +2 75 +2 13.33 3.37 74 +2 61 +1 NavGPT2 [19] 12.44 2.97 73 –65 –12.81 3.33 70 –59 –NavGPT2 + S-EGIU 12.05 2.88 75 +2 67 +2 12.30 3.22 72 +2 60 +1 HAMT[37] 11.15 2.51 76 –72 –11.46 2.29 66 –61 –HAMT + S-EGIU 10.95 2.42 77 +1 73 +1 11.20 2.24 67 +1 62 +1 VLN-GOAT[43] 11.90 1.79 84 –79 –12.40 2.40 78 –68 –VLN-GOAT + S-EGIU 11.74 1.74 85 +1 80 +1 12.20 2.34 79 +1 69 +1
+
+tially reduces TL (37.37 vs. 41.83). These results suggest that the proposed state-conditioned instruction updates are particularly beneficial for path ef-ficiency under SOON’s long, semantically layered instructions. 
+
+Backbone transfer on R2R. Unlike Table 2, which compares against published methods on the standard benchmark splits, Table 4 examines whether the proposed mechanism transfers consistently across heterogeneous backbones under matched within-backbone protocols. Specifically, beyond DUET, we integrate S-EGIU into three additional representative backbones, namely NavGPT2, HAMT, and VLN-GOAT, and report results on R2R because its training and evaluation pipeline is comparatively standardized across codebases, enabling cleaner protocol matching for cross-backbone in-tegration. REVERIE is instead used in our main study to stress-test object-centric grounding, whereas its dataset-specific grounding heads and evalua-tion scripts could otherwise introduce additional confounds in cross-backbone comparisons. Table 4 shows that S-EGIU consistently improves SR and SPL across all tested backbones on both Val Seen and Val Unseen. Averaged over the four backbones, the gains are +1.5 SR / +1.5 SPL on Val Seen and +1.5 SR / +1.0 SPL on Val Unseen. Trajectory length is reduced in all eight 20 Table 5: Ablation study on the REVERIE dataset, evaluating the impact of CGIP and FGIP.                                              
+
+> Val Seen Val Unseen CGIP FGIP TL (↓)OSR (↑)SR (↑)SPL (↑)TL (↓)OSR (↑)SR (↑)SPL (↑)
+> ✓✗10.83 74.28 72.96 70.78 22.07 51.71 47.47 34.11
+> ✗✓14.40 76.97 73.01 68.56 22.90 51.25 47.92 33.95
+> ✓✓11.93 76.32 74.91 71.05 21.06 52.15 48.37 35.70
+
+comparisons, and NE is improved in seven of them, with only a minor degra-dation on DUET Val Unseen (3.31 to 3.37). Although the absolute gains are moderate, their consistency across substantially different backbones provides direct evidence that the proposed state-conditioned instruction updates are transferable rather than DUET-specific. In summary, S-EGIU consistently improves trajectory efficiency while maintaining competitive navigation success across diverse VLN benchmarks and heterogeneous backbones, supporting the effectiveness of state-conditioned instruction updates. 
+
+4.5. Ablation Study and Visualization 
+
+Ablation Study. To assess the contribution of each component in S-EGIU, we conduct ablation experiments on REVERIE, evaluating three con-figurations: (1) CGIP-only, (2) FGIP-only, and (3) the full model with both CGIP and FGIP. Results on the Val Seen and Unseen splits are reported in Table 5. CGIP-only mainly improves trajectory efficiency, indicating that selecting the perceptually relevant sub-instruction helps reduce semantic ambiguity and supports more stable navigation decisions. FGIP-only mainly improves success-oriented metrics among the single-component variants, suggesting that token-level refinement particularly ben-efits local grounding quality at each step. Combining CGIP and FGIP yields the best overall performance, confirm-ing that the two modules are complementary: CGIP provides a structured sub-instruction prior, while FGIP performs fine-grained semantic refinement within the active segment. We focus this ablation on the two core modules while keeping all other settings unchanged. More fine-grained design variations, such as alternative 21 Figure 3: Visualization of S-EGIU’s state-conditioned instruction understanding. Panoramic observations (left) reflect the agent’s evolving perceptual state, while the top-down map (right) shows the executed trajectory. The instruction is decomposed into color-coded sub-instructions, with perception-relevant tokens highlighted. This visualiza-tion illustrates how S-EGIU selects the perceptually valid sub-instruction and refines its token semantics to maintain alignment with the dynamic visual context. 
+
+gating or temporal weighting schemes, remain interesting directions for future study. 
+
+Visualization. Fig. 3 qualitatively illustrates how S-EGIU updates instruction understanding in response to changing perceptual input. The panoramic observations reflect the evolving perceptual state, the color-coded instruction segments indicate which sub-instruction is currently activated, and the highlighted tokens show how FGIP refines the active segment ac-cording to the current environment. Together with the top-down trajectory, the figure demonstrates how state-conditioned instruction updates translate into more coherent and efficient navigation behavior. Overall, the visualization illustrates how S-EGIU adaptively activates and refines instruction content in response to changing perceptual state. 
+
+4.6. Error Analysis in Unseen Environments 
+
+Although S-EGIU achieves strong overall performance, its gains are gen-erally smaller on unseen environments than on seen splits. Qualitative inspec-22 Figure 4: A representative failure case on the R2R dataset. The agent (blue trajectory) follows the instruction correctly until the final step, where it misidentifies the correct doorway (ground-truth shown in red). Colored and intensity-varied sub-instructions reflect the model’s evolving internal instruction state and token importance. 
+
+tion suggests two plausible contributors to this gap, and the representative failure case below illustrates how such mismatches arise in practice. First, unseen scenes introduce novel object layouts, visual appearances, and room topologies, which can disrupt the clause-selection stage in CGIP. When expected landmarks or spatial cues do not appear in the anticipated form or location, the model may activate a visually mismatched sub-instruction. Since subsequent refinement is conditioned on the selected clause, such early-stage selection errors can propagate to later updates. Second, FGIP relies on panoramic visual cues to refine the selected sub-instruction at the token level. Under substantial cross-environment shifts in geometry, appearance, or lighting, the alignment between projected visual features and language tokens may become less reliable, leading to suboptimal refinement and less effective navigation decisions. These observations suggest that improving robustness to cross-environment perceptual mismatch remains important for unseen generalization. Future extensions may incorporate domain-invariant priors or uncertainty-aware weight-ing to stabilize clause activation and refinement under visual distribution shift. 
+
+4.7. Failure Case Analysis 
+
+Fig. 4 shows a representative failure case from R2R. The agent correctly follows the instruction for most of the trajectory but stops at an incorrect 23 doorway in the final step. To visualize the model’s internal reasoning, we color-code sub-instruction segments according to the active instruction state, with darker text indicat-ing higher token importance. This provides an intuitive view of how S-EGIU transitions between segments and how token-level focus evolves with percep-tion. In this example, the model activates the appropriate sub-instruction but misinterprets the final visual cue, causing a misaligned state update and an incorrect stopping decision. Such cases illustrate how small grounding errors near the goal can still affect the state-conditioned update process. 
+
+Recurring failure modes. Qualitative inspection on R2R, SOON, and REVERIE reveals three common failure modes. 
+
+Ambiguous landmark discrimination. In environments with repeated struc-tures (e.g., similar doors or hallways), the model may activate the correct sub-instruction but still ground it to the wrong referent because the relevant visual cues are insufficiently distinctive. 
+
+Premature or delayed sub-instruction transitions. When transitional cues are weak, partial, or occluded, CGIP may switch to the next sub-instruction too early or too late, leading to temporary misalignment between the instruc-tion state and the current perceptual state. 
+
+Long-horizon drift in iterative updates. Over extended trajectories, small grounding errors can accumulate through repeated FGIP updates, gradu-ally shifting the instruction state away from the intended semantic focus, especially in multi-room environments. These patterns suggest that stabilizing state-conditioned instruction up-dates under perceptual uncertainty remains a key challenge, and point to future directions such as uncertainty-aware grounding, transition regulariza-tion, and temporal smoothing. 
+
+5. Conclusion 
+
+In this paper, we introduced S-EGIU, a framework that models instruc-tion understanding as an evolving state entangled with the agent’s percep-tual trajectory. By integrating coarse-grained sub-instruction selection with fine-grained, perception-guided token refinement, S-EGIU enables dynamic instruction–perception entanglement and prevents semantic drift throughout navigation. Extensive experiments demonstrate that S-EGIU yields consis-tent efficiency gains across R2R, SOON, and REVERIE while maintaining competitive navigation success, including a notable +2.68% SPL gain on 24 REVERIE Test Unseen. These results highlight the importance of state-conditioned instruction semantics for robust embodied navigation. Limi-tations include the reliance on the quality of sub-instruction boundary re-finement and the use of panoramic visual tokens as perceptual state, which may introduce sensitivity under severe viewpoint ambiguity or domain shift. Future work may explore richer temporal dynamics for instruction-state evo-lution and incorporate uncertainty-aware grounding to further strengthen robustness under ambiguous or visually complex conditions, enabling more adaptive and reliable navigation in real-world environments. 
+
+References 
+
+[1] W. Wu, T. Chang, X. Li, Q. Yin, and Y. Hu, “Vision-language navi-gation: A survey and taxonomy,” Neural Computing and Applications ,vol. 36, no. 7, pp. 3291–3316, 2024, doi: 10.1007/s00521-023-09217-1. [2] J. Li and M. Bansal, “Improving Vision-and-Language Navigation by Generating Future-View Image Semantics,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 10803–10812, doi: 10.1109/CVPR52729.2023.01040. [3] P. Anderson, Q. Wu, D. Teney, J. Bruce, M. Johnson, N. Sünderhauf, I.D. Reid, S. Gould, A. van den Hengel, “Vision-and-Language Navi-gation: Interpreting Visually-Grounded Navigation Instructions in Real Environments,” in Proceedings of the 2018 IEEE Conference on Com-puter Vision and Pattern Recognition (CVPR) , 2018, pp. 3674–3683. [4] A. Pashevich, C. Schmid, and C. Sun, “Episodic Transformer for Vision-and-Language Navigation,” in Proceedings of the IEEE/CVF Interna-tional Conference on Computer Vision (ICCV) , 2021, pp. 15942–15952. [5] K. He, K. Chen, J. Bai, Y. Huang, Q. Wu, S.-T. Xia, and L. Wang, “Everyday Object Meets Vision-and-Language Navigation Agent via Backdoor,” in Advances in Neural Information Processing Systems (NeurIPS) , vol. 37, 2024. [6] R. Schumann, W. Zhu, W. Feng, T.-J. Fu, S. Riezler, and W. Y. Wang, “VELMA: Verbalization Embodiment of LLM Agents for Vision and 25 Language Navigation in Street View,” in Proceedings of the AAAI Con-ference on Artificial Intelligence , vol. 38, no. 17, pp. 19039–19047, 2024, doi: 10.1609/AAAI.V38I17.29858. [7] C.-Y. Ma, J. Lu, Z. Wu, G. AlRegib, Z. Kira, R. Socher, and C. Xiong, “Self-Monitoring Navigation Agent via Auxiliary Progress Estimation,” in Proceedings of the International Conference on Learning Representa-tions , 2019. [8] Y. Qi, Z. Pan, S. Zhang, A. van den Hengel, and Q. Wu, “Object-and-action aware model for visual language navigation,” in Computer Vision – ECCV 2020 , 2020. [9] D. Fried, R. Hu, V. Cirik, A. Rohrbach, J. Andreas, L.-P. Morency, T. Berg-Kirkpatrick, K. Saenko, D. Klein, and T. Darrell, “Speaker-follower models for vision-and-language navigation,” Advances in Neural Information Processing Systems (NeurIPS) , 2018. [10] Y. Hong, C. Rodriguez, Q. Wu, and S. Gould, “Sub-instruction aware vision-and-language navigation,” in Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP) , 2020. [11] Y. Zhang, Y. Li, J. Bai, Y. Feng, and M. Tao, “Sub-instruction and local map relationship enhanced model for vision and language navigation,” in Proceedings of the International Conference on Neural Information Processing (ICONIP) , 2023, pp. 518–529. [12] H. Wang, W. Wang, W. Liang, C. Xiong, and J. Shen, “Structured Scene Memory for Vision-Language Navigation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2021. [13] Y. Zhang and P. Kordjamshidi, “Explicit Object Relation Alignment for Vision and Language Navigation,” in Proceedings of the 60th An-nual Meeting of the Association for Computational Linguistics: Student Research Workshop , 2022, pp. 322–331. [14] X. Chen, Z. Liu, W. Bai, and S. K. Y. Lee, “Think Deeply, Act Locally: Memory-Driven Transformers for Vision-and-Language Navigation,” in 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pat-tern Recognition (CVPR) , 2022. 26 [15] K. Zhang, W. Xu, Z. Miao, Y. Tian, Y. Cen, Y. Liu, and W. He, “Causal learning with uncertainty-aware transformer for vision-and-language navigation,” Neurocomputing , p. 132196, 2025. [16] Z. Wang, M. Li, M. Wu, M.-F. Moens, and T. Tuytelaars, “Instruction-guided path planning with 3D semantic maps for vision-language navi-gation,” Neurocomputing , vol. 625, p. 129457, 2025. [17] G. Zhou, Y. Hong, and Q. Wu, “NavGPT: Explicit Reasoning in Vision-and-Language Navigation with Large Language Models,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 38, no. 7, pp. 7641–7649, Mar. 2024, doi: 10.1609/AAAI.V38I7.28597. [18] J. Zhang, K. Wang, R. Xu, G. Zhou, Y. Hong, X. Fang, Q. Wu, Z. Zhang, and H. Wang, “NaVid: Video-based VLM Plans the Next Step for Vision-and-Language Navigation,” in Proceedings of Robotics: Sci-ence and Systems (RSS) , 2024. [19] G. Zhou, Y. Hong, Z. Wang, X. E. Wang, and Q. Wu, “NavGPT-2: Un-leashing Navigational Reasoning Capability for Large Vision-Language Models,” in Proceedings of the European Conference on Computer Vi-sion (ECCV) , Lecture Notes in Computer Science, pp. 260–278, 2024, doi: 10.1007/978-3-031-72667-5_15. [20] Y. Zhang, Z. Ma, J. Li, Y. Qiao, Z. Wang, J. Chai, Q. Wu, M. Bansal, and P. Kordjamshidi, “Vision-and-Language Navigation Today and To-morrow: A Survey in the Era of Foundation Models,” arXiv preprint arXiv:2407.07035 , 2024, doi: 10.48550/arXiv.2407.07035. [21] Y. Hong, C. Rodriguez, Q. Wu, and S. Gould, “Language and visual entity relationship graph for agent navigation,” in Advances in Neu-ral Information Processing Systems (NeurIPS) , vol. 33, pp. 7685–7696, 2020. [22] Z. Deng, K. Narasimhan, and O. Russakovsky, “Evolving graphical plan-ner: Contextual global planning for vision-and-language navigation,” in 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 2020. [23] C. Chen, J. K. Chen, J. Chuang, M. Vázquez, and S. Savarese, “Topo-logical planning with transformers for vision-and-language navigation,” 27 in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pp. 11276-11286, 2021. [24] Y. Qiao, Z. Yu, and Q. Wu, “VLN-PETL: Parameter-efficient trans-fer learning for vision-and-language navigation,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, pp. 15443–15452. [25] J. Krantz, E. Wijmans, A. Majumdar, D. Batra, and S. Lee, “Be-yond the nav-graph: Vision-and-language navigation in continuous en-vironments,” in Proceedings of the Computer Vision–ECCV 2020: 16th European Conference, Glasgow, UK, August 23–28, 2020, Proceedings ,Springer International Publishing, 2020, pp. 104–120. [26] W. Hao, C. Li, X. Li, L. Carin, and J. Gao, “Towards Learning a Generic Agent for Vision-and-Language Navigation via Pre-Training,” in Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020. [27] P.-L. Guhur, M. Tapaswi, S. Chen, I. Laptev, and C. Schmid, “Air-bert: In-Domain Pretraining for Vision-and-Language Navigation,” in 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2021. [28] X. Chen, J. Zhang, Q. Xu, X. Zhang, and S. K. Y. Lee, “Think Global, Act Local: Dual-Scale Graph Transformer for Vision-and-Language Navigation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2021. [29] L. Zhang, H. Liao, X. Xu, Q. Zhang, X. Zhang, P. Wang, and R. Xu, “MapNav: A Novel Memory Representation via Annotated Semantic Maps for VLM-Based Vision-and-Language Navigation,” in Proceedings of the 63rd Annual Meeting of the Association for Computational Lin-guistics (Volume 1: Long Papers) , 2025, pp. 13032–13056. [30] N. Rajabi and J. Kosecka, “TRAVEL: Training-Free Retrieval and Alignment for Vision-and-Language Navigation,” in arXiv preprint arXiv:2502.07306 , 2025. 28 [31] J. Wu, C. Wu, X. Shen, F. Wu, and L. Wang, “Recursive bidirectional cross-modal reasoning network for vision-and-language navigation,” Ex-pert Systems with Applications , vol. 270, p. 126442, 2025. [32] Y. Zhong, R. Zhang, Z. Zhang, Z. Wang, C. Fang, X. Zhang, and Q. Guo, “World-Consistent Data Generation for Vision-and-Language Nav-igation,” arXiv preprint arXiv:2412.06413 , 2024. [33] Y. Qi, Q. Wu, P. Anderson, X. Wang, W.Y. Wang, C. Shen, A. van den Hengel, “REVERIE: Remote Embodied Visual Referring Expression in Real Indoor Environments,” in Proceedings of the 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020, pp. 9979–9988. [34] K. R. Chowdhary and K. R. Chowdhary, “Natural language processing,” 
+
+Fundamentals of Artificial Intelligence , 2020, pp. 603-649. [35] P. Moudgil, T. Jain, A. Salim, and P. A. S. D. V. K., “SOAT: A Scene-and Object-Aware Transformer for Vision-and-Language Navigation,” in 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 2021. [36] Y. Hong, Q. Wu, Y. Qi, C. Rodriguez-Opazo, and S. Gould, “VLn BERT: A recurrent vision-and-language BERT for navigation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition (CVPR) , pp. 1643–1653, 2021. [37] S. Chen, P.-L. Guhur, C. Schmid, and I. Laptev, “History aware multi-modal transformer for vision-and-language navigation,” in Advances in Neural Information Processing Systems (NeurIPS) , 2021. [38] F. Zhu, X. Liang, Y. Zhu, Q. Yu, X. Chang, and X. Liang, “SOON: Sce-nario oriented object navigation with graph-based exploration,” in Pro-ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2021, pp. 12689–12699. [39] Y. Shi, J. Liu, L. Sun, and X. Zheng, “E 2BA: Environment Exploration and Backtracking Agent for Visual Language Object Navigation,” IEEE Transactions on Circuits and Systems for Video Technology , vol. 35, no. 7, pp. 6231–6244, 2025. 29 [40] C. Huang, O. Mees, A. Zeng, and W. Burgard, “Visual Language Maps for Robot Navigation,” in Proceedings of the IEEE International Con-ference on Robotics and Automation (ICRA) , 2023, pp. 10608–10615. [41] Z. Wang, M. Li, M. Wu, M.-F. Moens, and T. Tuytelaars, “Instruction-guided Path Planning with 3D Semantic Maps for Vision-Language Nav-igation,” Neurocomputing , vol. 625, p. 129457, 2025. [42] J. Mi, S. Jin, Z. Chen, D. Liu, X. Wei, and J. Zhang, “Zero-shot Visual Grounding via Coarse-to-Fine Representation Learning,” Neurocomput-ing , vol. 610, p. 128621, 2024. [43] L. Wang, Z. He, R. Dang, M. Shen, C. Liu, and Q. Chen, “Vision-and-Language Navigation via Causal Learning,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2024, pp. 13139–13150. [44] Y. Wu, Y. Deng, S. Zhou, Y. Liu, W. Huang, and J. Wang, “CR-former: Single-image cloud removal with focused Taylor attention,” IEEE Trans-actions on Geoscience and Remote Sensing , vol. 62, pp. 1–14, 2024. [45] K. Wu, P. Li, J. Fu, Y. Li, Y. Wu, Y. Liu, J. Wang, and S. Zhou, “Event-Equalized Dense Video Captioning,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2025, pp. 8417–8427. [46] Y. Liu, Q. Huang, S. Hui, J. Fu, S. Zhou, K. Wu, P. Li, and J. Wang, “Semantic-aware representation learning for homography estimation,” in 
+
+Proceedings of the 32nd ACM International Conference on Multimedia ,2024, pp. 2506–2514. [47] Y. Liu, J. Fu, Y. Wu, K. Wu, P. Li, J. Wu, S. Zhou, and J. Xin, “Mind the gap: Aligning vision foundation models to image feature matching,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2025, pp. 20313–20323. [48] Y. Qi, P. Fu, H. Li, Y. Liu, C. Jiang, B. Qin, Z. Luo, and J. Luan, “PatchCue: Enhancing Vision-Language Model Reasoning with Patch-Based Visual Cues,” arXiv preprint arXiv:2603.05869 , 2026. 30 [49] B. Wang, J. Fu, H. Zhang, N. Zheng, and W. Chen, “Closing the gap between the upper bound and lower bound of Adam’s iteration com-plexity,” Advances in Neural Information Processing Systems , vol. 36, pp. 39006–39032, 2023. [50] J. Fu, X. Zhu, and Y. Li, “Recognition of surface defects on steel sheet using transfer learning,” arXiv preprint arXiv:1909.03258 , 2019. [51] J. Fu, B. Wang, H. Zhang, Z. Zhang, W. Chen, and N. Zheng, “When and why momentum accelerates SGD: An empirical study,” arXiv preprint arXiv:2306.09000 , 2023. [52] J. Fu, X. Zhang, Y. Wang, W. Zeng, and N. Zheng, “Understanding mobile GUI: From pixel-words to screen-sentences,” Neurocomputing ,vol. 601, p. 128200, 2024. [53] J. Fu, T. Yang, Y. Wang, Y. Lu, and N. Zheng, “Breaking through the learning plateaus of in-context learning in transformer,” arXiv preprint arXiv:2309.06054 , 2023. [54] P. Li, K. Wu, J. Fu, and S. Zhou, “Regnav: Room expert guided image-goal navigation,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 39, no. 5, 2025, pp. 4860–4868. [55] P. Li, K. Wu, W. Huang, S. Zhou, and J. Wang, “Camera-aware la-bel refinement for unsupervised person re-identification,” arXiv preprint arXiv:2403.16450 , 2024. 31 Supplementary Materials 
+
+S1. Purpose and Scope 
+
+This supplementary material provides additional details for the two auxil-iary analyses summarized in the main paper: the controlled plug-in compari-son on REVERIE and the backbone transfer study on R2R [54]. Its purpose is to make the comparison protocol, implementation scope, default settings, and extended results transparent. Specifically, this supplement serves three roles. First, it formalizes the controlled plug-in protocol used to contextualize our method against rep-resentative mechanism families under a fixed DUET backbone. Second, it clarifies the implementation scope and default settings of the five controlled DUET variants used in the REVERIE comparison. Third, it reports ex-tended result tables and reproducibility notes omitted from the main paper due to space limitations. Unless otherwise stated, all controlled variants share the same perceptual input, training schedule, and evaluation scripts as the original DUET back-bone [44, 50, 52]. No additional sensors, external mapping modules, external planning systems, or extra supervision signals are introduced. Accordingly, this supplement should be read as supporting evidence for mechanism-level comparison under a fixed backbone and transferability across backbones [55]. 
+
+S2. Controlled Plug-in Protocol 
+
+The main paper studies state-conditioned instruction updates, where the instruction is treated as a state that is dynamically updated through perception via CGIP and FGIP [45, 46, 47]. To contextualize this mech-anism, we compare against five representative improvement families fre-quently associated with recent VLN gains, including compact memory, ex-ploration/backtracking, retrieval memory, planning priors, and coarse-to-fine grounding, following MapNav, E2BA, VLMaps, iPPD, and C2F-VG, respec-tively [29, 39, 40, 41, 42]. A direct full-system comparison is often difficult to interpret because many prior methods differ not only in their core mechanism, but also in back-bone architecture, auxiliary modules, sensor assumptions, training pipelines, or external map/planner dependencies. Moreover, several methods are not originally reported under the exact REVERIE protocol used in this paper, and their full systems may include additional components that are not di-rectly comparable under a controlled setting. To reduce these confounds, we 32 adopt a controlled plug-in protocol: each mechanism family is distilled into a lightweight DUET-based variant and trained/evaluated under the same input setting, training schedule, and evaluation scripts as DUET. For naming consistency with the main paper, we refer to each controlled variant using the corresponding representative method family, namely Map-Nav, E2BA, VLMaps, iPPD, and C2F-VG. These names should be inter-preted at the level of mechanism families rather than as claims of one-to-one functional equivalence with the original full systems. Accordingly, the vari-ants reported here are DUET-based controlled distillations for mechanism-level comparison rather than full re-implementations of the published meth-ods. 
+
+S3. Controlled Plug-in Instantiations 
+
+All controlled DUET variants preserve DUET’s original input space, ac-tion space, and training objectives. They are implemented as lightweight insertions at one of three locations: (i) representation conditioning before ac-tion scoring, (ii) action-score biasing before score fusion, or (iii) object-score biasing for object-centric grounding on REVERIE [48]. Unless otherwise noted, all variants are trained end-to-end together with the original DUET losses and do not rely on extra supervision. 
+
+Controlled comparison rule. All plug-ins are implemented within DUET and share identical inputs (frozen ViT-B/16 panoramic tokens), training schedule, and evaluation scripts. We exclude additional system assumptions such as extra sensors, external SLAM/3D mapping, external planners, or extra training data, so that the comparison remains controlled at the mech-anism level. 
+
+S3.1 MapNav-style Control (MemTok): Compact Memory 
+
+This control tests whether bounded history summarization alone can ex-plain gains without explicitly updating instruction semantics. We maintain a fixed-length set of memory tokens updated per step from DUET internal summaries and inject them as additional context before action scoring. 
+
+S3.2 E2BA-style Control (Backtrack): Exploration and Return Bias 
+
+This control isolates gains from action-selection bias (exploration and return behaviors) under a fixed backbone. We add a lightweight bias to action scores that strengthens return preference when the policy becomes uncertain, without changing DUET’s action space or introducing an external planner. 33 Table S1: Controlled plug-in baselines: implementation scope summary. Each variant is a DUET-integrated controlled distillation of a representative mechanism family; details are given in Sec. S3.1–S3.6. 
+
+Family DUET plug-in (what is added) Excluded for control Pointer 
+
+MapNav † [29] MemTok: fixed-length memory tokens updated each step and in-jected before action scoring no extra sensors; no external SLAM/3D mapping; no extra pretraining data Sec. S3.1 E2BA † [39] Backtrack: exploration/return bias added to action scores using an uncertainty proxy no external exploration en-gine/planner; no particle fil-ter; no external scoring mod-ules Sec. S3.2 VLMaps † [40] KV-Cache: bounded language-queryable retrieval cache injected as context no explicit 3D recon-struction/SLAM; no depth/odometry; no metric-grid fusion Sec. S3.3 iPPD † [41] PathPrior: instruction-conditioned prior added to global node/action scores no explicit map construction; no external planner; no extra supervision beyond DUET Sec. S3.4 C2F-VG † [42] C2F-Ground: coarse-to-fine grounding prior injected into ob-ject scores (REVERIE) no extra object annotations; no additional grounding datasets; no extra detector training Sec. S3.5  
+
+> †
+
+denotes DUET-integrated controlled distillations for controlled mechanism-level comparison, not full-system re-implementations. 
+
+S3.3 VLMaps-style Control (KV-Cache): Retrieval Memory 
+
+This control isolates retrieval-based contextualization from explicit instruction-state updates. We maintain a bounded language-queryable key–value cache over steps; the instruction summary retrieves a context vector that is injected before action scoring. 
+
+S3.4 iPPD-style Control (PathPrior): Global Planning Prior 
+
+This control tests whether an instruction-conditioned global inclination over candidate nodes can account for gains. We compute a similarity-based prior between the instruction summary and candidate node representations and add it to DUET global action scores (masked on invalid actions), without introducing external map construction or planners. 
+
+S3.5 C2F-VG-style Control (C2F-Ground): Coarse-to-fine Grounding 
+
+This control isolates object grounding improvements on REVERIE from instruction-state modeling [48]. We select top-K objects using a coarse rele-34 Table S2: Default settings for the controlled DUET plug-in study.                   
+
+> Variant Main setting Default Injection level MapNav-style (MemTok) memory size and smoothing 16 tokens, smoothing 0.9 representation E2BA-style (Backtrack) exploration and return weights 0.2 and 0.5 action scores VLMaps-style (KV-Cache) cache capacity 64 entries representation iPPD-style (PathPrior) prior strength and temperature 0.3 and 1.0 global scores C2F-VG-style (C2F-Ground) coarse top-K and bias strength 5 and 0.5 object scores
+
+vance score and refine only this subset via lightweight cross-modal matching, injecting the resulting grounding prior into DUET object scores. 
+
+S3.6 Minimal Implementation Notes (shared across plug-ins) 
+
+We use bounded modules to keep the comparison controlled: MemTok uses K=16 memory tokens with EMA smoothing α=0 .9; KV-Cache has ca-pacity 64 with oldest-entry eviction; C2F-Ground uses top-K=5 for coarse fil-tering. Backtrack uses action-distribution uncertainty (normalized entropy) as a confidence proxy to modulate return bias, and PathPrior uses similarity-based node priors with weight 0.3 and temperature Tp=1 .0; STOP is not biased by default. 
+
+S4. Default Settings and Tuning Policy 
+
+Table S2 summarizes the default settings used in the controlled plug-in study. We intentionally keep all controlled variants lightweight and restrict the hyperparameter search budget to the same validation-level tuning proce-dure, so that the comparison emphasizes mechanism differences rather than aggressive variant-specific optimization [49, 51, 53]. All DUET-based controlled variants are selected using the same valida-tion split and checkpoint-selection criterion as the base DUET model. We apply only lightweight validation-level tuning for each variant, using the same search budget and the same model-selection rule across all plug-ins. The goal of this procedure is not to maximize each variant independently, but to keep the comparison stable and comparable across mechanism families. 
+
+S5. Extended Results S5.1 Controlled DUET Variants on REVERIE 
+
+Table S3 expands the controlled comparison summarized in the main paper by reporting the full REVERIE results for DUET, its controlled vari-ants, and our full model under the same protocol. These results provide a 35 Table S3: REVERIE results of DUET, controlled DUET variants, and our full model under the same protocol. Variants marked with † are DUET-integrated controlled distillations named after representative method families for consistency with the main paper, rather than full-system re-implementations.                                                                                                   
+
+> Val Seen Val Unseen Test Unseen Model TL ( ↓)OSR ( ↑)SR ( ↑)SPL ( ↑)TL ( ↓)OSR ( ↑)SR ( ↑)SPL ( ↑)TL ( ↓)OSR ( ↑)SR ( ↑)SPL ( ↑)DUET 13.86 73.86 71.75 63.94 22.11 51.07 46.98 33.73 21.59 59.61 52.51 36.06 MapNav †13.28 71.75 70.13 63.16 21.15 50.33 47.12 33.76 19.42 56.21 51.86 36.58 E2BA †12.68 70.91 69.78 63.57 20.74 49.84 45.98 34.68 18.97 55.63 50.42 37.11 VLMaps †14.23 73.44 71.40 62.57 22.30 51.26 47.03 34.10 20.41 56.84 51.79 36.72 iPPD †13.91 74.70 72.17 63.76 22.37 53.22 48.99 34.81 20.26 58.11 53.36 37.48 C2F-VG †13.41 74.42 72.61 64.53 21.10 52.43 48.31 34.83 19.28 57.66 52.91 37.63 Ours (S-EGIU) 11.93 76.32 74.91 71.05 21.06 52.15 48.37 35.70 17.53 54.63 51.92 38.74
+
+mechanism-level reference for how much improvement can be obtained by memory, exploration, retrieval, planning, or grounding enhancements alone under a fixed backbone. Table S3 shows that different controlled variants improve different aspects of DUET under the same backbone. On Val Unseen, iPPD and C2F-VG im-prove SR from 46.98 to 48.99 and 48.31, respectively, and improve SPL from 33.73 to 34.81 and 34.83, indicating that planning-prior and coarse-to-fine grounding controls provide relatively stronger gains than compact-memory or retrieval-style variants under this fixed setting. By contrast, MapNav and VLMaps mainly offer modest gains, while E2BA improves SPL but slightly reduces SR on Val Unseen. Compared with all controlled plug-ins, S-EGIU yields the strongest efficiency-oriented gain, achieving the best SPL on both Val Unseen and Test Unseen (35.70 and 38.74) while reducing trajectory length from 22.11 to 21.06 and from 21.59 to 17.53, respectively. Overall, these results suggest that the benefit of our method does not arise from merely adding a memory, retrieval, planning, or grounding bias in isolation, but from explicitly updating instruction semantics as a state [46, 47]. 
+
+S5.2 Backbone Transfer on R2R 
+
+Table S4 expands the backbone generalization analysis summarized in the main paper. Unlike the main R2R benchmark table, which compares against published methods on the standard splits, this study examines whether the proposed mechanism transfers consistently across heterogeneous backbones under matched within-backbone protocols. Specifically, beyond DUET, we integrate S-EGIU into three additional representative backbones, namely NavGPT2, HAMT, and VLN-GOAT, and evaluate them on R2R. We use R2R for this transfer study because its training and evaluation pipeline 36 Table S4: Backbone transfer results on R2R under matched within-backbone protocols. 
+
+∆SR and ∆SPL denote absolute gains over the corresponding baseline.                                                                                                                      
+
+> Val Seen Val Unseen Model TL (↓)NE (↓)SR (↑)∆SR SPL (↑)∆SPL TL (↓)NE (↓)SR (↑)∆SR SPL (↑)∆SPL
+> DUET 12.32 2.28 79 –73 –13.94 3.31 72 –60 –DUET + S-EGIU 12.00 2.24 81 +2 75 +2 13.33 3.37 74 +2 61 +1 NavGPT2 12.44 2.97 73 –65 –12.81 3.33 70 –59 –NavGPT2 + S-EGIU 12.05 2.88 75 +2 67 +2 12.30 3.22 72 +2 60 +1 HAMT 11.15 2.51 76 –72 –11.46 2.29 66 –61 –HAMT + S-EGIU 10.95 2.42 77 +1 73 +1 11.20 2.24 67 +1 62 +1 VLN-GOAT 11.90 1.79 84 –79 –12.40 2.40 78 –68 –VLN-GOAT + S-EGIU 11.74 1.74 85 +1 80 +1 12.20 2.34 79 +1 69 +1
+
+is comparatively standardized across codebases, enabling cleaner protocol matching for cross-backbone integration. REVERIE is instead used in the main paper to stress-test object-centric grounding, whereas its dataset-specific grounding heads and evaluation scripts could otherwise introduce additional confounds in cross-backbone comparisons. Table S4 shows that S-EGIU consistently improves SR and SPL across all tested backbones on both Val Seen and Val Unseen. Averaged over the four backbones, the gains are +1.5 SR / +1.5 SPL on Val Seen and +1.5 SR / +1.0 SPL on Val Unseen. Trajectory length is reduced in all eight comparisons, and NE is improved in seven of them, with only a minor degra-dation on DUET Val Unseen (3.31 to 3.37). Although the absolute gains are moderate, their consistency across substantially different backbones provides direct evidence that the proposed state-conditioned instruction updates are transferable rather than DUET-specific [55, 45]. 
+
+S6. Reproducibility Notes 
+
+All experiments follow the same training schedule and evaluation pro-tocol described in the main paper unless explicitly noted otherwise. For the controlled plug-in study, all variants use the same visual inputs, action space, and DUET training objectives, and none of them relies on additional sensors, external maps, external planners, or extra annotation signals (see Table S1) [44, 50, 52]. For the backbone transfer study, each base model and its S-EGIU-enhanced counterpart are trained and evaluated under the same codebase-specific protocol to ensure fair within-backbone comparison. The purpose of this supplement is to make the comparison protocol trans-parent rather than to introduce a separate experimental setting. Accordingly, the reported results should be interpreted together with the main paper: the 37 controlled variants localize the contribution of individual mechanism families under a fixed backbone, while the backbone transfer study evaluates whether the proposed state-conditioned instruction updates behave as a transferable mechanism across model architectures. 38
