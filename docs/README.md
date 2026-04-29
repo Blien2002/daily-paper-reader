@@ -6,86 +6,74 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-28
-- 运行时间：2026-04-28 20:26:22 UTC
+- 最新运行日期：2026-04-29
+- 运行时间：2026-04-29 21:06:51 UTC
 - 运行状态：成功
-- 本次总论文数：21
-- 精读区：10
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-- 今日共生成 21 篇推荐（精读 10 篇，速读 11 篇）
-- 精读：《VLA Foundry: A Unified Framework for Training Vision-Language-Action Models》（10.0/10）, 《$M^2$-VLA: Boosting Vision-Language Models for Generalizable Manipulation via Layer Mixture and Meta-Skills》（10.0/10）
-- 速读：《Assessing VLM-Driven Semantic-Affordance Inference for Non-Humanoid Robot Morphologies》（8.5/10）, 《EgoLive: A Large-Scale Egocentric Dataset from Real-World Human Tasks》（8.5/10）, 《Learning Hybrid-Control Policies for High-Precision In-Contact Manipulation Under Uncertainty》（8.0/10）
+- 今日共生成 17 篇推荐（精读 6 篇，速读 11 篇）
+- 精读：《CF-VLA: Efficient Coarse-to-Fine Action Generation for Vision-Language-Action Policies》（10.0/10）, 《CF-VLA: Efficient Coarse-to-Fine Action Generation for Vision-Language-Action Policies》（10.0/10）
+- 速读：《MOMO: A framework for seamless physical, verbal, and graphical robot skill learning and adaptation》（8.5/10）, 《Self-Guided Plan Extraction for Instruction-Following Tasks with Goal-Conditional Reinforcement Learning》（8.5/10）, 《ANCHOR: A Physically Grounded Closed-Loop Framework for Robust Home-Service Mobile Manipulation》（8.5/10）
 - 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
-- 详情：[/202604/28/README](/202604/28/README)
+- 详情：[/202604/29/README](/202604/29/README)
 
 ### 精读区论文标签
-1. [VLA Foundry: A Unified Framework for Training Vision-Language-Action Models](/202604/28/2604.19728v1-vla-foundry-a-unified-framework-for-training-vision-language-action-models)  
+1. [CF-VLA: Efficient Coarse-to-Fine Action Generation for Vision-Language-Action Policies](/202604/29/2604.24622v1-cf-vla-efficient-coarse-to-fine-action-generation-for-vision-language-action-policies)  
    标签：评分：10.0/10、query:vla
-   evidence：统一的视觉-语言-动作模型训练框架
-2. [$M^2$-VLA: Boosting Vision-Language Models for Generalizable Manipulation via Layer Mixture and Meta-Skills](/202604/28/2604.24182v1-m2-vla-boosting-vision-language-models-for-generalizable-manipulation-via-layer-mixture-and-meta-skills)  
+   evidence：提出了一种针对视觉-语言-动作（VLA）策略的高效粗到细动作生成方法。
+2. [CF-VLA: Efficient Coarse-to-Fine Action Generation for Vision-Language-Action Policies](/202604/29/2604.24622v2-cf-vla-efficient-coarse-to-fine-action-generation-for-vision-language-action-policies)  
    标签：评分：10.0/10、query:vla
-   evidence：通过层混合和元技能增强VLM在通用操作中的表现
-3. [Learning Human-Intention Priors from Large-Scale Human Demonstrations for Robotic Manipulation](/202604/28/2604.24681v1-learning-human-intention-priors-from-large-scale-human-demonstrations-for-robotic-manipulation)  
+   evidence：视觉-语言-动作策略的高效粗到精动作生成
+3. [Libra-VLA: Achieving Learning Equilibrium via Asynchronous Coarse-to-Fine Dual-System](/202604/29/2604.24921v1-libra-vla-achieving-learning-equilibrium-via-asynchronous-coarse-to-fine-dual-system)  
    标签：评分：10.0/10、query:vla
-   evidence：基于人类演示的分层视觉-语言-动作框架
-4. [RL Token: Bootstrapping Online RL with Vision-Language-Action Models](/202604/28/2604.23073v1-rl-token-bootstrapping-online-rl-with-vision-language-action-models)  
-   标签：评分：9.5/10、query:vla
-   evidence：预训练VLA模型的在线强化学习微调
-5. [Modular Sensory Stream for Integrating Physical Feedback in Vision-Language-Action Models](/202604/28/2604.23272v1-modular-sensory-stream-for-integrating-physical-feedback-in-vision-language-action-models)  
-   标签：评分：9.5/10、query:vla
-   evidence：将物理反馈整合到视觉-语言-动作模型中
-6. [Vision-Language-Action Safety: Threats, Challenges, Evaluations, and Mechanisms](/202604/28/2604.23775v1-vision-language-action-safety-threats-challenges-evaluations-and-mechanisms)  
-   标签：评分：9.5/10、query:vla
-   evidence：视觉-语言-动作模型安全性的统一综述
-7. [Vision-Language-Action in Robotics: A Survey of Datasets, Benchmarks, and Data Engines](/202604/28/2604.23001v1-vision-language-action-in-robotics-a-survey-of-datasets-benchmarks-and-data-engines)  
+   evidence：用于通用机器人操作的分层VLA模型
+4. [Characterizing Vision-Language-Action Models across XPUs: Constraints and Acceleration for On-Robot Deployment](/202604/29/2604.24447v1-characterizing-vision-language-action-models-across-xpus-constraints-and-acceleration-for-on-robot-deployment)  
    标签：评分：9.0/10、query:vla
-   evidence：对VLA研究中数据集、基准测试和数据引擎的系统性综述
-8. [Tube Diffusion Policy: Reactive Visual-Tactile Policy Learning for Contact-rich Manipulation](/202604/28/2604.23609v1-tube-diffusion-policy-reactive-visual-tactile-policy-learning-for-contact-rich-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：用于接触密集型操作任务的反应式视觉-触觉策略学习
-9. [Move-Then-Operate: Behavioral Phasing for Human-Like Robotic Manipulation](/202604/28/2604.23620v1-move-then-operate-behavioral-phasing-for-human-like-robotic-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：将机器人操作解耦为移动和操作两个阶段的视觉-语言-动作框架。
-10. [AsyncShield: A Plug-and-Play Edge Adapter for Asynchronous Cloud-based VLA Navigation](/202604/28/2604.24086v1-asyncshield-a-plug-and-play-edge-adapter-for-asynchronous-cloud-based-vla-navigation)  
-   标签：评分：9.0/10、query:vla
-   evidence：异步云端VLA导航框架
+   evidence：分析VLA模型在边缘加速器上的部署，以实现实时通用机器人控制。
+5. [Gated Memory Policy](/202604/29/2604.18933v1-gated-memory-policy)  
+   标签：评分：8.5/10、query:vla
+   evidence：用于机器人操纵任务的视觉运动策略，利用门控记忆处理非马尔可夫历史信息。
+6. [RoboWM-Bench: A Benchmark for Evaluating World Models in Robotic Manipulation](/202604/29/2604.19092v1-robowm-bench-a-benchmark-for-evaluating-world-models-in-robotic-manipulation)  
+   标签：评分：8.5/10、query:vla
+   evidence：用于评估机器人操作中世界模型和具身落地动作的基准测试
 
 ### 速读区论文标签
-1. [Assessing VLM-Driven Semantic-Affordance Inference for Non-Humanoid Robot Morphologies](/202604/28/2604.19509v1-assessing-vlm-driven-semantic-affordance-inference-for-non-humanoid-robot-morphologies)  
+1. [MOMO: A framework for seamless physical, verbal, and graphical robot skill learning and adaptation](/202604/29/2604.20468v1-momo-a-framework-for-seamless-physical-verbal-and-graphical-robot-skill-learning-and-adaptation)  
    标签：评分：8.5/10、query:vla
-   evidence：评估VLM驱动的针对不同机器人形态的语义可操作性
-2. [EgoLive: A Large-Scale Egocentric Dataset from Real-World Human Tasks](/202604/28/2604.23570v1-egolive-a-large-scale-egocentric-dataset-from-real-world-human-tasks)  
+   evidence：集成LLM架构用于机器人技能自适应和语义修改
+2. [Self-Guided Plan Extraction for Instruction-Following Tasks with Goal-Conditional Reinforcement Learning](/202604/29/2604.20601v1-self-guided-plan-extraction-for-instruction-following-tasks-with-goal-conditional-reinforcement-learning)  
    标签：评分：8.5/10、query:vla
-   evidence：用于机器人操作学习的大规模第一视角数据集
-3. [Learning Hybrid-Control Policies for High-Precision In-Contact Manipulation Under Uncertainty](/202604/28/2604.19677v1-learning-hybrid-control-policies-for-high-precision-in-contact-manipulation-under-uncertainty)  
+   evidence：将语言模型与强化学习智能体结合，用于具身环境中的指令遵循和规划生成
+3. [ANCHOR: A Physically Grounded Closed-Loop Framework for Robust Home-Service Mobile Manipulation](/202604/29/2604.25323v1-anchor-a-physically-grounded-closed-loop-framework-for-robust-home-service-mobile-manipulation)  
+   标签：评分：8.5/10、query:vla
+   evidence：用于稳健家庭服务移动操作的闭环框架
+4. [KinDER: A Physical Reasoning Benchmark for Robot Learning and Planning](/202604/29/2604.25788v1-kinder-a-physical-reasoning-benchmark-for-robot-learning-and-planning)  
+   标签：评分：8.5/10、query:vla
+   evidence：针对机器人学习和基础模型中运动学与动力学具身推理的基准测试
+5. [BridgeACT: Bridging Human Demonstrations to Robot Actions via Unified Tool-Target Affordances](/202604/29/2604.23249v1-bridgeact-bridging-human-demonstrations-to-robot-actions-via-unified-tool-target-affordances)  
    标签：评分：8.0/10、query:vla
-   evidence：用于高精度接触式操作的混合位置-力控制策略
-4. [VTouch++: A Multimodal Dataset with Vision-Based Tactile Enhancement for Bimanual Manipulation](/202604/28/2604.20444v1-vtouch-a-multimodal-dataset-with-vision-based-tactile-enhancement-for-bimanual-manipulation)  
+   evidence：通过示能表示从人类视频中学习机器人操作
+6. [AgenticCache: Cache-Driven Asynchronous Planning for Embodied AI Agents](/202604/29/2604.24039v1-agenticcache-cache-driven-asynchronous-planning-for-embodied-ai-agents)  
    标签：评分：8.0/10、query:vla
-   evidence：用于双臂操作任务的多模态数据集
-5. [A Deployable Embodied Vision-Language Navigation System with Hierarchical Cognition and Context-Aware Exploration](/202604/28/2604.21363v1-a-deployable-embodied-vision-language-navigation-system-with-hierarchical-cognition-and-context-aware-exploration)  
+   evidence：将大语言模型集成于具身智能体的规划中，并优化了动作延迟
+7. [GS-Playground: A High-Throughput Photorealistic Simulator for Vision-Informed Robot Learning](/202604/29/2604.25459v1-gs-playground-a-high-throughput-photorealistic-simulator-for-vision-informed-robot-learning)  
    标签：评分：8.0/10、query:vla
-   evidence：具有分层认知能力的可部署具身视觉语言导航系统
-6. [Instruction-as-State: Environment-Guided and State-Conditioned Semantic Understanding for Embodied Navigation](/202604/28/2604.18223v1-instruction-as-state-environment-guided-and-state-conditioned-semantic-understanding-for-embodied-navigation)  
+   evidence：用于视觉驱动机器人学习和端到端感知学习的仿真器
+8. [HANDFUL: Sequential Grasp-Conditioned Dexterous Manipulation with Resource Awareness](/202604/29/2604.25126v1-handful-sequential-grasp-conditioned-dexterous-manipulation-with-resource-awareness)  
    标签：评分：7.5/10、query:vla
-   evidence：具身导航中环境引导语义理解的指令即状态方法
-7. [ETac: A Lightweight and Efficient Tactile Simulation Framework for Learning Dexterous Manipulation](/202604/28/2604.20295v1-etac-a-lightweight-and-efficient-tactile-simulation-framework-for-learning-dexterous-manipulation)  
-   标签：评分：7.5/10、query:vla
-   evidence：用于学习灵巧操作策略的触觉仿真
-8. [DeVI: Physics-based Dexterous Human-Object Interaction via Synthetic Video Imitation](/202604/28/2604.20841v1-devi-physics-based-dexterous-human-object-interaction-via-synthetic-video-imitation)  
-   标签：评分：7.5/10、query:vla
-   evidence：用于灵巧机器人操作的合成视频模仿
-9. [EgoDyn-Bench: Evaluating Ego-Motion Understanding in Vision-Centric Foundation Models for Autonomous Driving](/202604/28/2604.22851v1-egodyn-bench-evaluating-ego-motion-understanding-in-vision-centric-foundation-models-for-autonomous-driving)  
-   标签：评分：7.5/10、query:vla
-   evidence：评估专用VLA模型中的自我运动理解能力
-10. [AmaraSpatial-10K: A Spatially and Semantically Aligned 3D Dataset for Spatial Computing and Embodied AI](/202604/28/2604.23018v1-amaraspatial-10k-a-spatially-and-semantically-aligned-3d-dataset-for-spatial-computing-and-embodied-ai)  
-   标签：评分：6.5/10、query:vla
-   evidence：用于空间计算和具身智能的3D数据集
-11. [FingerEye: Continuous and Unified Vision-Tactile Sensing for Dexterous Manipulation](/202604/28/2604.20689v1-fingereye-continuous-and-unified-vision-tactile-sensing-for-dexterous-manipulation)  
+   evidence：顺序抓取条件下的灵巧操作学习框架
+9. [Neuro-Symbolic Manipulation Understanding with Enriched Semantic Event Chains](/202604/29/2604.21053v1-neuro-symbolic-manipulation-understanding-with-enriched-semantic-event-chains)  
+   标签：评分：7.0/10、query:vla
+   evidence：用于操作理解和事件级符号状态的神经符号框架
+10. [QDTraj: Exploration of Diverse Trajectory Primitives for Articulated Objects Robotic Manipulation](/202604/29/2604.22551v1-qdtraj-exploration-of-diverse-trajectory-primitives-for-articulated-objects-robotic-manipulation)  
+   标签：评分：7.0/10、query:vla
+   evidence：QDTraj为关节类物体的机器人操作生成轨迹基元。
+11. [Navigating the Clutter: Waypoint-Based Bi-Level Planning for Multi-Robot Systems](/202604/29/2604.21138v1-navigating-the-clutter-waypoint-based-bi-level-planning-for-multi-robot-systems)  
    标签：评分：6.0/10、query:vla
-   evidence：用于灵巧机器人操纵的视触觉传感
+   evidence：在拥挤环境中联合优化多机器人系统的任务和运动规划。
 
 
 <div class="dpr-home-promo-card">
