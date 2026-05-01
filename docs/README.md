@@ -6,46 +6,74 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-04-30
-- 运行时间：2026-04-30 20:15:07 UTC
+- 最新运行日期：2026-05-01
+- 运行时间：2026-05-01 20:05:59 UTC
 - 运行状态：成功
-- 本次总论文数：8
-- 精读区：4
-- 速读区：4
+- 本次总论文数：17
+- 精读区：6
+- 速读区：11
 
 ### 今日简报（AI）
-今日深度探索具身智能前沿，重点攻克基于世界模型的机器人策略评估与时空动作建模难题。
-核心结论指出，离散扩散模型（dWorldEval）与动作中心化建模（STARRY）是提升机器人操控精度与仿真评估效率的关键。
-建议开发者优先研读 3D 生成综述与意图识别技术，为构建高保真仿真环境及人机交互系统储备方案。
-- 详情：[/202604/30/README](/202604/30/README)
+- 今日共生成 17 篇推荐（精读 6 篇，速读 11 篇）
+- 精读：《CorridorVLA: Explicit Spatial Constraints for Generative Action Heads via Sparse Anchors》（10.0/10）, 《PRTS: A Primitive Reasoning and Tasking System via Contrastive Representations》（10.0/10）
+- 速读：《Learning-augmented robotic automation for real-world manufacturing》（8.0/10）, 《SpaAct: Spatially-Activated Transition Learning with Curriculum Adaptation for Vision-Language Navigation》（8.0/10）, 《ExoActor: Exocentric Video Generation as Generalizable Interactive Humanoid Control》（8.0/10）
+- 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
+- 详情：[/202605/01/README](/202605/01/README)
 
 ### 精读区论文标签
-1. [dWorldEval: Scalable Robotic Policy Evaluation via Discrete Diffusion World Model](/202604/30/2604.22152v1-dworldeval-scalable-robotic-policy-evaluation-via-discrete-diffusion-world-model)  
+1. [CorridorVLA: Explicit Spatial Constraints for Generative Action Heads via Sparse Anchors](/202605/01/2604.21241v1-corridorvla-explicit-spatial-constraints-for-generative-action-heads-via-sparse-anchors)  
+   标签：评分：10.0/10、query:vla
+   evidence：VLA模型生成式动作头的显式空间约束
+2. [PRTS: A Primitive Reasoning and Tasking System via Contrastive Representations](/202605/01/2604.27472v1-prts-a-primitive-reasoning-and-tasking-system-via-contrastive-representations)  
+   标签：评分：10.0/10、query:vla
+   evidence：通过目标条件强化学习实现机器人控制的VLA基础模型
+3. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/01/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
+   标签：评分：10.0/10、query:vla
+   evidence：用于机器人控制的统一世界动作模型（WAM）
+4. [LaST-R1: Reinforcing Action via Adaptive Physical Latent Reasoning for VLA Models](/202605/01/2604.28192v1-last-r1-reinforcing-action-via-adaptive-physical-latent-reasoning-for-vla-models)  
+   标签：评分：10.0/10、query:vla
+   evidence：集成潜空间推理与强化学习的VLA框架
+5. [GazeVLA: Learning Human Intention for Robotic Manipulation](/202605/01/2604.22615v2-gazevla-learning-human-intention-for-robotic-manipulation)  
+   标签：评分：9.5/10、query:vla
+   evidence：通过视线学习人类意图以辅助机器人操作的VLA框架
+6. [Robot Learning from Human Videos: A Survey](/202605/01/2604.27621v1-robot-learning-from-human-videos-a-survey)  
    标签：评分：9.0/10、query:vla
-   evidence：将视觉、语言和机器人动作映射到统一的标记空间
-2. [STARRY: Spatial-Temporal Action-Centric World Modeling for Robotic Manipulation](/202604/30/2604.26848v1-starry-spatial-temporal-action-centric-world-modeling-for-robotic-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：用于机器人操作的世界模型增强型动作生成策略
-3. [ATLAS: An Annotation Tool for Long-horizon Robotic Action Segmentation](/202604/30/2604.26637v1-atlas-an-annotation-tool-for-long-horizon-robotic-action-segmentation)  
-   标签：评分：8.0/10、query:vla
-   evidence：用于长程机器人动作分割和操作策略学习的标注工具
-4. [Atomic-Probe Governance for Skill Updates in Compositional Robot Policies](/202604/30/2604.26689v1-atomic-probe-governance-for-skill-updates-in-compositional-robot-policies)  
-   标签：评分：8.0/10、query:vla
-   evidence：机器人操作任务策略中的技能更新与组合
+   evidence：关于从人类视频中学习机器人操作技能的综述
 
 ### 速读区论文标签
-1. [IntentVLM: Open-Vocabulary Intention Recognition through Forward-Inverse Modeling with Video-Language Models](/202604/30/2604.24002v1-intentvlm-open-vocabulary-intention-recognition-through-forward-inverse-modeling-with-video-language-models)  
+1. [Learning-augmented robotic automation for real-world manufacturing](/202605/01/2604.22235v1-learning-augmented-robotic-automation-for-real-world-manufacturing)  
+   标签：评分：8.0/10、query:vla
+   evidence：制造业中真实世界机器人操作的基于学习的控制
+2. [SpaAct: Spatially-Activated Transition Learning with Curriculum Adaptation for Vision-Language Navigation](/202605/01/2604.27620v1-spaact-spatially-activated-transition-learning-with-curriculum-adaptation-for-vision-language-navigation)  
+   标签：评分：8.0/10、query:vla
+   evidence：将视觉语言模型应用于具身视觉语言导航
+3. [ExoActor: Exocentric Video Generation as Generalizable Interactive Humanoid Control](/202605/01/2604.27711v1-exoactor-exocentric-video-generation-as-generalizable-interactive-humanoid-control)  
+   标签：评分：8.0/10、query:vla
+   evidence：通过视频生成实现可泛化的交互式人形机器人控制
+4. [A Pattern Language for Resilient Visual Agents](/202605/01/2604.28001v1-a-pattern-language-for-resilient-visual-agents)  
+   标签：评分：8.0/10、query:vla
+   evidence：使用VLA模型的视觉智能体架构模式语言
+5. [VISION-SLS: Safe Perception-Based Control from Learned Visual Representations via System Level Synthesis](/202605/01/2604.24894v1-vision-sls-safe-perception-based-control-from-learned-visual-representations-via-system-level-synthesis)  
    标签：评分：7.5/10、query:vla
-   evidence：用于社交机器人交互中人类意图识别的视频语言框架
-2. [Lifting Embodied World Models for Planning and Control](/202604/30/2604.26182v1-lifting-embodied-world-models-for-planning-and-control)  
+   evidence：基于视觉表征的非线性动力学感知控制
+6. [Interoceptive machine framework: Toward interoception-inspired regulatory architectures in artificial intelligence](/202605/01/2604.24527v1-interoceptive-machine-framework-toward-interoception-inspired-regulatory-architectures-in-artificial-intelligence)  
    标签：评分：7.0/10、query:vla
-   evidence：用于规划和控制的具身智能体世界模型
-3. [3D Generation for Embodied AI and Robotic Simulation: A Survey](/202604/30/2604.26509v1-3d-generation-for-embodied-ai-and-robotic-simulation-a-survey)  
+   evidence：受内稳态启发的具身智能架构
+7. [Skill Retrieval Augmentation for Agentic AI](/202605/01/2604.24594v1-skill-retrieval-augmentation-for-agentic-ai)  
    标签：评分：7.0/10、query:vla
-   evidence：具身智能与机器人仿真的3D生成综述。
-4. [Wiggle and Go! System Identification for Zero-Shot Dynamic Rope Manipulation](/202604/30/2604.22102v1-wiggle-and-go-system-identification-for-zero-shot-dynamic-rope-manipulation)  
+   evidence：大语言模型智能体的动态技能检索
+8. [Robot Planning and Situation Handling with Active Perception](/202605/01/2604.26988v1-robot-planning-and-situation-handling-with-active-perception)  
+   标签：评分：7.0/10、query:vla
+   evidence：通过主动感知进行机器人规划和情境处理以完成复杂任务
+9. [Full-Body Dynamic Safety for Robot Manipulators: 3D Poisson Safety Functions for CBF-Based Safety Filters](/202605/01/2604.21189v1-full-body-dynamic-safety-for-robot-manipulators-3d-poisson-safety-functions-for-cbf-based-safety-filters)  
    标签：评分：6.0/10、query:vla
-   evidence：目标条件下的绳索动态操作
+   evidence：动态环境下机器人操作器的安全过滤器
+10. [PhysCodeBench: Benchmarking Physics-Aware Symbolic Simulation of 3D Scenes via Self-Corrective Multi-Agent Refinement](/202605/01/2604.23580v1-physcodebench-benchmarking-physics-aware-symbolic-simulation-of-3d-scenes-via-self-corrective-multi-agent-refinement)  
+   标签：评分：6.0/10、query:vla
+   evidence：为具身智能和机器人技术建立物理感知的符号仿真基准
+11. [Global Sampling-Based Trajectory Optimization for Contact-Rich Manipulation via KernelSOS](/202605/01/2604.27175v1-global-sampling-based-trajectory-optimization-for-contact-rich-manipulation-via-kernelsos)  
+   标签：评分：6.0/10、query:vla
+   evidence：接触密集型操作的轨迹优化
 
 
 <div class="dpr-home-promo-card">

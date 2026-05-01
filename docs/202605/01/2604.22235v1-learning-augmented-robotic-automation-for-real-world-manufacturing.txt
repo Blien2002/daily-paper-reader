@@ -1,0 +1,563 @@
+Title: Learning-augmented robotic automation for real-world manufacturing
+
+URL Source: https://arxiv.org/pdf/2604.22235v1
+
+Published Time: Mon, 27 Apr 2026 00:27:32 GMT
+
+Number of Pages: 58
+
+Markdown Content:
+# Learning-augmented robotic automation for real-world manufacturing 
+
+Yunho Kim *, Quan Nguyen, Taewhan Kim, Youngjin Heo, Joonho Lee 
+
+All authors are with Neuromeka Co., Ltd. 
+
+Industrial robots are widely used in manufacturing, yet most manipulation still depends on fixed waypoint scripts that are brittle to environmental changes. Learning-based control offers a more adaptive alternative, but it remains un-clear whether such methods, still mostly confined to laboratory demonstra-tions, can sustain hours of reliable operation, deliver consistent quality, and behave safely around people on a live production line. Here we present Learning-Augmented Robotic Automation, a hybrid system that integrates learned task controllers and a neural 3D safety monitor into conventional industrial work-flows. We deployed the system on an electric-motor production line to au-tomate deformable cable insertion and soldering under real manufacturing constraints, a step previously performed manually by human workers. With less than 20 min of real-world data per task, the system operated continuously for 5 h 10 min, producing 108 motors without physical fencing and achieving a 99.4% pass rate on product-level quality-control tests. It maintained near-human takt time while reducing variability in solder-joint quality and cycle time. These results establish a practical pathway for extending industrial au-tomation with learning-based methods. 
+
+> *Corresponding author: yunho.kim@neuromeka.com
+
+1
+
+> arXiv:2604.22235v1 [cs.RO] 24 Apr 2026
+
+Industrial robots are widely used in manufacturing ( 1–3 ). However, they are mostly de-ployed through waypoint-based “teaching” procedures, in which engineers specify fixed se-quences of pose targets and discrete actions (e.g., grasping or tool activation) using standard-ized programming interfaces ( 4, 5 ). This paradigm enables reliable execution in structured set-tings, but it is inherently limited when tasks involve part-to-part variation or environmental uncertainty, because the robot largely replays pre-recorded motions with little perceptual feed-back ( 6). As a result, several production steps remain manual not because they are wholly unstructured, but because they involve geometric variation, deformable materials, or tight toler-ance (Extended Data Figure 1). Recent advances in learning-based control offer a promising alternative by enabling perception-driven, closed-loop manipulation. Neural controllers obtained with imitation learning ( 7–10 ), reinforcement learning ( 11–13 ), or large-scale multimodal training ( 14–19 ) have demonstrated success on complex manipulation tasks which are fundamentally incompatible with conven-tional waypoint-based programming. However, despite these advances, their applicability to real-world industrial systems remains unclear. Industrial deployment of learning-based controllers imposes stringent requirements. First, controllers must exhibit long-horizon stability with near-perfect success rates under strict Quality Control (QC) standards. Second, cycle time must be comparable to human takt time. Third, controllers must ensure safety in shared workspaces by reacting to human activity, thereby en-abling an efficient human-robot division of labor. Finally, these requirements must be achieved under a limited training data budget and safety constraints, as large-scale data collection and risky exploratory motions ( 20 ) impose significant operational burdens on field engineers. Existing learning-based methods often fall short of these requirements. They often exhibit limited success rates, slow execution, and substantial task-specific data requirements (often ranging from several to hundreds of hours) ( 21–24 ). Furthermore, the deployment of such 2neural controllers in industrial automation settings remains underexplored, especially for full workstation-level operation. As a result, critical considerations—including safe human–robot coordination on the production line and consistent satisfaction of QC standards during long-horizon operation—are rarely addressed, as most prior academic demonstrations remain limited to controlled laboratory environments and isolated tasks. In this work, we present Learning-Augmented Robotic Automation, a factory-validated hy-brid system that integrates reliable conventional automation with learning-based control in a safety-aware architecture. Instead of relying on a single end-to-end policy, our approach retains the core industrial backbone—an explicit task scheduler and pre-taught motions for structured parts of the workflow— while introducing learning only where adaptability is required. This design preserves the predictability, precision, and robustness of classical control in structured sub-tasks while enabling perception-driven adaptation where it is most needed. We conducted a factory-floor validation (Figure 1). We integrated the proposed system within an existing automation cell on an electric-motor production line and evaluated it through extended long-run operation ( ≈ 5 h 10 min). The process includes picking motors from random poses, inserting deformable cables, and performing soldering. The cable handling is especially challenging for rule-based automation because of the compliant materials and tight tolerances. Over 108 consecutive motors with real components and consumables, the system achieved an average cycle time of 159 s (typical human takt time ≈ 141 s) and a 99.4% success rate based on product-level QC tests. This performance was achieved with less than 20 min of real-world data per task. These results demonstrate the real-world viability of modular learning-augmented automa-tion and establish a practical route to extending industrial automation to tasks that remain diffi-cult for conventional methods. 3< 0.6 mm tolerance Safety Stop 1 2 34 5 6
+
+> a. Workstation b. Production Process
+
+Figure 1: Production line deployment. (a) Overview of the workstation deployed on the factory floor. (b) Production process and division of labor. A human worker loads motor cores and consumables into the cell (1). The robot then executes the cable insertion-and-soldering sequence, including motor placement/orientation, sequential insertion of the three-phase power cables, soldering, and tip cleaning (2–5). Finally, a human worker removes the completed motor and transfers it to the next stage of the line (6). 4Task Description and Challenges 
+
+We target a manufacturing station on an electric-motor production line, namely three-phase power-cable insertion and soldering. The robot is required to execute the full station workflow, from picking a motor core from a table and placing it into the station to inserting and soldering the three cables, while meeting downstream product-level QC requirements. Unlike laboratory test setups, this station must operate within an active production line, which imposes additional constraints on throughput, allowable iteration and data collection, and safe operation alongside human workers. The motor cable soldering process has been challenging to automate with conventional waypoint-based approaches. First, the task involves geometric variation across parts (Extended Data Figure 1a). Motors are presented in random poses, hole positions can vary across in-stances, and cables deform during handling and insertion. Second, depth measurements are noisy and unreliable for thin or reflective structures (e.g., cables, holes, solder pads; Extended Data Figure 1b), making precise estimation of small-scale geometric features such as cable-tip pose and hole location difficult. Third, insertion requires high precision under tight tolerances (Extended Data Figure 1c), as the clearance between the cable tip and the PCB hole is only 0.3 to 0.6 mm. The rest of the motor production line is already automated, with dedicated machines achiev-ing stable throughput for operations such as coil winding, PCB dipping, and stator welding. In contrast, this insertion-and-soldering station has typically remained manual, performed by a skilled worker who solders the three connections and verifies quality in sequence. 53D Safety Monitor Task Scheduler  
+
+> : Teaching : Visual servoing : Imitation learning
+> : Neural network Grasp motor Place motor Insert cable Approach iron & Solder Release motor Prepare cable x3 (i) (ii) (iii) (iv) (v) (vi) Collidable area prediction Speed scheduling
+> iv iii iii vi v
+> Nominal Slow-down Stop
+
+Figure 2: Learning-augmented robotic automation. The software stack comprises modular task controllers and a safety monitoring module. Learned components are integrated at the task and safety levels to overcome the limitation of conventional automation. 
+
+# Results 
+
+System Overview 
+
+We structured the automation pipeline as a sequence of modular manipulation tasks coordinated in a cyclic workflow (Figure 1b). 
+
+Learning-Augmented Robotic Automation 
+
+Our software stack is shown in Figure 2. We extend classical industrial automation by retaining its core elements—an explicit Task Scheduler implemented as a Finite State Machine (FSM) and pre-taught motion segments for structured, repeatable parts of the workflow—while adding two learning-based capabilities that improve (i) task capability in unstructured, contact-rich subtasks and (ii) reactive collision prediction and risk reduction. Learned controllers are integrated as modular primitives, implemented as callable mod-ules with structured inputs/outputs, termination conditions, and explicit success signals that the FSM uses for sequencing and fallback behaviors. We developed two complementary cate-6gories: (i) Visual servoing controllers target kinematics-dominant subtasks in unstructured set-tings with substantial geometric variability. (ii) Imitation learning controllers address subtasks for which analytical modeling is difficult (e.g., deformable object handling and contact-rich in-teractions) by learning from human demonstrations. This composition is conceptually related to Dreczkowski et al. (23 ), which separates manipulation into alignment and interaction phases, although the criteria and implementation differ in our approach. Learned controllers rely solely on RGB images for visual perception, unlike conventional automation that often depends on high-cost, high-precision 3D cameras. Rather than using full RGB images, our learned controllers employ task-specific structured observations. For the visual servoing controller, a zero-shot mask tracker selects and tracks a background-removed mask of the target object (Figure 3a-i). For the imitation learning controller, a lightweight mask predictor estimates hole masks from stereo images; we then extract compact target descriptors (ROI crops and mask centers) that are robust to hole variation (Figure 3b-i). This observation bias improves data efficiency and stability. A 3D safety monitoring module is added to reduce collision risk when operating in popu-lated workplaces. The module continuously monitors the workspace with a neural network that predicts obstacle occupancy from raw 3D point clouds ( 25,26 ). The robot slows down when ex-ternal objects are detected within the slowdown zone, reducing speed below conservative limits consistent with Power Force Limiting (PFL) ( 27 ) requirements. If obstacles are detected within the stop zone, the system triggers a protective stop ( 28 ). Zone details are provided in the Results section. 
+
+Hardware Setup 
+
+The workstation consists of a bimanual collaborative robot built from two 6-Degree Of Freedom (DOF) arms (Extended Data Figure 2). One arm is equipped with a two-finger gripper for motor 7and cable manipulation, while the other arm carries an automated soldering iron. Three RGB-D cameras provide visual feedback; however, we use only the RGB streams (Extended Data Figure 2-(1,2)). A wrist-mounted camera on the gripper arm supports grasp-ing parts from the table, while two fixed cameras positioned on the central worktable provide visual feedback during cable insertion and soldering. A 3D LiDAR sensor is mounted at the workstation corner to monitor the surroundings (Extended Data Figure 2-(3)). The central worktable integrates a motor seat for insertion and soldering, along with a load cell (Extended Data Figure 2-(4)). The load cell provides force feedback during insertion to detect cases where the cable becomes stuck. Such a failure case is difficult to distinguish from RGB images alone due to limited resolution (Supplementary Figure 4). Upon detecting exces-sive load, the robot retracts the cable by a small distance (randomly sampled in 2.5–4 mm) and retries the insertion. Cables are loaded in a dedicated holder; an automated cable feeder could be integrated in future deployments (Extended Data Figure 2-(5)). 8Lightweight Mask Predictor 
+
+> Mask image coordinates Robot states
+> SP > 0.95
+> Cropped ROI images
+
+b. Imitation Learning (IL) Controller 
+
+> Left Camera
+> Right Camera
+
+Extract target hole info. i Precise insertion & soldering using Structured IL policy ii Success Probability (SP) 
+
+Transformer Policy (ACT-10) End-Effector Relative Pose Initial state 1 Approach 2 If high force is detected (stuck), recover & retry 3 Episode end 4
+
+c. Examples from the long-run experiment 
+
+Insertion: random cable bending and hole positions i Soldering: random hole positions and surroundings ii 
+
+Transformer Policy (ACT-1) 
+
+Tool tip Cable Target hole Cable tip Target hole 
+
+a. Visual Servoing Controller Zero-shot Mask Tracker 
+
+Pick object & Remove background i Iterative adjustment using Visual servoing policy ii End-Effector Relative Pose 
+
+Small action ( = Converged ) 
+
+> 1st adjustment First view 2nd adjustment
+> Solder target holes
+> Wrist Camera Image
+
+Figure 3: Behavior of learned controllers. (a) Visual servoing controller uses background-removed motor-core images as input (i) and iteratively adjusts the end-effector pose at each inference step until the target view is reached (ii). (b) Imitation learning controller takes stereo RGB inputs from the worktable cameras. A lightweight mask predictor extracts the three PCB holes, and the policy is conditioned on the target-hole information (i). The target hole is speci-fied by the high-level task scheduler. The end-effector is retracted by 2.5 to 4 mm if high force is detected by the load cell below. (c) Examples of task variability, including diverse cable con-figurations and target-hole locations. 9Real-World Production-Line Validation 
+
+We validated the proposed learning-augmented automation through continuous operation on a live electric-motor production line at the Neuromeka Pohang factory (Figure 1, Movie S1), and summarized the key outcomes in Figure 3 and Figure 4. The deployment served as a stress test under production-line constraints, including sustained operation, safety for nearby human workers, and downstream product-level QC requirements. Figure 3 shows representative behaviors of the learned task controllers during the deploy-ment (more examples in Supplementary Figure 2, Movie S3). Despite variability in part states, the system maintained stable long-run operation using learned, vision-based task controllers. This was achieved with less than 20 minutes of real-world data per task. Extended Data Table 1 summarizes the amount of data used in this study; approximately 8 minutes for motor grasping, 20 minutes for cable insertion, 4 minutes for soldering, and 9 minutes for training the PCB hole mask predictor. Throughout deployment, the robots operated without physical fencing in a shared workspace. When workers approached to load materials or retrieve completed products, the system reduced speed or paused as needed and resumed autonomously (Figure 1b-1,6). 10 108 motors produced 99.4 % cables QC passed 
+
+a. Production Result b. Throughput Analysis c. Blind Top-2 Preference Test for Solder Joint Quality (50 people) 56 % 2/2 Robot-soldered 44 % 1/2 Robot-soldered 2/2 Human-soldered 0 % Robot in Top-2: 78 % Single Process Time i Total Production ii Quality Control (QC) Test iii Top-2 Composition i Samples ii         
+
+> Robot Human Human Human Human Robot Robot Between Humans (Measured) Human (Mean) Human (P20–P80) Robot (Mean) Robot (P20-P80)
+> 012345678
+> 0
+> 50
+> 100
+> 150
+
+Culumative Throughput Projection for 8-Hour Shift Total units produced 
+
+: Factory deployment   
+
+> Break Time Break Time Break Time Hours into shift
+> Robot overtakes Break Time
+> Human Robot 0100 200 300
+> 141 15 9Seconds
+
+Figure 4: Production line deployment results . (a) Production outcomes: (a-i) single-station cycle time (pick, insert, solder, tip clean) for a human worker vs. the robot; (a-ii) total output during the operation; (a-iii) downstream product-level QC pass rate. (b) Cumulative throughput projection for an 8-hour shift. “Robot alone” is computed from the nominal cycle time, whereas “Robot between humans” uses the effective on-line takt time, including pauses for safety and material handling. (c) Blind Top-2 preference test of solder-joint quality ( N = 50 ); (c-i) Top-2 composition and the fraction of robot result selected. (c-ii) Random samples used in the test. 11 Production Performance and Quality 
+
+The system produced 108 motors over approximately 5 h 10 min. The average nominal cycle time, which excludes safety pauses and slowdowns, was 159 s per motor (Figure 4a-i), which is approximately 12.8 % slower than the average human takt time of 141 s per unit. However, the robot exhibited lower cycle-time variance than human operation (Figure 4a-i), as human work-ers occasionally incur delays (e.g., exceeding 3 min) when correcting insertion and soldering errors or due to operator fatigue. Across the run, the robot executed 324 cable insertion-and-solder operations. Two opera-tions failed when the insertion success detector triggered prematurely, leaving the cable insuffi-ciently seated; the cable then disengaged during subsequent handling (Movie S2). This yielded a success rate of 99.4 % per operation (322/324). Qualitative images of the soldered joints are provided in Extended Data Figure 3. Processed motors passed the same downstream QC checks used in routine production (Fig-ure 4a-ii,iii). The QC protocol includes tensile and electrical tests. For tensile testing, a 2.5 kg load was applied to the soldered cables for 1 min and the joint was inspected for disconnection or cracking. For electrical testing, resistance was measured between each pair of cables and verified to lie within the expected range for the motor’s intrinsic resistance. 
+
+Comparative Full-Shift Throughput Analysis 
+
+Figure 4b shows projected cumulative throughput over an 8-hour shift using three timing mod-els. To satisfy legal requirements in Korea, human work is organized into repeating 50-min work / 10-min break cycles. “Human” extrapolates the measured human takt time, and “Robot alone” extrapolates the robot’s nominal cycle time (both from Figure 4a-i). “Robot between humans” uses the effective on-line takt time, which includes pauses and slowdowns for worker access (material loading/removal). 12 Human cycle times show higher variance, as indicated by the P20–P80 interval in Figure 4b (P20 and P80 denote the 20th and 80th percentiles, respectively). Compared to the robot band, the human P20–P80 region is wider, reflecting occasional long-tail delays from interrup-tions, error recovery, and fatigue. This implies that extrapolating from the mean takt time alone can underrepresent the variability that accumulates over an extended shift. In addition, despite the robot’s slower nominal mean cycle time (Figure 4a-i), the break-constrained human sched-ule reduces effective production time, so the “Robot alone” projection overtakes the “Human” projection after approximately 1 h (Figure 4b). Beyond these timing projections, the collaborative setting yields labor-allocation benefits that are not captured by cycle-time analysis. Because the robot does not require continuous human attention, the operator is mainly needed for periodic material loading and removal (ap-proximately every 10–20 min). During collaborative operation, the robot’s cycle time provided sufficient slack for the operator to perform post-soldering electrical QC on completed motors 4a-iii). This parallel work is not reflected in throughput metrics, but it can increase overall cell-level productivity by reallocating human effort without reducing robot utilization. 
+
+Consistency of Solder-Joint Finishing 
+
+In addition to throughput, the factory deployment showed improved production consistency. Consistent solder-joint quality is also important for production-ready products. To evaluate the consistency of the solder joint (and its perceived visual quality), we conducted a blind Top-2 preference test (Figure 4c). Although not a rigorous reliability assay, this blind preference test mirrors real-world production inspection, where solder-joint appearance is routinely used as a first-line indicator of workmanship and consistency. We randomly selected six finished motors: two robot-soldered samples and four human-soldered samples produced by different workers (Figure 4c-ii). All six samples passed the QC 13 test. Fifty participants with engineering and non-engineering backgrounds were shown the six samples and asked to select the two motors with the best-looking solder joints; participants were not informed whether each sample was robot- or human-soldered. Details of the participants, the questionnaire, and the response distribution are provided in Supplementary Section S4 and Supplementary Figure 3. Participants selected both robot-soldered motors in 56 % of trials, and selected one robot-soldered and one human-soldered motor in the remaining 44 %. Across all Top-2 selections (50 participants × 2 choices), robot-soldered motors accounted for 78 % of votes, and the most frequent Top-2 pairings consistently included robot-soldered samples (Figure 4c-i). Together, these results suggest that, in addition to meeting QC requirements, our system produces solder-joint finishing that is visually competitive and consistent relative to the human baseline. 
+
+Comparison with Task Controller Variants 
+
+We quantitatively compare our proposed task controllers against representative baseline meth-ods for learning-based manipulation. The evaluated baselines are as follows: • Naive IL uses the same Action Chunking with Transformers (ACT)-based imitation learning framework as our method ( 7), but removes our image-processing pipeline and structured visual features. The policy takes full-resolution stereo RGB images as input and directly predicts actions. This baseline evaluates whether a generic visuomotor imi-tation learning formulation, without task-specific inductive bias in either the observation or action space, is sufficient for the target tasks. • Vision Language Action model (VLA) employs a model with higher capacity and a stronger visual representation learned from large-scale pretraining. We use a fine-tuned 
+
+π0.5 model ( 17 ) for the corresponding tasks with full-resolution RGB images as input. 14 a. Success rate per sub-task 
+
+Ours Naive IL VLA Conventional 
+
+Initial Position 
+
+Hole Position y (mm) z (mm) x (mm) 
+
+> Ours Naive IL VLA
+> error (mm) 2610
+
+Ours Naive IL VLA Expert Example tool tip trajectory ii Final tip position deviation iii Test scenario i
+
+d. Soldering hole generalization test b. Grasping pose 
+
+> success rate (%)
+
+In-distribution for soldering policy (In training data) 
+
+Unseen (No demos) 
+
+> 43210Count
+
+Ours Naive IL VLA 0.05 2.64 3.66 
+
+c. Number of recovery 
+
+Motor core functional grasping Cable insertion Soldering (Tool tip aligning) success rate (%)  
+
+> 99.0 65.6 80.0 82.3
+> 100 099.3 99.9 12.0 29.3 50
+> 99.3 64.0 52.0 28.6
+> 100 80 60 40 20 0
+> 99.3 99.3
+
+Ours 
+
+> 94.6 29.3
+
+VLA 
+
+> 98.0 12.0
+
+Naive IL Target pose ±15° Arbitrary pose Figure 5: Comparison with task controller variants. (a) Sub-task success rates for motor-core functional grasping, cable insertion, and soldering (tool-tip alignment). (b) Breakdown of grasping outcomes, separating overall grasp success from grasps achieved in the correct pose. (c) Average number of recovery attempts during cable insertion. (d) Soldering-hole generalization test. (d-i) Test setup with an in-distribution hole (used in demonstrations) and an unseen hole (no demonstrations). (d-ii) Example tool-tip trajectories from different policies. 
+
+(d-iii) Mean final tool-tip position error relative to expert demonstrations. 15 This baseline is included to evaluate whether increased model size and pretrained rep-resentation alone can replace task-specific learning formulations and structured observa-tions. Implementation details are provided in Supplementary Section S2. • Conventional represents a traditional robotic automation pipeline based on explicit 3D perception and rule-based waypoint generation. It estimates 3D poses of the cable tip, the target PCB hole, and the soldering iron tip using image segmentation and depth sensing, and then executes predefined waypoint motions with respect to the estimates. 
+
+Sub-task Performance Comparison 
+
+Figure 5a summarizes success rates for each unit task. All experiments use the same hardware setup for fair comparison. Each method is evaluated over 150 trials per task. For cable insertion and soldering, trials are evenly distributed across three PCB holes (50 per hole). For cable insertion, five different cables are used per hole to introduce variation. All methods are trained on the same dataset where applicable, or with an identical data budget when modifications are necessary (Supplementary Section S5). Our method achieves over 99 % success across all tasks, outperforming all baselines. For motor grasping, the conventional method is ”assumed” to be near-perfect, since comparable grasping problems are routinely solved in industry using high-precision 3D sensing and CAD-based pose estimation ( 6); rather than reimplement such specialized pipelines and calibration, we treat motor grasping as reliably solvable with established automation techniques. For the remaining tasks, the conventional baseline is limited by its dependence on explicit 3D geometry: for cable insertion and soldering it achieves approximately 65 % success, primar-ily due to noisy depth sensing and imperfect pose estimation. While higher-precision industrial 3D vision solutions could mitigate this issue, they are typically costly. Other learning-based baselines, including Naive IL and VLA, achieve lower success rates 16 than both our method and the conventional baseline on insertion under the same data budget. Large-scale pretraining of the VLA model provides limited benefit for this industry-specific task. Despite stronger visual representations or larger model capacity, these methods do not consistently meet the task-specific precision requirements in this data-limited setting. 
+
+Data-Efficient Functional Grasping via Visual Servoing 
+
+For motor grasping, the main difficulty is not reaching the motor but achieving the target grasp pose in which the three PCB holes appear in the wrist-camera view (Figure 3a-ii). This orien-tation standardization is required to reduce downstream variability in hole locations for cable insertion and soldering. As shown in Figure 5b, all methods can robustly reach the motor and achieve physical contact. However, both Naive IL and VLA often produce nearby but incorrect orientations (functional grasping in the figure). They tend to converge to a consistent visual configuration that is adequate for grasping, but does not satisfy the orientation requirement. In contrast, we formulate motor grasping as a visual servoing problem. The policy pre-dicts relative corrective motions in SE(3) toward the target view, rather than directly imitating demonstrated trajectories. This introduces an inductive bias in the action space: the controller is trained to reduce residual pose error with respect to the target view. 
+
+Structured Visual Observations Improve Robustness and Generalization 
+
+For cable insertion and soldering, our method uses a hole-invariant policy that conditions actions on (i) the target hole’s image coordinates and (ii) cropped images around the hole, instead of the full RGB image used by Naive IL and VLA. Figure 5c shows that our method requires fewer recovery attempts during insertion than Naive IL and VLA. The improvement compared to Naive IL baseline suggests that the struc-tured, hole-centric visual inputs improve robustness by focusing the policy on the task-relevant 17 features. This localized observation reduces sensitivity to irrelevant visual regions, such as previously soldered cables, which often distract full-frame policies. We further evaluate hole generalization for the soldering task (Figure 5d). We train the pol-icy with only 10 demonstrations collected on a single hole, and then test on a different, unseen test specimen with one cable already inserted. The desired outcome is to solder a different hole under these conditions. As shown in Figure 5d-ii,iii, our soldering controller aligns the tool tip more closely with a previously unseen hole at test time than the other baselines. Naive IL and VLA do not gener-alize to new holes without collecting new demonstrations for each hole, as they learn a direct mapping from full-scene images to actions without an explicit mechanism to retarget. In our experiments, language prompting did not change the pretrained VLA behavior. While expected given this formulation, the implication is practical: instance-wise generalization enables reusing the same policy across targets, improving data efficiency for tasks that require repeated deploy-ment across similar but distinct targets. 18 Top view 
+
+b. Zones 
+
+> 0.6 m 0.3 m 0.35 m
+
+Slow-down Zone Stop Zone 
+
+> 0.35 m
+
+Top view   
+
+> 20 40 60
+> Time (s)
+> Stop
+> 0.0 0.5 1.0 0.0 0.5 Speed Ratio Occupancy Ratio in Zone
+
+Stop Zone Slow-down Zone 
+
+> Slow-down
+
+1 2 3
+
+> 1.0
+
+c. Obstacle Occupancy v.s. Speed Ratio a. Safety Monitoring and Speed Modulation  
+
+> 1Side View
+
+Stop 
+
+2 Top view Side View Slow-down  
+
+> Top view Side View 3
+
+Stop Scene Predicted obstacle occupancy 
+
+> Stop
+
+Figure 6: 3D Safety Monitoring with Speed Modulation. (a) Example scenes (1–3) and the corresponding predicted obstacle occupancy (top/side views) from 3D point clouds; the con-troller commands slow-down or stop based on the occupied region. (b) Top-view definition of the slow-down zone and the inner stop zone. (c) Time series of obstacle occupancy ratio within each zone and the resulting commanded robot speed ratio; numbered intervals correspond to the scenes in (a) .19 Safety Monitoring and Risk Reduction 
+
+Figure 6 illustrates how the safety monitoring system detects and responds to external objects. The current operation mode is communicated via a table-mounted LED (red: stop; yellow: slow-down; green: nominal). During the factory deployment, these interventions occurred re-peatedly as workers approached the cell to load or unload materials (Figure 6a, Movie S4). As shown in Figure 6b, we define two safety regions around the workstation: (i) a stop zone covering the active workspace and (ii) a surrounding slow-down zone extending 0.3–0.6 m beyond the table boundary. Based on voxelized point clouds, a neural network predicts obstacle occupancy within these regions (Figure 6a, right). If the predicted occupancy ratio in a zone exceeds 0.1%, the system triggers a protective response: a full stop if the stop zone is occupied, or a reduction to 70% of nominal speed if occupancy is detected only in the slow-down zone (Figure 6c). Additional analysis of the safety monitor, including productivity trade-offs and compliance with PFL ( 27 ) standards, is provided in the Supplementary Section S6.1 and S6.2. 
+
+# Discussion 
+
+This work investigated whether recent learning-based approaches in manipulation can translate from laboratory demonstrations to reliable operation in real manufacturing. Our factory de-ployment results showed that structured integration of learned components can deliver stable long-run operation under production-line constraints. Our system was grounded in existing industrial workflows—engineer-led setup, program-tree construction, and plug-and-play controllers—while operating under the key constraint of minimizing in-field data collection. Within this framework, we selectively introduced learned components at both the task and safety levels. This integration allowed data-driven modules to 20 (i) expand automation capability under environmental and process variability, and (ii) support safe, efficient division of labor between human workers and robots. Over a year of iterative development and on-site integration, we identified several design considerations that were critical for practical factory deployment. First, explicit task decomposition into verifiable subtasks was critical for reliable industrial deployment. Automation had to be introduced incrementally and remain interpretable and de-buggable, making purely end-to-end policies difficult to validate in practice. Accordingly, we adopted a modular design in which learning was applied only to subtasks requiring adaptation, while deterministic control was retained elsewhere. This hybrid structure helped satisfy prac-tical requirements, namely high success rates and low cycle time, by constraining learning to well-defined subproblems and relying on fast, deterministic execution elsewhere. Second, minimizing in-field data collection was essential. We addressed this by introducing task-specific inductive biases in both perception and control. These choices reduced learning complexity and enabled high performance under limited data budgets. Finally, reducing avoidable downtime was important in human-shared workspaces. Man-ual triggers (e.g., push-buttons) or heuristic stop-and-go control ( 28–30 ) frequently fragmented workflows and reduced throughput. We addressed this with a neural 3D safety monitor that pre-dicted potentially collidable regions from raw 3D point clouds in real time and modulated robot speed accordingly. This enabled tighter safety zones for speed modulation, allowing robots to adjust motion efficiently as workers approached and departed. Overall, our study illustrates a practical pathway toward more flexible and adaptive automa-tion. Although we evaluated a soldering task, the design principles—modular task decompo-sition, task-specific inductive biases in both observation and action, and learned safety-aware coordination—are applicable to other tasks with geometric variability, difficult-to-handcraft be-21 haviors, and imperfect fixturing 1. The results show the potential of learned modules to expand the automation frontier and unlock new classes of automatable tasks. 
+
+# Methods 
+
+Our system integrates learning at two specific levels while retaining a conventional industrial automation backbone: (i) task-level for perception-driven manipulation, and (ii) safety-level for reactive speed and separation monitoring. The remainder of this section details the design, training, and deployment of these learned components. 
+
+Learning-Based Task Controllers 
+
+We employ two classes of learned controllers (Extended Data Figure 4a, 4b)—visual servoing and imitation learning—each tailored to different task requirements. 
+
+Visual Servoing 
+
+For kinematics-dominant tasks where achieving the final end-effector pose is more critical than the specific trajectory to reach it, we employ a visual servoing approach (Extended Data Figure 4a). The visual servoing controller takes the current wrist-camera image iwrist t as input and predicts a relative end-effector motion avs ∈ SE (3) , yielding an estimated target pose s′ 
+
+> f
+
+∈
+
+SE (3) computed as s′ 
+
+> f
+
+= stavs , where st ∈ SE (3) is the current robot pose, toward which the robot is driven. Rather than relying on explicit feature extraction (e.g., image keypoints, line detection, or CAD-based object 3D pose estimation) and heuristic motion generation, the controller is implemented as a neural network policy that directly infers corrective motions from raw RGB images ( 31, 32 ). 
+
+> 1Extended implementations on a different hardware setup and task are provided in Supplementary Section S7 and S8.
+
+22 Task: We apply the visual servoing method to the motor grasping task (Figure 2-i). Given multiple motors randomly placed on a table with varying positions and orientations, the robot should grasp a single motor at a time in a desired configuration, where the three PCB holes face the wrist camera with a near consistent orientation (Extended Data Figure 4a-ii). This standardized grasp reduces variability in hole positions after pickup and simplifies downstream cable insertion and soldering. Since motors are always placed on a flat table, the motor grasping controller uses a top-down grasp with fixed end-effector roll and pitch, and the action space is defined as relative translations in x, y, and z along with a relative yaw rotation. 
+
+Preparing Observation: To scale the controller to scenes containing multiple motors and to encourage learning of task-relevant visual features, we operate on masked RGB images rather than raw images. In these masked observations, all regions except the target motor to be grasped are blacked out. A common approach to obtain such masks is to combine a segmentation model (e.g., SAM2 ( 33 )) with an open-vocabulary object detector to provide an initial prompt (e.g., Grounding-DINO ( 34 )). In practice, however, this pipeline proved to be highly sensitive to detector performance and frequently failed in cluttered scenes, making reliable deployment difficult without extra fine-tuning. To address these limitations, we adopt a zero-shot mask tracker that localizes and tracks tar-get regions through feature matching in a pretrained visual representation space (Extended Data Figure 4a-i). Given a query image (the current RGB observation) and a key image containing a single motor, we extract dense visual features using a pretrained DINOv2 model ( 35 ) and compute patch-wise feature similarity over the query image. This produces a heatmap in which high responses correspond to regions visually similar to the motor. We apply contour filtering to select a coherent region from the heatmap and sample several points within it as prompts for SAM2. The resulting mask is subsequently tracked across frames, enabling stable masked 23 observations for visual servoing in multi-motor scenes. Refer to Supplementary Section S1 for implementation details. The zero-shot mask tracker is used only during policy deployment. For training data prepa-ration, masked images are generated semi-automatically using SAM2 with manual point-prompting in the first frame to ensure data quality; this manual prompting takes less than a minute since the remaining frames are labeled automatically through mask tracking by SAM2. 
+
+Deployment: During deployment, the visual servoing controller operates in an iterative closed-loop manner. At the first step or whenever the previously estimated target pose is reached, the robot is commanded to move toward the newly predicted target pose. This process repeats un-til convergence, defined by the action norm falling below predefined thresholds ( ∥ ∆pos ∥<
+
+0.5cm , ∥ ∆rot ∥< 0.5deg ). The iterative refinement is necessary to compensate for partial visibility of PCB holes, visual artifacts from reflections and lighting, and residual regression errors in training. Once the policy converges, visual servoing terminates and the robot executes a predefined grasp by moving down to a fixed table height and closing the gripper. 
+
+Training: To train the neural network policy, we collect data through teleoperation (Extended Data Figure 4a-ii). For each episode, the motor is initially placed on the table with a random position and orientation. The robot is then manually positioned in a target grasp pose that is ready for motor pickup. Beginning from the target pose, the robot is teleoperated via a 3D SpaceMouse to randomly move around the motor, generating a range of perturbed states around the goal pose (Movie S5). During teleoperation, we record the wrist-camera image iwrist t and the corresponding end-effector pose st ∈ SE (3) expressed in the robot base frame. Let s0 denote the first recorded pose, which corresponds to the target grasp pose. For each recorded frame, the visual servoing action label is defined as the relative transformation avs = s−1 
+
+> t
+
+s0. This results in training pairs (iwrist t , a vs ) that supervise the policy to infer corrective motions from visual 24 observations. This tailored data collection strategy, in which the teleoperated trajectories and the recorded action labels are decoupled, is highly data-efficient for kinematics-dominant tasks. It avoids the need to collect full reaching trajectories for every motor configuration while still achieving strong performance with minimal training data (Figure 5a). We adopt Action Chunking with Transformers (ACT) ( 7) as the policy backbone. The action chunk length is set to one, as the policy outputs a single relative target pose per step. The model is trained using an L1 loss to predict action labels. 
+
+Imitation Learning 
+
+For tasks that require high precision or contact-sensitive interaction in semi-structured settings, we employ an imitation learning approach (Extended Data Figure 4b). Unlike kinematics-dominant tasks that can be handled by sparsely commanding target poses, these tasks require high-frequency adaptive motion based on continuous visual feedback. In addition, visual ser-voing can be unsuitable in this regime because it relies on robot-mounted cameras that may offer limited visibility in small workspaces, whereas imitation learning can also use globally fixed cameras in the environment. The imitation learning controller takes multi-camera images and robot state as input and predicts a short-horizon trajectory of relative end-effector motions 
+
+ail ∈ SE (3) K , often referred to as an action chunk ( K: chunk size). We adopt the relative end-effector trajectory representation introduced by Chi et al. ( 36 ). To integrate the imitation learning controller as a modular component within the system, the task scheduler must determine when a task is complete in order to transition to the next step. For visual servoing, task completion can be detected using the action norm due to its convergent behavior, but this criterion does not apply to imitation learning. We therefore design the imitation learning policy to predict both control actions and a success probability. 25 Task: We apply the imitation learning formulation to the cable insertion and soldering task (Figure 2-iv,v). These tasks are performed three times for each motor because the motor is three-phase, containing three PCB holes (i.e., hole1, hole2, hole3) and three cables (i.e., red, black, and white). Although the motor grasping controller significantly reduces variability in hole positions after placement on the jig, residual positional uncertainty remains that the above two controllers must handle. In particular, the three PCB holes are distributed within an approx-imately 60° angular sector and a radial range of about 4 mm. Since the motors are placed on a flat jig, the action space of both controllers is defined as relative translations from the current pose in task-space ( δx, δy, δz ), with the robot end-effector orientation kept fixed. 
+
+Preparing Observation: Although raw RGB images are commonly used for imitation learn-ing controllers ( 7–9, 16, 17 ), we empirically found that a structured observation space is par-ticularly beneficial for achieving high performance with limited training data. We design a hole-invariant observation space by considering the characteristics of our task, where the robot performs conceptually the same operation at three PCB holes that appear visually different in raw RGB images. We first train a lightweight U-Net–based ( 37 ) hole mask predictor on camera stream data with semi-automatic labeling via SAM2 (Extended Data Figure 4b-i). Given a target hole se-lected by the task scheduler and its predicted mask, we compute the hole’s centroid pixel coor-dinates by averaging the coordinates of all the mask pixels. We also extract a local image crop of size 60×60 pixels centered at the hole. The resulting observation space consists of cropped images around the hole for each camera, the corresponding holes’ pixel coordinates, and the robot’s relative end-effector position. This structured observation design is inspired by Kim et al. ( 38 ) and is tailored for precise manipulation. The holes’ pixel coordinates guide the robot toward the vicinity of the target hole, 26 while the locally cropped image provides focused visual features for fine motion adaptation during cable insertion or soldering-iron alignment. By using adaptive cropping centered on the target hole, the controller remains robust to visual artifacts such as previously soldered cables or scorch marks on the PCB. In contrast, relying on full RGB images would require collecting substantially more data covering diverse visual artifacts to learn representations that consistently attend to the target hole region. 
+
+Deployment: During deployment, the imitation learning controller operates until the pre-dicted success probability exceeds a threshold, at which point the task is considered complete. We use a fixed inference chunk size rather than temporal ensembling ( 7), as it was not critical in our setup. When the cable becomes stuck during insertion due to slight alignment errors, which is often difficult to identify from low-resolution cropped images (Supplementary Figure 4), we rely on load readings from a load cell mounted beneath the motor jig. When excessive load is detected, the robot moves upward by a random offset and retries insertion. 
+
+Training: The neural network policy is trained using demonstration data collected through teleoperation (Extended Data Figure 4b-ii). For each episode, the motor is randomly initial-ized on the jig within the approximate range of positional variability introduced by the motor grasping controller. The robot is then teleoperated using a 3D SpaceMouse to perform the task, either inserting the cable or approaching the soldering iron tip (Movie S5). The teleoperation is conducted at 20Hz, which matches the control frequency of the trained policy. During tele-operation, we record images from the left and right cameras mounted on the solder table, the robot’s current end-effector pose, and the control inputs from the teleoperation device. The recorded data are processed into training pairs ( ilef t t , iright t , prel t , ail ) to supervise the policy, where prel t ∈ R3 denotes the end-effector position relative to the initial pose of the episode. Binary success labels are generated automatically from demonstrations, with the final por-27 tion of each trajectory labeled as successful. In practice, the last eight steps (0.4 s) are labeled as success to account for human reaction delay when stopping teleoperation recording. The imitation learning policy uses the ACT model as its backbone. Hole image coordinates are treated as additional state inputs and concatenated with robot proprioception before being passed through a linear layer and transformer ( 39 ) encoder. On the output side, two transformer decoders are used: one to predict the action trajectory and the other to predict the success probability. The model is trained using an L1 loss for action prediction and a binary cross-entropy loss for success prediction. An alternative approach commonly explored for high-precision tasks is real-world reinforce-ment learning ( 11, 12 ). While reinforcement learning could serve as another learning-based control module for automation in future work, we do not consider it in this study due to the dif-ficulty of safe and efficient exploration in our target setting ( 20 ). In our experience, real-world exploration in the task setup repeatedly damaged fragile components such as the soldering-iron tip and the cable tip. In contrast, imitation learning enables safe data collection through human demonstrations and allows explicit data quality control. 
+
+Learning-Based 3D Safety Monitor 
+
+In conventional automation, safe human–robot interaction is typically ensured by designing systems to comply with Speed and Separation Monitoring (SSM) guidelines ( 27 ). These imple-mentations commonly regulate robot motion using distance measurements from 2D laser scan-ners ( 28–30 ). While effective in structured environments, such distance-based strategies are often overly conservative and difficult to deploy in tight human–shared workspaces, where oc-clusions and complex surrounding structures degrade measurement reliability. To address these limitations, we adopt a learning-based strategy that predicts collidable regions directly from raw 3D point clouds (Extended Data Figure 4c). The predicted collidable areas are then used to 28 modulate robot speed between nominal, reduced, and protective stop modes based on predefined safety zones (Figure 6b, Supplementary Section S6.3). We enforce these joint speed limits using a model-based low-level controller ( 40, 41 ) to maintain safe operating speeds, complemented by the robot’s intrinsic collision-stop mechanism ( 42 ). Furthermore, with an operational range of 90–120 cm, the workspace geometry inherently minimizes exposure to the head and face, avoiding the most stringent ISO/TS 15066 constraints ( 27 ) (Supplementary Section S6.2). 
+
+Collidable Area Prediction 
+
+To avoid reliance on explicit online geometric pipelines—such as point matching ( 43 ), map-ping ( 44, 45 ), or handcrafted occlusion handling ( 46 )—we formulate collidable area prediction with a single end-to-end neural network that maps point clouds to occupancy estimates. This design reduces system-level engineering complexity and scales efficiently to large workspaces. 
+
+Pipeline: Given a raw point cloud from the 3D LiDAR, we voxelize the data within the max-imum region considered for collidable area prediction. Occupied voxels are then categorized into three classes—obstacle, robot, and end-effector tool—based on approximate cuboid ge-ometries. For the robot, we construct a tree of cuboids that roughly cover the robot body, similar to the collision bodies defined in the robot’s URDF model. For the end-effector tool, we assume a single cuboid whose size is randomized during training and fixed during deployment according to the approximate gripper dimensions. The resulting voxel representation encodes each voxel by its spatial coordinate and a discrete label (0: empty, 1: obstacle, 2: robot, 3: tool). This entire process is implemented with Warp ( 47 ) and computed in parallel on the GPU, enabling efficient real-time processing. We use a voxel size of 0.05 m, which is sufficient for safety monitoring. The segmented voxel representation is passed to a neural network to predict collidable ar-eas. We model this network as a Convolutional Occupancy Network ( 26 ). It takes the segmented 29 voxels together with the robot’s joint state as input and constructs a multi-plane feature field us-ing convolutional layers. An implicit function, implemented as a multilayer perceptron (MLP), then predicts the occupancy probability at queried 3D coordinates conditioned on the extracted feature field. Because the model does not explicitly reconstruct the full 3D voxel grid ( 25 ), it is memory efficient and scales well to large workspaces. In addition, occupancy queries for mul-tiple 3D points can be evaluated in parallel on the GPU. During training, we subsample query points rather than evaluating all voxels. During deployment, we cache the voxel coordinates of the entire prediction area, query all points in batch, and classify a voxel as occupied if the predicted probability exceeds 0.5. In the soldering system, collidable area prediction runs in real time at 10 Hz. 
+
+Training: The neural network is trained using a combination of simulation data and real-world data. We employ a reality-grounded simulation in which each environment is constructed by spawning a 3D mesh of the real-world workspace obtained from CAD models. Although such meshes could also be acquired through real-world 3D scanning ( 48 ), we leave this for future work. Robot joint configurations and motions in each environment are sampled around trajectories logged during real-world execution of the automation process to ensure realistic state distributions. Following our previous work ( 25 ), each environment additionally includes randomly sized cuboids with randomized motion to simulate external obstacles, such as human workers, that are not present in the nominal setup. Raw 3D point clouds are generated by simulating a 3D LiDAR sensor with randomized mounting perturbations and additive gaussian noise to account for sensing uncertainty. The neural network is trained using a binary cross-entropy loss with ground-truth occupancy labels for external obstacles generated in simulation. We use IsaacLab ( 49 ) for the simulation framework. Due to unmodeled elements such as grasped motors, wired cables, robot tubing, and sensor 30 latency, a model trained solely on simulation data exhibits limited sim-to-real transfer and tends to overestimate occupancy in regions without obstacles. To mitigate this issue, we additionally collect real-world LiDAR data while running the automation system without human presence (less than 8 minutes of data was recorded). Since these real-world data do not contain external obstacles, they are labeled as zero occupancy. The network is then co-trained using both simu-lation and real-world data, with each training batch composed of an equal proportion of samples from the two sources. This co-training strategy allows the network to learn from simulation data to handle occluded point clouds and external obstacles, while adapting to the unmodeled factors using real-world data. 31 Acknowledgments 
+
+We thank the Neuromeka executives and employees for supporting the experiments on the fac-tory production line, participating in the blind preference test, and providing valuable feedback on the automation ecosystem. We also thank J. Kim, J. Kim, S. Kim, S. Lee, D. Ko, C. Kim, and I. Kim for designing and setting up the robot workstation. 
+
+# Author contributions 
+
+Y.K formulated the main idea of the control and learning methods, implemented the system, and trained the learning-based modules. Q.N implemented the zero-shot mask tracker, VLA training pipeline, and evaluated the suitability of reinforcement learning for the task. Y.K and J.L refined the methodology, designed the experiments, and analyzed the data. Y.K and Q.N designed the hardware setup. Y.K, Q.N, T.K, and J.L conducted experiments and prepared manuscripts. Y.H provided insights from an industrial automation perspective, identified the necessity of the soldering automation, and supported preparation for long-run factory validation. 
+
+# Competing interests 
+
+The authors declare no competing interests. 32 a. Variability in part state    
+
+> Motor core loading pose Cable shape & Hole position
+> b. Unreliable 3D sensing for small features
+> RGB Depth
+> c. Small Tolerance
+> Cable tip PCB hole
+
+Extended Data Figure 1: Task challenges. (a) Motor cores are loaded with random poses. PCB hole locations and cable shapes vary across specimens and trials. (b) Unreliable depth sensing for small, thin, or reflective features near the insertion region (c) Tight insertion clear-ance (0.3–0.6 mm) between the cable and PCB holes. 33 Robot 1 Robot 2 Wrist camera Left camera Right camera Gripper Soldering iron   
+
+> Solder table Load cell Motor jig Clamp
+> LED
+> (5) Cable holder Lidar Motor IN (Before solder)
+> Motor OUT (After solder) Solder table Tip cleaner Robot 1 Robot 2 Solder controller (2) (3) (1) (4-i) (4) (4) (4-iii) (4-ii) (4-iv)
+
+Extended Data Figure 2: Hardware setup. The Workstation consists of bimanual collabora-tive robots, RGB cameras (1, 2), 3D LiDAR (3), a central worktable (4), and soldering tools. The central worktable additionally integrates an LED light for stable illumination (4-i) and a motorized clamp (4-iii). The clamp resolves geometric clearance issues caused by the bulky industrial gripper and soldering tool, thereby preventing collisions during operation. 
+
+Extended Data Table 1: Training data size for each task. For imitation learning controllers, additional data were collected using DAgger ( 50, 51 ) by rolling out the initially trained policy and gathering corrective demonstrations from failure states. 
+
+Task Init DAgger Total 
+
+Motor grasping Time 8 min 11 sec - 8 min 11 sec 
+
+# of episodes 8 - 8
+
+Cable insertion Time 19 min 18 sec 16 sec 19 min 34 sec 
+
+# of episodes 180 5 185 
+
+Soldering Time 3 min 19 sec 38 sec 3 min 57 sec 
+
+# of episodes 36 14 50 
+
+Hole mask predictor Time - - 9 min 7 sec 
+
+34 Extended Data Figure 3: Soldered joints produced during factory deployment. The last two images show the two failed soldered joints (black cable). 35 lightweight Mask Predictor 
+
+(U-Net) 
+
+Transformer Policy (ACT-1) Capture images at random poses 
+
+Mask center image coordinates Robot states 
+
+Cropped ROI images 
+
+Transformer Policy (ACT-10) 
+
+Supervised Learning 
+
+Teleoperation Data 
+
+Convolutional Occupancy Network 
+
+Supervised Learning Obstacle Occupancy Prediction Blue: Obstacle, Yellow: tool Pink: Robot Body Occupied in Stop Zone (near robot): STOP Otherwise: NORMAL Occupied in Slow-down Zone : SLOW DOWN 
+
+Speed Scheduling 
+
+Reality-Grounded Simulation 
+
+c. 3D Safety Monitor a. Visual Servoing Controller 
+
+Zero-shot Mask Tracker 
+
+Background removed Wrist Camera Image Processing Visual Inputs iEnd-Effector Relative Pose Policy Training & Data Generation ii Step2 
+
+Query Extract Object Features Key Mask 
+
+> DINO DINO
+
+Image Features 
+
+Compare 
+
+Target Object Correspondence 
+
+SAM2 
+
+Sample a high-score pixel 
+
+Track (SAM2) Detect target object(key) from input Step1 10~20 Hz 
+
+Extract target hole's mask information 
+
+20 Hz Step2 
+
+Camera ... Capture image at the target pose 
+
+Label: Relative Pose 
+
+> Teleoperation
+
+... 
+
+Supervised Learning b. Imitation Learning Controller 
+
+Left Camera Right Camera Processing Visual Inputs i Policy Training & Data Generation ii Success Probability Step1 Pointcloud from 3D Lidar Segmented Voxel Grid Pipeline Overview i Sim-Real Co-training ii 
+
+Real Pointcloud during Nominal Operation Workspace Mesh Pointcloud & Collision Probability Under random obstacles 20 Hz End-Effector Relative Pose 
+
+Target view Extended Data Figure 4: Overview of the learning-based components. (a) Visual servoing: 
+
+(a-i) DINO-based key–query matching seeds a target mask, which is refined and tracked by SAM2 to create background-removed images; (a-ii) a transformer policy is trained on images collected at the target pose and at randomly perturbed poses. (b) Imitation learning controller: 
+
+(b-i) a lightweight U-Net predicts hole masks/IDs from stereo images; (b-ii) a transformer policy then processes target-hole information and robot states to output a relative pose action and a success probability. (c) 3D safety monitor: (c-i) a convolutional occupancy network predicts collidable regions from voxelized point clouds, and a speed scheduler switches between normal/slowdown/stop modes depending on the prediction; (c-ii) sim–real co-training builds a reality-grounded simulation for robust simulation training. 36 References 
+
+1. A. Vysocky, P. Novak, Human-robot collaboration in industry, MM Science Journal 903– 906 (2016). 2. S. El Zaatari, M. Marei, W. Li, Z. Usman, Cobot programming for collaborative industrial tasks: An overview, Robotics and Autonomous Systems 162–180 (2019). 3. G. Graetz, G. Michaels, Robots at work, Review of economics and statistics 753–768 (2018). 4. Universal Robots, Universal robots user manual, https://www.universal-robots.com/manuals/EN/HTML/MainLanding/Content/Landingpages/mainlanding.htm (2024). Accessed: June 1, 2025. 5. Neuromeka, Conty documentation, http://docs.neuromeka.com/3.2.0/en/Conty/conty/ (2024). Accessed: June 1, 2025. 6. Y. Cong, R. Chen, B. Ma, H. Liu, D. Hou, C. Yang, A comprehensive study of 3-d vision-based robot manipulation, IEEE Transactions on Cybernetics 1682–1698 (2021). 7. T. Z. Zhao, V. Kumar, S. Levine, C. Finn, Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware, Proceedings of Robotics: Science and Systems (Daegu, Republic of Korea, 2023). 8. Z. Fu, T. Z. Zhao, C. Finn, Mobile aloha: Learning bimanual mobile manipulation with low-cost whole-body teleoperation, Conference on Robot Learning (CoRL) (2024). 9. C. Chi, Z. Xu, S. Feng, E. Cousineau, Y. Du, B. Burchfiel, R. Tedrake, S. Song, Diffu-sion policy: Visuomotor policy learning via action diffusion, The International Journal of Robotics Research (2024). 37 10. J. W. Kim, J.-T. Chen, P. Hansen, L. X. Shi, A. Goldenberg, S. Schmidgall, P. M. Scheikl, A. Deguet, B. M. White, D. R. Tsai, others, Srt-h: A hierarchical framework for autonomous surgery via language-conditioned imitation learning, Science robotics p. eadt5254 (2025). 11. J. Luo, Z. Hu, C. Xu, Y. L. Tan, J. Berg, A. Sharma, S. Schaal, C. Finn, A. Gupta, S. Levine, Serl: A software suite for sample-efficient robotic reinforcement learning, 2024 IEEE In-ternational Conference on Robotics and Automation (ICRA) , 16961–16969 (IEEE, 2024). 12. J. Luo, C. Xu, J. Wu, S. Levine, Precise and dexterous robotic manipulation via human-in-the-loop reinforcement learning, Science Robotics p. eads5033 (2025). 13. K. Lei, H. Li, D. Yu, Z. Wei, L. Guo, Z. Jiang, Z. Wang, S. Liang, H. Xu, Rl-100: Performant robotic manipulation with real-world reinforcement learning, arXiv preprint arXiv:2510.14830 (2025). 14. B. Zitkovich, T. Yu, S. Xu, P. Xu, T. Xiao, F. Xia, J. Wu, P. Wohlhart, S. Welker, A. Wahid, Q. Vuong, V. Vanhoucke, H. Tran, R. Soricut, A. Singh, J. Singh, P. Sermanet, P. R. Sanketi, G. Salazar, M. S. Ryoo, K. Reymann, K. Rao, K. Pertsch, I. Mordatch, H. Michalewski, Y. Lu, S. Levine, L. Lee, T.-W. E. Lee, I. Leal, Y. Kuang, D. Kalashnikov, R. Julian, N. J. Joshi, A. Irpan, B. Ichter, J. Hsu, A. Herzog, K. Hausman, K. Gopalakrishnan, C. Fu, P. Florence, C. Finn, K. A. Dubey, D. Driess, T. Ding, K. M. Choromanski, X. Chen, Y. Chebotar, J. Carbajal, N. Brown, A. Brohan, M. G. Arenas, K. Han, Rt-2: Vision-language-action models transfer web knowledge to robotic control, Proceedings of The 7th Conference on Robot Learning , J. Tan, M. Toussaint, K. Darvish, eds., 2165–2183 (PMLR, 2023). 38 15. M. J. Kim, K. Pertsch, S. Karamcheti, T. Xiao, A. Balakrishna, S. Nair, R. Rafailov, E. P. Foster, P. R. Sanketi, Q. Vuong, T. Kollar, B. Burchfiel, R. Tedrake, D. Sadigh, S. Levine, P. Liang, C. Finn, OpenVLA: An open-source vision-language-action model, 8th Annual Conference on Robot Learning (2024). 16. K. Black, N. Brown, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, L. Groom, K. Haus-man, B. Ichter, S. Jakubczak, T. Jones, L. Ke, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, L. X. Shi, L. Smith, J. Tanner, Q. Vuong, A. Walling, H. Wang, U. Zhilinsky, 
+
+π0: A vision-language-action flow model for general robot control, Robotics: Science and Systems XXI (2025). 17. K. Black, N. Brown, J. Darpinian, K. Dhabalia, D. Driess, A. Esmail, M. R. Equi, C. Finn, N. Fusai, M. Y. Galliker, D. Ghosh, L. Groom, K. Hausman, b. ichter, S. Jakubczak, T. Jones, L. Ke, D. LeBlanc, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, A. Z. Ren, L. X. Shi, L. Smith, J. T. Springenberg, K. Stachowicz, J. Tanner, Q. Vuong, H. Walke, A. Walling, H. Wang, L. Yu, U. Zhilinsky, π0.5: a vision-language-action model with open-world generalization, Proceedings of The 9th Conference on Robot Learning ,J. Lim, S. Song, H.-W. Park, eds., 17–40 (PMLR, 2025). 18. J. Bjorck, F. Casta˜ neda, N. Cherniadev, X. Da, R. Ding, L. Fan, Y. Fang, D. Fox, F. Hu, S. Huang, others, Gr00t n1: An open foundation model for generalist humanoid robots, 
+
+arXiv preprint arXiv:2503.14734 (2025). 19. G. R. Team, S. Abeyruwan, J. Ainslie, J.-B. Alayrac, M. G. Arenas, T. Armstrong, A. Bal-akrishna, R. Baruch, M. Bauza, M. Blokzijl, others, Gemini robotics: Bringing ai into the physical world, arXiv preprint arXiv:2503.20020 (2025). 39 20. H. Li, K. Lei, S. Zang, K. Hu, Y. Liang, B. An, X. Li, H. Xu, Failure-aware rl: Reli-able offline-to-online reinforcement learning with self-recovery for real-world manipula-tion, arXiv preprint arXiv:2601.07821 (2026). 21. Y. Ma, Z. Song, Y. Zhuang, J. Hao, I. King, A survey on vision-language-action models for embodied ai, arXiv preprint arXiv:2405.14093 (2024). 22. T. Tsuji, Y. Kato, G. Solak, H. Zhang, T. Petriˇ c, F. Nori, A. Ajoudani, A survey on imitation learning for contact-rich tasks in robotics, The International Journal of Robotics Research 
+
+p. 02783649261417694 (2025). 23. K. Dreczkowski, P. Vitiello, V. Vosylius, E. Johns, Learning a thousand tasks in a day, 
+
+Science Robotics p. eadv7594 (2025). 24. N. R. Arachchige, Z. Chen, W. Jung, W. C. Shin, R. Bansal, P. Barroso, Y. H. He, Y. C. Lin, B. Joffe, S. Kousik, D. Xu, Sail: Faster-than-demonstration execution of imitation learning policies, 9th Annual Conference on Robot Learning (2025). 25. J. Lee, Y. Kim, S. Kim, Q. Nguyen, Y. Heo, Learning fast, tool-aware collision avoidance for collaborative robots, IEEE Robotics and Automation Letters (2025). 26. S. Peng, M. Niemeyer, L. Mescheder, M. Pollefeys, A. Geiger, Convolutional occupancy networks, European Conference on Computer Vision , 523–540 (Springer, 2020). 27. International Organization for Standardization, Robots and robotic devices — collaborative robots, Technical Specification ISO/TS 15066:2016 , ISO, Geneva, Switzerland (2016). 28. J. A. Marvel, R. Norcross, Implementing speed and separation monitoring in collaborative robot workcells, Robotics and computer-integrated manufacturing 144–155 (2017). 40 29. Universal Robots, Universal robots safety sensors, https://www.universal-robots.com/marketplace/products/01tP40000071NhmIAE/ (2026). Accessed: February 11, 2026. 30. P. Karagiannis, N. Kousi, G. Michalos, K. Dimoulas, K. Mparis, D. Dimosthenopoulos, ¨O. Tokc ¸alar, T. Guasch, G. P. Gerio, S. Makris, Adaptive speed and separation monitoring based on switching of safety zones for effective human robot collaboration, Robotics and Computer-Integrated Manufacturing p. 102361 (2022). 31. E. Johns, Coarse-to-fine imitation learning: Robot manipulation from a single demonstra-tion, 2021 IEEE international conference on robotics and automation (ICRA) , 4613–4619 (IEEE, 2021). 32. C. Yu, Z. Cai, H. Pham, Q.-C. Pham, Siamese convolutional neural network for sub-millimeter-accurate camera pose estimation and visual servoing, 2019 IEEE/RSJ Interna-tional Conference on Intelligent Robots and Systems (IROS) , 935–941 (IEEE, 2019). 33. N. Ravi, V. Gabeur, Y.-T. Hu, R. Hu, C. Ryali, T. Ma, H. Khedr, R. R¨ adle, C. Rolland, L. Gustafson, E. Mintun, J. Pan, K. V. Alwala, N. Carion, C.-Y. Wu, R. Girshick, P. Dol-lar, C. Feichtenhofer, SAM 2: Segment anything in images and videos, The Thirteenth International Conference on Learning Representations (2025). 34. S. Liu, Z. Zeng, T. Ren, F. Li, H. Zhang, J. Yang, Q. Jiang, C. Li, J. Yang, H. Su, others, Grounding dino: Marrying dino with grounded pre-training for open-set object detection, 
+
+European conference on computer vision , 38–55 (Springer, 2024). 35. M. Oquab, T. Darcet, T. Moutakanni, H. V. Vo, M. Szafraniec, V. Khalidov, P. Fernandez, D. HAZIZA, F. Massa, A. El-Nouby, M. Assran, N. Ballas, W. Galuba, R. Howes, P.-Y. Huang, S.-W. Li, I. Misra, M. Rabbat, V. Sharma, G. Synnaeve, H. Xu, H. Jegou, J. Mairal, 41 P. Labatut, A. Joulin, P. Bojanowski, DINOv2: Learning robust visual features without supervision, Transactions on Machine Learning Research (2024). Featured Certification. 36. C. Chi, Z. Xu, C. Pan, E. Cousineau, B. Burchfiel, S. Feng, R. Tedrake, S. Song, Universal manipulation interface: In-the-wild robot teaching without in-the-wild robots, Proceedings of Robotics: Science and Systems (RSS) (2024). 37. O. Ronneberger, P. Fischer, T. Brox, U-net: Convolutional networks for biomedical im-age segmentation, International Conference on Medical image computing and computer-assisted intervention , 234–241 (Springer, 2015). 38. H. Kim, Y. Ohmura, Y. Kuniyoshi, Gaze-based dual resolution deep imitation learning for high-precision dexterous robot manipulation, IEEE Robotics and Automation Letters 
+
+1630–1637 (2021). 39. A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, I. Polo-sukhin, Attention is all you need, Advances in neural information processing systems 30 
+
+(2017). 40. D. Ko, W. K. Chung, A backup control barrier function approach for safety-critical control of mechanical systems under multiple constraints, IEEE/ASME Transactions on Mecha-tronics 4460–4471 (2025). 41. D. Lee, D. Ko, W. K. Chung, K. Kim, Quadratic programming-based task scaling for safe and passive robot arm teleoperation, IEEE/ASME Transactions on Mechatronics 1937– 1945 (2022). 42. Y. J. Heo, D. Kim, W. Lee, H. Kim, J. Park, W. K. Chung, Collision detection for industrial collaborative robots: A deep learning approach, IEEE Robotics and Automation Letters 
+
+740–746 (2019). 42 43. J. Yang, J. J. Liu, Y. Li, Y. Khaky, D. Pathak, Deep reactive policy: Learning reactive manipulator motion planning for dynamic environments, 9th Annual Conference on Robot Learning (2025). 44. H. Oleynikova, Z. Taylor, M. Fehr, R. Siegwart, J. Nieto, Voxblox: Incremental 3d eu-clidean signed distance fields for on-board mav planning, 2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 1366–1373 (IEEE, 2017). 45. B. Sundaralingam, S. K. S. Hari, A. Fishman, C. Garrett, K. Van Wyk, V. Blukis, A. Mil-lane, H. Oleynikova, A. Handa, F. Ramos, others, Curobo: Parallelized collision-free robot motion generation, 2023 IEEE International Conference on Robotics and Automa-tion (ICRA) , 8112–8119 (IEEE, 2023). 46. L. Zhu, M. Menon, M. Santillo, G. Linkowski, Occlusion handling for industrial robots, 
+
+2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,10663–10668 (IEEE, 2020). 47. M. Macklin, Warp: A high-performance python framework for gpu simulation and graph-ics, https://github.com/nvidia/warp (2022). NVIDIA GPU Technology Con-ference (GTC). 48. M. T. Villasevil, A. Simeonov, Z. Li, A. Chan, T. Chen, A. Gupta, P. Agrawal, Recon-ciling reality through simulation: A real-to-sim-to-real approach for robust manipulation, 
+
+Robotics: Science and Systems (2024). 49. M. Mittal, P. Roth, J. Tigue, A. Richard, O. Zhang, P. Du, A. Serrano-Mu˜ noz, X. Yao, R. Zurbr¨ ugg, N. Rudin, L. Wawrzyniak, M. Rakhsha, A. Denzler, E. Heiden, A. Borovicka, O. Ahmed, I. Akinola, A. Anwar, M. T. Carlson, J. Y. Feng, A. Garg, R. Gasoto, L. Gulich, Y. Guo, M. Gussert, A. Hansen, M. Kulkarni, C. Li, W. Liu, V. Makoviychuk, G. Malczyk, 43 H. Mazhar, M. Moghani, A. Murali, M. Noseworthy, A. Poddubny, N. Ratliff, W. Rehberg, C. Schwarke, R. Singh, J. L. Smith, B. Tang, R. Thaker, M. Trepte, K. V. Wyk, F. Yu, A. Millane, V. Ramasamy, R. Steiner, S. Subramanian, C. Volk, C. Chen, N. Jawale, A. V. Kuruttukulam, M. A. Lin, A. Mandlekar, K. Patzwaldt, J. Welsh, H. Zhao, F. Anes, J.-F. Lafleche, N. Mo¨ enne-Loccoz, S. Park, R. Stepinski, D. V. Gelder, C. Amevor, J. Carius, J. Chang, A. H. Chen, P. de Heras Ciechomski, G. Daviet, M. Mohajerani, J. von Muralt, V. Reutskyy, M. Sauter, S. Schirm, E. L. Shi, P. Terdiman, K. Vilella, T. Widmer, G. Yeo-man, T. Chen, S. Grizan, C. Li, L. Li, C. Smith, R. Wiltz, K. Alexis, Y. Chang, D. Chu, L. J. Fan, F. Farshidian, A. Handa, S. Huang, M. Hutter, Y. Narang, S. Pouya, S. Sheng, Y. Zhu, M. Macklin, A. Moravanszky, P. Reist, Y. Guo, D. Hoeller, G. State, Isaac lab: A gpu-accelerated simulation framework for multi-modal robot learning, arXiv preprint arXiv:2511.04831 (2025). 50. S. Ross, G. Gordon, D. Bagnell, A reduction of imitation learning and structured prediction to no-regret online learning, Proceedings of the fourteenth international conference on ar-tificial intelligence and statistics , 627–635 (JMLR Workshop and Conference Proceedings, 2011). 51. M. Kelly, C. Sidrane, K. Driggs-Campbell, M. J. Kochenderfer, Hg-dagger: Interactive imitation learning with human experts, 2019 International Conference on Robotics and Automation (ICRA) , 8077–8083 (IEEE, 2019). 52. J. Thumm, J. Balletshofer, L. Maglanoc, L. Muschal, M. Althoff, A general safety framework for autonomous manipulation in human environments, arXiv preprint arXiv:2412.10180 (2024). 44 53. S. Haddadin, S. Haddadin, A. Khoury, T. Rokahr, S. Parusel, R. Burgkart, A. Bicchi, A. Albu-Sch¨ affer, On making robots understand safety: Embedding injury knowledge into control, The International Journal of Robotics Research 1578–1602 (2012). 54. Y. Zhou, C. Barnes, J. Lu, J. Yang, H. Li, On the continuity of rotation representations in neural networks, Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 5745–5753 (2019). 45 Supplementary Materials 
+
+Section S1. Implementation Details for Zero-shot Mask Tracker Section S2. Implementation Details for VLA baseline Section S3. Factory Validation Details Section S4. Blind Preference Test Details Section S5. Task Evaluation Details Section S6. Extended Safety Monitor Analysis and Dynamic Stop Zone Section S7. Extension to a Different Hardware Setup Section S8. Extension to a Different Task: Chicken Sauce Brushing Supplementary Figure 1. Dynamic Stop Zone Supplementary Figure 2. Observations of the imitation learning controller during rollouts Supplementary Figure 3. Blind preference test questionnaire and results summary Supplementary Figure 4. Comparison of observations during stuck and successful insertion Supplementary Table 1. Input configuration for the VLA baseline Supplementary Table 2. Hyperparameters for the VLA baseline Supplementary Table 3. Safety verification using SARA shield Supplementary Table 4. Hyperparameters for the learning-based task controllers Supplementary Table 5. Hyperparameters for the learning-based 3D safety monitor Movie Main. Paper summary Movie S1. Deployment in a factory Movie S2. Failure case in factory long-run Movie S3. Learning-based task controller evaluation Movie S4. Learning-based 3D safety monitor evaluation Movie S5. Training data collection for task controllers 46 Movie S6. Extension to a Different Hardware Setup Movie S7. Extension to a Different Task: Chicken Sauce Brushing 
+
+S1 Implementation Details for Zero-shot Mask Tracker 
+
+To prepare the key for the zero-shot mask tracker, we use an image xk ∈ RHk ×Wk ×C of the object (motor core) with a clean background, where (Hk, W k) is the image resolution after resizing to make it a multiple of the DINOv2 ( 35 ) patch size, and C is the channel size. We then perform a forward pass of xk through DINOv2 to obtain the patch embeddings yk ∈ RN ×D,where N is the number of patches and D is the embedding dimension. The background and foreground patches are separated by taking dot products of yk with a standard array 1 and then thresholding them. The foreground patches are then combined into a 2D binary mask, followed by one round of binary erosion to remove patches that still contain background pixels. The final foreground embeddings ykf ∈ RNkf ×D, where Nkf is the number of foreground patches, are saved for use at query time. To query a mask for a new image xq ∈ RHq ×Wq ×C , we repeat the same procedure to obtain the query embeddings yqf ∈ RNqf ×D, where Nqf is the number of foreground patches. We then calculate the similarity matrix 
+
+Ws = yqf yTkf ∈ RNqf ×Nkf 
+
+and take the row-wise maximum: 
+
+si = max  
+
+> j
+
+(Ws)ij , s ∈ RNqf 
+
+Finally, we threshold s to obtain the patch indices to sample from: 
+
+P = {i : si ≥ τ }
+
+> 1As provided by the DINOv2 project for background separation: https://dl.fbaipublicfiles.com/dinov2/arrays/standard.npy
+
+47 S2 Implementation Details for VLA baseline 
+
+Due to the difficulty of long-horizon task teleoperation and to ensure a fair comparison against other methods, we employ VLA only for learning-based tasks (striped components in the Task Scheduler part of Figure 2). We do this by finetuning a single π0.5 model ( 17 ) with different prompts for each task. The model accepts three RGB images Iit for i ∈ { 1, 2, 3} corresponding to “wrist image”, “left image”, and “right image”, a language task prompt lk where k is the task index, and the robot’s proprioceptive states qt. Supplementary Table 1 summarizes the exact camera input assignment and language prompt used for each task, which defines the modal-ity and instruction context provided to the shared policy. The training code is adapted from https://github.com/Physical-Intelligence/openpi, and the finetuning hyperparameters are listed in Supplementary Table 2. 
+
+Supplementary Table 1: Input configuration for the VLA baseline                 
+
+> Task I1
+> tI2
+> tI3
+> tlk
+> Motor grasping wrist camera 00“grasp the motor” Cable insertion 0left camera right camera “insert the cable into the correspond-ing hole” Soldering 0left camera right camera “approach the hole and the cable”
+
+Supplementary Table 2: Hyperparameters for the VLA baseline               
+
+> Train action horizon 10 batch size 32 Scheduler type cosine decay warmup steps 10000 peak learning rate 5e−5
+> decay steps 1000000 decay learning rate 5e−5
+> ema decay 0.999 num train steps 30000
+
+48 S3 Factory Validation Details 
+
+The system was deployed on the electric-motor production line at the Neuromeka Pohang fac-tory. It operated for a total duration of 5 hours and 40 minutes. During this long-run deploy-ment, three temporary pauses occurred due to hardware-related issues. The first interruption was caused by solder material jamming in the feeder, requiring corrective maintenance. The re-maining two pauses occurred because the human operator forgot to load cables into the holder. Currently, the system does not incorporate an anomaly detection mechanism to verify proper cable loading and respond accordingly. Excluding the temporary stoppages, the net operational time was 5 hours and 10 minutes. 
+
+S4 Blind Preference Test Details 
+
+The blind preference test was conducted with 50 randomly recruited participants, including both engineers and non-engineers to ensure diverse perspectives. Participants were asked to select the two motors with the highest perceived visual soldering quality. To support participants who were unfamiliar with cable soldering, a reference image illustrating an example of a properly soldered joint was provided in the questionnaire (Supplementary Figure 3). 
+
+S5 Task Evaluation Details 
+
+Success criteria are defined per task. Motor grasping is considered successful if the motor is placed on the jig such that all three target holes fall within the load cell sensing region (±15° tolerance). Cable insertion is considered successful if the cable is fully inserted into the target hole. Soldering is considered successful if the iron tip reaches the target region around the cable–hole contact point. Additionally, for all tasks, a trial is counted as a failure if the task is not completed within a 20-second time limit. Naive IL and VLA baseline require task demonstrations for training. Accordingly, for ”cable 49 insertion” and ”soldering”, the same dataset as ours was used. For ”motor grasping”, since our method formulates the task as visual servoing and does not rely on demonstration trajectories, we collected demonstrations of equal size within the same motor pose randomization range. 
+
+S6 Extended Safety Monitor Analysis and Dynamic Stop Zone 
+
+This section provides three additional analyses: productivity metrics, a safety evaluation based on energy-related impact severity, and an extension of the system to adaptive workspace moni-toring. 
+
+S6.1 Productivity Trade-off 
+
+Safety mechanisms inevitably reduce throughput when they slow or stop the robot. We quan-tified this trade-off by comparing our approach against a no-intervention upper bound (i.e., operation without speed modulation). We recorded raw LiDAR point clouds and robot mo-tions during the production of 10 motors with workers present, then replayed this data offline to simulate different safety strategies and accumulate the resulting downtime. Our method incurred an estimated 9% increase in total production time relative to the no-intervention upper bound. For comparison, we evaluated a conventional distance-threshold baseline reflecting common industrial practice ( 28–30 ), which triggers an immediate stop when-ever any point-cloud return is detected within a 0.2 m fixed margin around the table (selected to envelop the protective distance derived via SSM in Supplementary Section S6.3). This conser-vative strategy incurred a 23 % production-time increase, demonstrating the overhead of rigid stop-and-go protocols. While full safety certification is outside the scope of this work, these results suggest that leveraging 3D information can support tighter, context-aware safety zones that reduce unneces-sary stops and enable more fluid human–robot collaboration in populated workplaces. 50 S6.2 Collision Risk Analysis within Slow Down Zone 
+
+To evaluate the safety of the deployed robot motion with respect to Power and Force Lim-iting (PFL) standards ( 27 ), we analyzed the trajectories using the SARA (Safe Autonomous human-robot collaboration through Reachability Analysis) framework proposed by Thumm et al. ( 52 ). The SARA framework provides mathematically conservative safety guarantees by di-rectly bounding the robot’s total operational-space kinetic energy ( Tr). While this safety bound is applicable to collision with any body part, we specifically computed the operational-space inertia matrix and Cartesian velocity for the end-effector ( 53 ), as it represents the most critical impact point due to its high velocity and exposure. Considering the geometric constraints, our safety analysis focuses on the body regions most likely to be exposed to the robot: the hands, arms, and torso. The robot is mounted such that its end-effector operates strictly above a height of 0.9 m, effectively mitigating the likelihood of collision with the lower body . Furthermore, the task design restricts the robot’s operational volume to below the average head height ( < 1.2 m), rendering accidental contact with the head and face unlikely. Supplementary Table 3 shows that under worst-case unconstrained blunt contact, the peak kinetic energy of 0.295 J stays well below SARA thresholds. This confirms safety for all rele-vant body parts, including the hands ( 0.49 J) and torso ( 1.60 J). Our analysis demonstrates that the system is consistent with PFL requirements for all reasonably foreseeable collision risks. 
+
+S6.3 Dynamic Stop Zone 
+
+For robots with large workspaces, a static stop zone covering the entire operational volume can be unnecessarily conservative, leading to frequent and inefficient stops. To mitigate this, we implemented an adaptive protective distance approach, where the stop zone is represented as a set of dynamic spheres with variable radii centered at each of the robot’s link positions. 51 Supplementary Table 3: Safety Verification using SARA Shield. The Safety Ratio (Tr/T limit )indicates the percentage of the safety threshold used. Values > 1.0 indicate a violation. 
+
+Body Region Limit Right arm (Tr = 0 .295 J) Left arm (Tr = 0 .167 J) 
+
+[J] (52 ) Ratio Status Ratio Status 
+
+Head (Face) 0.11 2.68 Unsafe 1.52 Unsafe 
+
+Hand 0.49 0.60 Safe 0.34 Safe Lower Arm 1.30 0.23 Safe 0.13 Safe Upper Arm 1.50 0.20 Safe 0.11 Safe Torso (Chest) 1.60 0.18 Safe 0.10 Safe Following the Speed and Separation Monitoring (SSM) guidelines in ISO/TS 15066 ( 27,28 ), the protective distance (stop zone radius) S is computed at every monitoring cycle ( ∆t = 0 .1 s) as: 
+
+S = vh(tr + ts) + vrtr + b + C + zr + zs (1) where vh and vr denote human and robot body velocities, tr is the system reaction time, ts is the stopping time, b is the braking distance, C is the intrusion distance (safety margin), and zr, z s
+
+represent robot and sensor position uncertainties, respectively. As illustrated in Supplementary Figure 1, this formulation allows each sphere to expand as the corresponding link velocity increases and contract as the robot slows down, effectively maintaining safety while maximizing operational efficiency. Using parameter sets defined for our platform (Supplementary Table 5), safety monitoring based on the dynamic stop-zone formulation resulted in an 11% increase in total production time relative to the no-intervention upper bound. This remains more efficient than a conventional distance-based speed-modulation baseline. Future iterations will apply this dynamic zoning to more complex environments. 52 Stop Zone Slow-down Zone Supplementary Figure 1: Dynamic Stop Zone. Stop zone is represented as spheres attached to robot’s links. Sphere radii expand as robot’s speed increases and contract as it slows down. Arrows indicate robot’s direction of motion. 
+
+S7 Extension to a Different Hardware Setup 
+
+The same soldering automation process was implemented across different workstation setups using different robots (Movie S6). Efficient migration between setups was enabled by a modular task controller architecture, selective integration of learned components only where necessary, and minimal training data requirements for achieving high performance. All other compo-nents—including the task scheduler, training data requirements, and setup procedure—were kept identical across setups, with only the fixed waypoints modified to account for the different robot platform. 
+
+S8 Extension to a Different Task: Chicken Sauce Brushing 
+
+To probe the applicability of the proposed framework beyond motor-cable soldering, we im-plemented it in a food-handling task: brushing sauce on chicken pieces (Movie S7). This ex-periment was intended as a scope-extension case study rather than a rigorous production-line validation. In this task, raw chicken pieces were randomly placed on a tray, with substantial variation in size, shape, and pose across instances. A dual-arm robot was required to grasp each piece 53 individually in a suitable pose for processing, apply sauce to one surface, reorient the piece, and then brush the opposite side. Corresponding task was difficult to automate using conventional rule-based programming because of large part-to-part variation and difficulty of handcrafting brushing motions that adapt to different piece geometries. Although dedicated machinery could in principle be designed for this operation, such solutions require larger physical footprint and higher system cost while offering less flexibility. We implemented the task with learning-augmented automation approach. Visual servo-ing was used for chicken grasping, imitation learning was used for adaptive brushing motions, and conventional teaching-based control was retained for structured subtasks including piece reorientation, piece release, and sauce loading onto the brush. Thus, as in the soldering sys-tem, learning was introduced selectively only where perception-driven adaptation was required, while deterministic control was used for repeatable motion segments. Although this experiment did not include the full level of evaluation as in the factory sol-dering study, such as deployment in an operational kitchen, it provides additional evidence that the proposed framework is not limited to soldering and can extend to other manipulation tasks characterized by geometric variability, difficult-to-handcraft behaviors, and limited suitability for conventional automation. 54 Policy Recovery           
+
+> [Start] Step 0 ... ... ... [Finish]
+> Left Right Left Right Left Right
+> a. Cable Insertion
+> [Start] Step 0 ... ... ... [Finish] Policy
+> Left Right Left Right Left Right
+> b. Soldering
+
+Supplementary Figure 2: Observations of the imitation learning controller during roll-outs. The controller uses image-space hole coordinates from the left and right cameras for coarse alignment. It performs fine adjustments when the cable or iron tip enters the cropped re-gion. If the cable becomes stuck, a load cell triggers to retract the cable and retry the insertion. 55 Group Participant Job Motor type Selection category Per group result Total result A (human) B (robot) C (human) D (human) E (robot) F (human) Engineer Participant 1 Robot hardware engineer 11R-R Robot: 79.3% Human: 20.7% Robot: 78% Human: 22% Participant 2 Robot hardware engineer 11H-R Participant 3 Robot hardware engineer 11H-R Participant 4 Robot hardware engineer 11R-R Participant 5 Robot hardware engineer 11H-R Participant 6 Robot hardware engineer 11R-R Participant 7 Robot hardware engineer 11H-R Participant 8 Robot hardware engineer 11R-R Participant 9 Robot hardware engineer 11R-R Participant 10 Robot hardware engineer 11R-R Participant 11 Robot hardware engineer 11H-R Participant 12 Robot software engineer 11R-R Participant 13 Robot software engineer 11R-R Participant 14 Robot hardware engineer 11H-R Participant 15 Robot software engineer 11R-R Participant 16 Robot software engineer 11R-R Participant 17 Robot software engineer 11H-R Participant 18 Robot hardware engineer 11H-R Participant 19 Robot hardware engineer 11R-R Participant 20 Robot hardware engineer 11R-R Participant 21 Robot hardware engineer 11R-R Participant 22 Robot hardware engineer 11R-R Participant 23 Robot hardware engineer 11H-R Participant 24 Robot hardware engineer 11H-R Participant 25 Robot hardware engineer 11H-R Participant 26 Robot hardware engineer 11R-R Participant 27 Robot software engineer 11H-R Participant 28 Robot software engineer 11R-R Participant 29 Robot software engineer 11R-R Non-engineer Participant 30 Sales 11H-R Robot: 76.2% Human: 23.8% Participant 31 Sales 11R-R Participant 32 Sales 11H-R Participant 33 Sales 11H-R Participant 34 Sales 11R-R Participant 35 Sales 11R-R Participant 36 Sales 11R-R Participant 37 Marketing 11H-R Participant 38 Marketing 11R-R Participant 39 Marketing 11H-R Participant 40 Business 11R-R Participant 41 HR 11R-R Participant 42 HR 11H-R Participant 43 IT 11H-R Participant 44 Finance 11H-R Participant 45 Finance 11H-R Participant 46 Finance 11R-R Participant 47 Finance 11R-R Participant 48 Finance 11H-R Participant 49 Finance 11R-R Participant 50 General 11R-R a. Question Sheet b. Result Summary Supplementary Figure 3: Details of the Blind Preference Test. (a) Question sheet provided to the participants. (b) Summary of participant background, occupation, responses, and answer categories. 56 a. Policy input when cable gets stuck b. Policy input when cable is inserted  
+
+> Right Left
+> Left Right
+
+Supplementary Figure 4: Comparison of visual observations during stuck and successful insertion. When the cable is stuck, the load cell triggers a recovery procedure by retracting the cable and retrying insertion. 
+
+Supplementary Table 4: Hyperparameters for the learning-based task controllers 
+
+Visual Servoing Imitation Learning Train batch size 128 learning rate 1e − 5
+
+weight decay 1e − 4
+
+vision backbone Resnet18 num encoder layers 4num decoder layers 1num heads 8hidden dim 512 feedforward dim 3200 orientation representation 6D ( 54 )chunk size 1 10 CVAE usage False True Deploy chunk size 1 5success threshold - 0.95 
+
+57 Supplementary Table 5: Hyperparameters for the learning-based 3D safety monitor 
+
+Train Sim num environments 130 episode length [s] 8box size [m] U (0 .3, 0.5) × U (0 .03 , 0.35) × U (0 .03 , 0.35) 
+
+box position [m] U (−0.65 , 0.45) × U (−1.45 , 1.1) × U (0 ., 1.85) 
+
+LiDAR noise [m] U (0 , 0.005) 
+
+LiDAR drift [m] U (−0.01 , 0.01) 
+
+LiDAR update delay [s] U (0 ., 0.075) 
+
+Real data length 7 min 23 sec co-train ratio 1:1 Model architecture type PointNet Encoder + Tri-plane Decoder exteroception hidden dim 8proprioception hidden dim 128 Area definition grid region [m] [−0.55 , 0.35] × [−1.35 , 1.] × [0 .1, 1.75] 
+
+grid resoluion 0.05 Deploy Stop zone - fixed grid region [m] [−0.55 , 0.35] × [−1., 0.65] × [0 .4, 1.15] 
+
+Stop zone - dynamic 
+
+vh 2
+
+tr 0.1 
+
+ts 0.01 
+
+b 0.005 
+
+C 0.21 
+
+zr 0.001 
+
+zs 0.05 
+
+58

@@ -1,0 +1,493 @@
+Title: Global Sampling-Based Trajectory Optimization for Contact-Rich Manipulation via KernelSOS
+
+URL Source: https://arxiv.org/pdf/2604.27175v1
+
+Published Time: Fri, 01 May 2026 00:12:15 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Global Sampling-Based Trajectory Optimization for Contact-Rich Manipulation via KernelSOS 
+
+Zhongqi Wei 1 and Frederike D¨ umbgen 1,2
+
+Abstract — Contact-rich manipulation is challenging due to its high dimensionality, the requirement for long time horizons, and the presence of hybrid contact dynamics. Sampling-based methods have become a popular approach for this class of problems, but without explicit mechanisms for global explo-ration, they are susceptible to converging to poor local minima. In this paper, we introduce Global-MPPI, a unified trajectory optimization framework that integrates global exploration and local refinement. At the global level, we leverage kernel sum-of-squares optimization to identify globally promising regions of the solution space. To enable reliable performance for the non-smooth landscapes inherent to contact-rich manipulation, we introduce a graduated non-convexity strategy based on log-sum-exp smoothing, which transitions the optimization landscape from a smoothed surrogate to the original non-smooth objective. Finally, we employ the model-predictive path integral method to locally refine the solution. We evaluate Global-MPPI on high-dimensional, long-horizon contact-rich tasks, including the PushT task and dexterous in-hand manipulation. Experimental results demonstrate that our approach robustly uncovers high-quality solutions, achieving faster convergence and lower final costs compared to existing baseline methods. 
+
+I. I NTRODUCTION 
+
+Contact-rich manipulation, such as pushing, grasping, and in-hand manipulation, is a fundamental task in modern robotics [1]. These tasks typically involve high-dimensional, underactuated systems and hybrid contact dynamics, result-ing in highly non-convex, non-smooth optimization land-scapes. As a result, computing long-horizon optimal plans and control policies for contact-rich tasks remains a core challenge. To address this challenge, sampling-based optimization has recently received significant attention [2] [3]. By relying solely on function evaluations, these methods can handle highly nonlinear, non-smooth contact dynamics that induce complex cost landscapes, without requiring higher-order in-formation such as gradients. In addition, enabled by recent advances in GPU-accelerated parallel simulation, sampling-based methods can efficiently evaluate large numbers of can-didate control trajectories via massive parallel rollouts [4]. These aspects make sampling-based methods particularly ap-pealing for the contact-rich trajectory optimization problem.           
+
+> 1Department of Mechanical Engineering, Carnegie Mellon University, Pittsburgh, PA 15213, USA
+
+{zhongqi2, fdumbgen }@andrew.cmu.edu . 2Part of this work was performed while Frederike D¨ umbgen was with Inria, D´ epartement d’informatique de l’ENS, CNRS, PSL Research University, Paris, France. This work was supported by the European Union, through the Horizon Europe research and innovation program under the Marie Skłodowska-Curie (GA no.101207106), and by the Department of Mechanical Engineering, Carnegie Mellon University.         
+
+> Fig. 1. Overview of Global-MPPI. Our approach consists of three coupled components. First, we introduce a graduated non-convexity strategy via log-sum-exp (LSE) smoothing to transition the optimization landscape from a smoothed surrogate to the original non-smooth objective, enabling coarse-to-fine global exploration. Second, KernelSOS leverages samples to construct a global non-parametric surrogate and proposes a global solution candidate via semidefinite programming. Finally, the model-predictive path integral (MPPI) method performs efficient local refinement. Together, these components operate in a coarse-to-fine manner to balance global exploration and local convergence in contact-rich manipulation problems.
+
+Popular sampling-based approaches include Model Pre-dictive Path Integral (MPPI) [5], Cross-Entropy Method (CEM) [6], and Covariance Matrix Adaptation Evolution Strategy (CMA-ES) [7]. These methods perform iterative stochastic optimization by sampling candidate trajectories and updating the solution based on the observed perfor-mance of those samples. A recent approach, DIAL-MPC [2], extends MPPI by incorporating annealing strategies to bal-ance coverage and convergence, demonstrating promising performance on contact-rich problems. However, all of these methods are primarily local in nature [8], often leading to suboptimal convergence or task failure in contact-rich set-tings. This limitation becomes pronounced as task complex-ity, planning horizon, and system dimensionality increase. To improve global exploration, regularization terms that maximize entropy during sampling can be added to such formulations, yielding better exploration properties [9], [10]. This paper highlights the potential of a recent global opti-mization method, Kernel Sum of Squares (KernelSOS) [11], to overcome those limitations. KernelSOS provides a means to identify globally promising regions in non-parametric optimization settings. Unlike local sampling-based methods, KernelSOS constructs a global surrogate of the cost land-scape from samples and performs global minimization of this surrogate via solving a Semidefinite Program (SDP). KernelSOS has been previously studied in domains such as optimal control and estimation in robotics [12], [13], but its application to high-dimensional, long-horizon contact-rich problems has been out of reach. In particular, [13] proposes a model-based first-order local 
+
+> arXiv:2604.27175v1 [cs.RO] 29 Apr 2026
+
+solver to refine the coarse solution candidate, but fast and reliable local solvers are harder to come by in contact-rich problems. The method also requires extensive manual tuning for the problem class. However, for long-horizon tasks such as contact-rich manipulation, the cost landscape can vary significantly due to frequent contact mode switches and dis-continuous dynamics, and there may not be a single optimal set of hyperparameters. Finally, the high non-convexity of contact-rich tasks, the sparse information content (large areas with no gradient where no contact happens), and difficult-to-discover local minima are a challenge for global sampling methods like KernelSOS. As a result, identifying promising regions of the search space may require prohibitively large numbers of samples, leading to computationally intractable SDP problems. We introduce Global-MPPI, a global sampling-based tra-jectory optimization framework for contact-rich problems, which addresses these challenges one by one. Our main contributions are as follows. 1) A fully sampling-based framework : Global-MPPI integrates KernelSOS for global exploration and MPPI for local refinement. Both are sampling-based and thus do not require differentiable contact modeling, making them suitable for integrating complex and accurate physics simulators. 2) Graduating smoothing : We introduce a Graduated Non-Convexity (GNC) strategy based on log-sum-exp (LSE) smoothing, which provides a general mechanism for iteratively smoothing the optimization landscape, improving the exploration capabilities of KernelSOS. 3) Auto calibration for KernelSOS : We propose a cal-ibration method that automatically and continuously adapts appropriate kernel parameters in KernelSOS based on maximizing the marginal likelihood of the function fit. 4) Validation on contact-rich tasks : We validate the per-formance of the proposed method on contact-rich ma-nipulation tasks based on a GPU-accelerated physics simulator, including the PushT task and dexterous in-hand manipulation. The open-source implementation is made publicly available. 1
+
+This paper is organized as follows. After review-ing contact-rich problems and sampling-based optimization methods for robotics in Sec. II, we formally state the problem formulation for contact-rich trajectory optimization in Sec. III. We then detail the proposed method in Sec. IV and present numerical experiments in Sec. V. We conclude with a discussion of the results and limitations in Sec. VI. II. R ELATED WORK 
+
+A. Contact-rich Optimization in Robotics 
+
+In recent years, learning-based methods, such as deep reinforcement learning and behavior cloning, have demon-strated impressive robustness in contact-rich tasks such as 
+
+> 1Code will be released upon acceptance of the manuscript.
+
+real-world quadruped locomotion [14] and robotic manipula-tion [15] [16]. However, these methods typically require care-ful hyperparameter tuning and initialization, time-consuming training, and, in some cases, extensive data collection. The resulting policies are heavily dependent on the training setup, limiting their generalization to unseen tasks and environ-ments. The above methods implicitly handle complex con-tact interactions using stochastic approximations of sys-tem dynamics [17]. An alternative line of work exploits these contact models and approximations more explicitly in optimal control frameworks [18]–[20], sometimes us-ing complementarity-based formulations [21]–[23]. Although they have demonstrated promising performance, these meth-ods are inherently local and often require high-quality initial guesses, which are difficult to obtain in practice. Alterna-tively, contact-rich problems have also been studied through global optimization formulations. These methods typically cast the problem as a combinatorial optimization problem, which can be solved using mixed-integer programming or via convex relaxation [24], [25]. Although such approaches can provide optimality guarantees, they do not scale with dimension and the number of contact modes and have therefore been limited to relatively simple systems. 
+
+B. Sampling-based Methods 
+
+Sampling-based or zero-order methods have been widely applied in robotics due to their flexibility in handling ar-bitrary non-smooth dynamics and constraints, as well as parallelizability [2]. These approaches rely solely on function evaluations and do not require gradient or higher-order derivative information, making them well-suited for incor-porating non-differentiable simulators or real-world rollouts. Prominent methods such as MPPI and CMA-ES perform stochastic optimization by repeatedly sampling around a nominal solution and updating the sampling distribution [26]. Although robust to non-smooth objectives, those methods remain fundamentally local in nature. Bayesian optimiza-tion (BO) [27]–[29], on the other hand, incorporates global exploration by fitting a surrogate model of the objective and selecting new samples by maximizing an acquisition function that trades off exploration and exploitation. While the acquisition function is typically easier to optimize than the original objective, its maximization remains a non-convex problem and may be prone to local maxima. A recent contender among zero-order methods is KernelSOS [11]. Like BO, KernelSOS constructs a global surrogate model within a prescribed function class. However, instead of iteratively optimizing an acquisition function, KernelSOS directly minimizes the surrogate in a single step via solving an SDP, providing global optimality guarantees within the surrogate space. 
+
+C. Graduated Non-Convexity 
+
+Graduated Non-Convexity (GNC) is a widely used strat-egy for optimizing non-convex objective functions and has been successfully applied across domains, such as com-puter vision [30] and machine learning [31]. Existing GNC formulations, however, are often tailored to specific loss functions. For example, Yang et al. [30] propose dedicated GNC strategies for the Geman–McClure and truncated least-squares losses. While effective, such formulations are in-herently function-specific and therefore lack generality for arbitrary non-convex cost functions. Motivated by these limitations, we propose a global, training-free, and non-parametric trajectory optimization framework for contact-rich problems. Our approach inte-grates a general, function-agnostic GNC strategy with Ker-nelSOS for global optimization and MPPI for local refine-ment, both of which are sampling-based and particularly well-suited to contact-rich settings with non-convex, non-smooth cost landscapes. III. P ROBLEM STATEMENT 
+
+The problem of interest in this paper is a finite-horizon trajectory optimization problem using a contact-implicit rep-resentation, where contact forces are implicitly encoded in the system dynamics: 
+
+min  
+
+> u
+
+J (u) :=  
+
+> T−1
+
+X
+
+> t=0
+
+ℓt(xt, u t) + ℓT (xT )
+
+s.t. x0 = xinit ,xt+1 = fdyn (xt, u t), t = 0 , . . . , T − 1,ut ∈ U , t = 0 , . . . , T − 1.
+
+(1) Here, xt and ut denote the state and control input at time step t and T is the planning horizon. The control sequence is denoted by u = {u0, u 1, . . . , u T −1}. The functions ℓt(·)
+
+and ℓT (·) represent the stage cost and the terminal cost, respectively, fdyn (·) denotes the contact-implicit dynamics, and U is the feasible control set. In practice, we employ the single-shooting formulation, in which the unknown state trajectory and dynamics constraints are eliminated by rolling out the system dynamics fdyn (·) starting from the initial condition xinit . The problem thus simplifies to computing a feasible control sequence u that minimizes the resulting cumulative cost J (u).This problem is challenging due to several factors: First, the contact-implicit dynamics fdyn (·) introduces non-smooth and highly non-convex behavior as contact modes change. As a result, the cost landscape often exhibits sharp, asym-metric basins and pronounced non-smoothness, which hinder efficient global exploration and may cause local methods to get trapped in suboptimal solutions. Second, as the task dimensionality increases, the search space of the control sequence u grows exponentially, substantially increasing the computational burden and the difficulty of achieving global coverage. Finally, successful manipulation typically requires long horizons, thereby further increasing the problem’s di-mensionality. IV. M ETHOD 
+
+To address the challenges of contact-rich trajectory opti-mization discussed in Section III, we introduce Global-MPPI, a global sampling-based trajectory optimization framework tailored for contact-rich problems. We start by providing an overview of the algorithm and methodological insights to explain why Global-MPPI enables effective global op-timization over non-smooth landscapes. We then present technical details for each component of the algorithm, along with practical considerations for its successful application to contact-rich tasks. 
+
+A. Overview of Global-MPPI 
+
+Global-MPPI is a global sampling-based trajectory opti-mization framework designed to address contact-rich tasks. Fig. 2 provides a univariate example to illustrate its high-level idea. Our approach integrates three coupled components that enable reliable global exploration and local convergence toward the global optimum (orange star) in highly non-smooth, non-convex cost functions (orange curve). First, we employ a GNC strategy based on LSE smoothing. By gradually decreasing the smoothing parameter σlse , the op-timization landscape transitions from a smoothed convex function to the original non-smooth cost function (green curve), allowing coarse-to-fine global exploration. Second, at each stage, we leverage KernelSOS to identify the global so-lution (green cross) through surrogate minimization (dashed curve) via solving an SDP. Crucially, KernelSOS operates on the smoothed cost function, which, as we will show, leads to better performance than if we were to use the original function evaluations. Finally, we employ MPPI as a local optimizer, initialized with the global solution candidate from KernelSOS, to perform local refinement (red cross) of the LSE-smoothed surrogate function. Together, these components enable Global-MPPI to systematically explore highly non-smooth, non-convex cost landscapes, avoid local minima, and progressively converge to high-quality solutions in non-parametric, contact-rich settings. 
+
+B. Graduated Non-Convexity via Log-Sum-Exp Smoothing 
+
+To address non-convex and non-smooth optimization land-scapes, we adopt a GNC approach that solves a sequence of surrogate optimization problems with gradually increasing non-convexity, enabling coarse-to-fine exploration of the optimization landscape. The key idea of GNC is to first op-timize a strongly smoothed, convex surrogate of the original problem, which is easier to optimize, and then gradually increase the level of non-convexity until the original non-convex objective is recovered. The solution obtained at each stage is used to warm-start the subsequent optimization stage. This continuation process effectively enlarges the basin of attraction of low-cost solutions and improves robustness with respect to initialization and sampling variability. Moreover, the theoretical guarantees of KernelSOS rely on smoothness assumptions on the objective function [11]. The smoothed functions produced by GNC make it easier for KernelSOS Fig. 2. Illustration of the advantages of Global-MPPI. For contact-rich problems, the original cost function (orange curve) often has sharp, asymmetric peaks. Graduated non-convexity via log-sum-exp smoothing transitions the optimization landscape from a smoothed surrogate (green curve) to the original non-smooth objective at each restart stage. This graduating smoothing facilitates global approximation by KernelSOS and enlarges the basin of attraction of low-cost solutions. MPPI then locally refines the solution from KernelSOS. As a result, the final solution gradually converges to the true global minimum. 
+
+to fit accurate surrogates and identify high-quality solutions compared to the original non-smooth objective. In this work, we propose a general GNC strategy based on LSE smoothing [8], which is applicable to arbitrary non-convex, non-smooth functions. Given a cost function J (u),the LSE-smoothed surrogate function Jlse (u, σ lse ) is defined as 
+
+Jlse (u, σ lse ) = −λ log 
+
+
+
+E
+
+
+
+exp 
+
+
+
+− 1
+
+λ J (u + σlse ϵ)
+
+ 
+
+,
+
+(2) where ϵ contains i.i.d. samples ϵi ∼ N (0 , I ), λ > 0 is temperature parameter and σlse > 0 is a GNC smoothing parameter. As illustrated in Fig. 2, large values of σlse produce a strongly smoothed, nearly convex surrogate, while small val-ues recover the original non-smooth cost function. By grad-ually reducing σlse across restart phases, the optimization landscape transitions from a smoothed, nearly convex surro-gate to the original cost function. Moreover, LSE smoothing places greater weight on global minima and attenuates local minima, thereby enlarging the basins of attraction around high-quality solutions. This effect facilitates an effective global exploration of the solution space in our framework. 
+
+C. KernelSOS for Global Optimization 
+
+Importantly, we expect the smoothed function to still exhibit non-convexity, and local solvers would be at risk of getting trapped in local minima. Instead, we use KernelSOS, which is a global sampling-based optimization method intro-duced in [11]. The key idea of KernelSOS is to generalize classical sum-of-squares global optimization by replacing fixed polynomial bases with kernel functions, enabling a convex relaxation that allows to retrieve approximate global minima of general, non-parametric objectives. Since it only uses finite function and kernel evaluations, it is suitable for sampling-based optimization pipelines for contact-rich problems. We define the kernel matrix Kσ =  kσ (u(i), u(j)) 
+
+> i,j ∈[N]
+
+,where kσ is a chosen positive-definite kernel, σ is the kernel parameter and N is the finite number of samples. We denote its Cholesky decomposition by Kσ = R⊤R, with R an upper-triangular matrix. KernelSOS constructs the following SDP: 
+
+c∗ 
+
+> ksos
+
+= max  
+
+> c∈R, B ⪰0
+
+c − μ Tr( B)
+
+s.t. J (u(i)) − c = r⊤ 
+
+> i
+
+Br i, i ∈ [N ],
+
+(3) where ri denotes the i-th column of R, Tr is the trace oper-ator, μ is a regularization parameter, and B ⪰ 0 is a positive semidefinite matrix that parameterizes the kernelized sum-of-squares surrogate. The resulting KernelSOS surrogate function is defined as f (u) = c + v(u)⊤R−1BR −⊤ v(u),where v(u) =  kσ (u(1) , u), . . . , k σ (u(N ), u) is the kernel feature vector constructed from the samples {u(i)}Ni=1 .As shown in [11], the relaxation gap between the solution of (3) and the true global optimum c⋆ satisfies c⋆ksos ≤ c⋆
+
+if J (u) − c lies in the chosen reproducing kernel Hilbert space (RKHS). In this case, the relaxation gap is guaranteed to asymptotically approach zero as N → ∞ .In practice, the magnitude of the relaxation gap thus depends on the choice of kernel and its associated hyper-parameters, since they define the RKHS. Without careful calibration of the kernel parameters, the KernelSOS surrogate function may fail to accurately approximate the original objective J (u). Furthermore, there may not be a single func-tion class that accurately approximates the landscape over the long-horizon task, particularly as we switch between contact modes. Therefore, we propose to automatically select the kernel parameter in KernelSOS, using a data-driven linear-to-quadratic auto-calibration strategy based on an empirical Bayes approach. Specifically, we estimate the kernel parameter by minimiz-ing the negative log-marginal likelihood (NLL) with respect to the linear Gaussian process surrogate model. This marginal likelihood maximization provides a statistically principled, computationally efficient, and numerically well-conditioned approach to kernel parameter estimation [32]. Although KernelSOS uses a quadratic surrogate, we found that the optimal kernel identified using the linear surrogate, which is significantly easier to obtain, transferred well enough for our purposes. Given a set of sampled inputs U = [ u(1) , u(2) , . . . , u(N )]⊤
+
+and their corresponding cost evaluations y =[Jlse (u(1) ), . . . , Jlse (u(N ))] ⊤, we estimate the kernel parameters by minimizing the NLL: 
+
+NLL( σ) = − log p(y | U )= 12 y⊤(Kσ )−1y + 12 log |Kσ | + N
+
+2 log(2 π) (4) Since NLL( σ) is generally non-convex, we adopt a two-stage kernel selection strategy that first performs a coarse grid search over a predefined candidate set S, followed by lo-cal gradient-based refinement to minimize the NLL. The cal-ibrated kernel parameter is σksos = arg min σ∈S NLL( σ).This automatic linear-to-quadratic calibration strategy lever-ages linear models to select kernel parameters, eliminating the need for ad hoc heuristics and exhaustive hyperparameter tuning. 
+
+D. MPPI for local refinement 
+
+While KernelSOS can discover globally promising solu-tions across the entire action space, it is less accurate than local solvers in high-dimensional settings. In particular, due to the curse of dimensionality and the limited number of samples, the KernelSOS surrogate may fail to accurately approximate the original cost function, leading to subopti-mal solutions. In contrast, local solvers are computationally efficient and well-suited to refine solutions within a basin of attraction once a high-quality initialization is available. In our framework, we employ MPPI as a local refine-ment method. MPPI is particularly well-suited for this role because its sampling-based update can be interpreted as a natural stochastic gradient-descent step on the LSE-smoothed objective [8], which naturally aligns with the GNC scheme adopted in our method. In particular, the gradient of the smoothed objective in (2) satisfies: 
+
+∇J lse (u, σ lse ) = − λσlse 
+
+E ϵ exp  − 1 
+
+> λ
+
+J (u + σlse ϵ) 
+
+E exp  − 1 
+
+> λ
+
+J (u + σlse ϵ) (5) Therefore, a stochastic gradient update yields: 
+
+uk+1 = uk − α∇J lse (uk, σ lse ) ≈ uk + α λσlse NX
+
+> i=1
+
+wi ϵ(i).
+
+(6) Here, α denotes the step size, the normalized weights wi are defined as: 
+
+wi = exp  − 1 
+
+> λ
+
+J  uk + σlse ϵ(i) PNj=1 exp  − 1 
+
+> λ
+
+J  uk + σlse ϵ(j) , (7) 
+
+Algorithm 1 Global-MPPI algorithm 
+
+Input: u0, σ lse , ∆, ρ, γ 
+
+Notation: ut := ( ut, . . . , u t+H−1) denotes a control sequence over a horizon of length H; 
+
+> 1:
+
+uopt  
+
+> t
+
+← u0 
+
+> 2:
+
+for t = 0 to T do  
+
+> 3:
+
+for j = 0 to Nrestart do  
+
+> 4:
+
+u(i) 
+
+> t
+
+∼ Unif  uopt  
+
+> t
+
+− ∆, uopt  
+
+> t
+
++ ∆  , i ∈ [N ] 
+
+> 5:
+
+// graduated non-convexity:  
+
+> 6:
+
+Jlse (u(i) 
+
+> t
+
+) ← LSEsmooth( u(i) 
+
+> t
+
+, σ lse ), i ∈ [N ] 
+
+> 7:
+
+Define dataset D = {u(i) 
+
+> t
+
+, Jlse (u(i) 
+
+> t
+
+)}Ni=1  
+
+> 8:
+
+// global search:  
+
+> 9:
+
+σksos ← AutoCalibration( D) 
+
+> 10:
+
+uref  
+
+> t
+
+← KernelSOS( D, σ ksos ) 
+
+> 11:
+
+// local refinement:  
+
+> 12:
+
+uopt  
+
+> t
+
+← MPPI( uref  
+
+> t
+
+, σ lse ) 
+
+> 13:
+
+// update hyperparameters:  
+
+> 14:
+
+σlse ← ρ σ lse , ∆ ← γ ∆ 
+
+> 15:
+
+end for  
+
+> 16:
+
+// receding horizon:  
+
+> 17:
+
+uopt  
+
+> t+1
+
+← shift (uopt  
+
+> t
+
+) 
+
+> 18:
+
+if J (uopt 
+
+> t+1
+
+) − J (uopt  
+
+> t
+
+) < δ then  
+
+> 19:
+
+break  
+
+> 20:
+
+end if  
+
+> 21:
+
+end for 
+
+Choosing α = σ2
+
+> lse
+
+/λ and noting that PNi=1 wi = 1 , we recover the standard MPPI update rule: 
+
+uk+1 ≈ uk + σlse NX
+
+> i=1
+
+wi ϵ(i) =
+
+> N
+
+X
+
+> i=1
+
+wi
+
+
+
+uk + σlse ϵ(i)
+
+.
+
+(8) Overall, because MPPI relies solely on cost evaluations and does not require analytic models or gradients, it serves as an effective local refinement method in contact-rich envi-ronments. 
+
+E. Final Algorithm and Implementation Details 
+
+Having introduced the key algorithmic components, we formally present our methods in Algorithm 1. The algorithm operates in a receding-horizon setting and alternates between global exploration and local refinement across a sequence of GNC restart stages. At each stage, the sampling radius and LSE smoothing parameter σlse are gradually reduced to enable a coarse-to-fine global exploration and local con-vergence. To enforce trajectory smoothness and reduce the dimensionality of the optimization problem, we adopt a spline-based control parameterization mentioned in [4], in which trajectories are represented by cubic splines over a set of control points. The input constraints are incorporated by clipping the solution whenever it falls outside the admissible control range. The algorithm terminates once the objective improvement satisfies J (uopt 
+
+> t+1
+
+) − J (uopt  
+
+> t
+
+) < δ for a pre-defined tolerance δ. The default values of all hyperparameters in Algorithm 1 are summarized in Table I. TABLE I DEFINITION OF HYPERPARAMETERS IN GLOBAL -MPPI                          
+
+> Parameters Descriptions
+> Unif Uniformly sampling
+> NNumber of KernelSOS samples: 80
+> Nlse Number of LSE samples: 100
+> NMPPI Number of MPPI samples: 256
+> Nrestart Number of restart: 5
+> σlse Initial LSE noise: 0.4
+> u0Initial control sequence: 0.5 ( umax +umin )
+> μKernelSOS regularization: 1e−5
+> kσKernelSOS kernel: Laplace
+> ∆Initial sampling radius: 0.5 ( umax −umin )
+> ρLSE shrink factor: 0.5
+> γSampling radius shrink factor: 0.85
+> δConverge tolerance: 1e−4
+
+V. E XPERIMENTS 
+
+In this section, we evaluate Global-MPPI on two contact-rich benchmark tasks [33]: the PushT task and dexterous in-hand manipulation. We compare the performance of our approach against several state-of-the-art sampling-based opti-mization methods, including Predictive Sampling [8], vanilla MPPI [4], and DIAL-MPC [2], to demonstrate its ability to explore high-quality solutions in non-smooth, non-convex optimization landscapes. 
+
+A. Experiment setting 
+
+Our experiments were conducted in MuJoCo, a GPU-accelerated physics simulator. We ran the benchmarks on a workstation equipped with an Intel i9 CPU and an RTX 4090 GPU. To ensure fair comparisons, all methods were tested in the same environments, initialized from the same states, and run with the same seeds. Unless otherwise specified, Global-MPPI uses the same hyperparameters for all exper-iments as summarized in Table I. In our implementation, sampling, rollouts, function evaluation, LSE smoothing, and MPPI updates are executed on the GPU to leverage parallel computation, while KernelSOS is performed on the CPU. We use a custom interior-point solver for SDP to exploit the rank-one structure of the KernelSOS constraints [11], which is computationally faster than off-the-shelf SDP solvers such as MOSEK [34] or SCS [35]. 
+
+B. PushT task 
+
+The PushT task is a planar contact-rich manipulation task in which a robotic pusher moves a T-shaped object to a specified target pose. The task involves discontinuous contact dynamics, frictional interactions, and frequent contact mode switches. Consequently, the optimization landscape is highly non-smooth and non-convex. As a result, small perturbations in the control sequence can lead to qualitatively different object motions, turning the PushT task into a particularly challenging planning problem. We evaluate the performance of Global-MPPI on the PushT task. The system state xt consists of both the ob-ject pose and the pusher pose, and the control input ut
+
+corresponds to the pusher’s position. Starting from an initial configuration, the objective is to compute a control sequence          
+
+> Fig. 3. Cost convergence comparison for PushT and dexterous in-hand manipulation task. The solid lines represent the median across six random seeds, and the shaded regions indicate the interquartile range. Our method achieves faster convergence, lower final costs, and reduced variance compared to other sampling-based methods.
+
+for the robot pusher that drives the object to a desired target pose. We define the cost function as a distance metric on the R2 × SO(2) manifold, penalizing both translational and rotational errors: 
+
+J = 
+
+> T−1
+
+X
+
+> t=0
+
+∆t
+
+
+
+∥pt − pg ∥2 + w log( q−1 
+
+> g
+
+⊗ qt) 2| {z }
+
+> ℓt(·)
+
++ ∥pT − pg ∥2 + w log( q−1 
+
+> g
+
+⊗ qT ) 2
+
+| {z } 
+
+> ℓT(·)
+
+.
+
+(9) Here, the object pose at time t is represented by (pt, q t) ∈
+
+R2 ×SO(2) , and the target pose is (pg , q g ) ∈ R2 ×SO(2) . ∆t
+
+denotes the time step, and the weight w is used to balance translational and rotational errors. The operator ⊗ denotes rotation composition, and log( ·) maps the relative rotation 
+
+q−1 
+
+> g
+
+⊗ qt to the Lie algebra of SO(2) , from which we extract a scalar rotation error. In our PushT experiments, we set the weight w = 0 .3 and the time step ∆t = 0 .01 over a 1-second planning horizon. We use six control points for the cubic spline parameteriza-tion, resulting in a 12-dimensional control sequence u. The benchmark results are summarized in the left panel of Fig. 3. Global-MPPI outperforms baseline methods, achieving faster convergence, lower final costs, and reduced variance. MPPI and DIAL-MPC, as more local optimization methods, often become trapped in poor local minima and sometimes struggle to reduce the cost. Predictive sampling is more robust to local minima but converges more slowly and with higher variance. We also conduct an ablation study of Global-MPPI by removing GNC, local refinement, and automatic calibration. The results are summarized in the left panel of Fig. 4. Removing local refinement or automatic calibration leads to higher final costs and increased variance. Although removing GNC yields a slightly lower final cost, incorporating GNC improves convergence speed and stability, suggesting that adaptive GNC strategies warrant further investigation. The robot trajectories produced by different methods in the Fig. 4. Ablation study of Global-MPPI on the PushT and dexterous in-hand manipulation tasks. We evaluate Global-MPPI by removing key components, including GNC, local refinement, and automatic calibration. The solid lines represent the median across six random seeds, and the shaded regions indicate the interquartile range. For the PushT task, removing any of these components significantly degrades performance, leading to slower convergence, higher final costs, and increased variance. The dexterous manipulation task is less sensitive to removing the refinement or GNC, but auto calibration remains important. 
+
+PushT task are shown in Fig. 5, where the dashed red region denotes the target pose of the T-shaped object. Under the same initial and goal configurations, Global-MPPI achieves shorter trajectories, faster convergence, and lower final costs, outperforming the baseline methods. Notably, although the cost function does not explicitly penalize path length, Global-MPPI consistently identifies low-cost actions that efficiently reduce the task objective, yielding shorter, more efficient robot trajectories. In contrast, predictive sampling can suc-cessfully push the object into the target region, but incurs higher intermediate costs and generates less efficient trajec-tories. MPPI and DIAL-MPC, as local optimization methods, become trapped in suboptimal local minima and fail to move the object to the target region. 
+
+C. Dexterous in-hand manipulation 
+
+We further evaluate our approach on a high-dimensional dexterous in-hand manipulation task, which requires a multi-fingered hand to rotate and stabilize a cube to a desired target orientation while maintaining a stable grasp. This task involves intermittent multi-point contacts, frequent contact-mode switches, and highly nonlinear dynamics, resulting in a complex optimization landscape with many local minima. The cost function for this task is defined as a distance metric on the SO(3) manifold: 
+
+J = 
+
+> T−1
+
+X
+
+> t=0
+
+∆t
+
+
+
+log( q−1 
+
+> g
+
+⊗ qt) 2| {z }
+
+> ℓt(·)
+
++ log( q−1 
+
+> g
+
+⊗ qT ) 2
+
+| {z } 
+
+> ℓT(·)
+
+.
+
+(10) where the object orientation at time t is denoted by qt ∈
+
+SO(3) , and the target orientation is qg ∈ SO(3) .Due to the small-scale joint motions of the dexterous hand, we parameterize the control trajectory using four control points over a 0.25-second horizon. We use a 16-DoF LEAP  
+
+> Fig. 5. Visualization of the PushT task with four different methods. The dashed red region denotes the target pose of the object. Under the same environment, Global-MPPI achieves the lowest cost and shortest trajectory path length. Predictive sampling can push the object into the target region, but it incurs large stage costs and inefficient trajectories due to random exploration. MPPI and DIAL-MPC, as local optimization methods, fail to push the object to the target region.
+
+hand [36] for this dexterous in-hand manipulation experi-ment. The dimension of the control sequence u is 64. The right panel of Fig. 3 shows the cost convergence comparison across different methods. Global-MPPI achieves the fastest convergence and the lowest final cost, demonstrating robust performance in the high-dimensional contact-rich problem. Predictive sampling shows limited improvement and plateaus at a significantly higher cost due to inefficient exploration in the high-dimensional action space. MPPI frequently con-verges to suboptimal local minima or fails to maintain stable object manipulation, resulting in inferior final performance. DIAL-MPC demonstrates improved performance compared with the PushT task; however, it attains higher final costs than Global-MPPI and converges slower, with Global-MPPI reaching the final best performance of DIAL-MPC already after less than 40 iterations, effectively halving the iteration time. The ablation results are shown in the right panel of Fig. 4. Although all methods achieve almost similar final costs, the full Global-MPPI converges faster, reaching the final cost within approximately 30 iterations. VI. C ONCLUSION 
+
+We presented Global-MPPI, a global sampling-based tra-jectory optimization framework tailored for contact-implicit trajectory optimization in contact-rich manipulation prob-lems. By combining graduated non-convexity, kernelized global surrogates, and efficient local refinement, Global-MPPI enables global exploration and robust local conver-gence toward high-quality solutions. Despite its effectiveness, the proposed approach has sev-eral limitations. First, scalability remains a challenge. As the problem dimension and planning horizon increase, the com-putational cost of SDP scales cubically with the number of samples. Future improvements can explore GPU-accelerated SDP solvers and efficient sampling to further advance real-time and large-scale applications. Second, our approach relies on a parallelizable physics-based simulator to rollout trajectories and evaluate sample costs. Therefore, the performance of our approach depends on both the fidelity and computational efficiency of the simulator. Inaccurate modeling of complex dynamics may introduce a sim-to-real gap when deploying our approach on real-world systems. In practice, this issue can be partially mitigated by the receding-horizon MPC framework, which enables frequent re-planning and helps reduce the impact of model mismatch. We leave a comprehensive real-world implementation and validation to future work. REFERENCES [1] ´I. Elguea-Aguinaco, A. Serrano-Mu˜ noz, D. Chrysostomou, I. Inziarte-Hidalgo, S. Bøgh, and N. Arana-Arexolaleiba, “A review on reinforce-ment learning for contact-rich robotic manipulation tasks,” Robotics and Computer-Integrated Manufacturing , vol. 81, p. 102517, 2023. [2] H. Xue, C. Pan, Z. Yi, G. Qu, and G. Shi, “Full-order sampling-based mpc for torque-level locomotion control via diffusion-style annealing,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 4974–4981. [3] F. Rozzi, L. Roveda, and K. Haninger, “Combining sampling-and gradient-based planning for contact-rich manipulation,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2024, pp. 9901–9907. [4] J. Alvarez-Padilla, J. Z. Zhang, S. Kwok, J. M. Dolan, and Z. Manch-ester, “Real-time whole-body control of legged robots with model-predictive path integral control,” in 2025 IEEE International Confer-ence on Robotics and Automation (ICRA) . IEEE, 2025, pp. 14 721– 14 727. [5] M. S. Gandhi, B. Vlahov, J. Gibson, G. Williams, and E. A. Theodorou, “Robust model predictive path integral control: Analysis and performance guarantees,” IEEE Robotics and Automation Letters ,vol. 6, no. 2, pp. 1423–1430, 2021. [6] C. Pinneri, S. Sawant, S. Blaes, J. Achterhold, J. Stueckler, M. Rolinek, and G. Martius, “Sample-efficient cross-entropy method for real-time planning,” in Conference on Robot Learning . PMLR, 2021, pp. 1049– 1065. [7] N. Hansen, “The CMA Evolution Strategy: A Tutorial,” 
+
+arXiv:1604.00772 , 2023. [8] A. Jordana, J. Zhang, J. Amigo, and L. Righetti, “An introduction to zero-order optimization techniques for robotics,” arXiv preprint arXiv:2506.22087 , 2025. [9] Y. Aoyama and E. A. Theodorou, “Generalized Maximum Entropy Differential Dynamic Programming,” in IEEE Conference on Decision and Control (CDC) , 2024, pp. 8825–8831. [10] T. Haarnoja, H. Tang, P. Abbeel, and S. Levine, “Reinforcement Learn-ing with Deep Energy-Based Policies,” in International Conference on Machine Learning , 2017. [11] A. Rudi, U. Marteau-Ferey, and F. Bach, “Finding global minima via kernel approximations,” Mathematical Programming 209 (1) , 2020. [12] E. Berthier, J. Carpentier, A. Rudi, and F. Bach, “Infinite-Dimensional Sums-of-Squares for Optimal Control,” in IEEE Conference on Deci-sion and Control (CDC) , 2022, pp. 577–582. [13] A. Groudiev, F. Schramm, ´ E. Berthier, J. Carpentier, and F. D¨ umbgen, “Sampling-based global optimal control and estimation via semidefi-nite programming,” American Control Conference , 2025. [14] L. Schneider, J. Frey, T. Miki, and M. Hutter, “Learning risk-aware quadrupedal locomotion using distributional reinforcement learning,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2024, pp. 11 451–11 458. [15] D. Han, B. Mulyana, V. Stankovic, and S. Cheng, “A survey on deep reinforcement learning algorithms for robotic manipulation,” Sensors ,vol. 23, no. 7, p. 3762, 2023. [16] C. Yu and P. Wang, “Dexterous manipulation for multi-fingered robotic hands with reinforcement learning: A review,” Frontiers in Neurorobotics , vol. 16, p. 861825, 2022. [17] H. J. Suh, M. Simchowitz, K. Zhang, and R. Tedrake, “Do dif-ferentiable simulators give better policy gradients?” in International Conference on Machine Learning . PMLR, 2022, pp. 20 668–20 696. [18] H. J. T. Suh, T. Pang, and R. Tedrake, “Bundled gradients through contact via randomized smoothing,” IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 4000–4007, 2022. [19] T. Pang, H. T. Suh, L. Yang, and R. Tedrake, “Global planning for contact-rich manipulation via local smoothing of quasi-dynamic contact models,” IEEE Transactions on robotics , vol. 39, no. 6, pp. 4691–4711, 2023. [20] Q. Le Lidec, F. Schramm, L. Montaut, C. Schmid, I. Laptev, and J. Carpentier, “Leveraging randomized smoothing for optimal control of nonsmooth dynamical systems,” Nonlinear Analysis: Hybrid Sys-tems , vol. 52, 2024. [21] M. Posa, C. Cantu, and R. Tedrake, “A Direct Method for Trajectory Optimization of Rigid Bodies Through Contact,” International Journal of Robotics Research (IJRR) , vol. 33, no. 1, pp. 69–81, Jan. 2014. [22] J. Carpentier, L. Montaut, and Q. L. Lidec, “From Compliant to Rigid Contact Simulation: A Unified and Efficient Approach,” in Robotics: Science and Systems , 2024. [23] V. Kurtz, A. Castro, A. ¨O. ¨Onol, and H. Lin, “Inverse dynamics trajectory optimization for contact-implicit model predictive control,” 
+
+The International Journal of Robotics Research , vol. 45, no. 1, pp. 23–40, 2026. [24] B. Aceituno-Cabezas, C. Mastalli, H. Dai, M. Focchi, A. Radulescu, D. G. Caldwell, J. Cappelletto, J. C. Grieco, G. Fern´ andez-L´ opez, and C. Semini, “Simultaneous contact, gait, and motion planning for robust multilegged locomotion via mixed-integer convex optimization,” IEEE Robotics and Automation Letters , vol. 3, no. 3, pp. 2531–2538, 2018. [25] B. P. Graesdal, S. Y. C. Chia, T. Marcucci, S. Morozov, A. Amice, P. A. Parrilo, and R. Tedrake, “Towards tight convex relaxations for contact-rich manipulation,” Robotics: Science and Systems (RSS) , 2024. [26] G. Williams, A. Aldrich, and E. A. Theodorou, “Model predictive path integral control: From theory to parallel computation,” Journal of Guidance, Control, and Dynamics , vol. 40, no. 2, pp. 344–357, 2017. [27] F. Berkenkamp, A. Krause, and A. P. Schoellig, “Bayesian optimiza-tion with safety constraints: safe and automatic parameter tuning in robotics,” Machine learning , vol. 112, no. 10, pp. 3713–3747, 2023. [28] B. Shahriari, K. Swersky, Z. Wang, R. P. Adams, and N. de Freitas, “Taking the Human Out of the Loop: A Review of Bayesian Opti-mization,” Proceedings of the IEEE , vol. 104, no. 1, pp. 148–175, Jan. 2016. [29] D. R. Jones, M. Schonlau, and W. J. Welch, “Efficient Global Optimization of Expensive Black-Box Functions,” Journal of Global Optimization , vol. 13, no. 4, pp. 455–492, Dec. 1998. [30] H. Yang, P. Antonante, V. Tzoumas, and L. Carlone, “Graduated non-convexity for robust spatial perception: From non-minimal solvers to global outlier rejection,” IEEE Robotics and Automation Letters , vol. 5, no. 2, pp. 1127–1134, 2020. [31] K. Rose, “Deterministic annealing for clustering, compression, classi-fication, regression, and related optimization problems,” Proceedings of the IEEE , vol. 86, no. 11, pp. 2210–2239, 2002. [32] K. P. Murphy, Machine learning: a probabilistic perspective . MIT press, 2012. [33] V. Kurtz, “Hydrax: Sampling-based model predictive control on gpu with jax and mujoco mjx,” 2024. [34] M. ApS, “Mosek optimization toolbox for matlab,” User’s Guide and Reference Manual, Version , vol. 4, no. 1, p. 116, 2019. [35] C. Flicker, A Comparison of the Performance of SDP Solvers . New Mexico Institute of Mining and Technology, 2020. [36] K. Shaw, A. Agarwal, and D. Pathak, “Leap hand: Low-cost, efficient, and anthropomorphic hand for robot learning,” Robotics: Science and Systems (RSS) , 2023.
