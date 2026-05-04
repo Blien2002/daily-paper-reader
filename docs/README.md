@@ -6,46 +6,64 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-03
-- 运行时间：2026-05-03 20:02:39 UTC
+- 最新运行日期：2026-05-04
+- 运行时间：2026-05-04 20:32:26 UTC
 - 运行状态：成功
-- 本次总论文数：8
-- 精读区：4
-- 速读区：4
+- 本次总论文数：14
+- 精读区：8
+- 速读区：6
 
 ### 今日简报（AI）
-今日深度解析 8 篇 AI 论文，聚焦机器人世界模型与原生多模态智能体的重大突破。
-满分力作 MotuBrain 领衔探索机器人控制新范式，GLM-5V-Turbo 则显著提升了多模态智能体的原生感知能力。
-推荐优先研读具身智能相关的动作模型，把握大模型与物理世界交互的最新技术趋势。
-- 详情：[/202605/03/README](/202605/03/README)
+今日深度复盘 14 篇机器人操控前沿论文，重点攻克了 STARRY 与 MotuBrain 两项满分级世界模型成果。
+研究表明，时空动作中心化建模（Action-Centric）已成为提升复杂任务操控精度与控制稳定性的关键突破口。
+建议从世界模型综述入手构建体系，并重点关注 STARRY 在精细化空间对齐上的技术实现。
+- 详情：[/202605/04/README](/202605/04/README)
 
 ### 精读区论文标签
-1. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/03/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
+1. [STARRY: Spatial-Temporal Action-Centric World Modeling for Robotic Manipulation](/202605/04/2604.26848v2-starry-spatial-temporal-action-centric-world-modeling-for-robotic-manipulation)  
    标签：评分：10.0/10、query:vla
-   evidence：用于机器人控制和策略学习的统一世界动作模型 (WAM)
-2. [GLM-5V-Turbo: Toward a Native Foundation Model for Multimodal Agents](/202605/03/2604.26752v1-glm-5v-turbo-toward-a-native-foundation-model-for-multimodal-agents)  
+   evidence：用于机器人操作的世界模型增强型VLA策略
+2. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/04/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
+   标签：评分：10.0/10、query:vla
+   evidence：集成 VLA 与视频生成的统一世界动作模型 (WAM) 用于机器人控制
+3. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/04/2604.27792v2-motubrain-an-advanced-world-action-model-for-robot-control)  
+   标签：评分：10.0/10、query:vla
+   evidence：用于机器人控制和VLA泛化的统一世界动作模型（WAM）
+4. [Being-H0.7: A Latent World-Action Model from Egocentric Videos](/202605/04/2605.00078v1-being-h07-a-latent-world-action-model-from-egocentric-videos)  
+   标签：评分：10.0/10、query:vla
+   evidence：用于通用机器人控制的潜空间世界-动作模型
+5. [Learning while Deploying: Fleet-Scale Reinforcement Learning for Generalist Robot Policies](/202605/04/2605.00416v1-learning-while-deploying-fleet-scale-reinforcement-learning-for-generalist-robot-policies)  
+   标签：评分：10.0/10、query:vla
+   evidence：用于通用VLA策略持续后训练的车队规模强化学习
+6. [Thinking in Text and Images: Interleaved Vision--Language Reasoning Traces for Long-Horizon Robot Manipulation](/202605/04/2605.00438v1-thinking-in-text-and-images-interleaved-vision--language-reasoning-traces-for-long-horizon-robot-manipulation)  
+   标签：评分：10.0/10、query:vla
+   evidence：用于长程机器人操作的视觉-语言-动作策略框架
+7. [Lucid-XR: An Extended-Reality Data Engine for Robotic Manipulation](/202605/04/2605.00244v1-lucid-xr-an-extended-reality-data-engine-for-robotic-manipulation)  
    标签：评分：9.0/10、query:vla
-   evidence：集成感知与动作的多模态智能体原生基础模型
-3. [Variational Neural Belief Parameterizations for Robust Dexterous Grasping under Multimodal Uncertainty](/202605/03/2604.25897v1-variational-neural-belief-parameterizations-for-robust-dexterous-grasping-under-multimodal-uncertainty)  
-   标签：评分：8.0/10、query:vla
-   evidence：不确定性下的鲁棒灵巧抓取
-4. [Bridging Values and Behavior: A Hierarchical Framework for Proactive Embodied Agents](/202605/03/2604.27699v1-bridging-values-and-behavior-a-hierarchical-framework-for-proactive-embodied-agents)  
-   标签：评分：8.0/10、query:vla
-   evidence：用于主动具身智能体的基于LLM的认知模块
+   evidence：带有自然语言规范的机器人操作生成式数据引擎
+8. [Embodied Interpretability: Linking Causal Understanding to Generalization in Vision-Language-Action Models](/202605/04/2605.00321v1-embodied-interpretability-linking-causal-understanding-to-generalization-in-vision-language-action-models)  
+   标签：评分：9.0/10、query:vla
+   evidence：视觉-语言-动作 (VLA) 策略中的因果理解与可解释性
 
 ### 速读区论文标签
-1. [Multiple Consistent 2D-3D Mappings for Robust Zero-Shot 3D Visual Grounding](/202605/03/2604.26261v1-multiple-consistent-2d-3d-mappings-for-robust-zero-shot-3d-visual-grounding)  
+1. [World Model for Robot Learning: A Comprehensive Survey](/202605/04/2605.00080v1-world-model-for-robot-learning-a-comprehensive-survey)  
+   标签：评分：8.0/10、query:vla
+   evidence：用于机器人学习和基础模型的世界模型
+2. [E$^2$DT: Efficient and Effective Decision Transformer with Experience-Aware Sampling for Robotic Manipulation](/202605/04/2605.00159v1-e2dt-efficient-and-effective-decision-transformer-with-experience-aware-sampling-for-robotic-manipulation)  
+   标签：评分：8.0/10、query:vla
+   evidence：用于机器人操作任务的决策Transformer框架
+3. [MSACT: Multistage Spatial Alignment for Stable Low-Latency Fine Manipulation](/202605/04/2605.00475v1-msact-multistage-spatial-alignment-for-stable-low-latency-fine-manipulation)  
+   标签：评分：8.0/10、query:vla
+   evidence：用于稳定低延迟精细操作任务的多阶段空间对齐
+4. [World2Minecraft: Occupancy-Driven Simulated Scenes Construction](/202605/04/2604.27578v1-world2minecraft-occupancy-driven-simulated-scenes-construction)  
    标签：评分：7.5/10、query:vla
-   evidence：面向开放世界具身智能的零样本3D视觉定位
-2. [Function-based Parametric Co-Design Optimization of Dexterous Hands](/202605/03/2604.27557v1-function-based-parametric-co-design-optimization-of-dexterous-hands)  
-   标签：评分：7.5/10、query:vla
-   evidence：灵巧手操作的参数化协同设计
-3. [SASI: Leveraging Sub-Action Semantics for Robust Early Action Recognition in Human-Robot Interaction](/202605/03/2604.27508v1-sasi-leveraging-sub-action-semantics-for-robust-early-action-recognition-in-human-robot-interaction)  
+   evidence：用于具身智能和视觉语言导航的模拟场景构建
+5. [Stereo Multistage Spatial Attention for Real-Time Mobile Manipulation Under Visual Scale Variation and Disturbances](/202605/04/2605.00471v1-stereo-multistage-spatial-attention-for-real-time-mobile-manipulation-under-visual-scale-variation-and-disturbances)  
+   标签：评分：7.0/10、query:vla
+   evidence：非结构化环境下实时移动操作的深度预测学习
+6. [A Model-based Visual Contact Localization and Force Sensing System for Compliant Robotic Grippers](/202605/04/2605.00307v1-a-model-based-visual-contact-localization-and-force-sensing-system-for-compliant-robotic-grippers)  
    标签：评分：6.5/10、query:vla
-   evidence：人机交互中的子动作语义
-4. [Uni-HOI:A Unified framework for Learning the Joint distribution of Text and Human-Object Interaction](/202605/03/2604.27491v1-uni-hoia-unified-framework-for-learning-the-joint-distribution-of-text-and-human-object-interaction)  
-   标签：评分：6.0/10、query:vla
-   evidence：使用大语言模型处理人机交互的统一框架
+   evidence：用于机器人操作和学习控制的视觉力感知
 
 
 <div class="dpr-home-promo-card">
