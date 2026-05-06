@@ -6,94 +6,73 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-05
-- 运行时间：2026-05-05 20:09:44 UTC
+- 最新运行日期：2026-05-06
+- 运行时间：2026-05-06 20:26:45 UTC
 - 运行状态：成功
-- 本次总论文数：24
-- 精读区：13
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度复盘 24 篇机器人前沿进展，重点聚焦满分力作 MotuBrain 展现的世界动作模型新高度。
-核心突破在于 MotuBrain 对机器人控制的极致优化，以及通过技能分解与重组实现跨任务操作的逻辑推理能力。
-建议优先研读世界动作模型架构，并关注多模态感知如何提升社交机器人在复杂抓取任务中的交互表现。
-- 详情：[/202605/05/README](/202605/05/README)
+今日深度复盘 17 篇具身智能前沿论文，重点攻克机器人世界动作模型（WAM）的核心技术。
+满分论文 MotuBrain 展现了机器人控制的跨越式进步，而 4D 世界模型与人形机器人全身操控正成为新的研究热点。
+推荐优先研读 MotuBrain 以掌握世界模型驱动的控制逻辑，紧跟具身智能从感知到动作的范式演进。
+- 详情：[/202605/06/README](/202605/06/README)
 
 ### 精读区论文标签
-1. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/05/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
+1. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/06/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
    标签：评分：10.0/10、query:vla
-   evidence：用于机器人控制和VLA泛化的统一世界动作模型(WAM)
-2. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/05/2604.27792v2-motubrain-an-advanced-world-action-model-for-robot-control)  
+   evidence：用于机器人控制的统一世界动作模型(WAM)及VLA语义泛化
+2. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/06/2604.27792v2-motubrain-an-advanced-world-action-model-for-robot-control)  
    标签：评分：10.0/10、query:vla
-   evidence：用于机器人控制和VLA泛化的统一世界动作模型
-3. [LiteVLA-H: Dual-Rate Vision-Language-Action Inference for Onboard Aerial Guidance and Semantic Perception](/202605/05/2605.00884v1-litevla-h-dual-rate-vision-language-action-inference-for-onboard-aerial-guidance-and-semantic-perception)  
+   evidence：用于机器人控制的高级VLA世界动作模型
+3. [Being-H0.7: A Latent World-Action Model from Egocentric Videos](/202605/06/2605.00078v1-being-h07-a-latent-world-action-model-from-egocentric-videos)  
    标签：评分：10.0/10、query:vla
-   evidence：用于机载空中引导和语义感知的紧凑型VLA系统
-4. [Sentinel-VLA: A Metacognitive VLA Model with Active Status Monitoring for Dynamic Reasoning and Error Recovery](/202605/05/2605.01191v1-sentinel-vla-a-metacognitive-vla-model-with-active-status-monitoring-for-dynamic-reasoning-and-error-recovery)  
-   标签：评分：10.0/10、query:vla
-   evidence：用于具身操纵和错误恢复的元认知VLA模型
-5. [VLA-ATTC: Adaptive Test-Time Compute for VLA Models with Relative Action Critic Model](/202605/05/2605.01194v1-vla-attc-adaptive-test-time-compute-for-vla-models-with-relative-action-critic-model)  
-   标签：评分：10.0/10、query:vla
-   evidence：具身操纵中VLA模型的自适应测试时计算
-6. [Anticipation-VLA: Solving Long-Horizon Embodied Tasks via Anticipation-based Subgoal Generation](/202605/05/2605.01772v1-anticipation-vla-solving-long-horizon-embodied-tasks-via-anticipation-based-subgoal-generation)  
-   标签：评分：10.0/10、query:vla
-   evidence：通过子目标生成解决长程具身任务的VLA模型
-7. [VILAS: A VLA-Integrated Low-cost Architecture with Soft Grasping for Robotic Manipulation](/202605/05/2605.02037v1-vilas-a-vla-integrated-low-cost-architecture-with-soft-grasping-for-robotic-manipulation)  
-   标签：评分：10.0/10、query:vla
-   evidence：用于端到端VLA策略学习与部署的低成本架构
-8. [Latent Bridge: Feature Delta Prediction for Efficient Dual-System Vision-Language-Action Model Inference](/202605/05/2605.02739v1-latent-bridge-feature-delta-prediction-for-efficient-dual-system-vision-language-action-model-inference)  
-   标签：评分：10.0/10、query:vla
-   evidence：用于机器人操作的高效双系统VLA模型推理
-9. [MolmoAct2: Action Reasoning Models for Real-world Deployment](/202605/05/2605.02881v1-molmoact2-action-reasoning-models-for-real-world-deployment)  
-   标签：评分：10.0/10、query:vla
-   evidence：用于真实世界机器人部署的开源动作推理VLA模型
-10. [Being-H0.7: A Latent World-Action Model from Egocentric Videos](/202605/05/2605.00078v1-being-h07-a-latent-world-action-model-from-egocentric-videos)  
+   evidence：将未来感知推理引入VLA风格策略的潜空间世界动作模型
+4. [RLDX-1 Technical Report](/202605/06/2605.03269v1-rldx-1-technical-report)  
    标签：评分：9.5/10、query:vla
-   evidence：用于VLA风格策略的潜空间世界动作模型
-11. [Phone2Act: A Low-Cost, Hardware-Agnostic Teleoperation System for Scalable VLA Data Collection](/202605/05/2605.01948v1-phone2act-a-low-cost-hardware-agnostic-teleoperation-system-for-scalable-vla-data-collection)  
-   标签：评分：9.0/10、query:vla
-   evidence：通过智能手机遥操作进行可扩展的VLA数据采集
-12. [CoRAL: Contact-Rich Adaptive LLM-based Control for Robotic Manipulation](/202605/05/2605.02600v1-coral-contact-rich-adaptive-llm-based-control-for-robotic-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：基于LLM的接触密集型机器人操作控制
-13. [Seeing Realism from Simulation: Efficient Video Transfer for Vision-Language-Action Data Augmentation](/202605/05/2605.02757v1-seeing-realism-from-simulation-efficient-video-transfer-for-vision-language-action-data-augmentation)  
-   标签：评分：9.0/10、query:vla
-   evidence：通过仿真到现实的视频迁移进行VLA数据增强
+   evidence：基于多流动作Transformer构建的通用灵巧操作机器人策略
+5. [Assistance Without Interruption: A Benchmark and LLM-based Framework for Non-Intrusive Human-Robot Assistance](/202605/06/2605.01368v1-assistance-without-interruption-a-benchmark-and-llm-based-framework-for-non-intrusive-human-robot-assistance)  
+   标签：评分：8.0/10、query:vla
+   evidence：基于大语言模型的机器人主动辅助框架
+6. [A Semantic Autonomy Framework for VLM-Integrated Indoor Mobile Robots: Hybrid Deterministic Reasoning and Cross-Robot Adaptive Memory](/202605/06/2605.02525v1-a-semantic-autonomy-framework-for-vlm-integrated-indoor-mobile-robots-hybrid-deterministic-reasoning-and-cross-robot-adaptive-memory)  
+   标签：评分：8.0/10、query:vla
+   evidence：集成VLM的自主移动机器人框架
 
 ### 速读区论文标签
-1. [ARIS: Agentic and Relationship Intelligence System for Social Robots](/202605/05/2605.00943v1-aris-agentic-and-relationship-intelligence-system-for-social-robots)  
+1. [Embody4D: A Generalist 4D World Model for Embodied AI](/202605/06/2605.01799v1-embody4d-a-generalist-4d-world-model-for-embodied-ai)  
    标签：评分：8.0/10、query:vla
-   evidence：基础模型与社交机器人动作空间的集成
-2. [Ablation Study of Multimodal Perception, Language Grounding, and Control for Human-Robot Interaction in an Object Detection and Grasping Task](/202605/05/2605.00963v1-ablation-study-of-multimodal-perception-language-grounding-and-control-for-human-robot-interaction-in-an-object-detection-and-grasping-task)  
+   evidence：为具身智能提供空间推理和多视图合成的4D世界模型
+2. [OGPO: Sample Efficient Full-Finetuning of Generative Control Policies](/202605/06/2605.03065v1-ogpo-sample-efficient-full-finetuning-of-generative-control-policies)  
    标签：评分：8.0/10、query:vla
-   evidence：端到端机器人任务中用于动作提取的LLM消融研究
-3. [Decompose and Recompose: Reasoning New Skills from Existing Abilities for Cross-Task Robotic Manipulation](/202605/05/2605.01448v1-decompose-and-recompose-reasoning-new-skills-from-existing-abilities-for-cross-task-robotic-manipulation)  
+   evidence：微调用于操作任务的生成式控制策略
+3. [BifrostUMI: Bridging Robot-Free Demonstrations and Humanoid Whole-Body Manipulation](/202605/06/2605.03452v1-bifrostumi-bridging-robot-free-demonstrations-and-humanoid-whole-body-manipulation)  
    标签：评分：8.0/10、query:vla
-   evidence：跨任务机器人操作的技能推理框架
-4. [Action Agent: Agentic Video Generation Meets Flow-Constrained Diffusion](/202605/05/2605.01477v1-action-agent-agentic-video-generation-meets-flow-constrained-diffusion)  
+   evidence：人形机器人全身视觉运动策略的数据采集
+4. [StateVLM: A State-Aware Vision-Language Model for Robotic Affordance Reasoning](/202605/06/2605.03927v1-statevlm-a-state-aware-vision-language-model-for-robotic-affordance-reasoning)  
    标签：评分：8.0/10、query:vla
-   evidence：用于多具身机器人导航视频和命令的LLM编排
-5. [Embody4D: A Generalist 4D World Model for Embodied AI](/202605/05/2605.01799v1-embody4d-a-generalist-4d-world-model-for-embodied-ai)  
-   标签：评分：8.0/10、query:vla
-   evidence：用于具身空间推理和操作的4D世界模型
-6. [KinDER: A Physical Reasoning Benchmark for Robot Learning and Planning](/202605/05/2604.25788v2-kinder-a-physical-reasoning-benchmark-for-robot-learning-and-planning)  
+   evidence：用于机器人示能表示和物体定位的视觉语言模型
+5. [ShapeGrasp: Simultaneous Visuo-Haptic Shape Completion and Grasping for Improved Robot Manipulation](/202605/06/2605.02347v1-shapegrasp-simultaneous-visuo-haptic-shape-completion-and-grasping-for-improved-robot-manipulation)  
+   标签：评分：7.5/10、query:vla
+   evidence：视觉触觉形状补全与抓取操作
+6. [Bridging the Embodiment Gap: Disentangled Cross-Embodiment Video Editing](/202605/06/2605.03637v1-bridging-the-embodiment-gap-disentangled-cross-embodiment-video-editing)  
+   标签：评分：7.5/10、query:vla
+   evidence：用于机器人操作的跨具身视频编辑
+7. [RoboAlign-R1: Distilled Multimodal Reward Alignment for Robot Video World Models](/202605/06/2605.03821v1-roboalign-r1-distilled-multimodal-reward-alignment-for-robot-video-world-models)  
+   标签：评分：7.5/10、query:vla
+   evidence：机器人视频世界模型的奖励对齐，以改进指令遵循和操作
+8. [Atomic-Probe Governance for Skill Updates in Compositional Robot Policies](/202605/06/2604.26689v2-atomic-probe-governance-for-skill-updates-in-compositional-robot-policies)  
    标签：评分：7.0/10、query:vla
-   evidence：机器人学习与规划中的物理推理基准
-7. [Online Safety Filter for Deformable Object Manipulation with Horizon Agnostic Neural Operators](/202605/05/2605.01069v1-online-safety-filter-for-deformable-object-manipulation-with-horizon-agnostic-neural-operators)  
+   evidence：组合式机器人操纵策略中的技能更新
+9. [Active Reasoning Vision-Language Models via Sequential Experimental Design](/202605/06/2605.01345v1-active-reasoning-vision-language-models-via-sequential-experimental-design)  
    标签：评分：7.0/10、query:vla
-   evidence：可变形物体机器人操纵的安全过滤器
-8. [TAIL-Safe: Task-Agnostic Safety Monitoring for Imitation Learning Policies](/202605/05/2605.01195v1-tail-safe-task-agnostic-safety-monitoring-for-imitation-learning-policies)  
-   标签：评分：7.0/10、query:vla
-   evidence：复杂操作中模仿学习的安全监测
-9. [Research on Vision-Language Question Answering Models for Industrial Robots](/202605/05/2605.01483v1-research-on-vision-language-question-answering-models-for-industrial-robots)  
-   标签：评分：7.0/10、query:vla
-   evidence：工业机器人的视觉语言问答
-10. [Scaling Video Understanding via Compact Latent Multi-Agent Collaboration](/202605/05/2605.00444v1-scaling-video-understanding-via-compact-latent-multi-agent-collaboration)  
+   evidence：通过序列决策实现视觉语言模型的自动推理
+10. [Learning Equivariant Neural-Augmented Object Dynamics From Few Interactions](/202605/06/2605.02699v1-learning-equivariant-neural-augmented-object-dynamics-from-few-interactions)  
    标签：评分：6.5/10、query:vla
-   evidence：使用多模态大模型进行可扩展视频理解的端到端多智能体协作
-11. [High-Speed Vision Improves Zero-Shot Semantic Understanding of Human Actions](/202605/05/2605.00496v1-high-speed-vision-improves-zero-shot-semantic-understanding-of-human-actions)  
-   标签：评分：6.5/10、query:vla
-   evidence：人机交互中动作的零样本语义理解
+   evidence：学习机器人操作中的物体动力学
+11. [Foundation-Model-Based Agents in Industrial Automation: Purposes, Capabilities, and Open Challenges](/202605/06/2605.02592v1-foundation-model-based-agents-in-industrial-automation-purposes-capabilities-and-open-challenges)  
+   标签：评分：6.0/10、query:vla
+   evidence：工业自动化中基于基础模型的智能体综述
 
 
 <div class="dpr-home-promo-card">
