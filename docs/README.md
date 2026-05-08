@@ -6,64 +6,79 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-05-07
-- 运行时间：2026-05-07 20:21:34 UTC
+- 最新运行日期：2026-05-08
+- 运行时间：2026-05-08 20:36:29 UTC
 - 运行状态：成功
-- 本次总论文数：14
-- 精读区：6
-- 速读区：8
+- 本次总论文数：19
+- 精读区：10
+- 速读区：9
 
 ### 今日简报（AI）
-今日聚焦机器人控制的巅峰之作，深度解析 MotuBrain 世界动作模型与 LaST-R1 物理推理技术。
-具身智能正迈向 4D 世界模型与自适应物理推理的新阶段，显著提升了复杂环境下的操作精度与灵活性。
-建议优先研读两篇满分论文，掌握世界模型（World Model）在机器人动作规划中的前沿应用。
-- 详情：[/202605/07/README](/202605/07/README)
+今日精选19篇具身智能前沿论文，重点聚焦MotuBrain世界动作模型与LaST-R1物理推理技术。
+满分论文揭示了通过自适应物理潜空间推理与先进世界模型，机器人操控的精准度与复杂任务处理能力已获显著突破。
+建议优先研读MotuBrain与LaST-R1，掌握世界模型与强化学习结合在机器人领域的最新演进。
+- 详情：[/202605/08/README](/202605/08/README)
 
 ### 精读区论文标签
-1. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/07/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
+1. [MotuBrain: An Advanced World Action Model for Robot Control](/202605/08/2604.27792v1-motubrain-an-advanced-world-action-model-for-robot-control)  
    标签：评分：10.0/10、query:vla
-   evidence：用于机器人控制和VLA的统一世界动作模型(WAM)
-2. [LaST-R1: Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning](/202605/07/2604.28192v2-last-r1-reinforcing-robotic-manipulation-via-adaptive-physical-latent-reasoning)  
+   evidence：用于机器人控制和策略学习的统一世界动作模型
+2. [LaST-R1: Reinforcing Robotic Manipulation via Adaptive Physical Latent Reasoning](/202605/08/2604.28192v3-last-r1-reinforcing-robotic-manipulation-via-adaptive-physical-latent-reasoning)  
    标签：评分：10.0/10、query:vla
-   evidence：用于操作的潜推理视觉-语言-动作（VLA）模型
-3. [RLDX-1 Technical Report](/202605/07/2605.03269v2-rldx-1-technical-report)  
+   evidence：针对潜在推理VLA模型的强化学习后训练框架
+3. [TriRelVLA: Triadic Relational Structure for Generalizable Embodied Manipulation](/202605/08/2605.05714v1-trirelvla-triadic-relational-structure-for-generalizable-embodied-manipulation)  
    标签：评分：10.0/10、query:vla
-   evidence：使用VLA进行灵巧操作的通用机器人策略
-4. [From Pixels to Tokens: A Systematic Study of Latent Action Supervision for Vision-Language-Action Models](/202605/07/2605.04678v1-from-pixels-to-tokens-a-systematic-study-of-latent-action-supervision-for-vision-language-action-models)  
+   evidence：VLA模型中用于可泛化具身操纵的三元关系结构
+4. [VLA-GSE: Boosting Parameter-Efficient Fine-Tuning in VLA with Generalized and Specialized Experts](/202605/08/2605.06175v1-vla-gse-boosting-parameter-efficient-fine-tuning-in-vla-with-generalized-and-specialized-experts)  
    标签：评分：10.0/10、query:vla
-   evidence：视觉-语言-动作模型中潜动作监督的系统研究
-5. [ConsisVLA-4D: Advancing Spatiotemporal Consistency in Efficient 3D-Perception and 4D-Reasoning for Robotic Manipulation](/202605/07/2605.05126v1-consisvla-4d-advancing-spatiotemporal-consistency-in-efficient-3d-perception-and-4d-reasoning-for-robotic-manipulation)  
+   evidence：VLA模型在机器人控制中的高效参数微调
+5. [OA-WAM: Object-Addressable World Action Model for Robust Robot Manipulation](/202605/08/2605.06481v1-oa-wam-object-addressable-world-action-model-for-robust-robot-manipulation)  
    标签：评分：10.0/10、query:vla
-   evidence：增强视觉-语言-动作（VLA）模型中的时空一致性
-6. [RoboAlign-R1: Distilled Multimodal Reward Alignment for Robot Video World Models](/202605/07/2605.03821v1-roboalign-r1-distilled-multimodal-reward-alignment-for-robot-video-world-models)  
-   标签：评分：8.5/10、query:vla
-   evidence：机器人视频世界模型的奖励对齐与指令遵循
+   evidence：用于鲁棒机器人操作的对象寻址世界动作模型
+6. [RoboAlign-R1: Distilled Multimodal Reward Alignment for Robot Video World Models](/202605/08/2605.03821v1-roboalign-r1-distilled-multimodal-reward-alignment-for-robot-video-world-models)  
+   标签：评分：9.0/10、query:vla
+   evidence：机器人视频世界模型与决策的多模态奖励对齐
+7. [DexSim2Real: Foundation Model-Guided Sim-to-Real Transfer for Generalizable Dexterous Manipulation](/202605/08/2605.05241v1-dexsim2real-foundation-model-guided-sim-to-real-transfer-for-generalizable-dexterous-manipulation)  
+   标签：评分：9.0/10、query:vla
+   evidence：基础模型引导的灵巧手操纵仿真到现实迁移
+8. [EA-WM: Event-Aware Generative World Model with Structured Kinematic-to-Visual Action Fields](/202605/08/2605.06192v1-ea-wm-event-aware-generative-world-model-with-structured-kinematic-to-visual-action-fields)  
+   标签：评分：9.0/10、query:vla
+   evidence：用于机器人交互动力学的世界动作模型
+9. [When to Trust Imagination: Adaptive Action Execution for World Action Models](/202605/08/2605.06222v1-when-to-trust-imagination-adaptive-action-execution-for-world-action-models)  
+   标签：评分：9.0/10、query:vla
+   evidence：机器人操作中世界动作模型（WAM）的自适应动作执行
+10. [CKT-WAM: Parameter-Efficient Context Knowledge Transfer Between World Action Models](/202605/08/2605.06247v1-ckt-wam-parameter-efficient-context-knowledge-transfer-between-world-action-models)  
+   标签：评分：9.0/10、query:vla
+   evidence：具身控制中世界动作模型（WAM）之间的知识迁移
 
 ### 速读区论文标签
-1. [Embody4D: A Generalist 4D World Model for Embodied AI](/202605/07/2605.01799v1-embody4d-a-generalist-4d-world-model-for-embodied-ai)  
+1. [Embody4D: A Generalist 4D World Model for Embodied AI](/202605/08/2605.01799v1-embody4d-a-generalist-4d-world-model-for-embodied-ai)  
    标签：评分：8.0/10、query:vla
-   evidence：用于具身空间推理和操作的4D世界模型
-2. [Learning Reactive Dexterous Grasping via Hierarchical Task-Space RL Planning and Joint-Space QP Control](/202605/07/2605.03363v1-learning-reactive-dexterous-grasping-via-hierarchical-task-space-rl-planning-and-joint-space-qp-control)  
+   evidence：用于具身智能和空间推理的通用4D世界模型
+2. [PRISM: Perception Reasoning Interleaved for Sequential Decision Making](/202605/08/2605.05407v1-prism-perception-reasoning-interleaved-for-sequential-decision-making)  
+   标签：评分：8.0/10、query:vla
+   evidence：耦合VLM与LLM用于具身决策
+3. [DexSynRefine: Synthesizing and Refining Human-Object Interaction Motion for Physically Feasible Dexterous Robot Actions](/202605/08/2605.05925v1-dexsynrefine-synthesizing-and-refining-human-object-interaction-motion-for-physically-feasible-dexterous-robot-actions)  
+   标签：评分：8.0/10、query:vla
+   evidence：从人机交互数据中学习灵巧操作以实现机器人动作
+4. [Creative Robot Tool Use by Counterfactual Reasoning](/202605/08/2605.05411v1-creative-robot-tool-use-by-counterfactual-reasoning)  
    标签：评分：7.5/10、query:vla
-   evidence：用于灵巧抓取和操纵的分层强化学习规划
-3. [3D Generation for Embodied AI and Robotic Simulation: A Survey](/202605/07/2604.26509v2-3d-generation-for-embodied-ai-and-robotic-simulation-a-survey)  
+   evidence：基于视觉语言模型的特征建议，用于机器人创意工具使用与技能迁移
+5. [Split and Aggregation Learning for Foundation Models Over Mobile Embodied AI Network (MEAN): A Comprehensive Survey](/202605/08/2605.00970v1-split-and-aggregation-learning-for-foundation-models-over-mobile-embodied-ai-network-mean-a-comprehensive-survey)  
    标签：评分：7.0/10、query:vla
-   evidence：用于具身智能仿真训练的3D生成
-4. [Atomic-Probe Governance for Skill Updates in Compositional Robot Policies](/202605/07/2604.26689v3-atomic-probe-governance-for-skill-updates-in-compositional-robot-policies)  
+   evidence：移动具身智能网络中的基础模型综述
+6. [RobotEQ: Transitioning from Passive Intelligence to Active Intelligence in Embodied AI](/202605/08/2605.06234v1-roboteq-transitioning-from-passive-intelligence-to-active-intelligence-in-embodied-ai)  
    标签：评分：7.0/10、query:vla
-   evidence：机器人操作任务中的技能更新与组合
-5. [Robotic Desk Organization: A Multi-Primitive Approach to Manipulating Heterogeneous Objects via Environmental Constraints](/202605/07/2605.02135v1-robotic-desk-organization-a-multi-primitive-approach-to-manipulating-heterogeneous-objects-via-environmental-constraints)  
+   evidence：具身智能中遵循社会规范的主动智能基准测试
+7. [Toward Visually Realistic Simulation: A Benchmark for Evaluating Robot Manipulation in Simulation](/202605/08/2605.06311v1-toward-visually-realistic-simulation-a-benchmark-for-evaluating-robot-manipulation-in-simulation)  
    标签：评分：7.0/10、query:vla
-   evidence：针对异构物体机器人操作的任务导向框架
-6. [Visibility-Aware Mobile Grasping in Dynamic Environments](/202605/07/2605.02487v1-visibility-aware-mobile-grasping-in-dynamic-environments)  
-   标签：评分：7.0/10、query:vla
-   evidence：动态环境下的移动抓取机器人操作系统
-7. [Foundation-Model-Based Agents in Industrial Automation: Purposes, Capabilities, and Open Challenges](/202605/07/2605.02592v1-foundation-model-based-agents-in-industrial-automation-purposes-capabilities-and-open-challenges)  
-   标签：评分：7.0/10、query:vla
-   evidence：工业自动化中基于基础模型的智能体综述
-8. [PhysForge: Generating Physics-Grounded 3D Assets for Interactive Virtual World](/202605/07/2605.05163v1-physforge-generating-physics-grounded-3d-assets-for-interactive-virtual-world)  
+   evidence：仿真中机器人操作评估基准
+8. [MaMi-HOI: Harmonizing Global Kinematics and Local Geometry for Human-Object Interaction Generation](/202605/08/2605.05756v1-mami-hoi-harmonizing-global-kinematics-and-local-geometry-for-human-object-interaction-generation)  
+   标签：评分：6.5/10、query:vla
+   evidence：用于人机交互生成的具身智能应用
+9. [Heterogeneous Scientific Foundation Model Collaboration](/202605/08/2604.27351v1-heterogeneous-scientific-foundation-model-collaboration)  
    标签：评分：6.0/10、query:vla
-   evidence：用于具身智能和交互的物理接地3D资产
+   evidence：通过语言模型推理接口增强领域特定基础模型
 
 
 <div class="dpr-home-promo-card">
