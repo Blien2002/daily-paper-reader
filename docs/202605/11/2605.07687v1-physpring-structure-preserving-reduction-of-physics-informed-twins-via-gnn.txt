@@ -1,0 +1,806 @@
+Title: PhySPRING: Structure-Preserving Reduction of Physics-Informed Twins via GNN
+
+URL Source: https://arxiv.org/pdf/2605.07687v1
+
+Published Time: Mon, 11 May 2026 01:29:31 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# PhySPRING: Structure-Preserving Reduction of Physics-Informed Twins via GNN 
+
+Yixiong Jing ∗
+
+University of Cambridge 
+
+yj401@cam.ac.uk 
+
+Xingyuan Chen ∗
+
+Shanghai Jiao Tong University 
+
+February25th@sjtu.edu.cn 
+
+Guangming Wang †
+
+University of Cambridge 
+
+gw462@cam.ac.uk 
+
+Olaf Wysocki 
+
+University of Cambridge 
+
+okw24@cam.ac.uk 
+
+Haibing Wu 
+
+University of Cambridge 
+
+hw657@cam.ac.uk 
+
+Brian Sheil 
+
+University of Cambridge 
+
+bbs24@cam.ac.uk 
+
+## Abstract 
+
+Physics-based digital twins aim to predict the dynamics of real-world objects under interaction, enabling real-to-sim-to-real applications in robotics. Current approaches reconstruct such twins as explicit physical models (such as spring-mass systems) to predict the dynamics, but the resulting models often inherit the resolution of the visual reconstruction rather than being reduced to the physical com-plexity required to reproduce task-relevant dynamics. This mismatch introduces redundant topology, making repeated forward-dynamics rollouts unnecessarily expensive. To address this challenge, we present PhySPRING, an fully differ-entiable GNN-based method to reduce complexity in spring–mass digital twins. PhySPRING jointly learns a hierarchy of coarsened graph topologies and their mechanical parameters from observations. At each reduction level, PhySPRING merges nodes with similar learned dynamic responses to optimize the topology, while maintaining every reduced layer as an explicit spring–mass system. On the PhysTwin benchmark, PhySPRING improves dense reconstruction and pre-diction accuracy over PhysTwin, while reduced models retain stable physical and visual fidelity with up to a 2.30 × speed-up. We further demonstrate the effective-ness of PhySPRING in a Real2Sim robot policy-evaluation pipeline, where the reduced models are substituted zero-shot into ACT and π0 evaluations, maintaining comparable manipulation success rates across downsampling levels while improv-ing action-sampling effectiveness. Together, PhySPRING enables efficient and structure-preserving spring–mass reduction without sacrificing fidelity or robotic utility. 
+
+## 1 Introduction 
+
+Reconstructing physics-informed digital twins from real-world objects enables accurate prediction of how objects move and deform under interaction [ 1, 2], supporting downstream applications such as robot manipulation planning [ 3, 4 , 5, 6, 7 ] and data generation for policy learning [ 8 , 9, 10 ]. However, precise physical reconstruction from observations remains non-trivial. Previous graphics and engineering pipelines rely on carefully designed constitutive models and discretizations [ 11 , 12 ]that assume comprehensive prior knowledge of object physics, making them expensive and difficult to generalize. 
+
+> ∗Equal contribution.
+> †Corresponding author. Preprint.
+> arXiv:2605.07687v1 [cs.RO] 8 May 2026
+
+Leveraging recent advances in differentiable physics [ 13 ] and 3D reconstruction [ 14 ], PhysTwin [ 2]learns a spring–mass physical model directly from RGB-D video via differentiable simulation, with appearance reconstructed by 3D Gaussian Splatting (3DGS) [ 14 ]. However, current physics-driven reconstruction approaches directly inherit physical simulation resolution from visual reconstruction resolution. The resolution needed to represent surface geometry and appearance can be much higher than the number of degrees of freedom needed to reproduce task-relevant dynamics for downstream robotics applications. Planning and policy evaluation require repeated forward-dynamics rollouts under varied interactions, so simulating a dense physical representation inside the robot loop can introduce unnecessary computational overhead. Therefore, we identify that the core challenge is to obtain a reduced-order physical representation that accelerates simulation while preserving physical fidelity and visual/geometric consistency. One possible approach is to learn a reduced topology with GNN-based simulation models [ 15 , 16 ]. These methods relax discrete topology-reduction decisions into end-to-end trainable architectures, enabling adaptive graph representations that reduce physical-system complexity for dynamics predic-tion. However, they typically require ground-truth dynamic states from numerical solvers and learn black-box forward dynamics rather than explicit physical parameters. As a result, the learned reduced models do not preserve the same physical structure as the original system, and therefore cannot be directly deployed in external simulators under unseen interactions such as actions from robot arms. Classical model order reduction (MOR) provides a physics-based approach for reducing physical systems through nodal clustering based on analytically computed dynamic similarity [ 17 , 18 ]. This preserves the second-order mechanical form of the system and produces reduced graphs that can be integrated by standard numerical solvers. However, these methods assume known physical matrices and material parameters, which requires pre-optimization with observation data. Moreover, computing dynamic-similarity matrices over thousands of reconstructed nodes is computationally expensive, limiting their practicality for downstream applications. To address this gap, we present PhySPRING a structure-preserving reduction method for spring–mass digital twins reconstructed from sparse-view RGB-D observations as shown in Fig. 1. PhySPRING combines GNN-based topology reduction with differentiable physics so that the reduced model remains an explicit physical system rather than a black-box dynamics predictor. Our contributions are as follows. (i) We introduce an end-to-end physics-informed GNN that jointly learns topology reduc-tion and mechanical parameters from observation-supervised rollouts. On PhysTwin, PhySPRING improves dense reconstruction/prediction over PhysTwin, and reduced models achieve controlled fidelity–efficiency trade-offs with up to 2.30 × speed-up. (ii) We preserve the explicit spring–mass form of the digital twin across all reduction levels. Galerkin projection induces coarse spring-mass representation while a GNN decoder refines the resulting mechanical parameters through differen-tiable rollouts. (iii) We evaluate PhySPRING in a Real2Sim [ 10 ] policy-evaluation pipeline. The reduced models can be substituted zero-shot into ACT [ 19 ] and π0 [ 20 ] without retraining, preserving manipulation success rate, while improving action-sampling throughput by up to 1.23 × over the original model. 
+
+## 2 Related works 
+
+Physics-driven 4D Reconstruction Recent 4D reconstruction methods achieve high-fidelity geom-etry and appearance from visual observations [ 14 , 21 , 22 , 23 , 24 , 25 ]. However, they are primarily descriptive and lack physical priors for predicting future dynamics or supporting grounded interaction. To improve physical fidelity, several works combine reconstructed scenes with explicit numerical simulation [ 26 , 27 , 28 , 29 ] or infer material properties from video via differentiable physics [ 30 , 31 ]. These methods often rely on predefined materials or implicit geometry and tend to prioritize visual plausibility over accurately recovering the dynamic behavior of real-world objects. To jointly recover both 3D structure and dynamics, other methods [ 32 , 2, 33 ] reconstruct physically grounded spring-mass models from observations to create physics-based digital twins. Nevertheless, these models inherit the geometric resolution of the observations, yielding redundant and over-constrained systems whose simulation cost limits their use inside robot planning loops. 
+
+Model order reduction Classical model order reduction (MOR) compresses a dynamical system with known mechanical properties into a lower-order surrogate whose dynamic response closely approximates that of the original system [ 34 , 35 , 36 , 37 , 38 , 39 ]. For second-order linear time-2Figure 1: We propose PhySPRING, a novel method for structure-preserving order reduction of physics-informed digital twins reconstructed from sparse-view RGB-D observations. An end-to-end multi-hierarchical GNN jointly predicts the reduced topology and the per-edge mechanical parameters at every level l. Since each reduced-order model remains an explicit second-order spring–mass system, it is directly deployable in a downstream Real2Sim robot-arm manipulation simulator [10]. invariant systems, second-order Gramians reduce system complexity while preserving the dynamic structure (e.g., same form of governing equations) [ 40 , 41 ]; a previous method [ 17 ] adapts the method on spring-mass systems to conduct MOR via nodal clustering based on controllability-Gramian similarity, yielding reduced graphs compatible with a standard numerical integrator. However, these methods require the mechanical properties of the system to measure nodal dynamic similarity, which cannot be directly acquired from observation. The resulting topology, once optimized, remains static throughout the dynamic sequence and is not updated temporally. Moreover, computing the dynamic-similarity matrices introduce expensive matrix operations, which become prohibitively costly as the system size grows. 
+
+Graph topology optimization for physical simulation NN-based simulators [ 42 , 15 , 43 ] learn structural dynamics from ground-truth solver rollouts, offering substantial speedups over traditional numerical solvers. While hierarchical extensions [ 44 , 45 , 46 , 47 ] further improve efficiency by pre-computing multi-scale coarse graphs, their heuristic topologies are fixed and cannot be optimized during the training. Differentiable graph pooling [ 48 , 49 , 50 ] learns hierarchical graph representations via soft assignments or score-based node selection, yet is mainly designed for static graph-level prediction and does not enforce physical constraints, limiting fidelity in coarse dynamical models. EvoMesh [ 16 ] partly addresses this gap by using Gumbel–Softmax relaxation to jointly optimize topology and dynamics over time. However, it only predicts the forward dynamics without recovering mechanical parameters simultaneously. EvoMesh also produces topologies that are not physically consistent, limiting deployment in external simulators under unseen conditions. 
+
+## 3 Methodology 
+
+3.1 Problem formulation 
+
+Given multi-view RGB-D videos of a deformable object experiencing a mechanical interaction, our objective is to recover a hierarchy of physically consistent digital twins, each governed by the same second-order spring–mass dynamics but expressed on a progressively coarser graph. Let 
+
+l ∈ { 0, 1, . . . , L } represent indices of the reduction level, with l = 0 the full-order model (FOM) at the geometric resolution of the observation and l = L the coarsest reduced-order model (ROM). At level l, we discretize the object as a graph G(l) = {V (l), E(l)} of Nl = |V (l)| mass nodes connected by axial springs E(l). The nodal positions and velocities of G(l) at time t are represented 3Figure 2: Architecture of PhySPRING. (a) U-Net-style hierarchical GNN to jointly optimize ROMs and the corresponding mechanical parameters α(l) in different levels. (b) Neural-CLASP block produces P(l). (c) Galerkin reduction projects the level-l system to their level-(l+1) counterparts. 
+
+(d) Decoder shares the same message-passing structure as the encoder while outputting α(l). (e) For-ward dynamics using numerical integrator F (l).as X(l) 
+
+> t
+
+, ˙X(l) 
+
+> t
+
+∈ RNl×3 and the comprehensive dynamic state is represented as Z(l) 
+
+> t
+
+= ( X(l) 
+
+> t
+
+, ˙X(l) 
+
+> t
+
+).The dynamics of G(l) then follow the canonical second-order network system: 
+
+M(l) ¨X(l) 
+
+> t
+
++ D(l) ˙X(l) 
+
+> t
+
++ L(l) X(l) 
+
+> t
+
+= f (l)
+
+> c
+
+ Z(l) 
+
+> t
+
+; η(l) + u(l) 
+
+> t
+
+, (1) where M(l) is the diagonal mass matrix, L(l) is the weighted graph Laplacian whose off-diagonal entries are the negated axial spring stiffnesses on E(l) [ 17 ], D(l) is the damping matrix, f (l) 
+
+> c
+
+is the state-dependent contact force parameterized by learnable coefficients η(l) (e.g., restitution and Coulomb friction), and u(l) 
+
+> t
+
+is the external manipulator input, restricted to the controller nodes in V(l)
+
+and known from observation. The mass matrix M(0) is fixed under the uniform-density assumption of PhysTwin [ 2] and is therefore not considered in the optimization. The remaining learnable parameters at level l are represented in the tuple α(l) =  L(l), D(l), η(l), and the dynamics of G(l) of Eq. (1) can be predicted via an Euler integrator F (l) using Z(l) 
+
+> t+1
+
+= F (l) Z(l) 
+
+> t
+
+, u(l)
+
+> t
+
+ with the level-l ROM defined by (M(l), α (l), G(l)).Our objective is to make the topology optimization of G(0) differentiable by learning an assignment matrix P(l) ∈ { 0, 1}Nl×Nl+1 via a GNN. The coarser system matrices (M(l+1) , L(l+1) , D(l+1) ) are then induced from P(l) via Galerkin projection. Let Xobs  
+
+> t
+
+denote the partial 3D observation lifted from the RGB-D frames at time t. Our objective is to jointly estimate {α(l), P(l)}Ll=0 by minimizing the discrepancy between simulated and observed dynamics at every level: 
+
+min  
+
+> {α(l),P(l)}
+> L
+
+X
+
+> l=0
+> T
+
+X
+
+> t=0
+
+
+
+Lgeo ( ˆX(l) 
+
+> t
+
+, Xobs  
+
+> t
+
+) + Ltrk ( ˆX(l) 
+
+> t
+
+, Xobs  
+
+> t
+
+)
+
+
+
+s.t. ˆZ(l) 
+
+> t+1
+
+= F (l) ˆZ(l) 
+
+> t
+
+, u(l)
+
+> t
+
+, (2) where Lgeo and Ltrk measure geometric and point-wise tracking discrepancies between the predicted positions ˆX(l) 
+
+> t
+
+and the observation Xobs  
+
+> t
+
+.
+
+3.2 PhySPRING architecture 
+
+PhySPRING unifies the optimizations of {P(l)}L−1 
+
+> l=0
+
+and {α(l)}Ll=0 in a fully differentiable U-Net-style GNN method (Fig. 2a). The finest-level input graph G(0) is initialized from a dense k-NN 4adjacency over the sampled particles from 3D reconstructed objects. The encoder then progressively coarsens G(0) through L (=3 in our paper) learnable neural clustering with adaptive structure preser-vation (Neural-CLASP) blocks, yielding a hierarchy G(0) ≻ G (1) ≻ · · · ≻ G (L) with monotonically decreasing node counts N0 > N 1 > · · · > N L. The Neural-CLASP block at the end of each encoder level l reads the encoder node features and outputs the assignment P(l), which physically projects the level-l spring–mass system onto the level-(l+1) while preserving its second-order physical structure. The decoder inherits the same per-level graph topology and message-passing structure from the encoder. Unlike the encoder, the decoder outputs α(l) at every level l, while M(l) is inherited deterministically through the Galerkin chain. Once P(l) and α(l) are produced, the forward dynamics are computed entirely through the differentiable Euler integrator F (l) defined in Eq. (1) . This design guarantees that the level-l ROM remains an explicit spring–mass system rather than a black-box GNN simulator, and is deployable in any compatible simulator for unseen interactions. 
+
+3.2.1 Encoder and Neural-CLASP block 
+
+As shown in Figure 2a and b, the Neural-CLASP block updates node and edge features through message-passing layers at each encoder level l. Unlike the classical second-order structure-preserving MOR [ 17 ], PhySPRING directly learns P(l) ∈ { 0, 1} from the dynamic and topological similarity of the GNN nodes rather than derive explicitly from a controllability Gramian [ 18 ], therefore, relaxing the need for prior mechanical parameters. Each node i ∈ V (0) carries a time-invariant attribute tuple (x(0)  
+
+> i
+
+, m i, τ i), where x(0)  
+
+> i
+
+∈ X(0) 0 and 
+
+x(0)  
+
+> i
+
+∈ R3. mi ∈ M(0) and τi is a one-hot node-type indicator that distinguishes object material classes from boundary and controller classes. A high-frequency positional encoding Γ( ·) adopted from NeRF [ 21 ] is used to inject fine-scale geometry. The canonical node feature is therefore encoded as: 
+
+h(0)  
+
+> i
+
+= Enc v
+
+ [ x(0)  
+
+> i
+
+, m i, τ i, Γ( x(0)  
+
+> i
+
+) ] , i ∈ V (0) , (3) where [ · ] denotes concatenation along the feature axis and Enc v is an MLP. Each candidate edge 
+
+(i, j ) ∈ E (0) is initialized from a physics-aware geometric descriptor that captures the edge direction (force direction) and initial spring length, 
+
+e(0)  
+
+> ij
+
+= Enc e
+
+ [ x(0)  
+
+> i
+
+− x(0)  
+
+> j
+
+, ∥x(0)  
+
+> i
+
+− x(0)  
+
+> j
+
+∥ ]. (4) 
+
+Node and edge feature propagation. At every encoder level l, the edge feature e(l) 
+
+> ij
+
+is updated from the feature of the two endpoints (e.g., h(l) 
+
+> i
+
+and h(l) 
+
+> j
+
+) and its previous state, and h(l) 
+
+> i
+
+is updated by aggregating the edge messages as follows: 
+
+e(l) 
+
+> ij
+
+← ϕe
+
+ h(l) 
+
+> i
+
+, h(l) 
+
+> j
+
+, e(l) 
+
+> ij
+
+, τ i, τ j
+
+, h(l) 
+
+> i
+
+← ϕv
+
+
+
+h(l) 
+
+> i
+
+, P  
+
+> j∈N (l)(i)
+
+e(l)
+
+> ij
+
+
+
+, (5) where ϕe and ϕv are shared MLPs and N (l)(i) defines the neighborhood of node i in G(l).
+
+Discrete assignment via Gumbel–Softmax with STE. The Neural-CLASP block then measures the latent similarity between node pairs i and j via D(l) 
+
+> ij
+
+= h(l) 
+
+> i
+
+− h(l) 
+
+> j2
+
+, and converts the similarity scores −D(l) 
+
+> ij
+
+into P(l) through a Gumbel–Softmax relaxation [ 51 ] integrated with a Straight-Through Estimator (STE) [52], 
+
+˜P (l) 
+
+> ij
+
+= exp  (−D(l) 
+
+> ij
+
++ gij )/λ P 
+
+> k∈V (l)
+
+exp  (−D(l) 
+
+> ik
+
++ gik )/λ  , P (l) 
+
+> ij
+
+=
+
+(
+
+1, j = arg max k∈V (l) ˜P (l) 
+
+> ik
+
+,
+
+0, otherwise, (6) where gij 
+
+> iid
+
+∼ Gumbel(0 , 1) and λ is the Gumbel temperature, and STE substitutes the hard P (l) 
+
+> ij
+
+with the soft ˜P (l) 
+
+> ij
+
+on the backward pass. The two relaxations enable the previous non-differentiable discrete topology selection of the spring–mass reduction in PhysTwin [ 2] into an end-to-end differentiable optimization problem. 53.2.2 Galerkin reduction of system matrices 
+
+Given P(l), the L(l) and D(l) have the standard graph-Laplacian and damping-matrix structure: 
+
+L(l) 
+
+> ij
+
+=
+
+
+
+−s(l) 
+
+> ij
+
+, (i, j ) ∈ E (l), i ̸ = j, 
+
+P  
+
+> k∈N (l)(i)
+
+s(l) 
+
+> ik
+
+, i = j, 
+
+0, otherwise, 
+
+D(l) 
+
+> ij
+
+=
+
+
+
+−d(l) 
+
+> dp
+
+, (i, j ) ∈ E (l), i ̸ = j, d(l) 
+
+> dr
+
++ |N (l)(i)| d(l) 
+
+> dp
+
+, i = j, 
+
+0, otherwise. (7) where s(l) 
+
+> ij
+
+is the per-edge spring stiffness, d(l) 
+
+> dp
+
+a shared dashpot (relative-velocity) damping, and d(l)
+
+> dr
+
+a shared drag (absolute-velocity) damping. As shown in Fig. 2c, the Galerkin projection is adopted by applying P(l) to yield the coarsened spring–mass system at level l + 1 :
+
+ˆM(l+1) = ( P(l))⊤M(l)P(l), ˆL(l+1) = ( P(l))⊤L(l)P(l), ˆD(l+1) = ( P(l))⊤D(l)P(l), (8) The mass projection is deterministic, so M(l+1) is fully determined by P(l) and the fixed M(0) , while 
+
+ˆL(l+1) and ˆD(l+1) serve as the initial estimations on mechanical parameters, where the decoder later corrects through a learnable bias. The ˆE(l+1) is inherited from the off-diagonal sparsity of ˆL(l+1) .
+
+3.2.3 Decoder and parameter heads 
+
+The decoder reuses the per-level ROMs directly from the encoder while applying in reverse (e.g., 
+
+l = L → 0) with residual skip connections (Fig. 2d). Node and edge feature update in the decoder follows the same rules as in the encoder. The decoder differs only at the output, where three MLP layers (e.g., MLP s, MLP dp , MLP dr ) read e(l) 
+
+> ij
+
+and predict residual corrections to the initial mechanical parameter estimations from the Galerkin projection. Summing each correction with its base yields the level-l mechanical parameters: 
+
+s(l) 
+
+> ij
+
+= ˆ s(l) 
+
+> ij
+
++ βs MLP s(e(l) 
+
+> ij
+
+), d(l) 
+
+> dp
+
+= ˆd(l) 
+
+> dp
+
++ βd MLP (l) 
+
+> dp
+
+, d(l) 
+
+> dr
+
+= ˆd(l) 
+
+> dr
+
++ βd MLP (l) 
+
+> dr
+
+, (9) A lightweight contact head MLP η directly predicts the contact coefficients η(l).
+
+Forward dynamics and training loss. As shown in Fig. 2e, the predicted α(l) and G(l) are fed to 
+
+F (l) (e.g., Eq. (1) ) to roll out the dynamical state recursively from the projected initial condition ˆZ(l)0
+
+along the full observation sequence, as shown in the following equation: 
+
+ˆZ(l) 
+
+> t+1
+
+= F (l) ˆZ(l) 
+
+> t
+
+, u(l) 
+
+> t
+
+; M(l), α (l), G(l), t = 0 , 1, . . . , T − 1. (10) This is the key architectural difference between PhySPRING and EvoMesh [ 16 ], where Evomesh relies on a black-box GNN to learn to predict the future dynamics rather than directly modeling the entire physical system. The training loss averages the per-frame Lgeo and Ltrk along the whole trajectory and sums across all levels, 
+
+L =
+
+> L
+
+X
+
+> l=0
+
+1
+
+T
+
+> T
+
+X
+
+> t=1
+
+h
+
+Lgeo 
+
+  ˆX(l) 
+
+> t
+
+, Xobs 
+
+> t
+
+ + Ltrk 
+
+  ˆX(l) 
+
+> t
+
+, Xobs 
+
+> t
+
+i
+
+, (11) and the gradient ∇ΘL propagates back through the full differentiable rollout to update the network weights Θ. Crucially, this single forward–loss–backward pass jointly optimizes both {P(l)} and 
+
+{α(l)} in one stage (in contrast to the two-stage pipeline of PhysTwin [ 2]). The progressive training strategy that schedules this joint optimization through Gumbel-temperature annealing is described in Appendix A. 
+
+## 4 Experiments 
+
+We evaluate PhySPRING on the PhysTwin [ 2] and Real2Sim [ 3 ] benchmarks to demonstrate three main contributions stated in the introduction. 6Table 1: Quantitative results on reconstruction & re-simulation and future prediction. Ratio reports per-level compression, and FPS reports effective across all frames. Reconstruction & Re-simulation Future Prediction Method Ratio FPS ↑ CD ↓ Track ↓ IoU % ↑ PSNR ↑ SSIM ↑ LPIPS ↓ CD ↓ Track ↓ IoU % ↑ PSNR ↑ SSIM ↑ LPIPS ↓                                                                                                  
+
+> Spring-Gaus [32] 1×/0.041 0.050 57.6 23.445 0.928 0.102 0.062 0.094 46.4 22.488 0.924 0.113 GS-Dynamics [33] 1×/0.014 0.022 72.1 26.260 0.940 0.052 0.041 0.070 49.8 22.540 0.924 0.097 PhysTwin [2] 1×2.3 0.0053 0.0090 84.40 28.214 0.945 0.034 0.0116 0.0220 72.50 25.617 0.941 0.055
+> Ours (Level 0) 1×2.3 0.0044 0.0080 85.34 28.91 0.950 0.028 0.0096 0.0197 72.61 26.238 0.945 0.049 Ours (Level 1) 60% 3.8 0.0069 0.0111 81.45 28.082 0.947 0.034 0.0127 0.0244 65.90 25.000 0.939 0.061
+> Ours (Level 2) 40% 4.6 0.0091 0.0127 80.09 27.718 0.946 0.037 0.0158 0.0281 64.15 24.764 0.937 0.066
+> Ours (Level 3) 30% 5.3 0.0120 0.0161 77.74 27.219 0.944 0.041 0.0201 0.0337 60.44 24.060 0.935 0.071
+
+4.1 Experimental setup Baselines. PhysTwin [ 2] reconstructs a spring-mass digital twin from RGB-D video through a two-stage pipeline. We use PhysTwin benchmark to validate the 4D reconstruction and prediction quality of PhySPRING from FOM and ROMs. We follow the original train/test split in Phystwin. Real2Sim [ 10 ] deploys deformable digital twins inside a robot policy-evaluation simulator, where the real-to-sim gaps are validated on rope object reconstructed via PhysTwin and evaluated on downstream manipulation tasks. We re-train PhySPRING on the rope to obtain ROMs, and substitute them into the same Real2Sim simulation environment without retraining the policy sampling networks to assess the impact of order reduction on downstream policy execution. 
+
+Metrics. We adopt the same metrics used in PhysTwin. For 3D evaluation, Chamfer Distance (CD) and Tracking Error computed from rollouts of the reconstructed spring–mass system. For 2D evaluation, PSNR, SSIM, LPIPS, and IoU computed from 3DGS renderings of the reconstructed twin. For Real2Sim downstream evaluation, we adopt the same success-ratio measurement as Real2Sim over the same imitation learning policies, i.e., ACT [ 19 ] and π0 [ 20 ], alongside inference speed to quantify the speed-up gained from order reduction. 
+
+4.2 Reconstruction&re-simulation and prediction across ROMs 
+
+We first evaluate reconstruction&re-simulation and future prediction on the PhysTwin benchmark. As shown in Table 1, PhySPRING achieves an improvement on PhysTwin at the dense Level-0 representation. For reconstruction&re-simulation, PhySPRING reduces CD by 17.0% and tracking error by 11.1%. For future prediction, it reduces CD and tracking error by 17.2% and 10.5%, respectively. PhySPRING also improves rendering quality, where PSNR increases by 0.70 dB for reconstruction and 0.62 dB for prediction, and LPIPS decreases by 17.6% and 10.9%, respectively. Qualitative comparisons further show that PhySPRING better captures object deformation and temporal alignment, producing reconstructions that more closely match the observed dynamics (see Fig. 3 red insets). Table 2: Fidelity–efficiency trade-off across ROM levels. 
+
+ROM Ratio System Reduction Re&sim CD/Track Pred. CD/Track FPS / Speed-up Level 1 60% 1.67 × 1.57/1.39 × 1.32/1.24 × 3.8 / 1.65 ×
+
+Level 2 40% 2.50 × 2.07/1.59 × 1.65/1.43 × 4.6 / 2.00 ×
+
+Level 3 30% 3.33 × 2.73/2.01 × 2.09/1.71 × 5.3 / 2.30 ×
+
+The physical accuracy–efficiency trade-off of progressive reduction is summarized in Table 2. Across Levels 1–3, the 3D error increases re-main smaller than the corresponding reductions in system size, indicating that PhySPRING preserves the dominant deformation dynamics even with fewer simulated points. At the same time, wall-clock throughput improves monotonically from Level 0 to Level 3, reaching up to a 2.30 × speed-up. Since the 2D rendering quality degrades only mildly, these results show that PhySPRING achieves meaningful efficiency gains while maintaining stable physical and visual fidelity. 
+
+4.3 Downstream Real2Sim policy evaluation 
+
+We deploy each ROM trained by PhySPRING inside the Real2Sim [ 10 ] policy-evaluation simulator on the rope-routing task, and quantify the impact of order reduction on downstream policy execution using ACT [ 19 ] and π0 [20 ] under the original Real2Sim setup. We evaluate the ROMs in a zero-shot setting by directly substituting each PhySPRING ROM into the same simulator and rerunning the 7Figure 3: The qualitative results of PhySPRING and the comparison method on the reconstruction & re-simulation and future prediction of the object deformation, visualized only at the FOM representa-tion.       
+
+> (a) ACT success rate (b) π0success rate (c) Action-sampling effectiveness
+
+Figure 4: Zero-shot Real2Sim policy evaluation across ROM levels. policy-evaluation loop without further training or adaptation. As shown in Fig. 4a and b, both policies maintain comparable success rates across all ROM levels, indicating that the reduced models preserve the task-relevant contact and deformation dynamics required for policy evaluation. Since the policy input is image-based, the visual fidelity of the ROMs also remains sufficient for the policies to recognize the task state and output effective actions. At the same time, progressive reduction improves action-sampling effectiveness, achieving maximum effective gains of 17% for ACT and 23% for π0 while maintaining policy success, as shown in Fig. 4c. The full success-count table across policy-training iterations, per-step inference timing, and qualitative motion-sequence comparisons across ROM levels are reported in Appendices B.2, B.2, and B.2, respectively. 8Table 3: Sampling-strategy ablation under same sampling rate. Reconstruction & Re-simulation Future Prediction Method Ratio CD ↓ Track ↓ IoU % ↑ PSNR ↑ SSIM ↑ LPIPS ↓ CD ↓ Track ↓ IoU % ↑ PSNR ↑ SSIM ↑ LPIPS ↓                                                                                                                     
+
+> Random 60% 0.0112 0.0177 74.71 26.946 0.939 0.046 0.0246 0.0446 54.85 23.405 0.922 0.088 Random 40% 0.0183 0.0275 69.78 26.325 0.941 0.051 0.0493 0.0819 41.55 21.977 0.919 0.108 Random 30% 0.0133 0.0182 76.34 26.988 0.943 0.043 0.0203 0.0377 58.15 23.769 0.930 0.078 Gramian (classical) 60% 0.0078 0.0124 80.26 27.788 0.946 0.037 0.0163 0.0301 62.88 24.525 0.935 0.069 Gramian (classical) 40% 0.0093 0.0139 79.61 27.710 0.945 0.038 0.0165 0.0316 62.41 24.608 0.936 0.068 Gramian (classical) 30% 0.0138 0.0186 77.12 27.138 0.944 0.041 0.0230 0.0385 59.36 24.006 0.933 0.074
+> Learnable (Ours) 60% 0.0069 0.0111 81.45 28.082 0.947 0.034 0.0127 0.0244 65.90 25.000 0.939 0.061 Learnable (Ours) 40% 0.0091 0.0127 80.09 27.718 0.946 0.037 0.0158 0.0281 64.15 24.764 0.937 0.066 Learnable (Ours) 30% 0.0120 0.0161 77.74 27.219 0.944 0.041 0.0201 0.0337 60.44 24.060 0.935 0.071
+
+Table 4: Comparison against the PhysTwin training pipeline across ROMs. Reconstruction & Re-simulation Future Prediction Method Ratio CD ↓ Track ↓ IoU % ↑ PSNR ↑ SSIM ↑ LPIPS ↓ CD ↓ Track ↓ IoU % ↑ PSNR ↑ SSIM ↑ LPIPS ↓                                                                              
+
+> PhysTwin (Level 1) 60% 0.0542 0.0600 58.86 24.145 0.919 0.085 0.0792 0.0895 42.98 21.701 0.907 0.112 PhysTwin (Level 2) 40% 0.0647 0.0879 53.32 23.904 0.920 0.091 0.0974 0.1281 37.10 21.523 0.906 0.119 PhysTwin (Level 3) 30% 0.0810 0.1074 53.51 23.689 0.917 0.091 0.1366 0.1690 33.66 21.411 0.906 0.120
+> Ours (Level 1) 60% 0.0069 0.0111 81.45 28.082 0.947 0.034 0.0127 0.0244 65.90 25.000 0.939 0.061 Ours (Level 2) 40% 0.0091 0.0127 80.09 27.718 0.946 0.037 0.0158 0.0281 64.15 24.764 0.937 0.066 Ours (Level 3) 30% 0.0120 0.0161 77.74 27.219 0.944 0.041 0.0201 0.0337 60.44 24.060 0.935 0.071
+
+4.4 Ablations Effectiveness of Neural-CLASP To isolate the contribution of Neural-CLASP, we compare PhySPRING with two alternative reduction strategies, i.e., random sampling and classical Gramian-based MOR [ 17 ]. All variants use the same PhySPRING backbone and training settings, where only the node-reduction mechanism is changed. As shown in Table 3, the learned Neural-CLASP sampler consistently outperforms both baselines at matched node budgets. Compared with random sampling, Neural-CLASP better preserves dynamically important and geometrically representative regions, leading to lower 3D errors and improved rendering quality for both reconstruction&re-simulation and future prediction. It also improves over the Gramian baseline, whose fixed analytic reduction is less adaptive to observation-supervised geometry. These results show that Neural-CLASP learns a reduced topology that better retains the mechanically active structure needed by the downstream simulator. 
+
+End-to-end ROM training. We further compare PhySPRING with a PhysTwin-style two-stage training pipeline across different reduction ratios, where we use random node sampling on PhysTwin. As shown in Table 4, PhySPRING consistently outperforms the PhysTwin pipeline at all sampling ratios for both reconstruction&re-simulation and future prediction. The improvement is substantial across both 2D and 3D metrics, and remains stable as the reduction ratio becomes more substantial. These results indicate that the end-to-end PhySPRING architecture, which jointly learns reduction and dynamics instead of separating them into Stage 0 and Stage 1, produces more accurate and robust ROMs both in dense and sparse levels. 
+
+## 5 Conclusion and limitations 
+
+We introduced PhySPRING, an end-to-end GNN-based framework for structure-preserving reduction of spring–mass digital twins reconstructed from observations. Unlike black-box neural simulators, PhySPRING preserves every ROM as an explicit second-order physical system by enabling dif-ferentiable topology reduction and jointly learning mechanical parameters across reduction levels. Experiments on PhysTwin show that our dense model improves reconstruction&simulation and future-prediction accuracy over PhysTwin, while the ROMs provide a controlled fidelity–efficiency trade-off with up to a 2.30 × simulation speed-up. In downstream Real2Sim policy evaluation, the same ROMs can be substituted into ACT and π0 evaluations in zero-shot manner, preserving comparable manipulation success rates in rope-routing tasks while improving action-sampling effectiveness by up to 1.23 ×. These results suggest that learned physical reduction can make reconstructed digital twins more practical for repeated robot-interaction rollouts without discarding their simulator-compatible structure. 9Limitations. Two limitations remain. First, the improvement in policy-sampling effectiveness mainly comes from faster forward-dynamics prediction with ROMs, while the policy-sampling network itself provides limited additional acceleration. Future work should explore simpler physical-representation-driven models for more efficient policy sampling using ROMs. Second, training is slower than the original PhysTwin pipeline because progressive topology training waits for higher-resolution structures to stabilize before continuing to lower-resolution levels, introducing additional computational cost. More robust and efficient training schedules are needed. 
+
+## References 
+
+[1] Yunuo Chen, Yafei Hu, Lingfeng Sun, Tushar Kusnur, Laura Herlant, and Chenfanfu Jiang. EMPM: Embodied MPM for Modeling and Simulation of Deformable Objects. IEEE Robotics and Automation Letters , 11(4):4179–4186, January 2026. [2] Hanxiao Jiang, Hao-Yu Hsu, Kaifeng Zhang, Hsin-Ni Yu, Shenlong Wang, and Yunzhu Li. Phystwin: Physics-informed reconstruction and simulation of deformable objects from videos. ICCV , 2025. [3] Haozhe Lou, Mingtong Zhang, Haoran Geng, Hanyang Zhou, Sicheng He, Zhiyuan Gao, Siheng Zhao, Jiageng Mao, Pieter Abbeel, Jitendra Malik, Daniel Seita, and Yue Wang. D-REX: Differentiable Real-to-Sim-to-Real Engine for Learning Dexterous Grasping. arXiv e-prints , page arXiv:2603.01151, March 2026. [4] Hongyu Li, Lingfeng Sun, Yafei Hu, Duy Ta, Jennifer Barry, George Konidaris, and Jiahui Fu. No-vaFlow: Zero-Shot Manipulation via Actionable Flow from Generated Videos. arXiv e-prints , page arXiv:2510.08568, October 2025. [5] Xuanlin Li, Kyle Hsu, Jiayuan Gu, Oier Mees, Karl Pertsch, Homer Rich Walke, Chuyuan Fu, Ishikaa Lunawat, Isabel Sieh, Sean Kirmani, Sergey Levine, Jiajun Wu, Chelsea Finn, Hao Su, Quan Vuong, and Ted Xiao. Evaluating real-world robot manipulation policies in simulation. In Pulkit Agrawal, Oliver Kroemer, and Wolfram Burgard, editors, Proceedings of The 8th Conference on Robot Learning , volume 270 of Proceedings of Machine Learning Research , pages 3705–3728. PMLR, 06–09 Nov 2025. [6] Yash Jangir, Yidi Zhang, Kashu Yamazaki, Chenyu Zhang, Kuan-Hsun Tu, Tsung-Wei Ke, Lei Ke, Yonatan Bisk, and Katerina Fragkiadaki. Robotarena: Scalable robot benchmarking via real-to-sim translation. 
+
+arXiv preprint arXiv:2510.23571 , 2025. [7] Yanjiang Guo, Lucy Xiaoyang Shi, Jianyu Chen, and Chelsea Finn. Ctrl-world: A controllable generative world model for robot manipulation. arXiv preprint arXiv:2510.10125 , 2025. [8] Yevgen Chebotar, Ankur Handa, Viktor Makoviychuk, Miles Macklin, Jan Issac, Nathan Ratliff, and Dieter Fox. Closing the sim-to-real loop: Adapting simulation randomization with real world experience. In 2019 International Conference on Robotics and Automation (ICRA) , pages 8973–8979. IEEE, 2019. [9] Fabio Muratore, Theo Gruner, Florian Wiese, Boris Belousov, Michael Gienger, and Jan Peters. Neural posterior domain randomization. In Conference on robot learning , pages 1532–1542. PMLR, 2022. [10] Kaifeng Zhang, Shuo Sha, Hanxiao Jiang, Matthew Loper, Hyunjong Song, Guangyan Cai, Zhuo Xu, Xiaochen Hu, Changxi Zheng, and Yunzhu Li. Real-to-Sim Robot Policy Evaluation with Gaussian Splatting Simulation of Soft-Body Interactions. arXiv e-prints , page arXiv:2511.04665, November 2025. [11] Eftychios Sifakis and Jernej Barbic. Fem simulation of 3d deformable solids: a practitioner’s guide to theory, discretization and model reduction. In Acm siggraph 2012 courses , pages 1–50. 2012. [12] Tomer Weiss. Fast position-based multi-agent group dynamics. Proceedings of the ACM on Computer Graphics and Interactive Techniques , 6(1):1–15, 2023. [13] Miles Macklin. Warp: A High-performance Python Framework for GPU Simulation and Graphics, March 2022. NVIDIA GPU Technology Conference (GTC). [14] Bernhard Kerbl, Georgios Kopanas, Thomas Leimkühler, and George Drettakis. 3d gaussian splatting for real-time radiance field rendering. ACM Trans. Graph. , 42(4):139–1, 2023. [15] Tobias Pfaff, Meire Fortunato, Alvaro Sanchez-Gonzalez, and Peter Battaglia. Learning mesh-based simulation with graph networks. In International conference on learning representations , 2020. [16] Huayu Deng, Xiangming Zhu, Yunbo Wang, and Xiaokang Yang. Evomesh: adaptive physical simulation with hierarchical graph evolutions. In Proceedings of the 42nd International Conference on Machine Learning , ICML’25. JMLR.org, 2025. 
+
+10 [17] Xiaodong Cheng, Yu Kawano, and Jacquelien M. A. Scherpen. Reduction of second-order network systems with structure preservation. IEEE Transactions on Automatic Control , 62(10):5026–5038, 2017. [18] Athanasios C Antoulas. Approximation of large-scale dynamical systems . SIAM, 2005. [19] Tony Z Zhao, Vikash Kumar, Sergey Levine, and Chelsea Finn. Learning fine-grained bimanual manipula-tion with low-cost hardware. arXiv preprint arXiv:2304.13705 , 2023. [20] Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, et al. π0: A vision-language-action flow model for general robot control. arXiv preprint arXiv:2410.24164 , 2024. [21] Ben Mildenhall, Pratul P Srinivasan, Matthew Tancik, Jonathan T Barron, Ravi Ramamoorthi, and Ren Ng. Nerf: Representing scenes as neural radiance fields for view synthesis. Communications of the ACM ,65(1):99–106, 2021. [22] Albert Pumarola, Enric Corona, Gerard Pons-Moll, and Francesc Moreno-Noguer. D-nerf: Neural radiance fields for dynamic scenes. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10318–10327, 2021. [23] Keunhong Park, Utkarsh Sinha, Jonathan T Barron, Sofien Bouaziz, Dan B Goldman, Steven M Seitz, and Ricardo Martin-Brualla. Nerfies: Deformable neural radiance fields. In Proceedings of the IEEE/CVF international conference on computer vision , pages 5865–5874, 2021. [24] Guanjun Wu, Taoran Yi, Jiemin Fang, Lingxi Xie, Xiaopeng Zhang, Wei Wei, Wenyu Liu, Qi Tian, and Xinggang Wang. 4d gaussian splatting for real-time dynamic scene rendering. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 20310–20320, June 2024. [25] Youtian Lin, Zuozhuo Dai, Siyu Zhu, and Yao Yao. Gaussian-flow: 4d reconstruction with dynamic 3d gaussian particle. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 21136–21145, 2024. [26] Tianyi Xie, Zeshun Zong, Yuxing Qiu, Xuan Li, Yutao Feng, Yin Yang, and Chenfanfu Jiang. Physgaussian: Physics-integrated 3d gaussians for generative dynamics. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 4389–4398, 2024. [27] Tianyuan Zhang, Hong-Xing Yu, Rundi Wu, Brandon Y Feng, Changxi Zheng, Noah Snavely, Jiajun Wu, and William T Freeman. Physdreamer: Physics-based interaction with 3d objects via video generation. In 
+
+European Conference on Computer Vision , pages 388–406. Springer, 2024. [28] Yutao Feng, Yintong Shang, Xuan Li, Tianjia Shao, Chenfanfu Jiang, and Yin Yang. Pie-nerf: Physics-based interactive elastodynamics with nerf. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 4450–4461, 2024. [29] Tianyi Xie, Yiwei Zhao, Ying Jiang, and Chenfanfu Jiang. Physanimator: Physics-guided generative cartoon animation. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 10793–10804, 2025. [30] Xuan Li, Yi-Ling Qiao, Peter Yichen Chen, Krishna Murthy Jatavallabhula, Ming Lin, Chenfanfu Jiang, and Chuang Gan. PAC-neRF: Physics augmented continuum neural radiance fields for geometry-agnostic system identification. In The Eleventh International Conference on Learning Representations , 2023. [31] Zhiyuan Gao, Jiageng Mao, Hong-Xing Yu, Haozhe Lou, Emily Yue-ting Jia, Jernej Barbic, Jiajun Wu, and Yue Wang. Seeing the wind from a falling leaf. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2025. [32] Licheng Zhong, Hong-Xing Yu, Jiajun Wu, and Yunzhu Li. Reconstruction and simulation of elastic objects with spring-mass 3d gaussians. In European Conference on Computer Vision , pages 407–423. Springer, 2024. [33] Mingtong Zhang, Kaifeng Zhang, and Yunzhu Li. Dynamic 3d gaussian tracking for graph-based neural dynamics modeling. In 8th Annual Conference on Robot Learning , 2024. [34] Bruce Moore. Principal component analysis in linear systems: Controllability, observability, and model reduction. IEEE transactions on automatic control , 26(1):17–32, 2003. [35] Serkan Gugercin, Athanasios C Antoulas, and Christopher Beattie. H_2 model reduction for large-scale linear dynamical systems. SIAM journal on matrix analysis and applications , 30(2):609–638, 2008. 
+
+11 [36] Zhaojun Bai. Krylov subspace techniques for reduced-order modeling of large-scale dynamical systems. 
+
+Applied numerical mathematics , 43(1-2):9–44, 2002. [37] Lawrence Sirovich. Turbulence and the dynamics of coherent structures. i. coherent structures. Quarterly of applied mathematics , 45(3):561–571, 1987. [38] Karen Willcox and Jaime Peraire. Balanced model reduction via the proper orthogonal decomposition. 
+
+AIAA journal , 40(11):2323–2330, 2002. [39] Peter Benner, Serkan Gugercin, and Karen Willcox. A survey of projection-based model reduction methods for parametric dynamical systems. SIAM review , 57(4):483–531, 2015. [40] Younes Chahlaoui, Damien Lemonnier, Antoine Vandendorpe, and Paul Van Dooren. Second-order balanced truncation. Linear Algebra and its Applications , 415(2–3):373–384, 2006. [41] Timo Reis and Tatjana Stykel. Balanced truncation model reduction of second-order systems. Mathematical and Computer Modelling of Dynamical Systems , 14(5):391–406, 2008. [42] Alvaro Sanchez-Gonzalez, Jonathan Godwin, Tobias Pfaff, Rex Ying, Jure Leskovec, and Peter Battaglia. Learning to simulate complex physics with graph networks. In International conference on machine learning , pages 8459–8468. PMLR, 2020. [43] Yunzhu Li, Jiajun Wu, Russ Tedrake, Joshua B. Tenenbaum, and Antonio Torralba. Learning Parti-cle Dynamics for Manipulating Rigid Bodies, Deformable Objects, and Fluids. arXiv e-prints , page arXiv:1810.01566, October 2018. [44] Mario Lino, Stathi Fotiadis, Anil A Bharath, and Chris D Cantwell. Multi-scale rotation-equivariant graph neural networks for unsteady eulerian fluid dynamics. Physics of Fluids , 34(8), 2022. [45] Yadi Cao, Menglei Chai, Minchen Li, and Chenfanfu Jiang. Efficient learning of mesh-based physical simulation with bi-stride multi-scale graph neural network. In International conference on machine learning , pages 3541–3558. PMLR, 2023. [46] Steeven Janny, Aurélien Béneteau, Madiha Nadri, Julie Digne, Nicolas Thome, and Christian Wolf. Eagle: Large-Scale Learning of Turbulent Fluid Dynamics with Mesh Transformers. arXiv e-prints , page arXiv:2302.10803, February 2023. [47] Youn-Yeol Yu, Jeongwhan Choi, Woojin Cho, Kookjin Lee, Nayong Kim, Kiseok Chang, Chang-Seung Woo, Ilho Kim, Seok-Woo Lee, Joon-Young Yang, Sooyoung Yoon, and Noseong Park. Learning Flexible Body Collision Dynamics with Hierarchical Contact Mesh Transformer. arXiv e-prints , page arXiv:2312.12467, December 2023. [48] Zhitao Ying, Jiaxuan You, Christopher Morris, Xiang Ren, Will Hamilton, and Jure Leskovec. Hierarchical graph representation learning with differentiable pooling. volume 31, 2018. [49] Hongyang Gao and Shuiwang Ji. In international conference on machine learning , pages 2083–2092. PMLR, 2019. [50] Junhyun Lee, Inyeop Lee, and Jaewoo Kang. Self-attention graph pooling. In International conference on machine learning , pages 3734–3743. pmlr, 2019. [51] Eric Jang, Shixiang Gu, and Ben Poole. Categorical reparameterization with gumbel-softmax. arXiv preprint arXiv:1611.01144 , 2016. [52] Yoshua Bengio, Nicholas Léonard, and Aaron Courville. Estimating or propagating gradients through stochastic neurons for conditional computation. arXiv preprint arXiv:1308.3432 , 2013. [53] Miles Macklin. Warp: A high-performance python framework for gpu simulation and graphics, March 2022. NVIDIA GPU Technology Conference (GTC). 
+
+12 A Implementation details 
+
+Training details. The active configuration uses L = 3 (comprising four levels, including l = 0 ); latent dimension 128 ; positional-encoding dimension 30 . Training runs E = 80 epochs. Optimization uses Adam with learning rate lr = 1 e − 3 and decay γlr = 0 .9. The differentiable Euler integrator runs 667 Warp substeps per simulation step. PhySPRING is implemented using the PyTorch framework, and the spring–mass physical simu-lation is built on the Warp GPU-accelerated simulator [ 53 ]. To enable end-to-end training from the Warp simulator to the PyTorch network, we bridge the gradient information computed in-side Warp back to the PyTorch computational graph, allowing losses defined on Warp simula-tion rollouts to directly optimize the GNN parameters. We perform five levels of downsampling in the encoder; however, only the first four levels ( l = 0 , . . . , 3) are passed to the Warp sim-ulator the optimization. All experiments are conducted on a single NVIDIA RTX 4090 GPU. 
+
+Algorithm 1: PhySPRING training with progressive topology commitment. 
+
+Input: Observations {Xobs  
+
+> t
+
+}Tt=0 , manipulator inputs {ut}Tt=0 , FOM graph G(0) , mass M(0) ,levels L, epochs E, commit interval Ecommit , model updates Kmodel , collision updates 
+
+Kcol 
+
+Output: Trained parameters Θ, hierarchy {P(l), α (l)}Ll=0 
+
+Θ ← init ;
+
+P(l) 
+
+> stored
+
+← ∅ ∀ l;
+
+for epoch = 1 to E do 
+
+l∗ ← ⌊ epoch / E commit ⌋ − 1 ; // level supervised this epoch 
+
+for iter = 1 to Kmodel do 
+
+// Encoder pass (downward): message-passing, topology learning, coarsening 
+
+for l = 0 to L − 1 do 
+
+update {h(l), e(l)} via message-passing on G(l);
+
+if l ≤ l∗ then 
+
+P(l) ← P(l) 
+
+> stored
+
+; // topology committed 
+
+else 
+
+P(l) ← Neural -CLASP  h(l) ; // Gumbel–Softmax + STE 
+
+P(l) 
+
+> stored
+
+← P(l);
+
+ M(l+1) , G(l+1)  ← GalerkinProject  M(l), G(l); P(l) ; // Eq. (8) 
+
+// Decoder pass (upward): decode from coarse to fine, supervise at 
+
+l∗
+
+for l = L − 1 down to l∗ do 
+
+decode features at level l via message-passing; 
+
+α(l) =  L(l), D(l), η(l) ; // decode stiffness, damping via Eq. (9) 
+
+if l = l∗ then 
+
+ˆZ(l) 
+
+> t+1
+
+= F (l) ˆZ(l) 
+
+> t
+
+, u(l) 
+
+> t
+
+; M(l), α (l), G(l), t = 0 , . . . , T − 1;
+
+L ← 1
+
+> T
+
+PTt=1 
+
+Lgeo + Ltrk 
+
+  ˆX(l) 
+
+> t
+
+, Xobs 
+
+> t
+
+;
+
+Θ ← Adam  Θ, ∇ΘL;
+
+// Collision parameter refinement 
+
+for iter = 1 to Kcol do 
+
+refine collision parameters at level l∗;
+
+return Θ, {P(l), α (l)}Ll=0 
+
+Progressive topology training. The topology of each level G(l) is determined by the model prediction P(l), and therefore changes throughout training. As a result, even small perturbations in P(l) can lead to large variations in α(l), making the overall optimization unstable. To mitigate this issue, we progressively freeze the topology of each level during training. Once a level is fixed, 13 Figure 5: Dinosaur and cloth visualizations across ROM levels. corresponding P(l) stops updating, while lower levels remain learnable and continue to optimize their downsampling operators. During backpropagation, we only supervise predictions from the upper levels whose topologies have already been committed, thereby decoupling the learning of mechanical parameters from the ongoing topology search in deeper layers. This strategy stabilizes training while preserving dynamic, learnable downsampling topology within a single optimization of 
+
+L(Θ) . Algorithm 1 summarizes the resulting training loop. 
+
+## B Additional results 
+
+B.1 Qualitative visualization of reconstruction&re-simulation and prediction across ROMs 
+
+Fig. 5 visualizes reconstruction&re-simulation and future prediction for the dinosaur and cloth sequences across ROMs. Across Levels 0–3, PhySPRING preserves the main deformation patterns and temporal evolution of both objects with progressively reduced complexity. Although higher ROM levels introduce mild loss of fine geometric detail, the overall shape, motion trend, and visual consistency remain stable, demonstrating that the learned ROMs retain the essential dynamics needed for both re-simulation and prediction. 14 Table 5: Real2Sim rope-routing policy-evaluation success counts across ROM levels. Each entry reports the number of successful trials, and all entries use 27 tests.                                                             
+
+> Policy Iter. Real2Sim Dense (L0) Level 1 Level 2 Level 3 ACT 300 64536ACT 500 76243ACT 700 18 17 912 9ACT 1000 20 16 15 15 13 ACT 4000 19 24 22 20 21 ACT 7000 18 23 22 23 23
+> π010000 14 12 14 14 12
+> π020000 21 21 25 24 20
+> π030000 26 24 24 24 24
+
+Table 6: Action-sampling throughput in the Real2Sim rope-routing loop. FPS is measured over suc-cessful evaluation cases; higher is better. Speed-ups are computed only for the reduced PhySPRING levels using the FPS-ratio formula above.                                             
+
+> Policy Simulator / twin Nodes FPS Speed-up vs Dense Speed-up vs Real2Sim ACT Real2Sim 2002 4.872 ––Dense (L0) 2002 4.597 ––Level 1 1243 5.159 1.12 ×1.06 ×
+> Level 2 1050 5.560 1.21 ×1.14 ×
+> Level 3 838 5.680 1.24 ×1.17 ×
+> π0
+> Real2Sim 2002 4.602 ––Dense (L0) 2002 4.484 ––Level 1 1243 4.875 1.09 ×1.06 ×
+> Level 2 1050 5.440 1.21 ×1.18 ×
+> Level 3 838 5.660 1.26 ×1.23 ×
+
+B.2 Real2Sim evaluation Per-policy success counts across ROMs. Table 5 reports the current Real2Sim success-count sweep for the rope-routing task. We evaluate two policies, ACT [ 19 ] and π0 [ 20 ], at different policy-training iterations, and compare the Real2Sim baseline simulator against the dense PhySPRING twin and its three reduced levels. 
+
+Action sampling effectiveness across ROMs. Table 6 reports the action-sampling throughput measured in the Real2Sim loop. For each reduced level l, we compute the relative throughput gain from FPS ratios: 
+
+Sdense  
+
+> l
+
+= FPS l
+
+FPS dense 
+
+, Sr2s  
+
+> l
+
+= FPS l
+
+FPS Real2Sim 
+
+. (12) Across both policies, progressively reducing the twin improves action-sampling throughput while preserving the policy-success counts reported in Table 5. 
+
+Motion-sequence visualization across ROMs. Fig. 6 visualizes two representative successful ACT demonstrations for the rope task in the Real2Sim [ 10 ] environment. For each demonstration, rows compare the full-order twin (Level 0) with the progressively reduced twins (Levels 1–3), while columns show the temporal manipulation sequence. Across all ROM levels, the rope motion, contact sequence, and final insertion behavior remain visually consistent, providing qualitative evidence that the reduced twins preserve policy-relevant deformation dynamics. 15 Figure 6: Real2Sim rope manipulation visualizations across ROM levels. The two blocks show representative successful ACT motion sequences. 16
