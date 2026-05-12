@@ -1,0 +1,458 @@
+Title: Beyond Thinking: Imagining in 360$^\circ$ for Humanoid Visual Search
+
+URL Source: https://arxiv.org/pdf/2605.09146v1
+
+Published Time: Tue, 12 May 2026 01:26:55 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# Beyond Thinking: Imagining in 360 ◦ for Humanoid Visual Search 
+
+Jingdong Zhang 1 Yizhou Wang 2 Zhengzhong Tu 1 Xin Li 1
+
+Wenping Wang 1 Xiaohang Zhan 2∗
+
+1Texas A&M University 2Adobe 
+
+jdzhang@tamu.edu , xiaohangzhan@outlook.com Rotate (-150,10)  Rotate (-20,10)  Submit (10,20) 
+
+Actor 
+
+Imaginator            
+
+> [Observed]:
+> -Person:(180,0)
+> [Imagined]:
+> -Staircase:( -45,0)
+> -Timetable :(30,10)
+> [Observed]:
+> -Person:(180,0)
+> -Timetable :(10,0)
+> [Imagined]:
+> -Staircase:( -45, -10)
+> [Observed]:
+> -Timetable :(10,20)
+> -Pi llar :( -15,0)
+> [Imagined]:
+> -Elevator:( -75,0)
+> Suggestions Q: Locate the timetable.
+> Camera: (180,0) Camera: (30,10) Camera: (10,20)
+> Elevator Pillar Timetable Person Timetable Staircase Timetable Person Staircase Person
+
+………
+
+360 ° Env 
+
+> Unfolded Scene
+
+? Unfolded Scene  Unfolded Scene 
+
+Figure 1: Imagining in 360 ◦: We propose a decoupled architecture for Humanoid Visual Search (HVS ). The Imaginator explicitly models the 360 ◦ environment by predicting the semantic layout of both observed and unseen regions, which provides the downstream Actor with a sampled distribution of spatial priors as suggestions. This explicit imagination empowers the agent to reorient its head more efficiently, hedging against spatial uncertainty in complex, in-the-wild environments. 
+
+## Abstract 
+
+Humanoid Visual Search ( HVS ) requires agents to actively explore immersive 360 ◦ environments. While prior methods treat this as a monolithic task relying on cumulative, multi-turn Chain-of-Thought (CoT) reasoning, they impose heavy cognitive burdens and require expensive trajectory-level annotations. In this paper, we propose Imagining in 360 ◦, a novel framework that decouples the exploration process into a specialized Imaginator and an Actor . The Imaginator functions as a probabilistic predictor of spatial priors; instead of maintaining a cumulative reasoning chain, it infers the semantic layout of both observed and unobserved regions in a single step. By sampling multiple hypotheses within this semantic space, we provide the Actor with a distribution of effective spatial information, offering robust guidance that hedges against uncertainty during active search. This decoupled architecture significantly lowers data engineering costs by eliminating the need for full-trajectory CoT annotations, enabling the generation of over 1.96 million curated training samples. Extensive experiments demonstrate that explicitly modeling semantic spatial priors drastically improves search efficiency and success rates in complex, in-the-wild environments. 
+
+> ∗
+
+Corresponding author. 40th Conference on Neural Information Processing Systems (NeurIPS 2026). 
+
+> arXiv:2605.09146v1 [cs.CV] 9 May 2026
+
+## 1 Introduction 
+
+The human visual system efficiently navigates complex spaces by actively reorienting the head and eyes to deliberately uncover new visual information Marr (2010); Stein et al. (2024). Replicating this behavior in artificial agents has driven the development of Humanoid Visual Search ( HVS ),an embodied task where agents must actively explore immersive 360 ◦ panoramic environments to locate specific objects ( HOS ) or navigable paths ( HPS ). Unlike passive perception, HVS requires a closed-loop perception-action cycle Torralba et al. (2006). To tackle this, a pioneering work, Thinking in 360 ◦ Yu et al. (2025), formulates the search as a sequential decision-making process powered by Multimodal Large Language Models (MLLMs) Wu and Xie (2024). Their approach employs a single-model, Chain-of-Thought (CoT) Wei et al. (2022) framework where the agent iteratively accumulates narrow field-of-view observations, maintains a historical memory of the explored space, and plans the next head-turning action within a unified reasoning chain. However, this monolithic paradigm introduces significant bottlenecks. First, humanoid visual reason-ing in 3D environments remains highly challenging for current MLLMs Yu et al. (2025), with the coupling the challenging spatial understanding with the execution of action planning into a single model. Second, because the model lacks the explicit modeling of spatial relationships, it is forced to implicitly guess the layout of unseen regions, leading to inactive or inaccurate explorations. Finally, teaching the MLLM as a single agent for this process relies heavily on curating high-quality, long-context CoT reasoning trajectories. The prohibitive cost of acquiring such dense, multi-step expert annotations fundamentally limits the ability to scale these systems and hinders their generalization across diverse, in-the-wild scenarios. In this work, we propose a fundamental shift in how embodied agents approach unobserved space, effectively redefining the HVS paradigm. Our core insight is that human-like search is not strictly driven by exhaustive logical chains alone, but is heavily guided by intuitive spatial priors ( e.g. 
+
+expecting an open corridor likely leads to an entrance or exit). Thus, we propose Imagining in 360 ◦, a framework designed to explicitly decouple probabilistic spatial imagination from rigorous CoT reasoning. By introducing intuitive spatial priors to guide the cumulative reasoning process, we transform the exploration task into a collaboration between probabilistic predicting of spatial priors and rigorous reasoning, which encourages the agent to explore more actively and confidently, grounded in sound spatial assumptions. To achieve this, we introduce an architecture consisting of a decoupled Imaginator and an Actor .Rather than relying on computationally heavy pixel-level reconstruction He et al. (2022) or visual inpainting Lugmayr et al. (2022) to guess unseen areas, we propose to efficiently model the visual horizon directly within the semantic space of language. Given limited narrow field-of-view (NFoV) observations, the Imaginator predicts the layout of both observed and imagined coordinates of highly semantic regions. Crucially, the Imaginator functions as a probabilistic predictor of spatial priors, instead of outputting a single deterministic guess, it generates multiple spatial hypotheses per step via temperature sampling to capture the inherent uncertainty of occluded environments. As shown in Fig. 1, these semantic layouts are processed as a ranked list of suggestions and explicitly provided to the downstream Actor’s context. By evaluating this probabilistic distribution, the Actor gains comprehensive spatial awareness before executing its next head rotation. Beyond enhancing spatial reasoning, this decoupling unlocks massive data scalability. Because the Imaginator learns spatial priors directly from single-step semantic annotations rather than cumulative CoT histories, we can introduce a fully automated pseudo-label pipeline. This approach effortlessly transforms unlabeled 360 ◦ panoramas into high-quality training data, scaling our dataset to ∼1.92 million samples across ∼20k scenes without manually annotated CoT trajectories. In summary, our main contributions are as follows: • Decoupled HVS Paradigm: We redefine visual search by separating intuitive spatial imagination from action planning, allowing for more active and grounded exploration. • Probabilistic Imaginator: We introduce an Imaginator model that learns intuitive spatial priors and guides the Actor agent with probabilistic estimations. • Scalable Data Engine: Our approach enables a fully automated pipeline that scales training to 1.92M samples without manual trajectory labels, ensuring robust performance in the wild. 22 Related Works 
+
+Embodied Visual Search. Traditional visual search relies on visual saliency or contextual cues Oliva et al. (2003); Torralba et al. (2006); Zelinsky et al. (2005). While Multimodal Large Language Models (MLLMs) like V∗ Wu and Xie (2024) have advanced these capabilities, they predominantly operate on static, disembodied 2D images. However, real-world search is an active, embodied behavior requiring coordinated head and eye movements to uncover occluded information Lanman et al. (1978); Barnes (1979); Solman et al. (2017). Emulating this has driven the emergence of Humanoid Visual Search ( HVS ) Yu et al. (2025), where agents actively explore immersive 360 ◦ spaces. While pioneering works Yu et al. (2025) tackle HVS via cumulative Chain-of-Thought (CoT) reasoning, this monolithic paradigm imposes a severe cognitive burden and limits data scalability. To overcome this, our framework explicitly decouples spatial imagination from action. 
+
+Agentic Multimodal LLMs. Multimodal LLMs (MLLMs) represent a significant stride toward unified understanding models among multi-modalities Alayrac et al. (2022); Liu et al. (2023); Li et al. (2022); Lai et al. (2024); Yang et al. (2025). To transcend their innate perceptual limitations, recent MLLM agents have been empowered with external toolkits ( e.g. , web browsing, code execution) and refined via multi-turn reinforcement learning Guo et al. (2025); Jin et al. (2025); Kimi et al. (2025). In the visual domain, agents leverage symbolic tool calls like iterative zooming or region selection to achieve fine-grained understanding Li et al. (2025); Shen et al. (2024); Zhang et al. (2025c); Wang et al. (2025). Despite these advancements, these tool-use paradigms often occur on a disembodied 2D canvas. While some recent efforts ground MLLMs in embodied reasoning for robotics Azzolini et al. (2025); Team et al. (2025); Chen et al. (2025b), active visual search driven by a generative spatial prior remains largely underexplored. We introduce an Imaginator as a specialized agentic component that provides probabilistic spatial guidance, enabling more efficient and robust search behaviors. 
+
+Spatial Imagination and Scene Extrapolation. Effective embodied exploration requires anticipating regions beyond the limited narrow field-of-view (NFoV). Prior methods typically rely on pixel-level extrapolation Shi et al. (2023); Tang et al. (2023); Huang et al. (2025c,b); He et al. (2022); Zhang et al. (2025a), which is computationally expensive and artifact-prone, or implicit latent spaces LeCun et al. (2022); Assran et al. (2023); Bardes et al. (2024); Huang et al. (2025a), which lack the explicit semantic grounding required for language-driven planning. Meanwhile, out-of-view MLLMs Chen et al. (2025a) and scene graphs Gu et al. (2024) often restrict themselves to simple VQA or demand exhaustive multi-view scanning. Departing from these, we frame spatial imagination as generating 
+
+probabilistic spatial priors . Inspired by biological cognitive mapping Marr (2010); Bartz (1966); Tolman (1948), our Imaginator extrapolates the 360 ◦ topology entirely in language space. By predicting coordinates for visible and occluded entities, we bypass pixel-level overhead and CoT data curation, offering interpretable and efficient guidance for navigation. 
+
+## 3 Method 
+
+To overcome the cognitive overload and data-scalability bottlenecks inherent in monolithic CoT search paradigms, we propose a decoupled architecture for Humanoid Visual Search ( HVS ). As illustrated in Fig. 2, our framework separates the active search process into two distinct roles: an 
+
+Imaginator that explicitly models the 360 ◦ environment and generates probabilistic spatial priors, and an Actor that acts upon these priors to navigate in it. 
+
+3.1 Problem Formulation Objective. We formulate the environment as a continuous 360 ◦ panorama. Because the embodied agent possesses a limited narrow field-of-view (NFoV), it must actively rotate its head to explore the surrounding space. At any step, the agent receives a NFoV observation oϕ,γ ∈ O , defined by its current azimuth ( ϕ) and polar angle ( γ). Given a natural language instruction x, the overarching goal of HVS is to iteratively gather visual evidence and ultimately predict a final viewing direction ( ˆϕ, ˆγ)
+
+that maximizes the probability of task success rs:
+
+( ˆϕ, ˆγ) = arg max  
+
+> ϕ,γ
+
+P (rs | oϕ,γ , x ). (1) Following the task definition in Yu et al. (2025), Humanoid Object Search (HOS) requires the agent to locate a specific target and submit a final view ( ˆϕ, ˆγ) that locates the object, while Humanoid Path Search (HPS) involves identifying a final orientation ˆϕ aligned with a navigable path. 3Q: Where is the bed        
+
+> with wooden posts?
+> [View 1]: (295,6)
+> [View 2]: (267,13)
+> [View 3]: (47,42)
+> [Observed]
+> open white bedroom door: (25,0)
+> picture frames: (274,16)
+> window seat with cushion: (227, -9)
+> [Imagined]
+> ◊carpeted floor pathway: (0, -45)
+> ◊corridor door: (356, -2)
+> ◊window with outdoor view: (166,9)
+> ◊ceiling light fixture: (148,52)
+> Suggest
+> Check (126, -13)
+> Imaginator
+> (126, -13)
+> 360 °/0 °180 °180 °270 °90 °
+> -90 ° 90 °0°
+
+Panorama Environment  
+
+> NFoV Images
+
+(a) 
+
+> Q: Locate the train timetable. Decide next action…
+
+Imaginator                                 
+
+> Suggestion 1:
+> Rot Δ𝜑 1
+> 1,Δ𝜇 1
+> 1
+> Suggestion 2:
+> Rot Δ𝜑 1
+> 2,Δ𝜇 1
+> 2
+> Suggestion 3:
+> Rot Δ𝜑 1
+> 3,Δ𝜇 1
+> 3
+> Check 𝜑 1
+> 1,𝜇 1
+> 1Check 𝜑 1
+> 2,𝜇 1
+> 2Check 𝜑 1
+> 3,𝜇 1
+> 3
+> T
+> Actor  <think> The train timetable is likely
+> located on the pillar or above the
+> platform. Given the current view, rotating
+> the camera to the left might help locate
+> the timetable. Suggestion 1 leads to a
+> lef tward rotation, which seems appropriate
+> for finding the timetable. </ think>
+> <answer> Rotate Δ𝜙 2,Δ𝛾 2</answer>
+> +
+> Env
+
+Step 1 
+
+> Env
+
+Step 2 
+
+> (History)…
+> Decide next action…
+
+Imaginator             
+
+> Suggestion 1:
+> Sub 𝜑 2
+> 1,𝜇 2
+> 1
+> Suggestion 2:
+> Rot Δ𝜑 2
+> 2,Δ𝜇 2
+> 2
+> Check 𝜑 2
+> 1,𝜇 2
+> 1Check 𝜑 2
+> 2,𝜇 2
+> 2
+> T
+> +
+> 𝜙 2,𝛾 2
+> Init View
+> 𝜙 1,𝛾 1
+> <think>
+> …
+> </think>
+> <answer>
+> Rotate
+> Δ𝜙 3,Δ𝛾 3
+> </answer>
+> Env
+
+Step N     
+
+> 𝜙 𝑁 ,𝛾 𝑁
+> (History)…
+> Decide next
+> action…
+> Suggestion 1:
+> Sub 𝜑 𝑁
+> 1,𝜇 𝑁
+> 1
+> Actor
+> +
+
+Imaginator  Check  𝜑 𝑁    
+
+> 1,𝜇 𝑁
+> 1
+> T
+> …
+> Submit
+> ෠𝜙 ,ො𝛾
+
+(b)       
+
+> View 1
+> View 2View N
+> H
+> HH
+> S
+> SS
+> Actor
+
+Figure 2: Framework Overview. (a) 360 ◦ Env Imagination : The Imaginator performs a single-step estimation of the global layout by predicting (φ, μ ) coordinates for both observed landmarks and imagined entities to capture high-level spatial relationships. (b) Collaborative HVS Pipeline : The Actor integrates the sampled distribution of probabilistic spatial suggestions into its reasoning chain, allowing the agent to hedge against environmental uncertainty and guide active search efficiently. 
+
+3.2 The Imaginator Model 
+
+Rather than forcing a single agent to implicitly guess the layout of unobserved areas, we introduce the 
+
+Imaginator . Its sole purpose is to construct a semantic layout map of both observed and unobserved regions based on the current visual history, as shown in 2 (a), acting as a generative spatial prior. 
+
+Task Setup and Model Execution. Spatial object layouts in the physical world strictly adhere to inherent geometric and semantic rules ( e.g. , a chandelier typically hangs from the ceiling rather than sitting on the floor; a teacup rests on a table rather than a wall). Internalizing these structural priors is crucial for accurate HVS , as they drastically narrow down redundant explorations and facilitate fast convergence. Therefore, our primary objective is to enable the model to learn these spatial priors from the data distribution to robustly guide the search process. A naive approach might treat this as a direct target detection task, simply mapping the instruction 
+
+x and historical observations to a target coordinate (φ, μ ). However, due to the severely limited field-of-view, this direct mapping often causes the solution space to collapse into a sharply peaked distribution. Deprived of sufficient visual context, the model is highly susceptible to generating high-confidence but erroneous predictions. To foster reasonable exploratory behaviors akin to human intuition, we design the Imaginator to perform a comprehensive layout estimation rather than a solitary point prediction. At step t, receiving all visible FoV images {oϕ1,γ 1 , . . . , o ϕt,γ t } and the instruction x, the Imaginator executes a stateless, single-step forward pass. It outputs a structured block that explicitly lists semantic entities and their predicted absolute coordinates (φ, μ ) in the equirectangular space: • [Observed] : An estimation of landmarks currently or previously visible in the NFoVs (e.g. , “ picture frames: (274, 16) ”). • [Imagined] : A probabilistic prediction of objects likely existing in unseen regions ( e.g. ,“window with outdoor view: (166, 9) ”). By enforcing this joint prediction of both observed and imagined entities, the Imaginator explicitly models the spatial relationships of key visual anchors. This structural grounding makes it significantly 4easier to infer the target’s location, naturally producing a smoother distribution supporting the sampling of spatial priors. The final output is a brief recommendation Suggest Check (φ, μ ).
+
+Automated Scale-Up Data Engine. Training the Imaginator is inherently more scalable than prior CoT-based methods Yu et al. (2025). Instead of relying on teacher models for long, multi-step trajectories that require costly manual curation, our decoupled architecture frames spatial learning simply as a masked spatial modeling task on panoramas. Specifically, we utilize a powerful teacher model to perform accurate and comprehensive labeling across the complete 360 ◦ environment. From these fully annotated panoramas, we synthetically sample trajectories and reveal only 1 to 8 NFoV observations per training instance (with 50 % targets kept out of views to force spatial layout imagination). By feeding the Imaginator these limited views and tasking it to predict the entire layout (following the [Observed] and [Imagined] format discussed above), we actively force the model to comprehend the global environment and internalize spatial relationships. This paradigm completely bypasses the prohibitive cost of trajectory-level CoT annotations, enabling a fully automated, low-cost pseudo-labeling pipeline. As summarized in Fig. 3, we scale our training set using approximately 20k diverse panoramic environments filtered from Zhang et al. (2026), including real-world and synthetic subsets. Through deterministic trajectory expansion, this efficiently yields ∼1.92 million high-quality, single-step spatial reasoning samples. 
+
+Training Objective. Formally, given the instruction x and visual history Ot = {oϕ1,γ 1 , . . . , o ϕt,γ t },the Imaginator generates the target sequence y = {y1, . . . , y L}, comprising the structured layouts and spatial suggestions. We optimize the model parameter θ using standard auto-regressive cross-entropy loss applied only to the completion tokens: 
+
+L = −
+
+> L
+
+X
+
+> i=1
+
+log Pθ (yi | x, Ot, y <i ) (2) To efficiently internalize 3D spatial priors, the model is first pretrained on the large-scale synthetic data, and subsequently finetuned on the processed HVS training split in Yu et al. (2025) with the same format for precise task alignment. 
+
+3.3 The Actor Model 
+
+The Actor is the agent responsible for executing the physical search within the environment. Our framework is agnostic to the specific architecture of the Actor; it can be any off-the-shelf MLLM or a fine-tuned search model, e.g. , the HVS-3B used in Yu et al. (2025). Following their standard HVS 
+
+formulation, the Actor is a tool-augmented model responsible for executing the physical search. At step t, the Actor receives the target instruction x, the current observation oϕt,γ t , its historical memory, and crucially, the spatial suggestions St provided by the Imaginator. Empowered by these probabilistic spatial priors, the Actor generates a textual reasoning chain (the 
+
+<think> block) to assess the plausibility of the suggested layouts against its own visual memory. It concludes by outputting an <answer> block specifying the next action from two primitives: • Rot (∆ ϕt+1 , ∆γt+1 ): Adjusts the viewing direction relative to the current camera pose. • Sub ( ˆϕ, ˆγ): Commits the current view as the final target estimate and terminates the search. 
+
+3.4 Imagination-Guided HVS Pipeline 
+
+While the Imaginator provides scalable spatial priors, its stochastic predictions are unsuitable for final navigation decisions. Conversely, a standalone Actor lacks explicit spatial modeling and often hallucinates in unseen regions. We thus propose a complementary pipeline: the Imaginator generates probabilistic priors, which the Actor grounds via rigorous sequential reasoning. As shown in Fig. 2 (b), to fully exploit the Imaginator’s spatial knowledge without over-relying on a single potentially flawed layout, we formulate its output as a probabilistic distribution. At each step t,we sample K candidate coordinates, Ct = {(φ1 
+
+> t
+
+, μ 1 
+
+> t
+
+), . . . , (φKt , μ Kt )}, extracted from its Suggest Check (φ, μ ) outputs. The first candidate is generated via greedy decoding ( T = 0 ) to anchor the most confident prediction. The remaining K − 1 candidates are stochastically sampled ( T > 0) to capture diverse spatial hypotheses. The temperature T follows a step-wise decay schedule over the search steps: as the agent accumulates more visual clues, the environmental uncertainty naturally decreases, transitioning the sampling strategy from broad exploration to focused prediction. 5Figure 3: Overview of the Curated Training Dataset. (a) Distribution of scene categories, highlight-ing a diverse mix dominated by most commonly encountered outdoor urban (31.6%) and residential interior (25.9%) environments. (b) The composition of unlabeled panorama sources. (c) The dis-tribution of labeled semantic item categories. (d) The histogram of labeled items per panorama, with a median of 11 items, demonstrates dense semantic coverage for spatial modeling. (e) Salience distribution of the labeled items in the environment. Before injecting the hypotheses into the Actor’s context, they are translated into actionable primitives relative to the Actor’s current camera pose (ϕt, γ t). We deploy a suggestion converter to process each absolute predicted coordinate (φit, μ it). First, it calculates the required angular displacement: 
+
+∆φit = ( φit − ϕt) mod 360 ◦, ∆μit = μit − γt (3) Next, the converter evaluates whether the imagined target location already falls within the boundaries of the current NFoV, denoted by angular bounds (Fϕ, F γ ). If the coordinate is within the current view, further exploration is unnecessary, and the suggestion is mapped to a termination action. Otherwise, it is mapped to a rotation action directing the agent toward the unobserved region. Formally, the mapped suggestion sit is defined as: 
+
+sit =
+
+(
+
+Sub (φit, μ it), if |∆φit| ≤ Fϕ 
+
+> 2
+
+and |∆μit| ≤ Fγ
+
+> 2
+
+Rot (∆ φit, ∆μit), otherwise (4) This mapping yields a final, ranked set of actionable suggestions St = {s1 
+
+> t
+
+, s 2 
+
+> t
+
+, . . . , s Kt }. These suggestions are seamlessly injected into the Actor’s prompt under the specific tag [Spatial Imagination Suggestions] . By explicitly evaluating this distribution of spatial priors, the Actor obtains awareness of the spatial layout, and significantly suppressing overconfident exploration errors and accelerating convergence in complex environments. 
+
+## 4 Experiment 
+
+4.1 Implementation Details Data Curation. To construct the pseudo-pretrained dataset, we employ Qwen3-VL-235B as the teacher model and to filter ∼20k valid indoor/outdoor scenes from Sun360 Xiao et al. (2012), Matter-port3D Chang et al. (2017), and synthesized by DiT360 Feng et al. (2025). Then we localize 5-15 salient semantic targets per panorama. For each scene, we synthetically render 24 NFoV trajectories, in which 50 % of the targets are deliberately withheld from the field-of-view. Deterministically expand-ing these trajectories based on FoV coverage yields ∼1.92M single-step [Observed] /[Imagined] 
+
+samples. We also curate 2,100 HOS , and 2,148 HPS imagine data with the same format on H*Bench Yu et al. (2025) for task alignment. 
+
+Imaginator Training. The Imaginator is initialized from Qwen3-VL-8B-Instruct Yang et al. (2025). We first train the full model on 1.92M pseudo dataset for 1 epoch with a global batch size of 192 to generate structured imagination formats, instilling broad imagination priors across diverse scene types. Subsequently, we perform full-parameter supervised finetuning on the processed HVS training split to focus strictly on task alignment. This SFT runs for 2 epochs with a global batch size of 8 and a learning rate of 1 × 10 −5. The experiments are conducted on 8 NVIDIA H200/A100 GPUs. 6Table 1: Results on H*Bench. We report the Success Rate (%) across various Vision-Language Model families. ‘ ×’ denotes the baseline Actor relying solely on its internal CoT. ‘ ✓’ indicates the Actor plugged in with our Imaginator’s spatial priors.                                                                                                                                                                                                                                 
+
+> Actor Imaginator Humanoid Object Search Humanoid Path Search Family Params Overall Easy Medium Hard Overall Easy Medium Hard Extreme
+> Open-Source Models
+> Qwen2.5-VL 3B ×21.17 18.54 16.48 22.68 7.69 9.20 9.65 3.50 8.33
+> ✓49.54 59.19 51.70 45.62 25.94 34.80 22.15 24.77 15.74 7B ×12.79 31.22 7.39 6.34 9.88 12.20 11.18 7.24 6.94
+> ✓57.42 70.73 51.70 52.95 28.38 35.20 24.34 29.44 18.98 72B ×29.54 36.91 21.59 27.59 12.94 17.40 9.21 15.65 5.09
+> ✓62.25 70.08 60.80 59.42 38.19 45.00 36.18 39.25 24.54 Qwen3-VL 32B ×34.38 66.83 36.36 21.75 23.19 26.00 24.78 22.43 14.81
+> ✓57.46 73.98 51.70 51.77 31.31 37.60 30.04 30.14 21.76 235B ×23.62 57.24 26.70 10.44 21.44 26.80 19.96 23.36 8.33
+> ✓65.04 81.46 60.23 59.29 38.25 46.60 35.31 37.15 27.31 Gemma-3 4B ×18.17 41.79 25.57 8.33 14.50 17.80 16.67 10.98 9.26
+> ✓57.75 72.03 60.23 52.02 35.06 43.80 27.41 36.45 28.24 12B ×22.88 54.96 32.39 9.57 15.31 16.80 16.23 14.49 11.57
+> ✓54.62 63.90 48.86 51.71 33.56 43.00 30.04 32.24 21.76 Kimi-VL A3B ×4.33 12.36 0.57 1.68 5.62 7.20 6.80 2.34 6.02
+> ✓32.46 40.00 27.84 30.08 21.00 28.20 16.89 21.96 11.11
+> Proprietary Models
+> Gemini-2.5 Flash ×43.70 79.50 59.70 28.30 27.70 35.80 22.60 31.30 12.50
+> ✓63.20 86.30 69.30 53.70 37.70 50.20 30.30 42.30 15.30 Pro ×55.00 88.00 62.50 41.60 37.90 43.80 36.40 40.70 21.80
+> ✓66.10 89.60 68.80 56.80 43.10 51.00 39.90 48.80 20.40
+> Finetuned Models
+> HVS 3B ×48.04 61.79 26.14 45.18 24.12 36.60 17.76 22.66 11.57
+> ✓62.75 75.77 64.20 57.61 39.38 49.40 32.89 41.12 26.39
+
+Actor and Inference. Our framework is architecture-agnostic. We validate generalization across off-the-shelf models including open-source : Qwen2.5-VL Xu et al. (2025), Qwen3-VL Yang et al. (2025), Gemma-3 Gemma Team et al. (2025), and Kimi-VL Team (2025); proprietary models :Gemini 2.5 Sadigh et al. (2025); finetuned models: HVS-3B Yu et al. (2025). During inference, the Imaginator generates three spatial hypotheses per step: one greedy anchor ( T = 0 ) and two stochastic samples ( k = 50 , initial T1 = 0 .7 with a 0.85 step-wise decay). These absolute predictions are converted into ego-centric relative actions and appended to the Actor’s context. 
+
+Evaluation Protocol. Following Yu et al. (2025), search episodes are within 10 steps. NFoV observations are rendered at 960 × 720 resolution with a 100 ◦ FoV. Success requires the final submitted view to fall within the bounding-box-centered angular tolerance: τϕ = 30 ◦ and τγ = 20 ◦
+
+for HOS , and τϕ = 10 ◦ for HPS .
+
+4.2 H*Bench Evaluation 
+
+Table 1 presents the comprehensive evaluation of our framework across a diverse collections of 
+
+Open-Source , Proprietary , and domain-specific Finetuned MLLMs. For off-the-shelf open-source models, the monolithic CoT approach (Actor only) generally struggles with the spatial reasoning, often resulting in overall success rates below 35% on HOS , 25% on HVS . However, when augmented with the Imaginator, models like Qwen3-VL (235B) surge from 23.62% to 65.04% on HOS , and from 21.44% to 38.25% on HPS . Remarkably, this plug-and-play compatibility extends to powerful proprietary models; Gemini-2.5 Flash/Pro receives notable gain on both splits. Most importantly, our decoupled pipeline significantly outperforms the previous state-of-the-art established by RL-finetuned models. The baseline HVS-3B model achieves 48.04% on HOS and 24.12% on HPS .When integrated into our joint pipeline as the Actor, its performance jumps to 62.75% and 39.38%, respectively. This validates the limitation, the lack of explicit, probabilistic spatial modeling, in current single-agent architectures. 7Figure 4: Scaling Laws of Imagination. We use Qwen2.5-VL-3B as the Actor model. Table 2: Ablation on Guidance Type. Evalu-ated on ( HOS ) with HVS-3B as Actor Model, where layout represents the whole-scene layout modeling during imagination and T =0 means without probabilistic sampling.                           
+
+> Imagination Guidance Overall Easy Medium Hard Actor 48.04 61.79 26.14 45.18 Actor + Random Suggestions 20.83 23.09 19.32 20.14 Actor + Pixel Imagination 46.17 61.46 27.27 42.39 Actor + Imaginator ( w.o. layout )41.00 59.84 34.09 34.56 Actor + Imaginator ( T=0) 61.54 74.47 58.52 56.93 Actor + Imaginator ( full )62.75 75.77 64.20 57.61
+
+Figure 5: Distribution Analysis. (a) Histograms of the step distribution, illustrating the percentage of search episodes that terminate at each step for both the baseline (Actor Only) and our joint pipeline across the HOS and HPS tasks. (b) Step-by-step heatmap visualizations of the Imaginator’s probabilistic spatial suggestions. The heat areas indicate the probability distribution of the imagined target coordinates, which are projected onto the complete 360 ◦ environment. 
+
+4.3 Ablation Studies Necessity of Structured Layouts and Probabilistic Sampling. Table 2 dissects the specific components of our imagination guidance using the HVS-3B Actor. First, injecting random suggestions severely degrades performance (20.83%), confirming the Actor’s reliance on external priors. To evaluate alternative representation spaces, we implement a pixel imagination baseline by fine-tuning FLUX.1-Fill Labs et al. (2025) on ∼1.4M panoramas. At each step, FLUX out-paints the unobserved regions conditioned on the accumulated NFoVs, and the generated panorama is fed into the Actor. However, modeling low-level pixel noise proves sub-optimal for high-level reasoning, yielding inferior navigation signals (46.17%). Furthermore, ablating the structured [Observed] and [Imagined] 
+
+context ( w.o. layout ) drops the success rate to 41.00%, lagging even behind the unaugmented baseline Actor (48.04%). This confirms that explicitly modeling global spatial relationships is essential to prevent hallucinated priors. Finally, our probabilistic sampling ( full , 62.75%) consistently outperforms deterministic greedy decoding ( T=0, 61.54%). 
+
+Data Scaling Laws. Fig. 4 demonstrates the scaling dynamics of the Imaginator . Increasing its pseudo-pretrained data from 0 to 1.92M samples yields monotonic improvements across both HOS 
+
+and HPS tasks. Notably, equipping the Actor with an Imaginator trained on merely 0.38M samples is already sufficient to surpass the costly RL-finetuned baseline (orange dashed line). We also discover evaluating the Imaginator in isolation yields modest results ( HOS 37.62%, HPS 25.31%), as its 8Figure 6: Qualitative Search Trajectories in the wild. Evaluated in complex environments generated by Gemini 3.1-Pro. The Actor loses context and falls into an infinite dead loop, whereas our decoupled framework leverages layout imagination to locate the target within 2-3 efficient steps. single-step sampling lacks sequential reasoning. Yet, integrating it with the Actor unlocks massive gains, proving our framework is not a trivial ensemble, but a complementary architecture that grounds generative spatial priors with logical action planning. 
+
+Search Efficiency and Distribution Analysis Beyond success rates, spatial priors dramatically improve search efficiency. As shown in Fig. 5(a), the baseline Actor frequently tails toward the 10-step failure cutoff due to redundant blind rotations. Conversely, our joint pipeline shifts the distribution sharply leftward, with most searches rapidly converging within 1-3 steps. Compared to pixel-level imagination (e.g., FLUX.1), which incurs a prohibitive latency of 20-30s per step, a single Imaginator forward pass requires only ∼2.5s. Even when sampling multiple spatial suggestions, the total latency remains constrained to 5-7s, drastically reducing inference costs. Fig. 5(b) visualizes this underlying mechanism. Initially, given a limited field-of-view, the Imaginator generates a broad but logical distribution of spatial hypotheses to guide early exploration. Crucially, as the agent rotates and accumulates visual evidence, the environmental uncertainty rapidly decreases. The predictive heatmap progressively narrows step-by-step, seamlessly converging onto the exact target location and completely eliminating the need for aimless 360 ◦ sweeping. 
+
+4.4 Qualitative Results in the Wild 
+
+To validate real-world robustness, we evaluate the framework on complex, out-of-distribution panora-mas generated by Gemini 3.1-Pro (Fig. 6). In the HOS scenario (train platform), the baseline Actor is trapped in an oscillating loop and fails. Conversely, the Imaginator instantly models the longitudinal layout, guiding the Actor to foveate the target by Step 3. Similarly, in the HPS scenario (airport terminal), the joint pipeline imagines occluded storefronts behind the crowd to locate the coffee shop pathway in just 2 steps. Additional qualitative results are provided in the supplementary material. 
+
+## 5 Conclusion and Limitations 
+
+In this paper, we introduced Imagining in 360 ◦, a decoupled framework for Humanoid Visual Search (HVS ) that separates exploration into a generative Imaginator and an executive Actor. This mitigates the cognitive and data-scalability bottlenecks of monolithic models. By leveraging masked world modeling, the Imaginator provides probabilistic semantic layouts that enable the Actor to hedge against uncertainty and conduct efficient, directed searches. Experiments validate that the Imaginator universally boosts foundational MLLMs on HVS tasks. Despite its success, our framework relies on an open-loop execution paradigm where the Actor cannot provide feedback on the Imaginator’s generated priors. Future work will explore incorporating a Critic module to dynamically evaluate and correct hypotheses, enabling a fully closed-loop perception-action-evaluation workflow. 9References 
+
+Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr, Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds, et al. Flamingo: a visual language model for few-shot learning. Advances in neural information processing systems , 35:23716–23736, 2022. Mahmoud Assran, Quentin Duval, Ishan Misra, Piotr Bojanowski, Pascal Vincent, Michael Rabbat, Yann LeCun, and Nicolas Ballas. Self-supervised learning from images with a joint-embedding predictive architecture. In 
+
+Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 15619–15629, 2023. Alisson Azzolini, Junjie Bai, Hannah Brandon, Jiaxin Cao, Prithvijit Chattopadhyay, Huayu Chen, Jinju Chu, Yin Cui, Jenna Diamond, Yifan Ding, et al. Cosmos-reason1: From physical common sense to embodied reasoning. arXiv preprint arXiv:2503.15558 , 2025. Adrien Bardes, Quentin Garrido, Jean Ponce, Xinlei Chen, Michael Rabbat, Yann LeCun, Mahmoud Assran, and Nicolas Ballas. Revisiting feature prediction for learning visual representations from video. arXiv preprint arXiv:2404.08471 , 2024. Graham R Barnes. Vestibulo-ocular function during co-ordinated head and eye movements to acquire visual targets. The Journal of Physiology , 287(1):127–147, 1979. Albert E Bartz. Eye and head movements in peripheral vision: nature of compensatory eye movements. Science ,152(3729):1644–1645, 1966. Angel Chang, Angela Dai, Thomas Funkhouser, Maciej Halber, Matthias Niessner, Manolis Savva, Shuran Song, Andy Zeng, and Yinda Zhang. Matterport3d: Learning from rgb-d data in indoor environments. arXiv preprint arXiv:1709.06158 , 2017. Qixiang Chen, Cheng Zhang, Chi-Wing Fu, Jingwen Ye, and Jianfei Cai. Openview: Empowering mllms with out-of-view vqa. arXiv preprint arXiv:2512.18563 , 2025a. William Chen, Suneel Belkhale, Suvir Mirchandani, Oier Mees, Danny Driess, Karl Pertsch, and Sergey Levine. Training strategies for efficient embodied reasoning. arXiv preprint arXiv:2505.08243 , 2025b. Zhe Chen, Bin Fu, Junjun He, Yu Qiao, Dahua Lin, Limin Wang, Xizhou Zhu, Weijie Su, Jifeng Dai, Yinan He, and et al. Internvl3.5: Advancing open-source multimodal models in versatility, reasoning, and efficiency, 2025c. Haoran Feng, Dizhe Zhang, Xiangtai Li, Bo Du, and Lu Qi. Dit360: High-fidelity panoramic image generation via hybrid training. arXiv preprint arXiv:2510.11712 , 2025. Gemma Team, Aishwarya Kamath, Johan Ferret, Shreya Pathak, Nino Vieillard, Ramona Merhej, Sarah Perrin, Tatiana Matejovicova, Alexandre Ramé, Morgane Rivière, Louis Rouillard, and et al. Gemma 3 technical report, 2025. Qiao Gu, Ali Kuwajerwala, Sacha Morin, Krishna Murthy Jatavallabhula, Bipasha Sen, Aditya Agarwal, Corban Rivera, William Paul, Kirsty Ellis, Rama Chellappa, et al. Conceptgraphs: Open-vocabulary 3d scene graphs for perception and planning. In 2024 IEEE International Conference on Robotics and Automation (ICRA) ,pages 5021–5028. IEEE, 2024. Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. 
+
+arXiv preprint arXiv:2501.12948 , 2025. Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 16000–16009, 2022. Hai Huang, Yann LeCun, and Randall Balestriero. Llm-jepa: Large language models meet joint embedding predictive architectures. arXiv preprint arXiv:2509.14252 , 2025a. Yanjia Huang, Xianshun Jiang, Xiangbo Gao, Mingyang Wu, and Zhengzhong Tu. Vistav2: World imagination for indoor vision-and-language navigation. arXiv preprint arXiv:2512.00041 , 2025b. Yanjia Huang, Mingyang Wu, Renjie Li, and Zhengzhong Tu. Vista: Generative visual imagination for vision-and-language navigation. arXiv preprint arXiv:2505.07868 , 2025c. 
+
+10 Bowen Jin, Hansi Zeng, Zhenrui Yue, Jinsung Yoon, Sercan Arik, Dong Wang, Hamed Zamani, and Jiawei Han. Search-r1: Training llms to reason and leverage search engines with reinforcement learning. arXiv preprint arXiv:2503.09516 , 2025. Team Kimi, Angang Du, Bofei Gao, Bowei Xing, Changjiu Jiang, Cheng Chen, Cheng Li, Chenjun Xiao, Chenzhuang Du, Chonghua Liao, et al. Kimi k1. 5: Scaling reinforcement learning with llms. arXiv preprint arXiv:2501.12599 , 2025. Black Forest Labs, Stephen Batifol, Andreas Blattmann, Frederic Boesel, Saksham Consul, Cyril Diagne, Tim Dockhorn, Jack English, Zion English, Patrick Esser, et al. Flux. 1 kontext: Flow matching for in-context image generation and editing in latent space. arXiv preprint arXiv:2506.15742 , 2025. Xin Lai, Zhuotao Tian, Yukang Chen, Yanwei Li, Yuhui Yuan, Shu Liu, and Jiaya Jia. Lisa: Reasoning segmentation via large language model. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 9579–9589, 2024. Jeremy Lanman, Emilio Bizzi, and John Allum. The coordination of eye and head movement during smooth pursuit. Brain research , 153(1):39–53, 1978. Yann LeCun et al. A path towards autonomous machine intelligence version 0.9. 2, 2022-06-27. Open Review ,62(1):1–62, 2022. Geng Li, Jinglin Xu, Yunzhen Zhao, and Yuxin Peng. Dyfo: A training-free dynamic focus visual search for enhancing lmms in fine-grained visual understanding. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 9098–9108, 2025. Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi. Blip: Bootstrapping language-image pre-training for unified vision-language understanding and generation. In International Conference on Machine Learning ,pages 12888–12900. PMLR, 2022. Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. In NeurIPS , 2023. Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and Luc Van Gool. Repaint: Inpainting using denoising diffusion probabilistic models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11461–11471, 2022. David Marr. Vision: A computational investigation into the human representation and processing of visual information . MIT press, 2010. Aude Oliva, Antonio Torralba, Monica S Castelhano, and John M Henderson. Top-down control of visual attention in object detection. In Proceedings 2003 international conference on image processing (Cat. No. 03CH37429) , pages I–253. IEEE, 2003. Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. Sdxl: Improving latent diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952 , 2023. Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. Zero: Memory optimizations toward training trillion parameter models. In SC20: international conference for high performance computing, networking, storage and analysis , pages 1–16. IEEE, 2020. Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase, and Yuxiong He. Deepspeed: System optimizations enable training deep learning models with over 100 billion parameters. In Proceedings of the 26th ACM SIGKDD international conference on knowledge discovery & data mining , pages 3505–3506, 2020. Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10684–10695, 2022. Dorsa Sadigh, Arvind Neelakantan, Pranav Shyam, Noam Shazeer, Archit Sharma, Naman Goyal, Yossi Matias, Lawrence Chan, Zhe Chen, and et al. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities, 2025. Haozhan Shen, Kangjia Zhao, Tiancheng Zhao, Ruochen Xu, Zilun Zhang, Mingwei Zhu, and Jianwei Yin. Zoomeye: Enhancing multimodal llms with human-like zooming capabilities through tree-based image exploration. arXiv preprint arXiv:2411.16044 , 2024. Yichun Shi, Peng Wang, Jianglong Ye, Mai Long, Kejie Li, and Xiao Yang. Mvdream: Multi-view diffusion for 3d generation. arXiv preprint arXiv:2308.16512 , 2023. 
+
+11 Grayden JF Solman, Tom Foulsham, and Alan Kingstone. Eye and head movements are complementary in visual selection. Royal Society Open Science , 4(1):160569, 2017. Niklas Stein, Tamara Watson, Markus Lappe, Maren Westendorf, and Szonya Durant. Eye and head movements in visual search in the extended field of view. Scientific Reports , 14(1):8907, 2024. Shitao Tang, Fuyang Zhang, Jiacheng Chen, Peng Wang, and Yasutaka Furukawa. Mvdiffusion: Enabling holistic multi-view image generation with correspondence-aware diffusion. arXiv , 2023. Gemini Robotics Team, Saminda Abeyruwan, Joshua Ainslie, Jean-Baptiste Alayrac, Montserrat Gonzalez Arenas, Travis Armstrong, Ashwin Balakrishna, Robert Baruch, Maria Bauza, Michiel Blokzijl, et al. Gemini robotics: Bringing ai into the physical world. arXiv preprint arXiv:2503.20020 , 2025. Kimi Team. Kimi-vl technical report, 2025. Edward C Tolman. Cognitive maps in rats and men. Psychological review , 55(4):189, 1948. Antonio Torralba, Aude Oliva, Monica S Castelhano, and John M Henderson. Contextual guidance of eye movements and attention in real-world scenes: the role of global features in object search. Psychological review , 113(4):766, 2006. Haozhe Wang, Alex Su, Weiming Ren, Fangzhen Lin, and Wenhu Chen. Pixel reasoner: Incentivizing pixel-space reasoning with curiosity-driven reinforcement learning. arXiv preprint arXiv:2505.15966 , 2025. Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Ed H. Chi, F. Xia, Quoc Le, and Denny Zhou. Chain of thought prompting elicits reasoning in large language models. ArXiv , abs/2201.11903, 2022. Penghao Wu and Saining Xie. V*: Guided visual search as a core mechanism in multimodal llms. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 13084–13094, 2024. Jianxiong Xiao, Krista A Ehinger, Aude Oliva, and Antonio Torralba. Recognizing scene viewpoint using panoramic place representation. In 2012 IEEE conference on computer vision and pattern recognition , pages 2695–2702. IEEE, 2012. Yiheng Xu, Peng Wang, Hang Zhang, Pengfei Wang, Shuai Bai, Shijie Wang, Junyang Lin, Tianbao Xie, Yuanzhi Zhu, Zhibo Yang, and et al. Qwen2.5-vl technical report, 2025. An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, Chujie Zheng, Dayiheng Liu, Fan Zhou, Fei Huang, Feng Hu, Hao Ge, Haoran Wei, Huan Lin, Jialong Tang, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Yang, Jiaxi Yang, Jing Zhou, Jingren Zhou, Junyang Lin, Kai Dang, Keqin Bao, Kexin Yang, Le Yu, Lianghao Deng, Mei Li, Mingfeng Xue, Mingze Li, Pei Zhang, Peng Wang, Qin Zhu, Rui Men, Ruize Gao, Shixuan Liu, Shuang Luo, Tianhao Li, Tianyi Tang, Wenbiao Yin, Xingzhang Ren, Xinyu Wang, Xinyu Zhang, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yinger Zhang, Yu Wan, Yuqiong Liu, Zekun Wang, Zeyu Cui, Zhenru Zhang, Zhipeng Zhou, and Zihan Qiu. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. Heyang Yu, Yinan Han, Xiangyu Zhang, Baiqiao Yin, Bowen Chang, Xiangyu Han, Xinhao Liu, Jing Zhang, Marco Pavone, Chen Feng, et al. Thinking in 360 {\ deg }: Humanoid visual search in the wild. arXiv preprint arXiv:2511.20351 , 2025. Gregory Zelinsky, Wei Zhang, Bing Yu, Xin Chen, and Dimitris Samaras. The role of top-down and bottom-up processes in guiding eye movements during visual search. In Advances in neural information processing systems , 2005. Jingdong Zhang, Weikai Chen, Yuan Liu, Jionghao Wang, Zhengming Yu, Zhuowen Shen, Bo Yang, Wenping Wang, and Xin Li. Spgen: Spherical projection as consistent and flexible representation for single image 3d shape generation. In Proceedings of the SIGGRAPH Asia 2025 Conference Papers , pages 1–12, 2025a. Jingdong Zhang, Lingzhi Zhang, Qing Liu, Mang Tik Chiu, Connelly Barnes, Yizhou Wang, Haoran You, Xiaoyang Liu, Yuqian Zhou, Zhe Lin, et al. Uniser: A foundation model for unified soft effects removal. 
+
+arXiv preprint arXiv:2511.14183 , 2025b. Jingdong Zhang, Xiaohang Zhan, Lingzhi Zhang, Yizhou Wang, Zhengming Yu, Jionghao Wang, Wenping Wang, and Xin Li. Mtpano: Multi-task panoramic scene understanding via label-free integration of dense prediction priors. arXiv preprint arXiv:2602.05330 , 2026. Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In Proceedings of the IEEE/CVF international conference on computer vision , pages 3836–3847, 2023. Xintong Zhang, Zhi Gao, Bofei Zhang, Pengxiang Li, Xiaowen Zhang, Yang Liu, Tao Yuan, Yuwei Wu, Yunde Jia, Song-Chun Zhu, et al. Chain-of-focus: Adaptive visual search and zooming for multimodal reasoning via rl. arXiv preprint arXiv:2505.15436 , 2025c. 
+
+12 A Technical Appendices and Supplementary Material 
+
+A.1 More Details on Data Curation Dataset Distributions. To complement the main text, we provide a comprehensive breakdown of our automated data curation pipeline, the cleaning process for supervised fine-tuning (SFT), and the statistical distribution of the curated dataset. 
+
+Automated Pseudo-Label Pipeline. As discussed in the main paper, our massive training corpus of 
+
+∼1.92M samples is constructed without any manual trajectory annotations. The automated pipeline consists of three stages: 1. Scene Filter : We utilize Qwen3-VL-235B Yang et al. (2025) to classify and filter a mixed pool of unlabeled panoramas (including Sun360 Xiao et al. (2012), Matterport3D Chang et al. (2017), DiT360 generated Feng et al. (2025)). Approximately 20k high-quality panoramas are retained across indoor, transit, and urban categories. 2. Detection Labels : The teacher model proposes ∼20 semantically salient targets per scene, localizing each to an (x, y ) position in equirectangular coordinates. After token-level perplexity filtering and spatial deduplication, we obtain 5-15 high-confidence semantic anchors per panorama. 3. Trajectory Expansion : For each labeled panorama, we select 3 salient targets and syntheti-cally generate 24 narrow field-of-view (NFoV) trajectories (rendered at 960 × 720 , FOV= 100 ◦). Crucially, half of these (12 trajectories) are “target-avoiding” paths specifically designed so that all views remain distant from the target. This forces the model to imagine target locations from non-overlapping views. This deterministic expansion yields the final ∼1.92M single-step 
+
+[Observed] /[Imagined] SFT samples. 
+
+SFT Data Cleaning. For the final task alignment stage, we aggressively filter the raw H*Bench Yu et al. (2025) SFT annotations to ensure high-quality reasoning. We enforce a strict structural requirement: a training sample is retained if and only if its response contains both an [Observed] 
+
+and an [Imagined] block, since some of the cases lack raw panoramas, so the intermediate structured layouts are also absent and replies degenerate into a simple spatial guess (e.g., just outputting suggest check(yaw, pitch) ), as they would teach the model to guess rather than explicitly model the space. This rigorous cleaning process retains 2,100 HOS samples (73.8% retention) and 2,148 HPS samples (81.0% retention), forming a highly curated alignment corpus of 4,248 samples. Figure 7 illustrates the diversity and semantic richness of our curated dataset. As shown in Fig. 7(a) and (b), the dataset covers a highly diverse distribution of environments ranging from indoor domains (e.g., modern living rooms, luxury bedroom suites) to outdoor areas (e.g., city square plazas), accommodating a wide array of corresponding navigation instructions. Furthermore, Fig. 7(c-e) detail the semantic composition of the spatial layouts. Notably, “Architectural Elements” (26.2%) and “Doors & Entrances” (16.2%) dominate the [Imagined] categories (Fig. 7c). This inherently aligns with the cognitive requirements of our task: architectural features and doors serve as critical structural anchors for extrapolating the layout of unseen regions. Similarly, “Doors & Entrances” and “Objects” constitute large portions (29.1% and 21.5%) of the search targets (Fig. 7e), accurately reflecting the object/path-finding and navigational nature of practical HVS applications. 
+
+A.2 More Details on Training and Inference 
+
+In this section, we provide extended implementation details regarding the two-stage training of the Imaginator, the pixel imagination baseline model, and the inference-time sampling strategy. 
+
+Imaginator Optimization. The Imaginator is initialized from Qwen3-VL-8B-Instruct Yang et al. (2025) and optimized via full-parameter supervised fine-tuning (SFT). We utilize the AdamW optimizer with a learning rate of 1 × 10 −5, a cosine decay schedule, and a 3% linear warmup. To ensure training stability and memory efficiency, we employ DeepSpeed Rasley et al. (2020) ZeRO Rajbhandari et al. (2020) Stage 2 with gradient sharding and BF16 mixed precision. • Stage 1 (Pseudo-pretraining) : The model is trained on the ∼1.92M synthetic sample corpus for 1 epoch. We use a global batch size of 192 (8 GPUs × 6 per-device × 4 gradient accumulation). 13 Figure 7: Overview of the Curated Training Dataset. (a) Fine-grained scene category distribution. (b) Distribution of target-search instructions. (c-e) Semantic category distributions for Imagined entities, Observed entities, and Search Targets, respectively. • Stage 2 (Clean-data SFT) : The pseudo-pretrained checkpoints are fine-tuned on the curated H*Bench set ( ∼4,248 samples) for 2 epochs to compensate for the smaller corpus size. The global batch size is adjusted to 8. Input images are resized to a maximum of 921,600 pixels (1280 ×720), and sequences are truncated at 8,192 tokens, which covers the 99th-percentile length of our structured layouts. 
+
+Pixel Imagination Baseline. With the rapid development of diffusion-based generative models Lug-mayr et al. (2022); Rombach et al. (2022); Zhang et al. (2023); Podell et al. (2023); Zhang et al. (2025b), effective generative priors are gained by pretraining on billions of images representing the world’s knowledge. To evaluate alternative representation spaces in our ablation study, we implemented a pixel-level imagination baseline using a panoramic outpainting model. Built upon 
+
+FLUX.1-Fill-dev Labs et al. (2025), the model is adapted via LoRA fine-tuning (rank 64, α = 64 )and initialized from the DiT360 Feng et al. (2025) generation checkpoint, which provides strong equirectangular geometry priors. At each step, this model out-paints the unobserved regions con-ditioned on the accumulated NFoV observations to generate a complete panorama. It is optimized using a masked flow-matching MSE loss to ensure gradients flow exclusively through the generated unknown regions: 
+
+L =
+
+P[w(σ) · ∥ vpred − vtarget ∥2 · Munknown ]
+
+|Munknown | · C (5) 14 Table 3: Full Results on H*Bench. We report the Success Rate (%) across various Vision-Language Model families. ‘ ×’ denotes the baseline Actor relying solely on its internal CoT. ‘ ✓’ indicates the Actor plugged in with our Imaginator’s spatial priors.                                                                                                                                                                                                                                                                                                             
+
+> Actor Imaginator Humanoid Object Search Humanoid Path Search Family Params Overall Easy Medium Hard Overall Easy Medium Hard Extreme
+> Open-Source Models
+> Qwen2.5-VL 3B ×21.17 18.54 16.48 22.68 7.69 9.20 9.65 3.50 8.33
+> ✓49.54 59.19 51.70 45.62 25.94 34.80 22.15 24.77 15.74 7B ×12.79 31.22 7.39 6.34 9.88 12.20 11.18 7.24 6.94
+> ✓57.42 70.73 51.70 52.95 28.38 35.20 24.34 29.44 18.98 32B ×32.08 50.57 27.84 25.48 17.56 21.80 15.35 19.39 8.80
+> ✓41.12 66.34 36.36 32.01 21.12 25.60 19.74 21.26 13.43 72B ×29.54 36.91 21.59 27.59 12.94 17.40 9.21 15.65 5.09
+> ✓62.25 70.08 60.80 59.42 38.19 45.00 36.18 39.25 24.54 Qwen3-VL 30B-A3B ×24.96 54.63 30.11 13.05 8.44 11.40 7.24 8.88 3.24
+> ✓56.67 74.15 55.68 50.09 30.94 41.80 26.32 30.14 17.13 32B ×34.38 66.83 36.36 21.75 23.19 26.00 24.78 22.43 14.81
+> ✓57.46 73.98 51.70 51.77 31.31 37.60 30.04 30.14 21.76 235B ×23.62 57.24 26.70 10.44 21.44 26.80 19.96 23.36 8.33
+> ✓65.04 81.46 60.23 59.29 38.25 46.60 35.31 37.15 27.31 Gemma-3 4B ×18.17 41.79 25.57 8.33 14.50 17.80 16.67 10.98 9.26
+> ✓57.75 72.03 60.23 52.02 35.06 43.80 27.41 36.45 28.24 12B ×22.88 54.96 32.39 9.57 15.31 16.80 16.23 14.49 11.57
+> ✓54.62 63.90 48.86 51.71 33.56 43.00 30.04 32.24 21.76 Kimi-VL A3B ×4.33 12.36 0.57 1.68 5.62 7.20 6.80 2.34 6.02
+> ✓32.46 40.00 27.84 30.08 21.00 28.20 16.89 21.96 11.11 InternVL3.5 4B ×10.00 14.80 13.07 7.83 8.62 12.80 9.43 6.31 1.85
+> ✓62.42 69.59 62.50 59.66 34.75 44.80 28.95 35.51 22.22 8B ×11.04 23.74 6.25 6.71 7.06 9.60 6.80 6.31 3.24
+> ✓66.33 76.10 68.18 62.40 38.38 50.60 28.73 39.95 27.31
+> Proprietary Models
+> Gemini-2.5 Flash ×43.70 79.50 59.70 28.30 27.70 35.80 22.60 31.30 12.50
+> ✓63.20 86.30 69.30 53.70 37.70 50.20 30.30 42.30 15.30 Pro ×55.00 88.00 62.50 41.60 37.90 43.80 36.40 40.70 21.80
+> ✓66.10 89.60 68.80 56.80 43.10 51.00 39.90 48.80 20.40
+> Finetuned Models
+> HVS 3B ×48.04 61.79 26.14 45.18 24.12 36.60 17.76 22.66 11.57
+> ✓62.75 75.77 64.20 57.61 39.38 49.40 32.89 41.12 26.39
+
+where Munknown represents the mask of the unobserved regions. Training is conducted for 10,000 steps with an AdamW optimizer ( lr = 2 × 10 −5) on a multi-source panorama corpus from Zhang et al. (2026). In the inference cycle, once the agent receives a partial panoramic canvas built from current NFoV views (containing both explored and masked unknown regions), the pixel imagination model executes a 30-step diffusion process via the finetuned DiT360 to outpaint the unobserved areas, which are then blended with the original known regions to ensure visual consistency. The HVS agent subsequently perceives both the original partial observation and the completed reference panorama to guide its next action. 
+
+Inference-time Sampling Strategy. During the Humanoid Visual Search process, the Imaginator captures spatial uncertainty through a temperature-decay sampling schedule. At each step t, we sample N spatial hypotheses where the temperature Tt follows: 
+
+Tt = T1 · γ(t−1) (6) We set the initial temperature T1 = 0 .7 and the decay factor γ = 0 .85 . This decay schedule ensures that the agent explores diverse spatial possibilities in the early stages of search (high T ) and transitions to focused exploitation (low T ) as visual evidence accumulates. All suggestions are filtered via top-k
+
+logit sampling ( k = 50 ) to maintain semantic coherence. We use this temperature sampling strategy in the first 3 steps since uncertain search mostly happens at the beginning stage, with the observation gaining, the uncertainty quickly drops and converges to the target. 15 Figure 8: Qualitative search trajectories in synthetic panoramas. Evaluated in complex indoor and outdoor environments generated by GPT-Image and Gemini 3.1-Pro. The step-by-step imagination distributions (heatmaps) demonstrate how the framework progressively refines its spatial hypotheses as new visual evidence is gathered, effectively guiding both HOS and HPS tasks. 
+
+A.3 More Quantitative Comparisons 
+
+To provide a comprehensive evaluation of our proposed framework, Table 3 details the full quantitative results on the H*Bench Yu et al. (2025) dataset, expanding upon the main paper by including a wider array of model families (such as InternVL3.5 Chen et al. (2025c) and Qwen3-VL-30B-A3B) and breaking down the success rates across all difficulty tiers (Easy, Medium, Hard, and Extreme). 
+
+Universal Boosting Across Model Scales. The most prominent takeaway from Table 3 is the universal applicability of the Imaginator’s spatial priors. As a plug-and-play context provider, it drastically enhances the search capabilities of open-source models regardless of their parameter size. For instance, the InternVL3.5 family exhibits staggering improvements: the 8B model jumps from a mere 11.04% to 66.33% on Humanoid Object Search (HOS), and from 7.06% to 38.38% on Humanoid Path Search (HPS). Similar transformative gains are observed across the Qwen2.5-VL, Qwen3-VL, and Gemma-3 families. This proves that explicit 3D spatial modeling effectively bridges the capability gap for smaller or less embodied-aligned models. 16 Figure 9: Qualitative search trajectories in real-world panoramas. Evaluated in diverse, in-the-wild Google Street View environments. The decoupled pipeline demonstrates strong zero-shot robustness in unstructured outdoor scenes (e.g., ski resorts, bustling city streets, and suburban neighborhoods), efficiently narrowing down target locations. 
+
+Efficacy on State-of-the-Art Proprietary Models. While cutting-edge proprietary models like Gemini-2.5 Pro exhibit strong baseline performance relying on their massive internal world knowledge (e.g., 55.00% on HOS), they are not immune to the cognitive burdens of monolithic 360 ◦ reasoning. By integrating our Imaginator, Gemini-2.5 Pro reaches 66.10% on HOS and 43.10% on HPS. Furthermore, Gemini-2.5 Flash sees a massive +19.5% absolute improvement on HOS (43.70% →
+
+63.20%), highlighting that explicit spatial hypotheses are crucial even for highly advanced multimodal systems. 
+
+Surpassing Task-Specific RL Models. Our framework’s superiority is further solidified when evaluated alongside HVS-3B, a model specifically fine-tuned with Reinforcement Learning (RL) for this exact task. A standalone HVS-3B achieves 48.04% on HOS. However, when deployed as the 17 Actor within our decoupled pipeline, its performance surges to 62.75%. This indicates that forcing a single model to simultaneously imagine layouts and plan actions imposes a fundamental ceiling—one that can be broken by explicitly decoupling the probabilistic spatial priors. 
+
+Robustness in Extreme Environments. The difficulty breakdown in Table 3 reveals that the baseline Actor models degrade rapidly as the environments become more complex (Hard and Extreme subsets). Without the Imaginator, most open-source models fall below 10% success rate in Extreme HPS scenarios, often succumbing to blind 360 ◦ sweeping. In contrast, the joint pipeline maintains remarkable robustness, frequently tripling or quadrupling the success rates in these highly occluded and challenging conditions. 
+
+A.4 More Qualitative Visualizations 
+
+To further demonstrate the robustness and generalizability of our decoupled framework, we provide additional step-by-step search trajectories in highly complex, out-of-distribution (OOD) environments across both Humanoid Object Search (HOS) and Humanoid Path Search (HPS) tasks. 
+
+Search in Synthetic Environments. Figure 8 showcases the agent’s performance in panoramic environments synthesized by state-of-the-art generative models, including GPT-Image and Gemini 3.1-Pro. These scenes feature densely packed indoor rooms (e.g., offices with cluttered desks) and busy outdoor hubs (e.g., city intersections, airport terminals). Despite the unconventional layouts or minor artifacts inherent to AI-generated images, the Imaginator successfully captures the structural semantics of the unobserved regions. As the agent accumulates Narrow Field-of-View (NFoV) observations step-by-step, the imagination distribution (shown as predictive heatmaps) progressively narrows, eliminating spatial uncertainty and efficiently guiding the Actor toward the targets (e.g., locating a wall-mounted clock or the pathway to flight LH496). 
+
+Search in Real-World Environments. Figure 9 illustrates search trajectories in unstructured, real-world panoramas sampled directly from Google Street View. These environments present significant navigational challenges due to their vast scales, dynamic elements (e.g., pedestrians, skiers), and extreme topological diversity, ranging from snowy mountain resorts to historic European plazas. Nevertheless, the Imaginator consistently generates logical spatial priors. For instance, when tasked with locating the “Big Ben Tower” or determining the path to “enter the church,” the model effectively leverages early architectural cues to hypothesize the target’s location. This allows the agent to lock onto the correct trajectory within just 2 to 4 steps, completely avoiding redundant 360 ◦ sweeping. 
+
+A.5 Social Impacts 
+
+The proposed framework for Humanoid Visual Search ( HVS ) has significant potential for positive social impact, particularly in enhancing the autonomy of service robots and search-and-rescue agents in complex, unstructured environments. By improving search efficiency and robustness, our approach can facilitate more reliable assistance in household chores, elderly care, and emergency response, ultimately improving quality of life and operational safety. However, we also acknowledge potential ethical considerations. The deployment of active 360 ◦
+
+perception systems may raise privacy concerns regarding data collection in residential or public spaces. Furthermore, like any advanced vision-action system, there is a risk of misuse in unauthorized surveillance applications. We encourage the research community to prioritize privacy-preserving mechanisms and adhere to strict ethical guidelines in future embodied AI deployments. 
+
+A.6 Acknowledgement 
+
+The authors want to thank Zekai Shao for his constructive suggestions. 18
