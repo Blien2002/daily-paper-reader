@@ -1,0 +1,283 @@
+Title: KaRMA: A Kinematic Metric for Fine Manipulation Ability in Robotic Hands
+
+URL Source: https://arxiv.org/pdf/2605.15548v1
+
+Published Time: Mon, 18 May 2026 00:26:01 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# A Kinematic Metric for Fine Manipulation Ability in Robotic Hands 
+
+Martin Peticco and Pulkit Agrawal 
+
+Abstract — Traditional robotic hand metrics focus on static properties such as workspace, manipulability, and grasp stabil-ity. However, these metrics do not directly measure dexterity under the standard definition in robotic manipulation: the ability to continuously change an object’s pose within the hand while maintaining contact from an initial grasp. We introduce 
+
+Kinematic Rolling Manipulation Ability (KaRMA), a kinematic-only metric for fine manipulation that quantifies reachable in-hand translation and reorientation of a spherical test object within a two-finger precision pinch through feasible rolling motions. KaRMA enforces joint limits, collision constraints, rolling contact, and antipodal force feasibility, then explores reachable in-hand object poses via breadth-first search over translation and rotation primitives. KaRMA reports three scores: translational coverage (KaRMA-T), rotational coverage (KaRMA-R), and sensitivity to the initial grasp (KaRMA-S). We evaluate KaRMA on 16 widely used robotic hands and compare against static baselines, showing that KaRMA separates hands that rank identically under static proxies, reveals translation– rotation tradeoffs invisible to existing baselines, and is qualita-tively consistent with selected published task benchmarks where Jacobian-based metrics can be misleading. 
+
+I. I NTRODUCTION 
+
+A significant number of robotic hands and similar dexter-ous end-effectors have been presented in the past few years from both industry and academia, targeting fine manipulation and assembly tasks. Hand selection and design decisions are largely guided by simple proxies such as joint count and degrees of freedom (DOFs), which do not fully describe ma-nipulation capability. For procurement and design iteration, it is useful to have an objective, model-based score that can be computed directly from a hand’s kinematics. Robotic manipulation literature often describes dexterity as the ability to continuously change an object’s pose while maintaining contact from an initial grasp [1], [2], [3]. Some metrics attempt to capture this, such as thumb opposition, fingertip workspace, or local manipulability [4], [5], [6]. However, they do not directly quantify a hand’s ability to change object pose through a continuous sequence of in-hand motions while maintaining contact from an initial grasp. One could argue that a robot can simply reorient its end effector using its arm, or set down the object being manipulated to regrasp it in a new pose. However, this means giving up the last-mile precision that a dexterous end-effector affords for precision tasks [7]. Regrasping also increases task horizon by introducing extra steps, and many objects are not feasible to pick up immediately in a desired pose without fixtures [8]. This matters in precision tasks such as assembly with small parts, fine reorientation during bin picking, or  
+
+> The authors are with the Improbable AI Lab, Massachusetts Institute of Technology.
+
+{mpeticco, pulkitag }@mit.edu 
+
+manipulating everyday objects in assistive settings. Thus, it is important to have a way to quantify a robot hand’s ability to perform fine object translation and reorientation. This paper introduces Kinematic Rolling Manipulation Ability (KaRMA), a kinematic metric for measuring fine manipulation capability of a robotic hand based off its kine-matic model. KaRMA measures the reachable set of object translations and orientations for a small spherical test object in a precision pinch under rolling contact without regrasping or finger gaiting. The metric reports (i) a translational score, (ii) a rotational score, and (iii) a score that summarizes sensitivity to the initial pinch grasp. KaRMA is intended as a kinematics-only comparison tool for hand procurement and kinematic design iteration, not as a general grasp planner or a task benchmark. The contributions of this paper are: 1) A kinematics-only dexterity metric based on reachabil-ity of in-hand object pose changes under rolling contact in a two-finger pinch. 2) A practical computation procedure that evaluates trans-lational ability, rotational ability, and seed robustness from a hand kinematic model under standardized con-straints, including coupled joints. 3) An evaluation of KaRMA across a set of widely used robot hands with comparisons to common baselines. II. R ELATED WORK 
+
+A. Robotic hand evaluation via kinematic proxies 
+
+People often use simple quantitative descriptors such as DOF count and joint count to compare robot hands. Beyond this, kinematics-based proxies exist as well, such as the Kapandji score, which measures touching the thumb to different points on the hand [9]. Another such proxy is the measure of workspace volume for individual fingers [10], which was built upon in Mouri et al.’s paper on the design of the GIFU Hand III, optimizing its design based on the inter-section volume between the fingertip and thumb workspace volumes [11]. You et al.’s “Interactivity of Fingers” extends this by measuring the intersection of multiple fingers [6]. Finally, local manipulability metrics such as the Yoshikawa index [5] are commonly used in grasp quality analysis. These measures are useful for individual grasps and local configurations, but they do not directly quantify how much an object can be repositioned and reoriented within a grasp, per the commonly accepted definition of dexterity. 
+
+B. Benchmarks and Task Suites 
+
+Some benchmarks exist to directly capture object-centric in-hand capabilities through prescribed tasks and success criteria, such as the Elliott–Connolly benchmark [12], the  
+
+> arXiv:2605.15548v1 [cs.RO] 15 May 2026 Fig. 1. Overview of the KaRMA metric pipeline.
+
+Asterisk Test for two-finger translation [13], and planar ro-tation benchmarks [14]. More broadly, other general manip-ulation benchmarks involve performing a suite of tasks, often with learning-based methods, such as the Adroit dexterous manipulation suite [15]. These benchmarks are useful for evaluating a full system, but their outcomes depend heavily on controllers, sensing, and training choices, making them less suitable for objectively comparing hand kinematics. 
+
+C. Rolling contact formulation for robotic manipulation 
+
+A natural way to isolate kinematics while still being object-based is to model in-hand manipulation through con-tact kinematics. Rolling-contact formulations exist that relate joint motion, contact motion, and object motion [16], which have been extended for use in dexterous motion genera-tion and analysis. This has included classic rolling-based manipulation formulations and “dexterous gripper” designs that exploit rolling effects [17], [3]. More recent work prioritizes practical optimization or graph search methods for motion generation [18], [19]. These formulations provide the modeling basis needed to define an objective, contact-constrained measure of in-hand object pose change from a kinematic hand model. These works motivate a metric that goes beyond simple kinematic proxies, is less sensitive to system-level integration details, and measures realistic in-hand object pose manipu-lation via rolling contact constraints. KaRMA is proposed as a standardized kinematics-only score for thumb–index rolling-pinch manipulation, intended to complement rather than replace full task benchmarks. III. K ARMA M ETRIC DEFINITION 
+
+This section defines what KaRMA measures and what it reports. Details about computation are in Section IV. A summary of the metric is seen in Fig. 1. 
+
+A. Scope and Assumptions 
+
+KaRMA evaluates a two-finger precision pinch between the thumb and index finger on a small spherical test object under rolling contact and without regrasping or finger gaiting. 
+
+Two-finger precision pinch. Thumb-index pinch is the most common grasp in fine manipulation and a lower-bound case for maintained-contact in-hand motion [20], [3], [13]. We use it as a standardized lower bound, and extension to other finger pairs or multi-finger grasps is future work. 
+
+Spherical test object. A sphere removes object-specific edge and corner effects, making the comparison object-agnostic and focused on rolling dexterity [21]. 
+
+Rolling contact, no regrasp. Maintained contact isolates kinematic in-hand capability and avoids dependence on con-troller design, gravity, or object geometry [1], [3]. 
+
+Kinematics only. KaRMA uses the hand kinematics only and is meant as a comparison tool, not to predict task success. 
+
+B. Standardized Evaluation via Lref Scaling 
+
+To make scores comparable across hand sizes and re-producible from a URDF, KaRMA non-dimensionalizes all length parameters (sphere radius, voxel size, tolerances) by scaling them with a characteristic length Lref . We compute 
+
+Lref from the URDF as Lref = mxPr + mF, where mxPr is the maximum pairwise distance between finger knuckle joint origins (the first non-mimic revolute joint in each finger chain), and mF is the median knuckle-to-tip chain length (sum of link lengths along each chain). The sum captures both palm spread and finger reach, the two geometric fac-tors that bound the envelope of feasible pinch locations. Parameters are defined at nominal Lref = 200 mm and then scaled by Lref /200 mm . Dimensionless parameters (friction coefficient, HEALPix resolution, BFS budget) are not scaled. 
+
+C. Twist-Invariant Formulation 
+
+In a two-finger pinch, rotation about the axis connecting the two contacts is uncontrollable (see Fig. 2). We factor out this DOF by tracking the pinch-axis direction in the sphere’s body frame. Since flipping the axis gives the same physical pinch, opposite directions are equivalent, leaving a two-dimensional orientation representation. We discretize this space using HEALPix [22], which par-titions S2 into equal-area bins. With nside = 6 and antipodal identification, this yields Nbin = 6 n2side + 2 nside = 228 bins at approximately 10 ◦ resolution. Equal-area bins make the coverage fraction less sensitive to discretization bias across orientation space. 
+
+D. Reported Scores 
+
+Given a kinematic model, KaRMA computes the reachable set of object translations and orientations from an initial feasible seed pinch configuration under rolling contact. Three scores are reported: 1) KaRMA-T (Translational Ability): The reachable set of sphere center positions is discretized on a voxel grid aligned with the principal directions of the seed configura-tion’s manipulability ellipsoid. The translational score is the dimensionless ratio: KaRMA-T = nvoxels · h3
+
+L3ref 
+
+(1) where nvoxels is the number of reached voxels and h is the (scaled) voxel edge length. This can be interpreted as the fraction of an Lref -sided cube occupied by the reachable in-hand workspace. To reduce seed noise, the reported score is the mean of the top 3 seed configurations. Sensitivity to the seed is captured separately by KaRMA-S. 
+
+2) KaRMA-R (Rotational Ability): For each reached voxel, the fraction of the 228 orientation bins visited is recorded. KaRMA-R is the mean rotation coverage of the five best voxels: KaRMA-R = 1
+
+|V 5|
+
+X 
+
+> v∈ V 5
+
+|B (v)|
+
+Nbin 
+
+(2) where V5 is the set of the five reached voxels with highest orientation coverage and B(v) is the set of orientation bins reached at voxel v. We average over the top five rather than reporting a single-voxel maximum to reduce sensitivity to outlier voxels, while still focusing on the best region of the translational workspace. The score is averaged across the top 3 seeds, like KaRMA-T. 
+
+3) KaRMA-S (Initial Grasp Sensitivity): KaRMA-S mea-sures sensitivity to the initial grasp configuration. Each feasible seed is evaluated for its translational score, and KaRMA-S is the ratio of the median to the best: KaRMA-S = KaRMA-T median 
+
+KaRMA-T best 
+
+(3) Intuitively, a KaRMA-S near 1 means most seeds perform similarly to the best seed, and near 0 means high perfor-mance is concentrated in specific configurations. KaRMA-S is defined by translational scores rather than rotational scores because translational reachability is more sensitive to the initial grasp, as different seeds produce different frontier voxels, directly affecting KaRMA-T. In contrast, KaRMA-R averages the top-five voxels’ rotational coverage, and a seed that reaches even a few well-positioned voxels can still achieve high rotational coverage. Translational sensitivity is therefore a more conservative and informative robustness indicator. Note that KaRMA-S should always be interpreted jointly with KaRMA-T, as a high KaRMA-S with a low KaRMA-T means the hand uniformly lacks dexterity (as with very low-DOF hands). IV. F ULL METRIC COMPUTATION 
+
+This section describes how KaRMA is computed from a hand kinematic model. The pipeline has three stages: seed selection (IV-D), two-phase BFS (IV-E), and scoring (IV-F). All constraints are checked at every BFS step. See Fig. 2 for the setup.  
+
+> Fig. 2. Schematic of the pinch grasp setup, including finger links, sphere, contact normals, BFS primitives, and pinch axis. ARMS model shown.
+
+A. Contact Geometry 
+
+Each finger link is modeled as a capsule (cylinder with hemispherical caps) of fixed radius rℓ, and the manipulated object is a sphere of radius rs. Contact between a capsule and the sphere is checked using the distance from the sphere center p to the closest point c on the capsule axis segment: 
+
+g = ∥p − c∥ − rs − rℓ (4) where g is the signed contact gap. A contact is maintained when |g| ≤ ϵg , and the outward unit normal at contact is 
+
+ˆn = ( p − c)/ ∥p − c∥. At each BFS step, the contact pair is selected as the closest thumb link and closest index link to the sphere center, so the contacting link pair may change during BFS. For rolling constraints, we use the contact-point surface velocity Jacobian induced by joint motion and sphere rotation. 
+
+B. Feasibility Constraints for Candidates 
+
+Contact gap: both contacts |gi| ≤ ϵg after projection. 
+
+Joint limits: satisfy URDF bounds q− 
+
+> j
+
+≤ qj ≤ q+ 
+
+> j
+
+.
+
+Collision avoidance: the sphere does not penetrate any non-contact link capsule ( d − rs − rℓ ≥ ϵcol ), and thumb– index self-collisions satisfy a segment–segment distance of at least 2rℓ + ϵcol for all capsule pairs. 
+
+Antipodal grasp feasibility: contact normals satisfy a friction-cone force-closure test. For friction coefficient μ,feasibility requires cos( ∠(− ˆn0, ˆn1)) ≥ cos(2 arctan μ).
+
+C. Rolling Contact QP 
+
+Each BFS primitive solves a quadratic program (QP) for a local joint displacement ∆q that approximately achieves either a target sphere translation ∆p or a target rotation 
+
+∆θtarget while maintaining locally rolling-consistent contact motion. For translation primitives, we optimize over x =[∆ q⊤, ∆θ⊤]⊤ and penalize deviation from ideal rolling (computed geometrically from ∆p) alongside regularization: 
+
+min  
+
+> x
+
+∥Mx − b∥2 + λθ ∥∆θ − ∆θ∗∥2 + λr ∥∆q∥2 (5) where M encodes the linearized rolling constraints at both contacts and b encodes the desired contact point motion induced by ∆p. Rotation primitives are solved similarly with ∆p = 0 , targeting ∆θtarget while maintaining rolling-consistent surface motion. Both QPs enforce joint step limits 
+
+|∆qj | ≤ ∆qmax , joint position limits, and linearized gap constraints. Each voxel move is integrated using fixed sub-steps to maintain linearization accuracy, and a brief projec-tion step re-closes residual contact gap. QPs are solved with OSQP [23]. KaRMA therefore approximates the reachable set under rolling contact through repeated local linearized steps rather than solving an exact global contact-kinematics problem in one shot. 
+
+D. Seed Selection 
+
+The seed is the initial feasible thumb–index pinch con-figuration from which BFS starts. We deterministically gen-erate candidate joint configurations using a fixed union of Sobol quasi-random samples, per-joint linspace sweeps, and uniform pseudo-random draws with a fixed seed. For each candidate, we propose a sphere center near the thumb– index contact midpoint (with small offsets) and project onto the two-contact manifold using a nonlinear least-squares IK solve with backtracking. Feasible seeds are then option-ally polished by moving toward joint-range center in the nullspace of Jobj = 12 (Jsurf  
+
+> v, 0
+
++ Jsurf  
+
+> v, 1
+
+). All feasible seeds are evaluated with the full translational BFS. The voxel grid is aligned with the seed configuration’s manipulability ellipsoid: Rseed is formed from the eigenvec-tors of Jobj J⊤ 
+
+> obj
+
+(ordered by descending eigenvalue), with a deterministic sign convention and right-handedness enforced. 
+
+E. Two-Phase BFS 
+
+KaRMA uses a two-phase breadth-first search. 
+
+Phase 1 (translation): starting from the seed, BFS ex-pands over voxels using six translation primitives ( ± along each principal axis of the seed configuration). Each candidate step solves the rolling QP, applies projection, and checks all feasibility constraints. The search terminates when the frontier is exhausted or the state budget is reached. 
+
+Phase 2 (rotation): for each voxel discovered in Phase 1, local rotational primitives about the two controllable axes are explored to record reached HEALPix bins. KaRMA-R is computed from the mean orientation coverage of the five best voxels. 
+
+F. Scoring 
+
+After the BFS completes, KaRMA is computed as in Section III-D. V. E XPERIMENTAL SETUP 
+
+A. Hands Evaluated 
+
+We evaluate 16 hands: Ability, Allegro, D-Claw, Unitree Dex3, Unitree Dex5, Inspire, LEAP, ORCA, Sharpa, Shadow, Schunk SVH, Wuji, XHand1, XHand Lite, plus skeletal models from ARMS and DLR [24], [25]. The set spans low to high DOF, compact to large designs, and includes non-anthropomorphic morphology. 
+
+B. Default Parameters 
+
+All evaluations use a sphere radius of 10 mm (at nominal 
+
+Lref = 200 mm ), voxel size h = 10 mm , friction coefficient 
+
+μ = 0 .6, HEALPix nside = 6 (228 orientation bins at ≈10 ◦
+
+resolution), and a BFS budget of 10 ,000 states. Contact, collision, and step-size tolerances are fixed across hands and scaled with Lref /200 mm as described in Section III-B; dimensionless parameters (friction, HEALPix resolution, BFS budget) are not scaled. 
+
+C. Baselines 
+
+We compare KaRMA against kinematic proxies computed on the thumb and index chains. Coupled / mimic joints are taken into account everywhere. 
+
+DOF count: number of controllable joints. 
+
+Total joint range: sum of joint ranges (upper minus lower limit, in radians) over active thumb–index joints. 
+
+Workspace volume: convex hull volume of the fingertip workspace from 65,536 Sobol samples per finger, normalized by L3ref . Fingers with ≤ 2 DOF produce planar workspaces with zero 3D volume, making this baseline uninformative. 
+
+Workspace intersection (opposability): volume of in-tersection of the thumb and index fingertip convex hulls, normalized by L3ref [11], [6]. 
+
+Yoshikawa manipulability: mean manipulability of the combined thumb–index Jacobian over the same samples [5]. 
+
+Global conditioning index (GCI): mean of σmin /σ max 
+
+over the samples, excluding near-singular configurations. 
+
+D. Robustness and Sensitivity Experiments 
+
+We validate KaRMA on five representative hands across the observed score range: LEAP (8 DOF, highest T), Shadow (9 DOF, highest DOF), xHand1 (6 DOF, mid-range), Dex3 (5 DOF, low T and DOF), and Inspire (3 DOF, lowest T). All experiments use a reduced BFS budget of 1,000 states. 
+
+Invariance. Test translation (four offsets), rotation (four rotations), and scale ( 0.5× and 2× URDF scaling). 
+
+Parameter sensitivity. Independently perturb link lengths (±1% , ±2% ), joint limits ( ±1°, ±3°), sphere radius ( ±2% ,
+
+±5% ), and capsule radius ( ±2% , ±5% ), and report the maximum absolute and relative change in KaRMA-T and KaRMA-R. 
+
+Determinism. Verify bit-for-bit reproducibility over three identical runs. VI. R ESULTS 
+
+A. KaRMA Scores 
+
+Table I reports KaRMA-T, KaRMA-R, and KaRMA-S for all 16 hands alongside kinematic baselines. KaRMA-T spans three orders of magnitude, from 0.098 (LEAP) to 0.0003 (Ability), providing substantially more dynamic range than DOF count (3–9) or GCI (0.08–0.38) for discriminating between hands. The top five hands all achieve KaRMA-T > 0.02 , whereas the bottom five are all below 0.003. Fig. 3 shows two interesting examples, with Allegro having more uniform rotation ability compared to Sharpa. This is a property that other metrics do not capture. TABLE I KARMA SCORES AND SELECTED KINEMATIC BASELINES FOR ALL 16 HANDS , SORTED BY KARMA-T. W ORKSPACE (WS) OVERLAP IS NORMALIZED BY L3ref . H ANDS WITH ≤ 2 INDEX DOF HAVE ZERO 3D FINGERTIP WORKSPACE INTERSECTION (†). Hand DOF Lref Tot. Range Thumb WS Oppos. Yoshikawa GCI KaRMA-T KaRMA-R KaRMA-S 
+
+(mm) (rad) /L 3ref /L 3ref (combined) (combined) LEAP 8 249.4 21.11 0.683 0.230 6.32e-8 0.102 0.098 0.295 0.44 Allegro 8 222.5 12.59 0.221 0.053 9.87e-8 0.151 0.053 0.337 0.53 D’Claw 6 327.2 16.25 0.315 0.117 2.60e-7 0.083 0.036 0.238 0.12 Sharpa 9 188.3 12.74 0.283 0.070 4.34e-8 0.150 0.032 0.224 0.40 Wuji 8 176.6 13.21 0.210 0.057 1.62e-8 0.117 0.028 0.235 0.44 Shadow 9 184.8 12.64 0.178 0.033 1.00e-8 0.107 0.013 0.161 0.19 ARMS 8 171.3 11.17 0.106 0.017 8.52e-9 0.115 0.011 0.148 0.37 DLR 9 204.5 14.15 0.176 0.012 1.18e-8 0.082 0.008 0.156 0.39 Dex5 8 185.9 11.91 0.354 0.036 9.86e-9 0.112 0.008 0.158 0.24 Dex3 † 5 155.3 8.80 0.308 0.000 1.09e-7 0.097 0.004 0.082 0.06 xHand1 6 190.8 9.86 0.349 0.014 9.82e-9 0.091 0.004 0.100 0.13 OrcaHand 7 168.9 12.69 0.259 0.007 5.58e-9 0.082 0.003 0.118 0.28 xHandLite † 5 170.0 7.61 0.094 0.000 6.29e-8 0.091 0.002 0.058 0.06 SVH † 4 182.9 4.09 0.036 0.000 1.88e-5 0.133 0.0004 0.006 0.33 Inspire † 3 155.4 3.60 0.041 0.000 1.55e-3 0.208 0.0003 0.004 0.33 Ability † 3 158.9 6.28 0.089 0.000 3.67e-4 0.376 0.0003 0.004 0.50 TABLE II KARMA TRANSLATIONAL AND ROTATIONAL RANKINGS FOR HANDS WHERE THE TWO SCORES DIVERGE (|∆| ≥ 2) OR THAT RANK IN THE TOP 5 FOR EITHER SCORE . O VERALL T–R RANK CORRELATION IS 
+
+ρs = 0 .97 , CONFIRMING THAT BOTH SCORES CAPTURE RELATED BUT NON -IDENTICAL KINEMATIC PROPERTIES .Hand DOF T T Rank R R Rank ∆ Opp. Rk LEAP 8 0.098 1 0.295 2 −1 1Allegro 8 0.053 2 0.337 1 +1 5D’Claw 6 0.036 3 0.238 3 0 2Sharpa 9 0.032 4 0.224 5 −1 3Wuji 8 0.028 5 0.235 4 +1 4ARMS 8 0.011 7 0.148 9 −2 8Dex5 8 0.008 9 0.158 7 +2 6OrcaHand 7 0.003 12 0.118 10 +2 11 Dex3 5 0.004 10 0.082 12 −2 12 
+
+Fig. 3. KaRMA on two robot hands: Allegro and Sharpa. Red denotes voxels with lowest rotation range, and green denotes highest. Note Sharpa’s lower rotation range at the edges and smaller overall workspace. 
+
+KaRMA-R ranges from 0.337 (Allegro) to 0.004 (Inspire, Ability), so the best hand reaches 33.7% of the 228 HEALPix bins, averaged over its five best voxels. Allegro ranks 2nd in T but 1st in R, while Wuji overtakes Sharpa in Rdespite ranking below it in T. KaRMA therefore separates translational reach from local reorientation coverage. KaRMA-S measures initial grasp sensitivity. Allegro (0.53) and LEAP (0.44) are relatively stable across initial pinches, whereas D’Claw (0.12) and xHand1 (0.13) are much more seed-sensitive among hands with nontrivial KaRMA-T. Very low-S hands such as Dex3 and xHandLite (both 0.06) should be interpreted together with their small absolute workspaces, and manipulation with these hands can be more challenging than their T score would suggest. KaRMA remains nonzero for the five hands with zero workspace intersection ( † in Table I) because BFS measures reachability along the lower-dimensional manifold those fin-gers can still traverse. 
+
+B. Baseline Comparison 
+
+Among baselines, workspace intersection correlates most strongly with KaRMA-T ( ρs = 0 .92 , p < 0.001 ), which is expected since fingertip workspace intersection limits where feasible pinches can form. Total joint range ( ρs = 0 .82 ,
+
+p < 0.001 ) and DOF count ( ρs = 0 .73 , p = 0 .001 ) also correlate, but neither is reliable on its own: Shadow and DLR (both 9 DOF) rank only 6th and 8th in KaRMA-T, while D’Claw (6 DOF) ranks 3rd. Jacobian-based metrics show no correlation at all—Yoshikawa manipulability ( ρs = −0.20 ,
+
+p = 0 .46 ) and GCI ( ρs = −0.11 , p = 0 .68 )—because low-DOF hands like Ability have trivially well-conditioned Jacobians, giving them the highest GCI despite ranking last in KaRMA-T. The high ρs with opposability is partly inflated by five zero-intersection hands clustering at the bottom of both rankings. Fig. 4 plots both KaRMA scores against oppos-ability; despite the strong trend, rank displacement analysis reveals that opposability misranks 5 of 16 hands (31%) by 
+
+≥ 2 positions in KaRMA-T, with 8% of pairwise orderings inverted. The largest outliers (diamonds in Fig. 4) are Allegro (opposability rank 5 → KaRMA-T rank 2), whose wide joint ranges sustain long rolling trajectories despite modest inter-section, and Dex5 (rank 6 → 9), where constraints reduce its moderate overlap to limited BFS reach. xHand1 (rank 9 10 5 10 4 10 3 10 2 10 1      
+
+> Workspace Opposability (intersection / L3
+> ref )
+> 10 3
+> 10 2
+> 10 1
+> KaRMA Score
+> Zero
+> Int.
+> T: s=0.92, 5/16 (31%) misranked
+> R: s=0.94, 4/16 (25%) misranked
+
+KaRMA vs Workspace Opposability             
+
+> KaRMA-T
+> KaRMA-R Fig. 4. KaRMA-T (circles) and KaRMA-R (squares) vs workspace opposability. Diamond outlines mark outliers ( ≥3 rank positions displaced). Despite ρs≥0.92 , opposability misranks 25–31% of hands by ≥2positions.
+
+→ 11) provides another example: joint limits eliminate 99% of its unconstrained workspace (Table IV). Zero-intersection hands still achieve nonzero KaRMA scores via rolling BFS, further separating the two measures. Every baseline produces a single ranking; KaRMA pro-duces three. Because KaRMA-S measures robustness rather than capability, remaining results focus on the T–R distinc-tion. Table II shows that these two rankings, while corre-lated ( ρs = 0 .97 ), diverge in task-relevant ways. The rank difference ∆ = T rank − R rank identifies hands relatively stronger at rotation ( ∆ > 0) or translation ( ∆ < 0). Among the top tier, the Allegro ranks 1st in R but 2nd in T, while LEAP shows the opposite pattern. A researcher would pick Allegro to prioritize reorientation, or LEAP for repositioning. Opposability ranks both as “high-overlap” hands and cannot make this distinction. Mid-tier divergences follow the same pattern: Dex5 outperforms ARMS by two positions in R despite lower T, and OrcaHand ranks 12th in T but 10th in R. These distinctions are invisible to other metrics. No baseline predicts the T–R divergence either: Spearman correlations between ∆ and each baseline are all weak. Even with all baselines available, a practitioner cannot infer whether a hand is relatively better at translation or rotation without running KaRMA. 
+
+Consistency with selected published benchmarks. 
+
+Where prior task-based results exist, KaRMA and the pub-lished results are broadly aligned in the direction that simple kinematic proxies miss. Zhao et al. report that the Schunk SVH achieves better average dexterous manipulation performance than Inspire and Ability despite similar hand sizes [26]. Jacobian-conditioning proxies can imply the op-posite ordering for such low-DOF hands (e.g., Ability and Inspire exceed SVH under GCI in Table I) because their low-dimensional Jacobians are trivially well-conditioned, whereas KaRMA ranks SVH above Inspire and Ability. Zhao et al. also report that XHand substantially outperforms In-spire on long-horizon articulated-object tasks [26]; KaRMA                                                                              
+
+> TABLE III INVARIANCE OF KARMA-T AND KARMA-R. E ACH CELL REPORTS THE MAXIMUM DEVIATION AS T/R. D EVIATIONS FOR TARE IN VOXELS ;
+> DEVIATIONS FOR RARE IN HEALP IX BINS . B ASELINE VALUES ARE LISTED IN THE HEADER ROW .LEAP Shadow xHand1 Dex3 INSP. Baseline T/R826 / 67 119 / 37 31 / 23 31 / 19 3 / 1 Translation ≤1/≤20 / ≤20 / ≤30 / ≤30 / 0 Rotation ≤1/≤30 / ≤20 / ≤40 / ≤30 / 0 Scale ≤3/≤4≤3/≤10 / ≤40 / ≤2≤1/ 0 Determinism 0 / 0 0 / 0 0 / 0 0 / 0 0 / 0
+
+similarly ranks xHand1 above Inspire for both translation and rotation, despite Jacobian proxies in Table I suggesting the opposite. Finally, ISyHand reports stronger early-evaluation performance for Allegro than LEAP [27]; KaRMA-R ranks Allegro 1st and LEAP 2nd, matching that early comparison even though total joint range would rank LEAP higher. 
+
+C. Robustness 
+
+Robustness experiments were conducted on the five rep-resentative hands. 
+
+1) Invariance Properties: Table III summarizes the in-variance results. Under arbitrary world-frame translation, KaRMA-T is exact for four of five hands; LEAP differs by only one voxel ( < 0.2% ) on some translations. KaRMA-R varies by at most ≤ 3 HEALPix bins. Three repeated runs per hand produce bit-identical results. Under arbitrary world-frame rotation, KaRMA-T is pre-served to within one voxel for all five hands. The remaining variation is small (up to ∼ 3% in KaRMA-T for the largest hand) and appears only at voxel boundaries. Under 2× URDF scaling (with all length parameters, including voxel size, scaled proportionally via Lref ), small-workspace hands match within one voxel, while LEAP and Shadow differ by at most three voxels ( < 3% ). At 0.5× scal-ing, deviations are larger (up to 13% for Shadow) because the smaller absolute dimensions amplify voxel-boundary rounding effects even though the grid scales proportionally. Overall, Lref -based non-dimensionalization preserves the metric closely across hand size. 
+
+D. Constraint Ablation 
+
+To understand which constraints have the greatest effect, we performed a cumulative ablation study on the five rep-resentative hands using the full 10,000-state budget with no constraint-level cap. Constraints were added in order: (i) con-tact gap only, (ii) + joint limits, (iii) + collision avoidance, (iv) full KaRMA ( + antipodal feasibility). Table IV shows both KaRMA-T and KaRMA-R at each level. Joint limits are the dominant constraint for translation, reducing LEAP from 4,614 to 1,815 voxels ( −61% ) and xHand1 from 6,202 to 66 (−99% ). Collision avoidance further reduces LEAP by 43% but has minimal effect on hands already heavily constrained by joint limits. Antipodal feasibility removes an additional 17–50% of the remaining TABLE IV CUMULATIVE CONSTRAINT ABLATION RESULTS REPORTED AS T / R.CONDITIONS : ( I) G AP ONLY , ( II ) +JL, ( III ) +C OL , ( IV ) F ULL KARMA. (i) Gap (ii) +JL (iii) +Col (iv) Full LEAP 0.580 / 0.519 0.236 / 0.418 0.111 / 0.313 0.098 / 0.295 Shadow 0.507 / 0.533 0.015 / 0.201 0.015 / 0.167 0.013 / 0.161 xHand1 0.782 / 0.480 0.005 / 0.186 0.005 / 0.176 0.004 / 0.100 Dex3 0.071 / 0.417 0.004 / 0.096 0.004 / 0.095 0.004 / 0.082 Inspire 0.0003 / 0.004 0.0003 / 0.004 0.0003 / 0.004 0.0003 / 0.004 
+
+configurations. For Inspire, all three voxels survive all ab-lation levels, confirming that its limitation is kinematic (QP infeasibility) rather than constraint-based. KaRMA-R decreases monotonically with each added con-straint but with less dynamic range than KaRMA-T. For example, LEAP’s KaRMA-T drops 5.9× (0.580 →0.098) while KaRMA-R drops only 1.8× (0.519 →0.295). This is expected: rotation coverage at each voxel depends on local joint mobility, which is less affected by the global workspace constraints that dominate translational reach. Notably, colli-sion avoidance and antipodal feasibility have a proportionally larger effect on KaRMA-R than on KaRMA-T for several hands (e.g., xHand1’s KaRMA-R drops 43% from +Col to Full vs. 28% for KaRMA-T), indicating that rotation exploration probes a wider range of configurations and is more likely to encounter grasp-infeasible states. 
+
+1) Parameter Sensitivity: We independently perturbed four model parameters: link lengths ( ±1–2% ), joint limits (±1–3°), sphere radius ( ±2–5% ), and capsule radius ( ±2–
+
+5% ), and recorded the maximum change in KaRMA-T and KaRMA-R under the standard pipeline, which re-selects the best seed for each perturbed model. For LEAP (826 baseline voxels), most perturbations change KaRMA-T by less than 10%, with the largest being 12% under −3° joint-limit narrowing; sphere radius is similarly influential, while link geometry has the smallest effect. Relative changes are largest for small-workspace hands because a one-voxel change can represent a large percentage shift (e.g., Inspire’s 3-voxel baseline means one voxel is 33%). The largest relative deviation is xHand1 under +3 ° joint-limit widening (42%), followed by Shadow under −3° narrowing (38%). KaRMA-R follows similar patterns with generally smaller peak devia-tions (up to 29% for xHand1); Dex3 is the exception, where rotational sensitivity (19%) exceeds translational (13%). To separate true search sensitivity from seed effects, we repeated all perturbations with the seed fixed to the baseline configuration. Fixed-seed responses are monotonic in all 20 cases (5 hands × 4 parameters), showing that the BFS itself is well-behaved, and the occasional non-monotonicity in the standard pipeline comes from seed re-selection. Joint-limit perturbations produce zero voxel change under fixed seed for all five hands, indicating that their effect operates through seed choice rather than local reachability from a fixed grasp. More broadly, for geometric perturbations (link lengths, radii), seed re-selection generally attenuates fixed-seed sen-sitivity, often substantially, though the magnitude varies by hand and parameter. No perturbation changes the ordering among well-separated hands (the near-tied xHand1/Dex3 pair can swap under some perturbations). VII. D ISCUSSION AND LIMITATIONS 
+
+The results support two main points. First, KaRMA-T is broadly consistent with thumb–index overlap: hands with little fingertip overlap rarely translate the object far under maintained contact. At the same time, overlap alone is not sufficient. Workspace intersection ignores whether a contin-uous rolling trajectory exists under collisions, joint limits, and force-feasible antipodal contact. KaRMA filters overlap through these contact-consistency constraints, which is where many of the rank differences and most of the metric’s prac-tical value arise. The constraint ablation (Table IV) confirms that joint limits alone reduce unconstrained workspace by 61–99% for hands with nontrivial unconstrained reach, and the full constraint stack removes additional states, separating KaRMA from raw workspace overlap. The same table shows that KaRMA-R is affected by each constraint layer but with less dynamic range, indicating that rotation coverage is shaped more by local joint mobility than by the global reachability constraints that dominate translation. Second, KaRMA-R captures a manipulability axis that the baselines do not resolve. Allegro achieves the highest rota-tional coverage (0.337) despite ranking 2nd in translation, while Sharpa ranks 4th in translation but only 5th in rotation, displaced by Wuji. These T–R divergences suggest that hand selection should depend on the task: a design that repositions well is not necessarily the best at reorientation, and no single baseline predicts which way a hand will skew. KaRMA-S complements T and R by indicating how concentrated performance is across feasible initial pinches. Low-S hands (e.g., D’Claw: S = 0 .12 ) require reliable seed selection to realize peak capability, whereas higher-S hands (e.g., Allegro: S = 0 .53 ) are more tolerant to initial-grasp variation, making execution easier. The robustness results in Section VI-C suggest that accurate joint-limit specification matters more than sub-millimeter link geometry for KaRMA-T, since joint limits and sphere radius have the largest effect. At the same time, KaRMA should be interpreted as a standardized lower bound on thumb–index rolling-pinch dexterity, not as auniversal dexterity score. It evaluates a spherical test object, maintained rolling contact, no regrasp or finger gaiting, and kinematics only; it also depends on local linearization and discretization choices. These assumptions are deliberate for comparability, but they limit direct prediction of task success on arbitrary objects. VIII. C ONCLUSION 
+
+This paper introduced KaRMA, a kinematics-only metric for evaluating a standardized lower bound on fine ma-nipulation ability in robotic hands. KaRMA measures the reachable set of object translations and orientations from an initial two-finger precision pinch on a spherical test object under rolling contact, reporting three complementary scores: translational ability (KaRMA-T), rotational ability (KaRMA-R), and initial-grasp sensitivity (KaRMA-S). The metric is computed entirely from a URDF kinematic model, requires no controller or actuator specification, and is non-dimensionalized via a characteristic hand length so that scores are comparable across hand sizes. We evaluated KaRMA on 16 robotic hands spanning a wide range of designs. KaRMA-T correlates strongly with workspace intersection ( ρs = 0 .92 ), consistent with thumb-index overlap being the dominant factor in translation and providing a useful first-pass proxy, while KaRMA adds contact-consistency filtering that pure kinematic overlap can-not capture: the constraint ablation shows that joint limits, collisions, and antipodal feasibility together remove 82–99% of the unconstrained translational workspace for hands with nontrivial unconstrained reach and reduce rotational coverage by 1.8–5.1×, with rotation affected less dramatically because it depends more on local joint mobility than on global reach. KaRMA-R reveals a distinct axis of manipulation ability that no baseline predicts: the Allegro achieves the highest rotational coverage despite ranking only 2nd in translation, and the T–R divergences in the mid-tier hands show that translational and rotational ability do not track each other. Jacobian-based metrics (Yoshikawa manipulability, GCI) show no correlation with either KaRMA score. Several limitations point to future work. KaRMA currently evaluates only two-finger thumb-index pinch grasps. Extend-ing to multi-finger grasps and additional finger pairs would broaden its applicability. It could be useful in quantifying the advantages of having a robotic hand with certain biomimetic features, such as additional palm DOFs that give the pinkie and ring finger more dexterity. The spherical test object intentionally isolates kinematic rolling ability and omits geometry-dependent effects, but adapting the metric to non-spherical objects is a natural extension. Finally, incorporating dynamic feasibility (torque limits, friction uncertainty) would move the metric closer to predicting task success, though at the cost of requiring more than a kinematic model. REFERENCES [1] A. Bicchi, “Hands for dexterous manipulation and robust grasping: a difficult road toward simplicity,” IEEE Transactions on Robotics and Automation , vol. 16, no. 6, pp. 652–662, 2000. [2] C. A. Klein and B. E. Blaho, “Dexterity measures for the design and control of kinematically redundant manipulators,” The International Journal of Robotics Research , vol. 6, no. 2, pp. 72–83, 1987. [Online]. Available: https://doi.org/10.1177/027836498700600206 [3] A. Bicchi and A. Marigo, “Dexterous grippers: Putting nonholonomy to work for fine manipulation,” The International Journal of Robotics Research , vol. 21, no. 5-6, pp. 427–442, 2002. [Online]. Available: https://doi.org/10.1177/027836402321261968 [4] G. Cotugno, K. Althoefer, and T. Nanayakkara, “The role of the thumb: Study of finger motion in grasping and reachability space in human and robotic hands,” in 2014 IEEE International Conference on Robotics and Automation (ICRA) , 2014, pp. 5345–5351. [5] T. Yoshikawa, “Manipulability of robotic mechanisms,” The Interna-tional Journal of Robotics Research , vol. 4, no. 2, pp. 3–9, 1985. [6] W. S. You, Y. H. Lee, G. Kang, H. S. Oh, J. K. Seo, and H. R. Choi, “Kinematic design optimization for anthropomorphic robot hand based on interactivity of fingers,” Intell. Serv. Robot. ,vol. 12, no. 2, p. 197–208, Apr. 2019. [Online]. Available: https://doi.org/10.1007/s11370-019-00274-x [7] R. R. Ma and A. M. Dollar, “On dexterity and dexterous manipula-tion,” in 2011 15th International Conference on Advanced Robotics (ICAR) , 2011, pp. 1–7. [8] J. M. Hollerbach, “Workshop on the design and control of dextrous hands,” Massachusetts Institute of Technology, Artificial Intelligence Laboratory, Cambridge, MA, Tech. Rep. AIM-661, April 1982. [Online]. Available: http://hdl.handle.net/1721.1/5688 [9] A. Kapandji, “Clinical test of apposition and counter-apposition of the thumb,” Annales de Chirurgie de la Main , vol. 5, no. 1, pp. 67–73, 1986. [10] J. Kerr and B. Roth, “Analysis of multifingered hands,” The International Journal of Robotics Research , vol. 4, no. 4, pp. 3–17, 1986. [Online]. Available: https://doi.org/10.1177/ 027836498600400401 [11] T. Mouri, H. Kawasaki, K. Yoshikawa, J. Takai, and S. Ito, “Anthropo-morphic robot hand: Gifu hand iii,” in Proceedings of the International Conference on Control, Automation and Systems (ICCAS) , 2002, pp. 1288–1293. [12] R. Coulson, C. Li, C. Majidi, and N. S. Pollard, “The elliott and connolly benchmark: A test for evaluating the in-hand dexterity of robot hands,” in 2020 IEEE-RAS 20th International Conference on Humanoid Robots (Humanoids) , 2021, pp. 238–245. [13] J. Morrow, J. Campbell, R. Balasubramanian, and C. Grimm, “Bench-marking a robot hand’s ability to translate objects using two fingers,” 
+
+IEEE Robotics and Automation Letters , vol. 7, no. 1, pp. 588–593, 2022. [14] ——, “Benchmarking planar rotation capabilities of robot hands with fingers,” in 2023 20th International Conference on Ubiquitous Robots (UR) , 2023. [15] A. Rajeswaran, V. Kumar, A. Gupta, G. Vezzani, J. Schulman, E. Todorov, and S. Levine, “Learning complex dexterous manipulation with deep reinforcement learning and demonstrations,” in Proceedings of Robotics: Science and Systems (RSS) , 2018. [16] D. J. Montana, “The kinematics of contact and grasp,” The Interna-tional Journal of Robotics Research , vol. 7, no. 3, pp. 17–32, 1988. [17] A. Bicchi and R. Sorrentino, “Dexterous manipulation through rolling,” in Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) , 1995, pp. 452–457. [18] B. Sundaralingam and T. Hermans, “Relaxed-rigidity constraints: In-grasp manipulation using purely kinematic trajectory optimization,” in 
+
+Proceedings of Robotics: Science and Systems (RSS) , 2017. [19] S. Cruciani, C. Smith, D. Kragic, and K. Hang, “Dexterous manipula-tion graphs,” in 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2018, pp. 2040–2047. [20] T. Feix, J. Romero, H.-B. Schmiedmayer, A. M. Dollar, and D. Kragic, “The grasp taxonomy of human grasp types,” IEEE Transactions on Human-Machine Systems , vol. 46, no. 1, pp. 66–77, 2016. [21] J. Borr` as and A. M. Dollar, “Dimensional synthesis of three-fingered robot hands for maximal precision manipulation workspace,” The International Journal of Robotics Research , vol. 34, no. 14, pp. 1731–1746, Dec. 2015. [Online]. Available: https://journals.sagepub. com/doi/10.1177/0278364915608250 [22] K. M. G´ orski, E. Hivon, A. J. Banday, B. D. Wandelt, F. K. Hansen, M. Reinecke, and M. Bartelmann, “HEALPix: A framework for high-resolution discretization and fast analysis of data distributed on the sphere,” The Astrophysical Journal , vol. 622, no. 2, pp. 759–771, 2005. [23] B. Stellato, G. Banjac, P. Goulart, A. Bemporad, and S. Boyd, “OSQP: An operator splitting solver for quadratic programs,” Mathematical Programming Computation , vol. 12, no. 4, pp. 637–672, 2020. [24] D. C. McFarland, B. I. Binder-Markey, J. A. Nichols, S. J. Wohlman, M. de Bruin, and W. M. Murray, “A musculoskeletal model of the hand and wrist capable of simulating functional tasks,” IEEE Transactions on Biomedical Engineering , vol. 70, no. 5, pp. 1599–1610, 2023. [25] G. Stillfried, U. Hillenbrand, M. Settles, and P. van der Smagt, “Mri-based skeletal hand movement model,” in The Human Hand - A Source of Inspiration for Robotic Hands , ser. Springer Tracts on Advanced Robotics. Springer, 2013, vol. 95, pp. 59–75. [26] M. Zhao, Y. Hou, D. Fox, Y. Narang, A. Mandlekar, and S. Song, “DexMachina: Functional retargeting for bimanual dexterous manipulation,” 2025. [Online]. Available: https://arxiv.org/abs/2505. 24853 [27] B. A. Richardson, F. Gr¨ uninger, L. Mack, J. Stueckler, and K. J. Kuchenbecker, “Isyhand: A dexterous multi-finger robot hand with an articulated palm,” in IEEE-RAS International Conference on Hu-manoid Robots (Humanoids) , Seoul, Korea, Sep. 2025.

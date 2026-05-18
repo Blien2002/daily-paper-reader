@@ -1,0 +1,2429 @@
+Title: Digital Twin Synchronization Over Mobile Embodied AI Network With Agentic Intelligence
+
+URL Source: https://arxiv.org/pdf/2605.14625v1
+
+Published Time: Fri, 15 May 2026 01:36:43 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+> 1
+
+# Digital Twin Synchronization Over Mobile Embodied AI Network With Agentic Intelligence 
+
+Zhouxiang Zhao, Jiaxiang Wang, Yahao Ding, Yinchao Yang, Zhaohui Yang, Mohammad Shikh-Bahaei, Julie A. McCann, Zhaoyang Zhang, Senior Member, IEEE, and Kaibin Huang, Fellow, IEEE 
+
+Abstract —Efficient digital twin (DT) synchronization relies on maintaining high-fidelity virtual representations with minimal age of information (AoI). However, the synergistic potential of cooperative sensing and autonomous mobility of the sens-ing agent remains underexplored in existing DT synchroniza-tion frameworks. In this paper, we propose an agentic AI-empowered mobile embodied AI network (MEAN) framework for DT synchronization. In the proposed hybrid architecture, the base station (BS) conducts global orchestration, while the agents autonomously execute a five-stage closed-loop workflow: move-to-sense, cooperative sensing, onboard semantic processing, channel-aware mobility, and uplink transmission. To optimize synchronization performance, we formulate a joint topology dispatching and multidimensional resource allocation problem aimed at minimizing the maximum twin deviation across regions, subject to heterogeneous sensing fidelity and energy budget constraints. To tackle this, we develop a hierarchical two-layer optimization algorithm, where the outer-layer refines multi-agent assignment via a dynamic matching game, and the inner-layer iteratively optimizes the continuous resources. Extensive simu-lation results verify the convergence of the proposed algorithm and demonstrate its substantial superiority over multiple baseline schemes in reducing synchronization deviation. Furthermore, the results reveal that semantic compression serves as a vital substitute for channel resources in latency reduction under constrained bandwidth, while autonomous velocity adaptation provides an essential degree of freedom for the system to navigate the fundamental energy-time trade-off. 
+
+Index Terms —Digital twins, embodied AI, multi-agent collab-oration, semantic communications, age of information. 
+
+I. I NTRODUCTION 
+
+# THE rapid evolution of digital twin (DT) is transforming how complex physical systems are monitored, analyzed, and controlled across a wide range of domains, including smart manufacturing, healthcare, security, and wireless networks [1]. Unlike conventional simulation tools that rely on static models and predefined assumptions, a DT operates as a living model that continuously integrates real-time data from the physical world [2]. This tight coupling allows DTs to accurately reflect 
+
+Zhouxiang Zhao, Zhaohui Yang, and Zhaoyang Zhang are with the College of Information Science and Electronic Engineering, Zhejiang Uni-versity, Hangzhou 310027, China (e-mails: {zhouxiangzhao, yang zhaohui, ning ming }@zju.edu.cn). Jiaxiang Wang, Yahao Ding, and Mohammad Shikh-Bahaei are with the Department of Engineering, King’s College London, London, WC2R 2LS, UK (e-mails: {jiaxiang.wang, yahao.ding, m.sbahaei }@kcl.ac.uk). Yinchao Yang and Julie A. McCann are with the Department of Computing, Imperial College London, SW7 2AZ London, U.K. (e-mails: {yinchao.yang, j.mccann }@imperial.ac.uk). Kaibin Huang is with the Department of Electrical and Electronic Engi-neering, The University of Hong Kong, Hong Kong SAR, China (e-mail: huangkb@eee.hku.hk). 
+
+system states, anticipate future behaviors, and support adaptive optimization, thereby unlocking significant improvements in efficiency, reliability, and autonomy. Recent advances in sensing technologies, particularly coop-erative and distributed sensing through mobile embodied AI networks (MEANs), have substantially enhanced the fidelity of DTs by providing rich, multi-source observations across spatially distributed environments [3]. In parallel, modern communication technologies enable MEANs to transmit large volumes of data to edge or cloud platforms with low latency and high reliability [4], [5]. Building upon this sensing and communication foundation, embodied AI and agentic intelli-gence further enhance DT construction and maintenance by enabling MEANs to autonomously adapt their sensing, com-munication, data processing, and decision-making strategies, thereby enhancing overall DT fidelity and scalability. 
+
+A. Related Works 1) Digital Twin Synchronization: DT synchronization in-volves the timely alignment of the virtual representation with the current state of the physical source [6]. Maintaining tight synchronization is critical, as outdated or inconsistent state information can degrade DT fidelity. Several studies have investigated DT synchronization from a resource allocation perspective, including selection of access networks [7], se-lection of protocols [8], uplink transmission scheduling [9], spectrum allocation [10], and optimization of computational resources and energy [11]. Complementary to resource allocation approaches, other works focus on reducing the data volume required for DT up-dates through semantic compression techniques. For example, [12] and [13] exploit semantic communication to encode sens-ing data into compact representations that preserve essential meaning and features. By transmitting semantically relevant information instead of raw data, these methods significantly reduce uplink latency, thereby facilitating more efficient and timely DT synchronization. 
+
+2) Age of Information: Age of information (AoI) quantifies the timeliness of an orchestrator’s knowledge of a remote entity or process, by measuring the elapsed time since the most recently received update [14]. In DT systems, maintaining low AoI, together with high-quality sensing, is critical for ensuring accurate and up-to-date state awareness of the physical system. A fundamental trade-off arises whereby longer sampling and observation intervals improve data quality and estimation accuracy but inevitably increase AoI. 
+
+> arXiv:2605.14625v1 [cs.IT] 14 May 2026 2
+
+Recent works have investigated AoI optimization in DT systems to enable high-fidelity state awareness. In particular, various approaches have been proposed to manage bandwidth [15], [16], energy [17], [18], and computational resources [19], [20], to constrain AoI within stringent thresholds. Furthermore, [21] examines the intricate interplay between sensing quality, sensing cost, and sensing redundancy, highlighting trade-offs between temporal freshness and data acquisition efficiency. 
+
+3) Embodied Agentic AI: Embodied agentic AI integrates intelligence into physical platforms, enabling systems to per-ceive, interact with, and navigate their environments by har-nessing sensing, communication, computation, and actuation capabilities. Such agents can autonomously pursue complex objectives with minimal human intervention [22], [23]. Existing studies have investigated several aspects of agentic AI, including its integration with edge computing infrastruc-tures [24], [25], the design of agent-to-agent (A2A) interaction and coordination mechanisms [26], [27], and the development of multi-modal perception techniques [28], [29]. In paral-lel, prior work has examined a broad range of application scenarios enabled by agentic AI [30], [31], as well as the incorporation of advanced large language models (LLMs) to support reasoning and decision-making [32], [33]. 
+
+B. Contributions 
+
+Despite the extensive efforts in the aforementioned areas, critical research gaps remain. First, existing DT synchroniza-tion schemes primarily focus on static resource allocation or data compression, largely overlooking the synergistic potential of multi-agent cooperative sensing and autonomous mobility. Second, current AoI-oriented studies seldom consider how em-bodied agents can actively reshape channel conditions through spatial exploration to mitigate transmission bottlenecks. Third, while agentic AI has demonstrated remarkable potential in high-level reasoning, there lacks a quantitative optimization framework that harnesses its capabilities for physical-virtual synchronization in dynamic communication networks. To address these research gaps, our work integrates cooper-ative sensing, onboard semantic processing, and autonomous channel-aware mobility to explicitly navigate the energy-time trade-off in DT systems. Our main contributions are summa-rized as follows:  
+
+> •
+
+We propose a comprehensive MEAN framework tailored for DT synchronization, which is characterized by a five-stage closed-loop workflow: move-to-sense, cooperative sensing, onboard semantic processing, channel-aware mo-bility, and uplink transmission. In this hybrid framework, the base station (BS) acts as a central orchestrator, while the distributed agents autonomously adapt their agentic intelligence in the physical execution layer to dynamically evolving environments.  
+
+> •
+
+We formulate a cooperative sensing model that quanti-tatively characterizes the non-linear relationship between collaborative sensing duration and achieved perception accuracy, which is empirically validated utilizing real-world datasets. Furthermore, we establish a channel-aware autonomous mobility model that mathematically  
+
+> Target Physical Region
+> Smart Parking
+> BS
+> Smart Park Smart Transportation Smart Factory
+> Assignment Intent
+> Compressed Semantic Update
+> A2A Cooperation
+> Global Digital Twin
+> Embodied AI Agent
+> Smart Healthcare
+> Fig. 1. An illustration of the considered DT synchronization scenario over agentic AI-empowered MEAN.
+
+captures the statistical spatial diversity gain achieved through active environmental exploration.  
+
+> •
+
+To holistically evaluate the synchronization performance, we formulate a mixed-integer non-linear programming (MINLP) problem aimed at minimizing the maximum twin deviation, subject to stringent sensing fidelity and energy budget constraints. To achieve efficient resource scheduling and optimization, we develop a hierarchical two-layer algorithm. The outer-layer refines the multi-agent assignment via a dynamic matching game with heuristic guidance, while the inner-layer optimizes the continuous resources iteratively. The remainder of this paper is organized as follows. Section II establishes the MEAN-enabled DT synchronization frame-work and formulates the twin deviation minimization problem. Section III develops a hierarchical two-layer optimization al-gorithm. Section IV presents comprehensive numerical results and performance analysis to validate the proposed scheme. Finally, Section V concludes the paper. II. S YSTEM MODEL AND PROBLEM FORMULATION 
+
+In this section, we formulate the mathematical model for the proposed DT-native MEAN. 
+
+A. Scenario Overview 
+
+Consider an agentic AI-empowered MEAN deployed in a dynamic physical environment, comprising a BS and a set of ground agents, denoted by N = {1, 2, . . . , N }. The BS serves as a central orchestrator that maintains a global DT, as illustrated in Fig. 1. The system operates under a centralized orchestration and decentralized execution paradigm. The BS acts as the central brain, while the agents exhibit decentralized agentic autonomy in the physical layer. To accurately capture the real-world dynamics, the DT must be synchronized with the physical entities. However, due to the inherent physical volatility, the virtual states in the DT inevitably deviate from the physical reality over time. Once the DT identifies that the twin deviation of certain critical areas exceeds a tolerable threshold, an on-demand update 3
+
+request is triggered. Let K = {1, 2, . . . , K } denote the set of physical regions targeted for the current DT update. In a three-dimensional (3D) Cartesian coordinate system, the BS is elevated at a fixed location xBS = [0 , 0, H ]T. Each target region k ∈ K is geometrically modeled as a circular coverage area on the horizontal plane, characterized by its center ck = [ xk, y k, 0] T and radius rk.When an update is triggered, the agents, which are initially dispersed at coordinates xinit  
+
+> n
+
+= [ xinit  
+
+> n
+
+, y init  
+
+> n
+
+, 0] T performing their routine tasks, are dynamically drafted by the BS. To coordinate this multi-agent dispatching, we define a binary assignment indicator αn,k ∈ { 0, 1}, where αn,k = 1 indicates that agent n
+
+is dispatched to update region k, and αn,k = 0 otherwise. 
+
+B. Move-to-Sense 
+
+Upon receiving the dispatch intent from the DT orches-trator, the assigned agent n (i.e., αn,k = 1 ) is required to autonomously navigate from its initial coordinate xinit  
+
+> n
+
+to the effective sensing coverage of the target region k.Without loss of generality, we assume the agent initiates the sensing task when it enters the specific region. Depending on the initial spatial distribution, we uniformly formulate the actual mobility distance dms  
+
+> n,k
+
+required for agent n to reach the sensing region k as follows: 
+
+dms  
+
+> n,k
+
+= max {0, ‖xinit  
+
+> n
+
+− ck ‖2 − rk
+
+} , (1) which handles the scenario where the agent is already located within the target region, yielding dms  
+
+> n,k
+
+= 0 .Let vms  
+
+> n
+
+∈ (0 , v max  
+
+> n
+
+] denote the constant cruising speed of agent n traveling towards region k, where vmax  
+
+> n
+
+is the maximum mechanical speed limit. The mobility delay incurred in this phase is given by: 
+
+tms  
+
+> n,k
+
+= dms 
+
+> n,k
+
+vms 
+
+> n
+
+. (2) For ground mobile agents operating at relatively low speeds, the air resistance is negligible. The dominant mechanical power consumption stems from overcoming the friction of the ground and the internal heat loss of the motor [34]. Con-sequently, we model the mechanical mobility power P ms  
+
+> n
+
+as a polynomial function comprising the first-order and second-order terms of the velocity: 
+
+P ms  
+
+> n
+
+= λ1vms  
+
+> n
+
++ λ2(vms  
+
+> n
+
+)2, (3) where λ1 > 0 and λ2 > 0 are the hardware-specific kinetic coefficients related to the rolling resistance and the motor’s internal impedance, respectively. Based on the above power formulation, the total energy consumption for agent n during the move-to-sense phase can be derived as: 
+
+Ems  
+
+> n,k
+
+= P ms  
+
+> n
+
+tms  
+
+> n,k
+
+= dms  
+
+> n,k
+
+(λ1 + λ2vms  
+
+> n
+
+) . (4) 
+
+C. Cooperative Sensing for DT 
+
+Once agent n enters its assigned region k, it activates its onboard sensors to capture the physical state. In our DT framework, the virtual reconstruction of a physical region  
+
+> (a) (c) (b)
+> (d)
+> Fig. 2. A visualization of sensing accuracy: (a) 3D reconstruction results based on short-duration sensing data, (b) 3D reconstruction results based on long-duration sensing data, (c) region setup, (d) average precision versus sensing duration across different datasets, including DAIR-V2X [35], V2XSet [36], and OPV2V [37].
+
+benefits from multi-agent collaboration. Let Nk = ∑Nn=1 αn,k 
+
+denote the total number of collaborative agents dispatched to region k. Notably, when Nk > 1, the agents do not redundantly sense the same target. Instead, they leverage decentralized A2A communication to dynamically allocate sensing tasks and coordinate their field of view. By intelligently assigning distinct physical objects or sub-areas within region k to different agents, the multi-agent cluster achieves a comprehen-sive and distributed coverage. Subsequently, as these agents perform cooperative scanning from different perspectives, the DT orchestrator can exploit the spatial view orthogonality to patch the holistic 3D semantic model, e.g., resolving depth ambiguity, clearing occlusions, and fusing textures. To quantitatively characterize the relationship between the sensing duration and the achieved accuracy, we conduct pre-liminary perception simulation experiments. As illustrated in Fig. 2, the accuracy curves evaluated across diverse datasets consistently exhibit a characteristic sigmoid growth trend [38]. Furthermore, to capture the collaborative gain derived from the aforementioned A2A task allocation, we introduce a factor 
+
+θ ∈ (0 , 1) and define the cooperative scaling function as 
+
+g(Nk) = N θk [37]. By integrating this cooperative multiplier into the fitted sigmoid model, the equivalent sensing accuracy 
+
+qn,k achieved by agent n over a continuous sensing duration 
+
+ts 
+
+> n
+
+can be analytically formulated as: 
+
+qn,k = σ
+
+1 + 2 −ξ[log 2(ts   
+
+> nNθk
+
+)−cs
+
+> 0
+
+] , (5) where σ ∈ (0 , 1) is the model performance upper bound, ξ > 0
+
+is the curve-fitted steepness parameter, and cs 
+
+> 0
+
+denotes the threshold where the sensing quality experiences a qualitative leap. Equation (5) explicitly reveals that dispatching more agents to a single region effectively reduces the individual sensing time required to achieve the same target accuracy. 4
+
+Assuming a constant effective sampling rate γn for the onboard sensors, the raw data volume Dn acquired by agent 
+
+n is proportional to its sensing time: 
+
+Dn = γnts
+
+> n
+
+. (6) The energy consumed in the cooperative sensing phase can be given by: 
+
+Es 
+
+> n
+
+= P s
+
+> n
+
+ts
+
+> n
+
+, (7) where P s 
+
+> n
+
+represents the power consumed during the sensing phase. 
+
+D. Compute while Moving 
+
+Upon accomplishing the sensing task, the agent enters a coupled integrated computation and mobility phase. Specifi-cally, it leverages its onboard computing resources to extract semantic features and compress the raw data. Simultaneously, the agent autonomously navigates its environment to identify a location with superior uplink channel conditions. This search-ing mobility is executed in parallel with the local computing to minimize the overall latency. The considered DT-native framework can exploit the his-torical and spatial correlations inherent in the twin model. Let Qk ∈ [0 , 1) denote the prior prediction confidence of the global DT regarding the current physical state of region 
+
+k. A higher Qk indicates that the DT possesses an accurate prior estimation, and thus the agent only needs to transmit the semantic residuals or state deviations. To mathematically formalize this context-aware interaction, we define ρn,k ∈ (0 , 1] as the semantic compression ratio of agent n. The lower bound of ρn,k is governed by the DT’s prior confidence as follows: 
+
+ρn,k ≥ ρmin  
+
+> n
+
+(1 − Qk), (8) where ρmin  
+
+> n
+
+∈ (0 , 1) characterizes the fundamental compres-sion limit of the local foundation model without any prior knowledge. Equation (8) indicates that as the twin uncertainty 
+
+(1 − Qk) decreases, the agent is permitted to adopt a more aggressive compression strategy, thereby alleviating the trans-mission burden. The computation complexity for semantic extraction is modeled as C(ρn,k ) = ηn ln(1 /ρ n,k ) operations per bit, where 
+
+ηn is a scaling parameter [39], [40]. Given the raw data volume 
+
+Dn acquired in the previous phase, the computation delay tc
+
+> n,k
+
+is formulated as: 
+
+tc 
+
+> n,k
+
+= DnC(ρn,k )
+
+fn
+
+= γnts
+
+> n
+
+ηn ln(1 /ρ n,k )
+
+fn
+
+, (9) where fn denotes the allocated computation capacity of agent n.Accordingly, the corresponding energy consumption for local computing is given by: 
+
+Ec 
+
+> n,k
+
+= κf 3
+
+> n
+
+tc 
+
+> n,k
+
+= κf 2
+
+> n
+
+γnts
+
+> n
+
+ηn ln 1
+
+ρn,k 
+
+, (10) where κ is the effective switched capacitance of the local processor. Concurrently, the agent intelligently explores the physical environment to establish a reliable communication link. Let 
+
+tmt  
+
+> n
+
+and vmt  
+
+> n
+
+∈ (0 , v max  
+
+> n
+
+] denote the duration and cruising speed of this autonomous mobility phase, respectively. The energy consumed during this channel searching phase is: 
+
+Emt  
+
+> n
+
+= P mt  
+
+> n
+
+tmt  
+
+> n
+
+= vmt  
+
+> n
+
+tmt 
+
+> n
+
+(λ1 + λ2vmt 
+
+> n
+
+) . (11) Since the local computing and the autonomous mobility are executed in parallel, the effective duration tp 
+
+> n,k
+
+of this integrated phase is determined by the longer of the two processes: 
+
+tp 
+
+> n,k
+
+= max {tc
+
+> n,k
+
+, t mt 
+
+> n
+
+} . (12) By the end of this parallel phase, the agent discovers an optimized transmission spot through its spatial exploration over the moving distance dmt  
+
+> n
+
+= vmt  
+
+> n
+
+tmt  
+
+> n
+
+, which will statistically enhance the subsequent transmission. 
+
+E. Transmission Model 
+
+Assume that the agent remains static while transmitting data. This stationary posture avoids the Doppler shifts and fast channel fading caused by mobility, thereby ensuring a highly reliable and stable uplink connection for uploading the compressed semantic payload to the DT orchestrator. Due to the highly localized volatility of small-scale mul-tipath fading, instantaneous channel conditions fluctuate sig-nificantly across space. However, environmental exploration improves the exploitable link quality by allowing an agent to proactively probe nearby positions and transmit from the most favorable one, effectively executing a search-and-select mechanism [41]. Meanwhile, path loss-based signal maps and channel knowledge maps provide a natural reference for the location-dependent channel conditions of a region [42], [43]. Statistically, a larger exploration distance yields a larger spatial sample size, thereby increasing the probability of discovering a location with superior channel conditions. To mathemati-cally capture this autonomous channel-searching capability, let href  
+
+> k
+
+= β0(‖ck‖22 + H2)−δ/ 2 denote the reference channel power gain from region k to the BS, where β0 represents the channel power gain at the reference distance of 1 m , and 
+
+δ is the path loss exponent. Driven by this search-and-select process, the expected maximum effective channel gain hn,k 
+
+achieved by agent n in region k can be modeled as: 
+
+hn,k = href  
+
+> k
+
++ φk(dmt  
+
+> n
+
+), (13) where φ(·) ≥ 0 represents the statistical spatial diversity gain expected from the active exploration. Without loss of generality, we model φk(x) = ωk
+
+(1 − e−x/ζ k
+
+), where ωk ≥ 0
+
+and ζk > 0 are environment-specific coefficients of region k.To mitigate co-channel interference among the spatially dis-tributed agents, we assume that the system adopts orthogonal frequency-division multiple access (OFDMA). Let bn and pn
+
+denote the allocated bandwidth and the transmit power of agent n, respectively. Then, the achievable uplink transmission rate Rn can be given as: 
+
+Rn,k = bn log 2
+
+(
+
+1 + pnhn,k 
+
+N0bn
+
+)
+
+, (14) 5    
+
+> Transmit
+> Agent ݅
+> Agent ݆
+> Move-to-Sense Cooperative Sensing
+> Compute
+> ݐ௜,௞୫ୱ ݐ௜,௞ୡ
+> ݐ௜ୱ
+> ݐ௜୫୲
+> Cooperative Sensing
+> Move-to-Transmit
+> Compute
+> Move-to-Transmit Transmit
+> ݐ௜,௞୲୰
+> ݐ௝ୱݐ௝,௞ୡ
+> ݐ௝,௞୲୰
+> ݐ௝୫୲
+
+ܶ
+
+> ௜,௞
+
+ܶ        
+
+> ௝,௞
+> ݐ௜,௞୮= max ݐ௜,௞ୡ,ݐ௜୫୲
+> ݐ௝,௞୮= max ݐ௝,௞ୡ,ݐ௝୫୲
+
+max  
+
+> א௡ ௜,௝
+
+ܶ ௡,௞ 
+
+> ݐ௝,௞୫ୱ = 0
+
+ݐ 
+
+> Fig. 3. Closed-loop workflow of two agents assigned to the same region.
+
+where N0 denotes the power spectral density of the additive white Gaussian noise (AWGN) at the BS receiver. Consequently, the transmission delay ttr  
+
+> n,k
+
+can be given by: 
+
+ttr  
+
+> n,k
+
+= ρn,k Dn
+
+Rn,k 
+
+= ρn,k γnts
+
+> n
+
+bn log 2
+
+(
+
+1 + pn hn,k 
+
+> N0bn
+
+) . (15) The corresponding energy consumed for this uplink transmis-sion is Etr  
+
+> n,k
+
+= pnttr 
+
+> n,k
+
+.Fig. 3 depicts the complete update workflow of the agent to synchronize the DT. 
+
+F. Digital Twin Update Quality 
+
+In a multi-agent cooperative DT network, the system must simultaneously guarantee the spatial fidelity of the sensed data and minimize the temporal staleness of the synchronization. To holistically evaluate this process, we quantify the DT update quality from both the accuracy and deviation perspectives. 
+
+1) Cooperative Sensing Accuracy: To ensure the reliability of the reconstructed digital replicas, the system imposes a fidelity requirement on the data acquisition. The cooperative sensing accuracy Θk for region k is modeled as the average aggregated accuracy contributed by the dispatched agents: 
+
+Θk = 1
+
+NkN∑
+
+> n=1
+
+αn,k qn,k . (16) Depending on the specific downstream applications hosted by the DT, different regions possess heterogeneous tolerance for semantic ambiguity. Therefore, the cooperative accuracy must satisfy the region-specific threshold constraint, i.e., Θk ≥
+
+Θth  
+
+> k
+
+, ∀k ∈ K .
+
+2) Twin Deviation: By integrating the physical phases elaborated in the preceding subsections, the end-to-end closed-loop latency for a dispatched agent n to accomplish the entire update workflow is summarized as: 
+
+Tn,k = tms  
+
+> n,k
+
++ ts 
+
+> n
+
++ tp 
+
+> n,k
+
++ ttr 
+
+> n,k
+
+. (17) Since the DT orchestrator relies on the holistic fusion of semantic features extracted by all agents assigned to region k,denoted by the set Sk = {n | αn,k = 1}, the regional synchronization is fundamentally constrained by a straggler effect. Consequently, the effective cooperative update delay     
+
+> Garden Parking Lot
+> Change Rapidly Change Slowly Large ܹ ௞
+> Small ܹ ௞ܶܶܶ
+> ௞
+> Fig. 4. An example illustrating the concept of physical volatility rate Wk,which can be estimated from historical data by the global DT.
+
+for region k is determined by the maximum latency among its collaborative agents, given by max n∈S k {Tn,k }.During the data acquisition and uploading period, the physi-cal environment continuously evolves, causing the virtual state maintained at the BS to drift from the physical reality. Let 
+
+Wk denote the physical volatility rate of region k, which characterizes how drastically the local environment changes over time, as illustrated in Fig. 4. Then, we define the twin deviation ∆k at the completion moment of the regional update as: 
+
+∆k = Wk max 
+
+> n∈S k
+
+{Tn,k }, (18) which intuitively quantifies the information freshness. 
+
+G. Problem Formulation 
+
+The goal of the DT orchestrator at the BS is to intelli-gently dispatch the mobile agents and allocate the multidimen-sional communication, sensing, computation, and kinematic resources to keep the virtual replicas synchronized with the physical reality. Specifically, the system aims to minimize the maximum twin deviation across all targeted regions. Let X , {α, vms , ts, ρ, f , vmt , tmt , b, p} denote the set of joint optimization variables. To maintain the compactness of the formulation, we define Etot  
+
+> n,k
+
+= Ems  
+
+> n,k
+
++ Es 
+
+> n
+
++ Ec 
+
+> n,k
+
++
+
+Emt  
+
+> n
+
++ Etr  
+
+> n,k
+
+as the aggregate energy consumption of agent 
+
+n throughout the closed-loop workflow. The optimization problem is mathematically formulated as follows: 
+
+min  
+
+> X
+
+max  
+
+> k∈K
+
+∆k (19) s.t. 1
+
+NkN∑
+
+> n=1
+
+αn,k qn,k ≥ Θth  
+
+> k
+
+, ∀k ∈ K , (19a) 
+
+αn,k ρmin  
+
+> n
+
+(1 − Qk) ≤ ρn,k ≤ 1, ∀n ∈ N , ∀k ∈ K ,
+
+(19b) 
+
+> K
+
+∑
+
+> k=1
+
+αn,k ≤ 1, ∀n ∈ N , (19c) 
+
+> N
+
+∑
+
+> n=1
+
+αn,k ≥ 1, ∀k ∈ K , (19d) 
+
+> K
+
+∑
+
+> k=1
+
+αn,k Etot  
+
+> n,k
+
+≤ Emax  
+
+> n
+
+, ∀n ∈ N , (19e) 6
+
+> N
+
+∑
+
+> n=1
+
+bn ≤ Btot , (19f) 
+
+αn,k ∈ { 0, 1}, ∀n ∈ N , ∀k ∈ K , (19g) 
+
+fn ∈ (0 , f max  
+
+> n
+
+], p n ∈ [0 , P max  
+
+> n
+
+], v ms  
+
+> n
+
+, v mt  
+
+> n
+
+∈ (0 , v max  
+
+> n
+
+],bn ≥ 0, t s 
+
+> n
+
+≥ 0, t mt  
+
+> n
+
+≥ 0, ∀n ∈ N , (19h) where Emax  
+
+> n
+
+represents the maximum available energy budget for agent n, Btot denotes the total available bandwidth, f max 
+
+> n
+
+and P max  
+
+> n
+
+designate the hardware upper bounds for the local computation capacity and the transmit power of each agent, respectively. In problem (19), constraint (19a) enforces the quality-of-service (QoS) requirement for the application-aware DT. Con-straint (19b) bounds the DT prior-driven semantic compression ratio. Furthermore, constraints (19c) and (19d) jointly govern the topological dispatching matrix; specifically, (19c) prevents assignment conflicts for individual agents, while (19d) acts as a mandatory coverage guarantee to prevent any critical physical region from experiencing an update blackout. In terms of physical limitations, constraint (19e) ensures that the aggregate energy consumption does not exceed the onboard battery capacity. Finally, constraint (19f) encapsulates the conservation of the overall spectrum resources, and (19g)– (19h) define the legitimate operational domains for the binary assignment, computation, radio frequency, kinematic, and tem-poral variables. Problem (19) is a highly intractable MINLP problem. Its complexity stems from the non-smooth min-max objective, the deep coupling of binary dispatching indicators with continuous resources, and the severe non-convexity caused by fractional and logarithmic terms. This computational prohibitiveness necessitates a low-complexity joint optimization algorithm. III. A LGORITHM DESIGN 
+
+To tackle problem (19), we propose a hierarchical two-layer optimization framework. In the outer-layer, the combinatorial multi-agent assignment is modeled as a dynamic matching game, whereas in the inner-layer, the coupled continuous resources are iteratively optimized utilizing a block coordinate descent (BCD) approach. 
+
+A. Two-Layer Problem Decomposition 
+
+To address the computational intractability of problem (19), we decompose it into a hierarchical two-layer optimization framework. We partition the variables into the discrete as-signment matrix α = {αn,k } and the continuous resource set Xcon = {vms , ts, ρ, f , vmt , tmt , b, p}. Unlike standard al-ternating optimization, we adopt a hierarchical perspective where the outer-layer manages the combinatorial topology while the inner-layer evaluates the system performance for a given assignment. 
+
+1) Outer-Layer Topology Matching: The outer-layer seeks the optimal assignment matrix α to minimize the system-wide synchronization bottleneck. For a specific assignment α,the system cost is defined as the minimum maximum twin deviation achievable under the optimized resource allocation. The outer-layer problem is formulated as: 
+
+min  
+
+> α
+
+J(α) (20) s.t. (19c) , (19d) , (19g) , (20a) where J(α) is the value function representing the optimized objective value of the inner-layer problem for a fixed α.
+
+2) Inner-Layer Resource Allocation: For any candidate assignment α proposed by the outer-layer, the inner-layer jointly optimizes the sensing, communication, computation, and control resources to minimize the synchronization latency. This subproblem is defined as: 
+
+min 
+
+> Xcon
+
+max  
+
+> k∈K
+
+∆k (21) s.t. (19a) , (19b) , (19e) , (19f) , (19h) . (21a) 
+
+B. Dynamic Matching Game with Externalities 
+
+Based on the hierarchical decomposition, the outer-layer aims to find the optimal assignment strategy over a vast combinatorial space. We formulate this topological dispatching process as a dynamic matching game. To capture the poten-tial idle state of agents, we introduce a virtual void region denoted by ∅, expanding the target set to K′ = K ∪ {∅} . A matching state is defined as a mapping μ : N → K ′, where 
+
+μ(n) = k ∈ K implies αn,k = 1 , and μ(n) = ∅ implies the agent is temporarily idle. Unlike traditional bipartite matching, our framework in-herently exhibits strong peer effects. According to (5), the required sensing time ts 
+
+> n
+
+is coupled with the total number of collaborative agents Nk(μ) in the same region. Conse-quently, the minimum closed-loop delay T ∗
+
+> n,k
+
+(μ) evaluated by the inner-layer resource allocation is dependent on the strategies of other agents, defining this as a matching game with externalities. For notational consistency, let α(μ) denote the equivalent binary assignment matrix constructed from a specific matching state μ. The system cost under topology μ, denoted as J(μ),is mathematically equivalent to the outer-layer objective J(α)
+
+defined in (20). Based on the inner-layer evaluation, J(μ) can be explicitly expressed as: 
+
+J(μ) , J (α(μ)) = max 
+
+> k∈K
+
+{
+
+Wk max   
+
+> n∈S k(μ)
+
+T ∗
+
+> n,k
+
+(μ)
+
+}
+
+, (22) where Sk(μ) = {n | μ(n) = k} denotes the active collabora-tive subset for region k. Note that the void region ∅ does not contribute to the system cost. To address this matching problem, the execution of the proposed algorithm proceeds in two main phases. First, we establish a fully deployed initial state to maximize the initial cooperative gain and define the operational rules bounded by a dual-stage feasibility pruning mechanism. Subsequently, we introduce the core algorithm driven by a heuristic-guided state exploration policy to efficiently refine the matching topology. 7
+
+1) Two-Phase Initialization: To establish a high-quality initial matching state μ(0) that fully exploits the available multi-agent resources, we adopt a two-phase graph-theoretic approach. 
+
+Phase I: To strictly satisfy the fundamental coverage con-straint (19d), we construct a weighted bipartite graph G =(N , K, E). An edge en,k ∈ E is associated with a cost weight 
+
+wn,k = dms 
+
+> n,k
+
+/W k. We find a matching subset M(0)  
+
+> base
+
+⊂ E 
+
+covering all K regions while minimizing the aggregate initial cost ∑
+
+> (n,k )∈M (0)
+> base
+
+wn,k . This is optimally solved in O(N 3)
+
+time utilizing the classic Hungarian algorithm. 
+
+Phase II: Instead of leaving the remaining N − K agents idle, we actively deploy them to maximize the initial coop-erative sensing gain. Let Nbase denote the agents assigned in phase I. For each remaining agent n ∈ N \ N base , we assign it to μ(0) (n) = arg min k∈K dms 
+
+> n,k
+
+/W k. This full-deployment strategy provides a robust and highly cooperative starting point 
+
+μ(0) for the subsequent game. 
+
+2) Operations and Feasibility Pruning: To enable au-tonomous strategy exploration, we define two fundamental operations:  
+
+> •
+
+Unilateral Transfer: An agent n unilaterally changes its assignment from μ(n) to k′. The resulting state is denoted by μn→k′ . 
+
+> •
+
+Bilateral Swap: Agent n assigned to μ(n) and agent n′
+
+assigned to μ(n′) mutually exchange their tasks, yielding state μn↔n′
+
+.Evaluating the exact cost J(μ′) for every tentative state requires triggering the inner-layer BCD optimization, which is computationally prohibitive. Therefore, we introduce a dual-stage feasibility check to reduce the invalid search space:  
+
+> •
+
+Pruning (Outer-Layer): Before executing the BCD algo-rithm, the orchestrator evaluates the theoretical energy lower bound Emin  
+
+> req
+
+, which is defined as the minimum kinematic energy Ems  
+
+> n,k
+
+to reach the target region. If 
+
+Emin  
+
+> req
+
+> aE max  
+
+> n
+
+where a ∈ (0 , 1) is an energy safety factor, the tentative operation is immediately rejected without invoking the inner loop.  
+
+> •
+
+Penalty (Inner-Layer): If the pruning is passed, the inner-layer BCD is invoked utilizing a warm-start strategy. If the BCD solver finds the continuous constraints strictly infeasible for the given topology, it returns a substantial penalty J(μ′) = + ∞, ensuring the operation is discarded. An operation is approved if and only if it passes the dual-stage check, maintains basic coverage, and strictly decreases the system bottleneck, i.e., J(μ′) < J (μ).
+
+3) Heuristic-Guided State Exploration Policy: To prevent aimless random walks in the vast combinatorial state space, we design a deterministic heuristic policy. At each iteration, the orchestrator generates the optimal candidate state μ′ from the current state μ following a structured three-step procedure. 
+
+Step 1: Bottleneck and Donor Identification. The orchestra-tor first isolates the system bottleneck region k∗ and the strag-gler agent n∗ causing the maximum delay. Simultaneously, to exploit the slack resources, it identifies the safest donor region 
+
+kdonor exhibiting the minimum twin deviation: 
+
+k∗ = arg max  
+
+> k∈K
+
+∆k(μ), n∗ = arg max   
+
+> n∈S k∗(μ)
+
+T ∗ 
+
+> n,k ∗
+
+(μ), (23) 
+
+kdonor = arg min  
+
+> k∈K
+
+∆k(μ). (24) 
+
+Step 2: Proximity-Aware Candidate Selection. To resolve the bottleneck efficiently while maximizing the probability of passing the energy pruning (19e), we dynamically determine the optimal candidate agents outside the bottleneck region. We define the best active swap candidate nswap and the best donor candidate ndonor based on their spatial proximity to k∗:
+
+nswap = arg min    
+
+> n∈N \ (Sk∗(μ)∪S ∅(μ))
+
+dms  
+
+> n,k ∗
+
+, (25) 
+
+ndonor = arg min   
+
+> n∈S kdonor (μ)
+
+dms  
+
+> n,k ∗
+
+. (26) Additionally, if the void region is not empty, the best idle candidate is defined as nadd = arg min n∈S ∅(μ) dms  
+
+> n,k ∗
+
+.
+
+Step 3: Best-Response Proposal Generation. The orches-trator constructs a restricted, high-potential candidate subset 
+
+Ω( μ) incorporating targeted operations specifically designed to dismantle the bottleneck. These operations include dropping the straggler, swapping the straggler, and executing unilateral transfers from the void or donor regions to the bottleneck: 
+
+Ω( μ) = {μn∗ →∅ | |S k∗ (μ)| > 1} ∪ 
+
+{
+
+μn∗ ↔nswap 
+
+}
+
+∪ { μnadd →k∗ | S ∅(μ) 6 = ∅} ∪ { μndonor →k∗ | |S kdonor (μ)| > 1} . (27) To guarantee rapid and strictly monotonic convergence, the orchestrator executes a best-response exploitation over Ω( μ).Specifically, it evaluates all feasible candidate states in Ω( μ)
+
+that pass the outer-layer heuristic energy pruning. It then invokes the inner-layer BCD optimization for these surviving candidates and deterministically proposes the state μ′ that yields the minimum system cost: 
+
+μ′ = arg min  
+
+> ˆμ∈Ω( μ)
+
+J(ˆ μ). (28) By exhaustively evaluating the explicitly constructed high-potential subset, this best-response mechanism maximizes the marginal performance gain at each iteration. 
+
+C. BCD for Resource Allocation 
+
+For a given matching topology μ, to eliminate the non-smoothness of the objective function in (21), we introduce an auxiliary variable τ representing the maximum twin deviation among all regions. Similarly, to handle the parallel execution phase, we utilize continuous variables tp 
+
+> n,k
+
+to equivalently replace the max operator in (12). Thus, problem (21) can be equivalently reformulated as: 
+
+min  
+
+> Xcon ,τ, tp
+
+τ (29) s.t. Wk
+
+(
+
+tms  
+
+> n,k
+
++ ts 
+
+> n
+
++ tp 
+
+> n,k
+
++ ttr 
+
+> n,k
+
+)
+
+≤ τ, 
+
+∀k ∈ K , ∀n ∈ S k(μ), (29a) 
+
+tp 
+
+> n,k
+
+≥ tc
+
+> n,k
+
+, t p 
+
+> n,k
+
+≥ tmt  
+
+> n
+
+, ∀n ∈ N , (29b) (19a) , (19b) , (19e) , (19f) , (19h) . (29c) 8
+
+Although reformulated, problem (29) remains highly non-convex due to the deep coupling of fractional, logarithmic, and exponential terms. To tackle this intractability, we propose a low-complexity BCD algorithm that systematically decouples the continuous variables into sensing and computation, com-munication, and control blocks. 
+
+1) Closed-Form Solution for vms : Before diving into the multi-variable block optimization, we first observe that the move-to-sense speed vms exhibits a monotonic decoupling property, allowing us to derive an exact analytical solution prior to the iterative numerical process. 
+
+Theorem 1 Given the topological assignment μ(n) = k and the temporary resources allocated for the subsequent phases, the optimal cruising speed (vms  
+
+> n
+
+)∗ for agent n during the move-to-sense phase is given by: 
+
+(vms  
+
+> n
+
+)∗ =
+
+{min 
+
+{
+
+vmax  
+
+> n
+
+, Erms 
+
+> n
+> dms
+> n,k λ2
+
+}
+
+, if dms  
+
+> n,k
+
+> 0,
+
+0, if dms  
+
+> n,k
+
+= 0 , (30) 
+
+where Erms  
+
+> n
+
+= Emax  
+
+> n
+
+− Eother  
+
+> n
+
+− dms 
+
+> n,k
+
+λ1 represents the residual energy available for scaling the kinematic speed, with Eother  
+
+> n
+
+=
+
+Es 
+
+> n
+
++ Ec 
+
+> n,k
+
++ Emt  
+
+> n
+
++ Etr  
+
+> n,k
+
+denoting the energy consumed in all other workflow phases. 
+
+Proof For any dispatched agent with a positive moving distance dms  
+
+> n,k
+
+> 0, the optimization subproblem with respect to 
+
+vms  
+
+> n
+
+aims to minimize the mobility delay tms  
+
+> n,k
+
+= dms 
+
+> n,k
+
+/v ms  
+
+> n
+
+. This minimization is subject to the mechanical speed limit vms  
+
+> n
+
+≤
+
+vmax  
+
+> n
+
+and the residual energy constraint dms 
+
+> n,k
+
+λ2vms  
+
+> n
+
+≤ Erms  
+
+> n
+
+.Let ν1 ≥ 0 and ν2 ≥ 0 denote the dual variables associated with these two upper-bound constraints, respectively. The Lagrangian is formulated as: 
+
+L = dms 
+
+> n,k
+
+vms 
+
+> n
+
++ ν1
+
+(dms 
+
+> n,k
+
+λ2vms  
+
+> n
+
+− Erms 
+
+> n
+
+) + ν2 (vms  
+
+> n
+
+− vmax  
+
+> n
+
+) . (31) According to the Karush-Kuhn-Tucker (KKT) stationarity con-dition, the optimal solution must satisfy: 
+
+∂L
+
+∂v ms 
+
+> n
+
+= − dms 
+
+> n,k
+
+(vms  
+
+> n
+
+)2 + ν1dms 
+
+> n,k
+
+λ2 + ν2 = 0 . (32) Since dms 
+
+> n,k
+
+/(vms  
+
+> n
+
+)2 > 0, the stationarity equality necessitates that ν1dms 
+
+> n,k
+
+λ2 + ν2 > 0. This implies that at least one of the dual variables must be strictly positive. Based on the KKT complementary slackness condition, this guarantees that at least one of the corresponding upper-bound constraints is strictly active. Physically, since the objective function strictly monotonically decreases with vms  
+
+> n
+
+, the optimal speed is achieved precisely at the intersection of the boundaries of the feasible domain, which directly yields (30). 
+
+2) Optimal Sensing and Computation Block: In the first block, we optimize {ts, ρ, f } while fixing the communica-tion and autonomous mobility variables. We introduce the computation workload L = {Ln} and an auxiliary non-negative variable vector z = {zn} with zn = − ln ρn,k . By leveraging this variable substitution, we eliminate the semantic compression ratio ρ and the computation capacity f from the independent optimization space. Let Xsc , {ts, tc, L, z}
+
+denote the continuous variable set of this block. The primary intractability of this subproblem stems from the coupled average sensing accuracy, the highly non-convex computation energy, and the bilinear coupled delay terms. We systematically decouple these challenges as follows. The QoS constraint (19a) requires the average accuracy of all collaborative agents in region k to exceed Θth  
+
+> k
+
+. However, the sigmoid function qn,k (ts
+
+> n
+
+) in (5) is neither globally convex nor concave. To strictly address this coupled summation constraint, we employ the descent lemma to construct a guaranteed concave quadratic lower bound. At the i-th BCD iteration, around the local point ts,(i) 
+
+> n
+
+, we bound qn,k (ts
+
+> n
+
+) as: 
+
+qn,k (ts
+
+> n
+
+) ≥ qn,k 
+
+(
+
+ts,(i)
+
+> n
+
+)
+
++ ∇q(i)
+
+> n,k
+
+(
+
+ts 
+
+> n
+
+− ts,(i)
+
+> n
+
+)
+
+− Mn
+
+2
+
+(
+
+ts 
+
+> n
+
+− ts,(i)
+
+> n
+
+)2
+
+, (33) where ∇q(i) 
+
+> n,k
+
+is the first-order derivative with respect to ts
+
+> n
+
+, and the penalty parameter Mn > 0 is selected to be strictly greater than the Lipschitz constant of the gradient. By replacing the original accuracy with this surrogate function, the cooperative sensing constraint is rigorously convexified as: 
+
+1
+
+Nk
+
+∑ 
+
+> n∈S k(μ)
+
+˜q(i)
+
+> n,k
+
+(ts
+
+> n
+
+) ≥ Θth  
+
+> k
+
+, ∀k ∈ K , (34) where ˜q(i)
+
+> n,k
+
+(ts
+
+> n
+
+) denotes the right-hand side of (33). According to (9), the required computation capacity is a dependent variable fn = Ln/t c
+
+> n,k
+
+. By substituting fn,the computation energy originally formulated in (10) can be rewritten as a perspective function: 
+
+Ec 
+
+> n,k
+
+= κ L3
+
+> n
+
+(tc
+
+> n,k
+
+)2 . (35) Remarkably, the fractional function f (x, y ) = x3/y 2 is strictly jointly convex for x ≥ 0, y > 0. By optimizing Ln and tc
+
+> n,k
+
+directly, we bypass the cubic non-convexity induced by the frequency term. Furthermore, the hardware bound fn ≤ f max 
+
+> n
+
+is linearly recast as Ln ≤ f max  
+
+> n
+
+tc
+
+> n,k
+
+.The required computation workload must satisfy Ln ≥
+
+γnηnts
+
+> n
+
+zn. The right-hand side is a bilinear term ts
+
+> n
+
+zn. Utiliz-ing the arithmetic-geometric mean inequality, we construct a tight convex upper bound at the i-th iteration: 
+
+ts
+
+> n
+
+zn ≤ 1
+
+2
+
+(
+
+(ts
+
+> n
+
+)2
+
+χ(i)
+
+> n
+
++ χ(i) 
+
+> n
+
+z2
+
+> n
+
+)
+
+, Υ(i) 
+
+> n
+
+(ts
+
+> n
+
+, z n), (36) where the fixed coefficient is defined as χ(i) 
+
+> n
+
+= ts,(i) 
+
+> n
+
+/z (i) 
+
+> n
+
+.Similarly, substituting ρn,k = e−zn , the transmission delay 
+
+ttr  
+
+> n,k
+
+=̟ n,k ts
+
+> n
+
+e−zn contains a non-convex coupling, where the inverse rate ̟ n,k = γn/R n,k acts as a predetermined constant in this block. We bound the transmission delay as: 
+
+ttr  
+
+> n,k
+
+≤̟ n,k 
+
+2
+
+(
+
+(ts
+
+> n
+
+)2
+
+ϕ(i)
+
+> n
+
++ ϕ(i) 
+
+> n
+
+e−2zn
+
+)
+
+, ˜ttr 
+
+> n,k
+
+, (37) where ϕ(i) 
+
+> n
+
+= ts,(i) 
+
+> n
+
+/e −z(i) 
+
+> n
+
+. Since the exponential function 
+
+e−2zn is strictly convex, ˜ttr  
+
+> n,k
+
+constitutes a valid convex upper bound. Consequently, the associated transmission energy is convexified as ˜Etr  
+
+> n,k
+
+= pn˜ttr 
+
+> n,k
+
+.9
+
+By assembling the aforementioned convexified components, the optimization subproblem for the sensing and computation block at the i-th iteration is formulated as a standard convex optimization problem: 
+
+min  
+
+> Xsc ,τ, tp
+
+τ (38) s.t. Wk
+
+(
+
+tms  
+
+> n,k
+
++ ts 
+
+> n
+
++ tp 
+
+> n,k
+
++ ˜ ttr 
+
+> n,k
+
+)
+
+≤ τ, 
+
+∀k ∈ K , ∀n ∈ S k(μ), (38a) 
+
+Ln ≥ γnηnΥ(i) 
+
+> n
+
+(ts
+
+> n
+
+, z n), ∀n ∈ S k(μ), (38b) 
+
+Ln ≤ f max  
+
+> n
+
+tc
+
+> n,k
+
+, ∀n ∈ S k(μ), (38c) 
+
+Ems  
+
+> n,k
+
++ P s
+
+> n
+
+ts 
+
+> n
+
++ κ L3
+
+> n
+
+(tc
+
+> n,k
+
+)2 + Emt  
+
+> n
+
++ ˜Etr  
+
+> n,k
+
+≤ Emax  
+
+> n
+
+,
+
+∀n ∈ S k(μ), (38d) 
+
+0 ≤ zn ≤ − ln (ρmin  
+
+> n
+
+(1 − Qk)) , ∀n ∈ S k(μ),
+
+(38e) (34) , (29b) , (19h) . (38f) Problem (38) can be efficiently solved using off-the-shelf solvers such as CVX. Once convergence is achieved, the physical variables are exactly recovered by ρ∗ 
+
+> n,k
+
+= e−z∗ 
+
+> n
+
+and 
+
+f ∗ 
+
+> n
+
+= L∗
+
+> n
+
+/(tc
+
+> n,k
+
+)∗. The optimal solutions obtained will update the reference points {ts,(i) 
+
+> n
+
+, z (i) 
+
+> n
+
+} for the subsequent iterations. 
+
+3) Optimal Communication Block: In the second block, with the sensing, computation, and autonomous mobility vari-ables fixed from the previous block, we jointly optimize 
+
+{b, p}. We introduce the auxiliary achievable rate R =
+
+{Rn,k } as an optimization variable, and let Xcomm , {b, p, R}
+
+denote the continuous variable set of this block. Mathematically, Rn,k is the perspective function of the con-cave function l(x) = log 2
+
+(
+
+1 + hn,k  
+
+> N0
+
+x
+
+)
+
+, i.e., Rn,k (bn, p n) = 
+
+bnl(pn/b n). According to the properties of perspective func-tions, Rn,k is jointly concave with respect to bn and pn for 
+
+bn > 0 and pn > 0. Therefore, the rate requirement can be equivalently represented as a convex constraint: 
+
+Rn,k − bn log 2
+
+(
+
+1 + pnhn,k 
+
+N0bn
+
+)
+
+≤ 0, ∀n ∈ S k(μ). (39) Let Deff  
+
+> n
+
+= ρn,k γnts 
+
+> n
+
+denote the effective semantic payload and T non  
+
+> n
+
+= tms  
+
+> n,k
+
++ ts 
+
+> n
+
++ tp 
+
+> n,k
+
+denote the non-transmission delay. The delay constraint (29a) can be rewritten as: 
+
+Wk
+
+(
+
+T non  
+
+> n
+
++ Deff 
+
+> n
+
+Rn,k 
+
+)
+
+≤ τ, ∀k ∈ K , ∀n ∈ S k(μ). (40) Since the function 1/R n,k is convex for Rn,k > 0, (40) defines a convex feasible region with respect to Rn,k and τ .Furthermore, the transmission energy Etr  
+
+> n,k
+
+= pnttr  
+
+> n,k
+
+=
+
+pn(Deff  
+
+> n
+
+/R n,k ) must satisfy the battery budget. By rearranging the terms, the energy constraint (19e) is transformed into a linear inequality: 
+
+pn ≤ Ert 
+
+> n
+
+Deff 
+
+> n
+
+Rn,k , ∀n ∈ S k(μ), (41) where Ert  
+
+> n
+
+= Emax  
+
+> n
+
+− (Ems  
+
+> n,k
+
++ Es 
+
+> n
+
++ Ec 
+
+> n,k
+
++ Emt  
+
+> n
+
+) is the residual energy. By assembling these components, the communication block subproblem can be formulated as a standard convex program: 
+
+min   
+
+> Xcomm ,τ
+
+τ (42) s.t. 0 < p n ≤ P max  
+
+> n
+
+, b n > 0, R n,k ≥ 0, ∀n ∈ S k(μ).
+
+(42a) (39) , (40) , (41) , (19f) . (42b) Problem (42) is a convex problem that can be solved using standard optimization solvers. 
+
+4) Optimal Control Block: In the third block, with the sens-ing, computation, and communication resources determined in the preceding steps, we optimize the autonomous mobility strategy {vmt , tmt }. We perform a variable substitution by utilizing the exploration distance dmt = {dmt  
+
+> n
+
+} as the direct optimization variable. Consequently, the cruising speed is expressed as vmt  
+
+> n
+
+= dmt  
+
+> n
+
+/t mt  
+
+> n
+
+. Let Xctrl , {dmt , tmt } denote the variable set of this block. The primary challenge lies in the intricate coupling between the spatial exploration distance and the location-dependent channel gain. We first establish the convexity of the resulting transmission delay. 
+
+Lemma 1 Given fixed bandwidth bn and transmit power pn,the transmission delay ttr  
+
+> n,k
+
+is a strictly convex function with respect to the exploration distance dmt  
+
+> n
+
+.
+
+Proof Let Fn = ρn,k γnts
+
+> n
+
+/b n and An = pn/(N0bn) be constants in this block. Then, the transmission delay can be expressed as: 
+
+ttr 
+
+> n,k
+
+(dmt  
+
+> n
+
+) = Fn
+
+log 2 (1 + Anhn,k (dmt  
+
+> n
+
+)) , (43) where hn,k (dmt  
+
+> n
+
+) = href  
+
+> k
+
++ ωk
+
+(
+
+1 − e−dmt  
+
+> n/ζ k
+
+)
+
+. First, consider the term u(dmt  
+
+> n
+
+) = 1 − e−dmt   
+
+> n/ζ k
+
+. Since its second-order derivative u′′ (dmt  
+
+> n
+
+) = −e−dmt   
+
+> n/ζ k
+
+/ζ 2 
+
+> k
+
+< 0, u(dmt  
+
+> n
+
+) is strictly concave. Since hn,k is a linear mapping of u(dmt  
+
+> n
+
+), the channel gain hn,k (dmt  
+
+> n
+
+) is also concave. Next, let y(h) = log 2(1 + 
+
+Anh). Since y(h) is concave and monotonically increasing for h > 0, the composite function R(dmt  
+
+> n
+
+) = y (hn,k (dmt  
+
+> n
+
+)) is strictly concave according to the composition rules. Finally, let ψ(R) = Fn/R . Since ψ(R) is strictly convex and mono-tonically decreasing for R > 0, and R(dmt  
+
+> n
+
+) is strictly concave, the final composite function ttr 
+
+> n,k
+
+(dmt  
+
+> n
+
+) = ψ(R(dmt  
+
+> n
+
+)) is strictly convex with respect to dmt  
+
+> n
+
+. 
+
+By substituting vmt  
+
+> n
+
+= dmt  
+
+> n
+
+/t mt  
+
+> n
+
+into the kinematic model, the exploration energy Emt  
+
+> n
+
+is reformulated as Emt  
+
+> n
+
+= λ1dmt  
+
+> n
+
++
+
+λ2(dmt  
+
+> n
+
+)2/t mt  
+
+> n
+
+. Note that the term (dmt  
+
+> n
+
+)2/t mt  
+
+> n
+
+is a quadratic-over-linear perspective function, which is jointly convex for 
+
+dmt  
+
+> n
+
+≥ 0 and tmt  
+
+> n
+
+> 0. Leveraging these properties, the subproblem for the control block can be formulated as a 10 
+
+standard convex program: 
+
+min  
+
+> Xctrl ,τ, tp
+
+τ (44) s.t. Wk
+
+(
+
+tms  
+
+> n,k
+
++ ts 
+
+> n
+
++ tp 
+
+> n,k
+
++ ttr 
+
+> n,k
+
+(dmt  
+
+> n
+
+)
+
+)
+
+≤ τ, 
+
+∀k ∈ K , ∀n ∈ S k(μ), (44a) 
+
+tp 
+
+> n,k
+
+≥ tc
+
+> n,k
+
+, t p 
+
+> n,k
+
+≥ tmt  
+
+> n
+
+, ∀n ∈ S k(μ), (44b) 
+
+dmt  
+
+> n
+
+≤ vmax  
+
+> n
+
+tmt  
+
+> n
+
+, ∀n ∈ S k(μ), (44c) 
+
+λ1dmt  
+
+> n
+
++ λ2
+
+(dmt  
+
+> n
+
+)2
+
+tmt 
+
+> n
+
++ pnttr 
+
+> n,k
+
+(dmt  
+
+> n
+
+) ≤ Erc  
+
+> n
+
+,
+
+∀n ∈ S k(μ), (44d) 
+
+dmt  
+
+> n
+
+≥ 0, t mt  
+
+> n
+
+≥ 0, ∀n ∈ S k(μ), (44e) where Erc  
+
+> n
+
+= Emax  
+
+> n
+
+−(Ems  
+
+> n,k
+
++Es 
+
+> n
+
++Ec
+
+> n,k
+
+) represents the energy budget consumed by the fixed sensing and computation phases. Constraint (44c) equivalently maintains the mechanical speed limit. Since all constraints are convex and the objective is lin-ear, problem (44) can be efficiently solved using interior-point solvers. Upon obtaining the optimal (dmt  
+
+> n
+
+)∗ and (tmt  
+
+> n
+
+)∗, the physical cruising speed is recovered as vmt  
+
+> n
+
+= ( dmt  
+
+> n
+
+)∗/(tmt  
+
+> n
+
+)∗.
+
+D. Algorithm Analysis 
+
+The detailed procedures of the proposed hierarchical algo-rithm are summarized in Algorithm 1. 
+
+1) Convergence Analysis: The convergence of Algorithm 1 is established by analyzing the inner-layer resource allocation and the outer-layer topology matching separately. For any given topology μ(j), let τ (i) denote the objective value at the i-th inner-layer iteration. In the sensing and com-putation block, the successive convex approximation (SCA)-based subproblem (38) utilizes global concave lower bounds and convex upper bounds that are tight at the local reference point. According to the properties of the block successive upper-bound minimization (BSUM) framework, solving (38) ensures τ
+
+(
+
+X (i+1)  
+
+> sc
+
+, X (i)
+
+> comm
+
+, X (i)
+
+> ctrl
+
+)
+
+≤ τ (i). Since the commu-nication and control subproblems (42) and (44) are solved exactly via convex optimization, we obtain a non-increasing sequence: 
+
+τ (i+1) ≤ τ
+
+(
+
+X (i+1)  
+
+> sc
+
+, X (i+1)  
+
+> comm
+
+, X (i+1) 
+
+> ctrl
+
+)
+
+≤ τ (i). (45) Given that the objective τ is lower-bounded by physical hardware limits, the sequence {τ (i)} is guaranteed to converge to a stationary point of the inner-layer problem (21). The outer-layer manages the discrete assignment mapping 
+
+μ : N → K ′. The total number of possible matching states is finite, specifically |M| = ( K + 1) N . According to the best-response update rule in Algorithm 1, a topological operation is accepted if and only if it strictly reduces the system cost, i.e., 
+
+J(μ(j+1) ) < J (μ(j)). This strict descent property ensures that no matching state is revisited, preventing any cyclic behavior. Since the state space is finite and the sequence of system costs is strictly decreasing, the outer-layer algorithm is guaranteed to converge to a locally stable matching within a finite number of iterations. 
+
+Algorithm 1 Hierarchical Topology Dispatching and Resource Allocation Algorithm for DT Synchronization 
+
+Input: System parameters; tolerance ǫ. 
+
+> 1:
+
+Initialization:  
+
+> 2:
+
+Generate the initial full-deployment topology μ(0) via Hungarian-based phase I and greedy-based phase II.  
+
+> 3:
+
+Initialize the continuous resource set X (0)  
+
+> con
+
+, evaluate the initial system cost J(μ(0) ), and set iteration index j = 0 . 
+
+> 4:
+
+repeat  
+
+> 5:
+
+Identify the bottleneck region k∗, the straggler agent 
+
+n∗, and the donor region kdonor to construct the high-potential candidate set Ω( μ(j)) via (27).  
+
+> 6:
+
+Initialize the temporary best state: μbest = μ(j) and 
+
+Jbest = J(μ(j) ). 
+
+> 7:
+
+for each candidate state ˆμ ∈ Ω( μ(j)) do  
+
+> 8:
+
+if Emin  
+
+> req
+
+> aE max  
+
+> n
+
+then continue ; 
+
+> 9:
+
+Initialize BCD iteration index i = 0 and reference points {ts,(0)  
+
+> n
+
+, z (0)  
+
+> n
+
+}. 
+
+> 10:
+
+repeat  
+
+> 11:
+
+Update cruising speed (vms  
+
+> n
+
+)∗ via the closed-form solution in Theorem 1.  
+
+> 12:
+
+Fix other variables, update {ts, tc, L, z}(i+1) by solving convex problem (38).  
+
+> 13:
+
+Fix other variables, update {b, p, R}(i+1) by solv-ing the convex problem (42).  
+
+> 14:
+
+Fix other variables, update {dmt , tmt }(i+1) by solv-ing the convex problem (44).  
+
+> 15:
+
+Update the SCA local reference points: 
+
+{ts,(i+1)  
+
+> n
+
+, z (i+1)  
+
+> n
+
+} ← { ts, z}(i+1) . 
+
+> 16:
+
+i ← i + 1 . 
+
+> 17:
+
+until Convergence of τ within tolerance ǫ. 
+
+> 18:
+
+if τ < J best then update Jbest = τ and μbest = ˆ μ; 
+
+> 19:
+
+end for  
+
+> 20:
+
+Update the topology state μ(j+1) ← μbest and j ← j+1 . 
+
+> 21:
+
+until J(μ(j)) = J(μ(j−1) ).
+
+Output: Optimal binary assignment matrix α∗ and the mul-tidimensional continuous resource set X ∗
+
+> con
+
+.
+
+2) Complexity Analysis: The computational complexity of Algorithm 1 is fundamentally governed by three stages: ini-tialization, inner-layer optimization, and outer-layer matching. The bipartite matching and greedy reinforcement take 
+
+O(N 3) and O(( N − K)K) operations, respectively. Thus, the overall initialization complexity is bounded by O(N 3).For a given topology, optimizing the continuous resources involves solving the convex subproblems (38), (42), and (44) via interior-point methods, which incurs a worst-case polynomial complexity of O(N 3.5). Considering the closed-form kinematic solution (30) adds negligible overhead, the evaluation complexity per candidate state is O(Ibcd N 3.5),where Ibcd is the number of BCD iterations. At each iteration, the heuristic state generation (27) and the outer-layer energy pruning constrain the number of active BCD evaluations to a small constant ˜CΩ. Assuming Iout 
+
+outer-layer iterations, the cumulative exploration complexity is O(Iout ˜CΩIbcd N 3.5).11                            
+
+> TABLE I MAIN SYSTEM PARAMETERS
+> Parameter Value
+> Number of agents N12
+> Number of regions K4
+> Total bandwidth Btot 10 MHz [44] Maximum velocity vmax
+> n4 m /s
+> Maximum transmit power Pmax
+> n30 dBm
+> Computation complexity η50 cycles /bit [44] Path loss exponent δ4.0[45] Channel reference gain β010 −5
+> Cooperation exponent θ0.9
+> Per-agent energy budget Emax
+> n220 J
+
+Synthesizing these stages, the total computational complexity of the proposed framework is evaluated as 
+
+O
+
+(
+
+N 3 + Iout ˜CΩIbcd N 3.5
+
+)
+
+. Compared to the exponentially explosive exhaustive search O ((K + 1) N ) required by the original MINLP formulation, the proposed algorithm strategically reduces the computational overhead to a tractable polynomial time. IV. S IMULATION RESULTS AND ANALYSIS 
+
+In this section, we present comprehensive simulation results to evaluate the performance of the proposed hierarchical algorithm. We consider a MEAN scenario in which 12 mobile agents are randomly deployed within a 200 × 200 m2 square area to cooperatively monitor 4 target regions, with the BS located at the area center. For each scenario, the region weights 
+
+Wk and the sensing accuracy thresholds Θth  
+
+> k
+
+are randomly drawn from [0 .5, 2.0] and [0 .65 , 0.78] , respectively. Unless otherwise specified, the key system parameters adopted in the simulations are summarized in Table I, and all reported results are averaged over five independent random scenarios. 
+
+A. Inner-Layer Performance Analysis 
+
+We compare the proposed scheme against the following four inner-layer baseline schemes, all of which share the same outer matching solution α∗: 
+
+> •
+
+“Equal BW ”: This scheme allocates bandwidth equally to each agent as bn = Btot /N . 
+
+> •
+
+“No Coop. ”: This scheme disables the cooperation gain modeling by setting g(Nk) = 1 regardless of the number of agents assigned to each region.  
+
+> •
+
+“No Compress. ”: This scheme fixes the semantic com-pression ratio at ρn = 1 . 
+
+> •
+
+“Fixed Speed ”: This scheme holds both the move-to-sense and move-to-transmit velocities at vmax /2.Fig. 5(a) illustrates the convergence behavior of the pro-posed inner BCD algorithm under five distinct initial spatial deployment topologies. All five trajectories monotonically de-crease and converge within approximately 15 iterations under the tolerance ǫ = 10 −3. This empirical observation aligns with the theoretical analysis in Section III-D1. Fig. 5(b) through Fig. 5(f) present a comprehensive sensi-tivity analysis of the worst-case twin deviation τ with respect to five key system parameters, covering the communication, sensing, computation, and energy aspects of the considered MEAN. Across all five sweeps, the proposed scheme consis-tently attains the lowest τ . Beyond this overall trend, several regime-specific phenomena merit attention. In Fig. 5(b) and Fig. 5(e), the gap between the proposed scheme and “No Compress.” shrinks to less than half a second when bandwidth is abundant or the channel is favorable, but widens to over 
+
+12 s in the opposite regime. This reveals that compression and channel resources function as substitutable means for trans-mission delay reduction, and semantic compression becomes critical precisely when the channel resource is constrained. In Fig. 5(c), the “No Coop.” baseline remains constant at 
+
+19 .22 s as expected, since this baseline is structurally insen-sitive to the cooperation exponent. In Fig. 5(d), both the proposed scheme and “No Compress.” converge to a com-mon plateau of 18 .47 s for η ≥ 100 cycles/bit, indicating that at high computation complexity the optimal semantic compression ratio of the proposed scheme itself degenerates to unity, since the transmission savings from compression no longer offset the computation delay penalty. Finally, in Fig. 5(f), two qualitatively distinct regimes emerge. In the binding regime Emax  
+
+> n
+
+∈ [80 , 100] J the energy constraint actively limits the BCD optimization, while in the saturation regime Emax  
+
+> n
+
+≥ 120 J all schemes asymptote toward their unconstrained optima. Notably, the “Fixed Speed” baseline saturates at approximately 26 .50 s with little response to the increasing energy budget, whereas other baselines saturate at substantially lower values around 16 to 20 seconds. This asymmetric saturation reveals that velocity adaptation is the primary degree of freedom that the BCD optimizer employs to navigate the energy-time trade-off; once velocity is removed from the optimization variables, the system is unable to fully exploit the relaxation of the energy budget. The proposed scheme also remains feasible across all trials throughout the 
+
+Emax  
+
+> n
+
+sweep, while “No Compress.” becomes infeasible in one of the five trials at Emax  
+
+> n
+
+= 80 J and is therefore omitted at that point. 
+
+B. Outer-Layer Performance Analysis 
+
+To assess the contribution of the outer matching design, we compare the proposed scheme against the following three outer-layer baseline schemes, all of which replace the outer matching procedure but retain the same inner BCD as the proposed scheme:  
+
+> •
+
+“Proposed w/o TPI ”: This scheme replaces the two-phase initialization with a uniform random initialization while retaining the same best-response refinement, isolat-ing the contribution of the intelligent initialization.  
+
+> •
+
+“Distance-Based ”: This scheme solves an integer linear program that minimizes the total move-to-sense distance subject to the coverage constraint.  
+
+> •
+
+“Random ”: This scheme assigns each agent indepen-dently and uniformly to one of K + 1 choices with a coverage repair step, serving as an unstructured reference. Fig. 6 reports the worst-case twin deviation τ versus the number of agents N . As N grows from 4 to 16 , the pro-12                                         
+
+> 1510 15 20 25 30
+> 10 15 20 25 30 35 (a)
+> Spatial Scenario 1
+> Spatial Scenario 2
+> Spatial Scenario 3
+> Spatial Scenario 4
+> Spatial Scenario 5
+> Convergence Point
+> 46810 12 14 16 18 20
+> 10 15 20 25 30 (b)
+> Proposed
+> Equal BW
+> No Coop.
+> No Compress.
+> Fixed Speed
+> 00.2 0.4 0.6 0.8 1
+> 10 15 20 25 30 (c)
+> Proposed
+> Equal BW
+> No Coop.
+> No Compress.
+> Fixed Speed
+> 10 30 60 100 150 200
+> 10 15 20 25 30 35 (d)
+> Proposed
+> Equal BW
+> No Coop.
+> No Compress.
+> Fixed Speed
+> 2.5 33.5 44.5
+> 10 15 20 25 30 35 (e)
+> Proposed
+> Equal BW
+> No Coop.
+> No Compress.
+> Fixed Speed
+> 80 100 120 140 160 180 200
+> 14 16 18 20 22 24 26 28 (f)
+> Proposed
+> Equal BW
+> No Coop.
+> No Compress.
+> Fixed Speed
+
+Fig. 5. Worst-case twin deviation versus: (a) BCD iteration, (b) total bandwidth Btot , (c) cooperation exponent θ, (d) computation complexity η, (e) path loss exponent δ, (f) energy budget per agent Emax .   
+
+> 4812 16
+> 050 100 150 200 250 300
+> Proposed
+> Proposed w/o TPI
+> Distance-Based
+> Random
+
+Fig. 6. Worst-case twin deviation versus number of agents across diverse matching schemes. 
+
+posed scheme exhibits a monotonically decreasing trend that saturates for N ≥ 12 . This phenomenon can be attributed to the diminishing marginal benefit of additional agents, given the limitation of the total bandwidth. The gap of roughly 
+
+28 s between the proposed scheme and “Distance-Based” for 
+
+N ≥ 12 quantifies the cost of ignoring the physical volatility rate Wk and the cooperation gain, since these two factors are absent from the pure mobility-distance objective adopted by “Distance-Based”. A more revealing observation concerns the “Proposed w/o TPI” curve, where the gap to the proposed scheme shrinks from more than 30 s at N = 8 to less than 2 s 
+
+at N = 16 . This trend suggests that the two-phase initialization is most valuable in resource-constrained regimes where the search landscape is rugged, whereas in agent-abundant regimes the best-response refinement alone suffices to drive a random initialization toward a near-optimal solution. The “Random” curve exhibits high variance and a non-monotonic mean across the sweep, owing to the large inherent variance of uniform random sampling. Fig. 7 presents a side-by-side visualization of the matching topologies produced by the four schemes on a common scenario at N = 12 and K = 4, with the resulting J∗
+
+value annotated in each panel. In this scenario, the physical volatility rates of the four regions are W1 = 1 .83 , W2 = 1 .68 ,
+
+W3 = 1.78 , and W4 = 1.44 . In Fig. 7(a), the proposed scheme attains J∗ of 35 .93 s with the assignment distribution 
+
+Nk = [1 , 2, 2, 6] and one void agent. Despite holding the low-est physical volatility rate among the four regions, R4 receives six cooperating agents. This phenomenon can be attributed to the overall geometrical distribution of the agents and regions. Fig. 7(b), “Proposed w/o TPI”, reaches J∗ of 57 .21 s with a sparser deployment Nk = [3 , 1, 2, 2] and four void agents, illustrating that without the two-phase initialization the best-response refinement converges to a locally stable but under-deployed configuration. Fig. 7(c), “Distance-Based”, achieves 
+
+J∗ of 93 .50 s with Nk = [2 , 2, 2, 6] and zero voids. This baseline attains a worse J∗ than the proposed scheme since “Distance-Based” exhaustively deploys all agents, whereas the proposed scheme strategically idles one agent to free its bandwidth and energy budget for redistribution among the active agents. Finally, Fig. 7(d), “Random”, produces J∗ of 
+
+123 .24 s with a visibly imbalanced workload Nk = [5 , 1, 2, 3] .V. C ONCLUSION 
+
+In this paper, we have established a comprehensive frame-work for DT synchronization over agentic AI-empowered MEANs. By investigating the five-stage closed-loop workflow, we transitioned from a static sensing-communication paradigm 13                 
+
+> -100 -50 050 100
+> -100 -50 050 100
+> BS
+> x (m) y (m)
+> Active agent
+> Idle agent
+> Assignment
+> Target region
+> -100 -50 050 100
+> -100 -50 050 100
+> BS
+> x (m) y (m)
+> -100 -50 050 100
+> -100 -50 050 100
+> BS
+> x (m) y (m)
+> -100 -50 050 100
+> -100 -50 050 100
+> BS
+> x (m) y (m)
+
+Fig. 7. Visualization of the matching topologies across different schemes. 
+
+to a dynamic sensing-moving-computing-transmission syn-ergy. Our analyses reveal two key insights for future agen-tic networks: semantic compression effectively compensates for constrained wireless bandwidth in highly volatile envi-ronments, while autonomous velocity adaptation serves as an essential degree of freedom to navigate the fundamental energy-time trade-off. Future research will focus on integrating channel knowledge maps to enhance the precision of mobility-gain modeling and extending the coordination to multi-cell scenarios. REFERENCES [1] S. Mihai, M. Yaqoob, D. V. Hung, W. Davis, P. Towakel, M. Raza, M. Karamanoglu, B. Barn, D. Shetve, R. V. Prasad, H. Venkataraman, R. Trestian, and H. X. Nguyen, “Digital twins: A survey on enabling technologies, challenges, trends and future prospects,” IEEE Commun. Surveys Tuts. , vol. 24, no. 4, pp. 2255–2291, 4th Quart. 2022. [2] H. Li, H. Madhukumar, N. Methley, X. Chen, Y. Wu, J. Parra-Ullauri, V. Sharma, J. Lee, A. R. Koblitz, M. Andrews, S. Liu, Y. Deng, O. Y. Kolawole, A. Tassi, and D. Simeonidou, “Future factories with 6G: Agentic AI and cyber-physical digital twins,” IEEE Internet Things J. ,2025. [3] J. Lee, Y. Cheng, D. Niyato, Y. L. Guan, and D. Gonz´ alez G., “Intelligent resource allocation in joint radar-communication with graph neural networks,” IEEE Trans. Veh. Technol. , vol. 71, no. 10, pp. 11 120–11 135, Oct. 2022. [4] J. Wang, Y. Yang, Z. Yang, C. Huang, M. Chen, Z. Zhang, and M. Shikh-Bahaei, “Generative AI empowered semantic feature multiple access (SFMA) over wireless networks,” IEEE Trans. Cogn. Commun. Netw. ,vol. 11, no. 2, pp. 791–804, Apr. 2025. [5] Z. Zhao, Z. Yang, M. Chen, C. Zhu, W. Xu, Z. Zhang, and K. Huang, “Energy-efficient probabilistic semantic communication over space-air-ground integrated networks,” IEEE Trans. Wireless Commun. , vol. 24, no. 10, pp. 8814–8829, Oct. 2025. [6] Z. Zhang, M. Fang, M. Chen, and Y. Liu, “On transferring, merging, and splitting task-oriented network digital twins,” in Proc. 2025 Int. Conf. Model. Anal. Simu. Wireless Mobile Syst. (MSWiM) , Oct. 2025, pp. 695–704. [7] J. Zheng, T. H. Luan, Y. Zhang, R. Li, Y. Hui, L. Gao, and M. Dong, “Data synchronization in vehicular digital twin network: A game the-oretic approach,” IEEE Trans. Wireless Commun. , vol. 22, no. 11, pp. 7635–7647, Nov. 2023. [8] L. V. Cakir, S. Al-Shareeda, S. F. Oktug, M. ¨Ozdem, M. Broadbent, and B. Canberk, “How to synchronize digital twins? a communication performance analysis,” in Proc. 2023 IEEE 28th Int. Workshop Comput. Aided Model. Design Commun. Links Netw. (CAMAD) , Nov. 2023, pp. 123–127. [9] H. Yu, Y. Liu, Z. Yang, H. Sun, and M. Chen, “Optimizing wireless resource management and synchronization in digital twin networks,” 
+
+IEEE Internet Things J. , vol. 12, no. 15, pp. 29 152–29 163, Aug. 2025. [10] M. Elloumi, M. Z. Hassan, and G. Kaddoum, “Spectrum sharing in internet-of-vehicles networks: Digital twin-empowered proactive inter-ference management approach,” IEEE Trans. Netw. Service Manage. ,vol. 22, no. 4, pp. 3228–3248, Aug. 2025. [11] W. Liu, Y. Fu, Y. Guo, F. Lee Wang, W. Sun, and Y. Zhang, “Two-timescale synchronization and migration for digital twin networks: A multi-agent deep reinforcement learning approach,” IEEE Trans. Wireless Commun. , vol. 23, no. 11, pp. 17 294–17 309, Nov. 2024. [12] J. Tang, J. Nie, J. Bai, J. Xu, S. Li, Y. Zhang, and Y. Yuan, “UAV-assisted digital-twin synchronization with tiny-machine-learning-based semantic communications,” IEEE Internet Things J. , vol. 11, no. 17, pp. 28 437–28 451, Sep. 2024. [13] B. Li, H. Cai, L. Liu, and Z. Fei, “Delay-aware digital twin synchro-nization in mobile edge networks with semantic communications,” IEEE Trans. Veh. Technol. , vol. 74, no. 7, pp. 10 974–10 983, Jul. 2025. [14] R. D. Yates, Y. Sun, D. R. Brown, S. K. Kaul, E. Modiano, and S. Ulukus, “Age of information: An introduction and survey,” IEEE J. Sel. Areas Commun. , vol. 39, no. 5, pp. 1183–1210, May 2021. [15] Y. Shu, Z. Wang, H. Liao, Z. Zhou, N. Nasser, and M. Imran, “Age-of-information-aware digital twin assisted resource management for distributed energy scheduling,” in Proc. GLOBECOM 2022 - 2022 IEEE Global Commun. Conf. , Dec. 2022, pp. 5705–5710. [16] H. Liao, J. Lu, Y. Shu, Z. Zhou, M. Tariq, and S. Mumtaz, “Integration of 6G signal processing, communication, and computing based on information timeliness-aware digital twin,” IEEE J. Sel. Topics Signal Process. , vol. 18, no. 1, pp. 98–108, Jan. 2024. [17] Y. Guo, Y. Fu, Y. Zhang, and T. Q. S. Quek, “Age-of-information and en-ergy optimization in digital twin edge networks,” in Proc. GLOBECOM 2024 - 2024 IEEE Global Commun. Conf. , Dec. 2024, pp. 3194–3200. [18] Z. Liu, X. Liu, W. Yang, and X. Zhang, “Joint sensing and age of information optimization for energy constrained UAV-assisted integrated sensing, calculation, and communication,” IEEE Trans. Wireless Com-mun. , vol. 24, no. 5, pp. 4440–4453, May 2025. [19] X. Chen, H. Xing, Q. Zhang, Z. Xiong, Y. Bi, and X. Wang, “Age-of-information-aware hierarchical collaborative inference in digital twin-enabled vehicular edge computing,” IEEE Trans. Netw. Sci. Eng. , vol. 13, pp. 2388–2404, 2026. [20] K. Noroozi, T. D. Todd, D. Zhao, and G. Karakostas, “Age of infor-mation in digital twin migration,” IEEE Trans. Veh. Technol. , vol. 74, no. 10, pp. 16 281–16 294, Oct. 2025. [21] L. Tang, Z. Cheng, J. Dai, H. Zhang, and Q. Chen, “Joint optimization of vehicular sensing and vehicle digital twins deployment for DT-assisted IoVs,” IEEE Trans. Veh. Technol. , vol. 73, no. 8, pp. 11 834–11 847, Aug. 2024. [22] F. Jiang, C. Pan, K. Wang, P. Michiardi, O. A. Dobre, and M. Debbah, “From large AI models to agentic AI: A tutorial on future intelligent communications,” IEEE J. Sel. Areas Commun. , 2026. [23] R. Zhang, G. Liu, Y. Liu, C. Zhao, J. Wang, Y. Xu, D. Niyato, J. Kang, Y. Li, S. Mao, S. Sun, X. Shen, and D. I. Kim, “Toward edge general intelligence with agentic AI and agentification: Concepts, technologies, and future directions,” IEEE Commun. Surveys Tuts. , vol. 28, pp. 4285– 4318, 2026. [24] T. M. Nguyen, V. T. Truong, and L. B. Le, “Agentic AI meets edge computing in autonomous UAV swarms,” IEEE Internet Things Mag. ,2026. [25] C. Zhao, G. Liu, R. Zhang, Y. Liu, J. Wang, J. Kang, D. Niyato, Z. Li, X. Shen, Z. Han, S. Sun, C. Yuen, and D. I. Kim, “Edge general intelligence through world models, large language models, and agentic AI: Fundamentals, solutions, and challenges,” IEEE Trans. Cogn. Commun. Netw. , vol. 12, pp. 5649–5675, 2026. [26] R. Zhang, S. Tang, Y. Liu, D. Niyato, Z. Xiong, S. Sun, S. Mao, and Z. Han, “Toward agentic AI: Generative information retrieval inspired intelligent communications and networking,” IEEE Commun. Mag. ,vol. 64, no. 1, pp. 197–204, Jan. 2026. 14 
+
+[27] B. Du, R. Li, D. Niyato, and Z. Su, “TaskON: Task-oriented networking for agentic AI,” IEEE Netw. , 2026. [28] G. Liu, Y. Liu, R. Zhang, H. Du, D. Niyato, Z. Xiong, S. Sun, and A. Jamalipour, “Wireless agentic AI with retrieval-augmented multi-modal semantic perception,” IEEE Commun. Mag. , vol. 64, no. 1, pp. 230–236, Jan. 2026. [29] Y. Liu, G. Liu, J. Wang, R. Zhang, D. Niyato, G. Sun, Z. Xiong, and Z. Han, “LAMeTA: Intent-aware agentic network optimization via a large AI model-empowered two-stage approach,” IEEE J. Sel. Areas Commun. , 2025. [30] Y. Wang, S. Guo, Y. Pan, Z. Su, F. Chen, T. H. Luan, P. Li, J. Kang, and D. Niyato, “Internet of agents: Fundamentals, applications, and challenges,” IEEE Trans. Cogn. Commun. Netw. , vol. 12, pp. 4476– 4501, 2026. [31] Z. Zhao, J. Wang, Z. Yang, K. Yang, Z. Zhang, M. Chen, and K. Huang, “Agentic AI-empowered wireless agent networks with semantic-aware collaboration via ILAC,” arXiv preprint arXiv:2604.02381 , 2026. [32] Z. Liu, J. Zhang, Y. Zhu, E. Shi, B. Xu, D. Niyato, S. Jin, and B. Ai, “MaLAM4Com: Multi-agent cooperative large AI models for wireless communications,” IEEE J. Sel. Areas Commun. , 2025. [33] Y. Wang, Y. Pan, Z. Su, Y. Deng, Q. Zhao, L. Du, T. H. Luan, J. Kang, and D. Niyato, “Large model-based agents: State-of-the-art, cooperation paradigms, security and privacy, and future trends,” IEEE Commun. Surveys Tuts. , vol. 28, pp. 1906–1949, 2026. [34] Y. Mei, Y.-H. Lu, Y. Hu, and C. Lee, “Deployment of mobile robots with energy and timing constraints,” IEEE Trans. Robot. , vol. 22, no. 3, pp. 507–522, Jun. 2006. [35] H. Yu, Y. Luo, M. Shu, Y. Huo, Z. Yang, Y. Shi, Z. Guo, H. Li, X. Hu, J. Yuan, and Z. Nie, “DAIR-V2X: A large-scale dataset for vehicle-infrastructure cooperative 3D object detection,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recog. (CVPR) , 2022, pp. 21 329–21 338. [36] R. Xu, H. Xiang, Z. Tu, X. Xia, M.-H. Yang, and J. Ma, “V2x-vit: Vehicle-to-everything cooperative perception with vision transformer,” in Proc. Eur. Conf. Comput. Vis. (ECCV) , 2022, pp. 107–124. [37] R. Xu, H. Xiang, X. Xia, X. Han, J. Li, and J. Ma, “OPV2V: An open benchmark dataset and fusion pipeline for perception with vehicle-to-vehicle communication,” in Proc. 2022 Int. Conf. Robot. Auto. (ICRA) ,May 2022, pp. 2583–2589. [38] K. Yang, D. Yang, J. Zhang, M. Li, Y. Liu, J. Liu, H. Wang, P. Sun, and L. Song, “Spatio-temporal domain awareness for multi-agent collabo-rative perception,” in Proc. IEEE/CVF Int. Conf. Compu. Vis. (ICCV) ,2023, pp. 23 383–23 392. [39] Y. Yang, Y. Ding, Z. Yang, C. Huang, Z. Zhang, D. Niyato, and M. R. Shikh-Bahaei, “Toward efficient and privacy-aware eHealth systems: An integrated sensing, computing, and semantic communication approach,” 
+
+IEEE Internet Things J. , vol. 12, no. 24, pp. 55 087–55 105, Dec. 2025. [40] Z. Zhao, Z. Yang, Y. Hu, C. Zhu, M. Shikh-Bahaei, W. Xu, Z. Zhang, and K. Huang, “Compression ratio allocation for probabilistic semantic communication with RSMA,” IEEE Trans. Commun. , vol. 73, no. 9, pp. 7304–7318, Sep. 2025. [41] D. Bonilla Licea, M. Ghogho, D. McLernon, and S. A. R. Zaidi, “Mobility diversity-assisted wireless communication for mobile robots,” 
+
+IEEE Trans. Robot. , vol. 32, no. 1, pp. 214–229, Feb. 2016. [42] R. Miyagusuku, A. Yamashita, and H. Asama, “Precise and accurate wireless signal strength mappings using gaussian processes and path loss models,” Robot. Auto. Systems , vol. 103, pp. 134–150, 2018. [43] K. Zhou, G. Zhang, H. Li, Y. Cai, S. Liu, and G. Yu, “F4-CKM: Learning channel knowledge map with radio frequency radiance field rendering,” 
+
+IEEE Trans. Commun. , vol. 74, pp. 5684–5700, 2026. [44] C. You, K. Huang, H. Chae, and B.-H. Kim, “Energy-efficient resource allocation for mobile-edge computation offloading,” IEEE Trans. Wire-less Commun. , vol. 16, no. 3, pp. 1397–1411, Mar. 2016. [45] 3GPP, “Study on channel model for frequencies from 0.5 to 100 GHz,” 3rd Generation Partnership Project (3GPP), Tech. Rep. TR 38.901, version 17.0.0, Mar. 2022.
