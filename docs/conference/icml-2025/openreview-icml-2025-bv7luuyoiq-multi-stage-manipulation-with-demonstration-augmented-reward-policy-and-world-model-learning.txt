@@ -1,0 +1,847 @@
+Title: Multi-Stage Manipulation with Demonstration-Augmented Reward, Policy, and World Model Learning
+
+URL Source: https://openreview.net/pdf?id=Bv7LUUYOiq
+
+Number of Pages: 22
+
+Markdown Content:
+# Multi-Stage Manipulation with Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+Adri` a L´ opez Escoriza 1 2 Nicklas Hansen 1 Stone Tao 1 3 Tongzhou Mu 1 Hao Su 1 3 
+
+## Abstract 
+
+Long-horizon tasks in robotic manipulation present significant challenges in reinforcement learning (RL) due to the difficulty of designing dense reward functions and effectively explor-ing the expansive state-action space. However, despite a lack of dense rewards, these tasks of-ten have a multi-stage structure, which can be leveraged to decompose the overall objective into manageable subgoals. In this work, we propose Demonstration-Augmented Reward, Policy, and World Model Learning ( DEMO 3), a framework that exploits this structure for efficient learning from visual inputs. Specifically, our approach incorporates multi-stage dense reward learning, a bi-phasic training scheme, and world model learning into a carefully designed demonstration-augmented RL framework that strongly mitigates the challenge of exploration in long-horizon tasks. Our evaluations demonstrate that our method im-proves data-efficiency by an average of 40% and by 70% on particularly difficult tasks compared to state-of-the-art approaches. We validate this across 16 sparse-reward tasks spanning four do-mains, including challenging humanoid visual control tasks using as few as five demonstrations. Website with code and visualizations can be found at https://adrialopezescoriza.github.io/demo3 .
+
+## 1. Introduction 
+
+Reinforcement learning (RL) with dense rewards has en-abled significant progress in high-dimensional control tasks. Many such tasks are now solvable when the reward func-tion is carefully designed for the specific goal. In partic-ular, model-based RL (MBRL) has demonstrated strong performance in these high-dimensional problems (Ha &           
+
+> 1University of California San Diego 2ETH Z ¨urich, Switzer-land 3Hillbot. Correspondence to: Adri `a L ´opez Escoriza
+> <alopez@ethz.ch >.
+> Proceedings of the 42 nd International Conference on Machine Learning , Vancouver, Canada. PMLR 267, 2025. Copyright 2025 by the author(s).
+
+Schmidhuber, 2018; Zhang et al., 2018; Kidambi et al., 2020; Hafner et al., 2020; Yu et al., 2020; Hansen et al., 2022; 2024; Sferrazza et al., 2024). However, designing accurate reward functions is challenging. Poorly designed rewards can lead agents to become trapped in local min-ima or exploit unintended shortcuts, resulting in undesirable behaviors (Clark & Amodei, 2016). More critically, scal-ing reward design to complex tasks is highly impractical: the larger the state space and the longer the horizon, the more intricate the reward must be. While recent approaches leveraging Large Language Models (Kwon et al., 2023; Ma et al., 2023; Xie et al., 2024) and Vision-Language Models (Rocamonde et al., 2024; Baumli et al., 2024) for reward generation show promise, they still struggle with high-precision requirements, particularly in manipulation problems. In contrast, sparse rewards, such as binary signals indicating task or subtask completion, are much easier to obtain. However, traditional RL methods still struggle to learn effectively from sparse rewards. Fortunately, long-horizon tasks do offer opportunities to simplify the problem. Typically, such tasks exhibit a natural multi-stage structure. For example, a pick-and-place task can be broken down into subtasks such as grasping, lifting, and placing. Each of these can be associated with stage indicators or rewards that can easily be queried from the environment. This multi-stage structure allows these tasks to be decomposed into more manageable subgoals, enabling the agent to collect rewards more frequently (Smith et al., 2020; Di Palo & Johns, 2021). However, subgoal sparse rewards can still be insufficient if the distance between sub-goals is too great, leading back to the exploration problem. Prior work shows that Learning from Demonstrations (LfD) can help mitigate exploration issues in sparse reward set-tings. Algorithms such as CoDER (Zhan et al., 2022) and MoDem (Hansen et al., 2023; Lancaster et al., 2024) lever-age demonstrations to populate the replay buffer of an off-policy RL algorithm (Sutton & Barto, 2018), but they often scale poorly with task complexity as they need demonstra-tions that sufficiently cover the behavior space. Inverse RL methods (Trott et al., 2019; Wu et al., 2021; Memarian et al., 2021; Escontrela et al., 2022) train RL on a reward function that is learned from demonstrations, but inverse RL alone 1Demonstration-Augmented Reward, Policy, and World Model Learning 0%       
+
+> 50%
+> 100%
+> 76.4
+> 0.0
+> 33.8
+> 4.4 7.6
+> ManiSkill Manipulation
+> 78.0
+> 16.0
+> 71.4
+> 7.7
+> 18.0
+> Meta-World
+> 92.0
+> 16.7
+> 41.7
+> 3.5
+> 24.0
+> ManiSkill Humanoids
+> 87.5
+> 0.0
+> 25.3
+> 90.5
+> 31.0
+> Robosuite
+> Ours TD-MPC2 MoDem LaNE BC
+> Figure 1. Summary of results . Final success rate ( %) achieved by our method and a set of strong baselines, averaged across all tasks within each of 4 domains. Average of 5 seeds. Given a handful of demonstrations, our method achieves high success rates in challenging visual manipulation tasks with sparse rewards, far exceeding previous state-of-the-art methods. See Appendix A for per-task results.
+
+often struggles as the learned reward function can have poor predictions on unseen states. Lastly, these methods typically require a vast amount of samples to learn a reward func-tion (Kumar et al., 2022; Mu et al., 2024) before any policy learning can begin. In this paper, we build on demonstration-augmented RL to tackle multi-stage manipulation tasks with sparse stage-wise rewards. We introduce DEMO 3, a model-based RL algorithm that leverages a limited number of demonstrations for three key purposes: learning a policy, a world model, and a dense reward . DEMO 3 exploits the multi-stage structure of long-horizon tasks to transform sparse stage indicators into a stage-wise dense reward. This enables dense feedback in a structured way, prioritizing achieving subgoals over following demonstrations. Unlike prior work, our dense reward is learned online, alongside policy and world model learning. We evaluate our method on a range of challenging manipu-lation tasks from Meta-World (Yu et al., 2021), Robosuite (Zhu et al., 2022), as well as both humanoid and tabletop manipulation tasks from ManiSkill3 (Tao et al., 2024b). Our results (see Figure 1) demonstrate that our method outper-forms state-of-the-art methods by an average of 40% , and for more complex, longer-horizon tasks, this performance gap increases to 70% . Our main contributions can be summarized as follows: 
+
+1. We introduce DEMO 3, an MBRL algorithm for highly data-efficient robotic manipulation from visual inputs and sparse rewards. Our method integrates online dense reward learning into RL for multi-stage tasks. 2. We conduct extensive experiments in 16 tasks across 4 domains to demonstrate the data-efficiency and robust-ness of our approach compared to existing methods. 3. We analyze the relative importance of each component of our framework, and are open-sourcing all code and demonstrations used in this work .   
+
+> Figure 2. Task domains . We evaluate methods on 16 multi-stage image-based sparse-reward tasks spanning four domains: Meta-World (Yu et al., 2021), Robosuite (Zhu et al., 2022), as well as manipulation and humanoid tasks from ManiSkill3 (Tao et al., 2024b). See Appendix D for a complete overview of tasks.
+
+## 2. Preliminaries 
+
+Problem formulation . We aim to learn control policies for multi-stage, long-horizon tasks, which we model as infinite-horizon Markov Decision Processes (Bellman, 1957) de-fined by the tuple (S, A, P, R, γ ). Here, S and A denote the state and action spaces, respectively, P is the (unknown) state transition probability function, R is a sparse reward function, and γ ∈ [0 , 1) is the discount factor. Our goal is to learn a policy πθ : S → A parameterized by θ that maximizes the expected cumulative reward (return) over an infinite time horizon, formalized as max Eπθ [P∞ 
+
+> t=0
+
+γtrt].
+
+Multi-stage sparse rewards . In this work, we focus on 
+
+multi-stage tasks where the overall objective can be de-composed into a sequence of N subgoals or stages. Stage indicators are often easy to obtain; for example, in manipu-lation tasks, it is straightforward to query whether the agent has grasped an object. We model the (sparse) reward as a stage indicator function r : S → { 1, 2, . . . , N } that maps each state to its corresponding stage. We assume no access to any privileged information from the environment (e.g. object configurations), and instead consider multi-modal observations o = ( x, q) where x denotes raw RGB images coming from the agent’s cameras, and q denotes the propri-oceptive state of the robot. This constitutes realistic sensory inputs available in typical robotic platforms. 
+
+TD-MPC2 (Hansen et al., 2022; 2024) is a model-based RL algorithm that combines Model Predictive Control (MPC), a learned latent-space world model, and a terminal value func-tion learned via temporal difference (TD) learning. Specif-2Demonstration-Augmented Reward, Policy, and World Model Learning Environment  
+
+> Phase 1: Pretraining Phase 2: Interactive Learning
+> 50%
+> Replay buffer
+> Demo dataset
+> Latent state
+> Disc.
+> Sparse reward
+> Learned dense reward
+> Planning
+
+Figure 3. Method overview . We present a two-phase framework for multi-stage visual manipulation from sparse rewards that leverages a handful of demonstrations for dense reward learning and MBRL. Phase 1 ( left ): policy and encoder is pre-trained on the available demonstrations using behavioral cloning, which serve as initialization for the next phase. Phase 2 ( right ): the agent iteratively collects environment data via planning and uses all available data to update its world model as well as a latent state discriminator; this discriminator is used to transform sparse environment rewards into a learned dense reward for world model learning and subsequent planning. 
+
+ically, TD-MPC2 learns a representation z = hθ (o) that maps a high-dimensional observation o into a compact rep-resentation z, as well as a dynamics model in this latent space z′ = dθ (z, a). In addition, TD-MPC2 also learns prediction heads, Rθ , Qθ , πθ , for (i) instantaneous reward 
+
+r = Rθ (z, a), (ii) state-action value Qθ (z, a), and (iii) a pol-icy prior a ∼ πθ (z). The policy prior πθ serves to “guide” planning towards high-return trajectories and is optimized to maximize temporally weighted Q-values. The remaining components are jointly optimized to minimize TD-errors, and reward and latent state prediction errors, minimizing 
+
+LTD-MPC (θ) = 
+
+> t+H
+
+X
+
+> i=t
+
+λi−t [LQ(θ) + LR(θ) + Lh(θ)] , (1) where o′
+
+> t
+
+, z′ 
+
+> t
+
+are the (latent) states at time t + 1 . During envi-ronment interaction, TD-MPC2 selects actions via sample-based planner MPPI (Williams et al., 2015) and the learned world model. We adopt TD-MPC2 as our choice of visual MBRL algorithm due to its simplicity and strong empiri-cal performance but emphasize that our framework can be instantiated with any MBRL algorithm. 
+
+## 3. Method 
+
+In this work, we address the challenge of solving multi-stage manipulation tasks from sparse rewards. Such long-horizon tasks are particularly difficult due to the combinatorial com-plexity of the state-action space and the lack of informative feedback across extended horizons. To overcome these is-sues, we propose DEMO 3, a novel RL method that uses demonstrations for a three-fold purpose: to learn a policy, a world model, and a dense reward function simultaneously. As our main algorithmic contribution, we introduce stage-specific reward learning. In particular, we extend the strat-egy on reward learning from demonstrations (LfD) pre-sented in Mu et al. (2024) to online reward learning within a world model. By learning structured, multi-stage rewards online alongside world model and policy, our method pro-vides more frequent and meaningful training signals to the agent than prior work on demonstration-augmented RL. Our approach builds directly upon the strengths of prior work. In particular, we leverage MoDem’s multi-phase accelerated learning framework and use TD-MPC2 as our backbone for its robustness and generalizability. 
+
+3.1. Model-based RL with online reward learning 
+
+Sparse rewards are a major challenge in RL, particularly for long-horizon tasks comprising multiple stages. To over-come this, we learn to densify sparse rewards with a small number of demonstrations. For this, we introduce a series of discriminators {δk}Nk=0 , each corresponding to a task stage k ∈ { 0 . . . N }. The objective of each discriminator is to predict the likelihood of progressing to the next stage based on the latent state representation zt produced by the back-bone world model. Therefore, each discriminator δk acts as a stage classifier 
+
+trained to distinguish states as either leading or not leading to successful stage transitions. For each stage k, we use a typical Binary Cross Entropy (BCE) loss: 
+
+Lδk = E
+
+> (ot,r t=k,s t)∼B
+
+[BCE (1st>k , δ k(h(ot)))] , (2) 3Demonstration-Augmented Reward, Policy, and World Model Learning Demos + Replay       
+
+> Discriminator Learned dense reward
+> Figure 4. Dense reward learning . At each update step, the contin-uous output of a stage discriminator is added to the environment sparse reward. The discriminator output is normalized to the
+> [−β, β ]interval with a tanh operator.
+
+where h denotes the world model encoder, B is the replay buffer, and st represents the maximum stage that will be reached by the trajectory after the given sample: 
+
+st = max  
+
+> t′≥t
+
+rt′ , (3) We refer to st as the maximum stage label of a sub-trajectory. Thus, each trajectory, τi = {(ot, at, r t, ot+1, s t)}T −1 
+
+> t=0
+
+, is annotated with maximum stage labels st that serve as suc-cess labels for the stage discriminators. Then, as presented in Algorithm 1, at each update of the world model, the dis-criminators are updated as an additional part of the model. Specifically, for a given sample from the replay buffer 
+
+(ot, at, ot+1, r t, s t) ∼ B , the sparse reward associated with a given stage, k = rt, will tell us which discriminator, δk,will be updated by that sample. If the maximum stage la-bel st is greater than the current stage reward k = rT , the sample belonging to a trajectory with a successful stage tran-sition will be treated as a positive example in the classifier loss. Note that in the event that no samples with a stage reward, rt = k, would appear in a given batch, the discrimi-nator δk for that stage would simply not get updated at that step. Therefore, while the algorithm is capable of working without any demonstrations, using a small demonstration dataset can significantly accelerate the training of the world model and discriminators. While training the world model, the discriminators are used to generate dense rewards as per 
+
+ˆrδt = rt + β · tanh( δrt (zt)) (4) where the output of the discriminator is mapped to the 
+
+[−β, β ] interval. The process is illustrated by Figure 4. We set β to be a hyperparameter with β ≤ 1/3 to ensure that rewards never cross between different stage regions. This is to ensure that states belonging to a more advanced stage always get a higher reward than lower-stage states. Effectively, our method rewards states that have a higher chance of transitioning to the next stage and penalizes those 
+
+Algorithm 1 DEMO 3 (Phase 2 )
+
+Require: Demonstration dataset D, number of stages N 
+
+> 1:
+
+Initialize discriminators {δk}Nk=0  
+
+> 2:
+
+Initialize replay buffer B ← { Ø}
+
+Rollout  
+
+> 3:
+
+for each environment step do  
+
+> 4:
+
+if rand() ≥ α then  
+
+> 5:
+
+Agent step: at ∼ πBC (a|h(ot))  
+
+> 6:
+
+else  
+
+> 7:
+
+Agent step: at ← WM plan (ot) 
+
+> 8:
+
+end if  
+
+> 9:
+
+Env step: (ot+1, r t) ← Env (ot, at) 
+
+> 10:
+
+Save sample: τ ← τ ∪ (ot, at, ot+1, r t) 
+
+> 11:
+
+if episode done then  
+
+> 12:
+
+Reset environment  
+
+> 13:
+
+Compute maximum stage labels: {st}T 
+
+> 0
+> 14:
+
+Save trajectory: B ← B ∪ (τ ∪ { st}T 
+
+> 0
+
+) 
+
+> 15:
+
+end if  
+
+> 16:
+
+α ← min(1 , α 0 · t) 
+
+> 17:
+
+end for Update  
+
+> 18:
+
+for each update step do  
+
+> 19:
+
+Sample: 
+
+n
+
+(ot, ot+1, at, r t, s t)t0+Ht0
+
+o
+
+∼ (B ∪ D ) 
+
+> 20:
+
+Predict dense reward (ˆ rδt )t+Ht0 
+
+> 21:
+
+Compute world model losses: LR, LQ, Lh, Lπ 
+
+> 22:
+
+Compute discriminator loss: Lδ = 1
+
+> N
+
+P 
+
+> k
+
+Lkδ 
+
+> 23:
+
+Gradient step: θ ← θ + ρ∇L P 
+
+> 24:
+
+end for 
+
+that do not, encouraging the agent to explore regions with a higher probability of transition. The total world model loss integrating these signals becomes 
+
+LP = LR + LQ + Lh + Lδ , (5) where LR, LQ, and Lh represent the TD-MPC2 world model losses: (i) reconstruction, (ii) value estimation, and 
+
+(iii) latent dynamics losses. Importantly, LR is computed to predict the learned dense reward produced by the discrimi-nator, ˆrδt , thus providing a richer learning signal than pure sparse rewards. Finally, Lδ is the average loss of all the stage discriminators. As in Hansen et al. (2024), the total loss is used to compute gradients for the world model, meaning that Lδ is also used to learn the observation encoder. 
+
+3.2. Training scheme 
+
+In order to further boost the data-efficiency of DEMO 3,we build upon previous work on accelerating MBRL with demonstrations. Specifically, we draw inspiration from Mo-Dem (Hansen et al., 2023) and propose a bi-phase training scheme in which we first use demonstrations to pre-train an initial policy through behavioral cloning (Atkeson & Schaal, 4Demonstration-Augmented Reward, Policy, and World Model Learning 0 250K 500K               
+
+> 0%
+> 50%
+> 100% ManiSkill Manipulation
+> 0250K 500K
+> Meta-World
+> 050K 100K
+> ManiSkill Humanoids
+> 050K 100K
+> Robosuite
+> Interaction Steps
+> Ours TD-MPC2 MoDem LaNE BC
+> Figure 5. Learning curves . Success rate as a function of interaction steps for each of the four domains that we consider, averaged across all tasks and 5 random seeds. The shaded area corresponds to a 95% confidence interval. Our method consistently outperforms baselines.
+
+1997; Pomerleau, 1988), πBC to collect informative samples during early stages of training. In phase 2, we gradually phase out the (frozen) pre-trained policy and start collecting samples by planning through the world model, which is learned via interactive learning. An overall diagram of our training strategy can be found in Figure 3. 
+
+Phase 1: Pretraining . One of the main bottlenecks of RL in long-horizon sparse reward tasks is the low-informative data that is collected at the early stages of training. As early data tends to contain no rewards, learning a meaningful representation for such states becomes challenging. Tradi-tional methods tend to start collecting data with a randomly initialized policy that usually struggles to find any rewards in the environment. For this reason, we jointly pre-train a policy πBC and an encoder hBC on the full demonstration dataset D using the classic behavioral cloning ( BC ) loss as an objective function: 
+
+LBC (θ) = E
+
+> (o,a)∼D
+
+[− log πθ (a|hθ (o))] , (6) where the policy learns to imitate the behaviors encoded in the dataset. At interaction time, the interactive policy πRL 
+
+and the world model encoder, h, are initialized with their pre-trained analogs πBC , hBC .Given that we focus on datasets with limited demonstrations, behavioral cloning can be prone to overfitting (Peters et al., 2010; Parisi et al., 2022; Duan et al., 2017). To mitigate this, we regularly evaluate πBC during pretraining by rolling out episodes in the environment. We use early stopping on the evaluation set (Yao et al., 2007) to select the best-performing policy for the interactive learning phase. 
+
+Phase 2: Interactive Learning . After initial pretraining of the encoder and policy, the agent starts collecting data from the environment to learn using offline reinforcement learning ( RL ). In order to utilize the demonstrations, we follow Hansen et al. (2023) by sampling from the replay buffer B and the demonstration dataset D at each update step. Specifically, every time we sample a batch, a fraction of the samples come from D while the remaining fraction comes    
+
+> Table 1. Experimental setup . We consider 16 challenging visual manipulation tasks in 4 different domains. Domains that empiri-cally present a slower convergence are given a bigger budget of interactions. The number of stages is determined according to the nature of the task and by the typical horizon of demonstrations.
+
+Domain Tasks Demos Interactions Stages 
+
+ManiSkill 5 5-100 500 k 3
+
+Meta-World 5 5 500 k 2
+
+Robosuite 4 5-25 100 k 1
+
+Humanoids 2 5 100 k 3
+
+from. This approach prevents collected data from quickly outnumbering the demonstrations. While the sampling ratio is a tunable hyperparameter, we empirically found that an initial 50 % demonstration ratio works well for most tasks. Therefore, as detailed in Algorithm 1, at each update step, the world model gets updated as explained in Section 3.1. The agent will then proceed to interact with the environment to collect more data that will be stored in the replay buffer. Similar to Lancaster et al. (2024), we use annealing to con-trol the probability of a sample coming from πBC or from the planning module of the world model. In this way, the data distribution of the replay buffer B is initially biased toward the one of the dataset D. This technique aims to collect more informative data than the one a purely random policy would collect during early stages of training. As the world model starts learning and πRL is able to collect more meaningful samples, we increase the annealing coefficient 
+
+αt to improve the diversity of collected samples and stop re-lying on the suboptimal pre-trained policy πBC . Eventually, 
+
+αt will converge to 1, at which point all samples will come from planning with πRL (see Algorithm 1). 
+
+## 4. Experiments 
+
+We consider 16 challenging visual multi-stage manipulation tasks with a long-horizon for our experimental evaluation. This includes 5 manipulation tasks from ManiSkill3 (Tao 5Demonstration-Augmented Reward, Policy, and World Model Learning 0%                   
+
+> 50%
+> 100% Stack Cube Stick Push Place Apple Door
+> 0250K 500K
+> 0%
+> 50%
+> 100% Peg Insertion
+> 0250K 500K
+> Stick Pull
+> 050K 100K
+> Transport Box
+> 050K 100K
+> Pick Place Can
+> Interaction Steps
+> Ours MoDem TD-MPC2 LaNE
+> Figure 6. Challenging tasks . Success rate of our method and baselines on the 2 hardest tasks from each domain. Averaged across 5 random seeds. LaNE results in Robosuite are kindly provided by Zhao et al. (2024). Shaded areas correspond to 95 %confidence intervals.
+
+et al., 2024b), 5 manipulation tasks from Meta-World (Yu et al., 2021) and 4 manipulation tasks from Robosuite (Zhu et al., 2022). Additionally, we include 2 humanoid manipu-lation tasks from ManiSkill3 with a high-dimensional action space, which we refer to as ManiSkill Humanoids in our evaluations. We place a strong emphasis on long-horizon precise manipulation, which is why we select the most chal-lenging tasks from each domain. We relate the difficulty to the required precision of a task, its horizon, and the level of randomization in the scene (see Appendix D.3 for further details on difficulty categorization). For each task, the agent is given a constrained budget of demonstrations and inter-action steps (see Table 1). To allow most baselines to solve the task, we set the interaction budget and demonstrations to a different amount for each task. For a complete list of details on our experimental setup, please refer to Table 1 and Appendix D. Through our evaluations, we aim to answer the following questions: 1. Can our proposed method effectively accelerate MBRL with demonstrations in long-horizon multi-stage tasks? 2. What is the relative importance of each algorithmic com-ponent of Demonstration-Augmented Reward, Policy, and World Model Learning ( DEMO 3), and how does it scale with the amount of demonstration data? 3. How do sparse reward functions compare to our learned rewards at different levels of stage granularity? 
+
+4.1. Baselines 
+
+To assess our method’s effectiveness, we compare it against three relevant approaches. A complete comparison of other methods can be found in Appendix B. 
+
+MoDem (Hansen et al., 2023) is a MBRL algorithm de-signed to enhance data-efficiency in visual control tasks with sparse rewards. Similarly to our method, MoDem em-ploys a three-phase framework: policy pretraining, seeding, and interactive learning with oversampling of demonstra-tion data. The authors show state-of-the-art performance on Meta-World and Adroit domains from visual inputs and sparse rewards. 
+
+LaNE (Zhao et al., 2024) is a data-efficient model-free RL method for sparse-reward tasks from visual inputs. LaNE utilizes a pre-trained feature extractor to learn an embedding space and rewards the agent for exploring regions near the demonstrations within this latent space . The authors also show state-of-the-art data-efficiency in the Robosuite environment with a limited amount of demonstrations. 
+
+TD-MPC2 (Hansen et al., 2022; 2024) is the state-of-the art MBRL algorithm for control tasks. It combines temporal difference learning with model predictive control (MPC) and constitutes the backbone of our approach. Compared to TD-MPC, TD-MPC2 includes a series of algorithmic changes that improve robustness and scaling. 
+
+4.2. Benchmark Results 
+
+The main result of our evaluations (see Figure 5) compares the data-efficiency of our method against the proposed base-lines. On average, our method achieves 40% better data-efficiency than the proposed baselines. Notably, in Man-iSkill3 , our most difficult domain, our method averages a 75 % success rate after only 500 k steps, performing 50 % bet-ter than the second-best baseline. Furthermore, our DEMO 3
+
+can deal better with the high-dimensional action space in ManiSkill Humanoids. Interestingly, while our DEMO 3
+
+does better on average, it thrives in the most difficult tasks where the horizon and precision of the task are the highest. While the results of LaNE in the Robosuite domain are cer-6Demonstration-Augmented Reward, Policy, and World Model Learning 0%              
+
+> 50%
+> 100% Average Stack Cube Peg Insertion
+> 0250K 500K
+> 0%
+> 50%
+> 100% Lift Peg Upright
+> 0250K 500K
+> Poke Cube
+> 0250K 500K
+> Pick Place
+> Interaction Steps
+> Ours MoDem TD-MPC2
+> no learned reward TD-MPC2 + learned reward
+
+Figure 7. Ablations . Success rate as a function of interaction steps for variations of our method on all 5 ManiSkill manipulation tasks. Averaged across 5 random seeds. Baselines included for complete-ness. Shaded areas correspond to 95 % confidence intervals. 
+
+tainly impressive, the same approach doesn’t transfer to the rest of the domains. Figure 6 shows the learning curves for the most challenging task of each benchmark. Particularly, the ManiSkill tasks, Peg Insertion, and Stack Cube, require a very high level of precision and a long horizon. As shown in 6, DEMO 3 is the only algorithm to reliably solve both tasks in the interaction budget. While performance is quite matched with LaNE (Zhao et al., 2024) in Robosuite, LaNE uses a pre-trained encoder to preprocess image observations while our method is completely learned from scratch. Finally, TD-MPC2 struggles to get any performance as is typical for pure RL algorithms learning from sparse rewards. Overall, DEMO 3
+
+shows the highest degree of robustness and efficiency on the proposed long-horizon tasks. 
+
+4.3. Analysis Relative importance of each component . Figure 7 shows the effect of removing dense reward learning, policy pretraining, and demonstration oversampling in the 5 manip-ulation tasks from ManiSkill3 . Interestingly, a considerable jump in performance is brought by pretraining and oversam-pling from the demonstration dataset with the TD-MPC2 backbone ( no learned reward ). The effect of reward learn-ing becomes evident in long-horizon tasks where advancing stages can be very challenging without rewards (e.g., Peg Insertion, Pick Place), especially when reducing the number of demonstrations (see Appendix A.2). 
+
+Demonstration efficiency In Figure 8, we experiment with different dataset sizes and evaluate the data-efficiency of different baselines using demonstrations. While most methods scale well with the number of demonstrations, 5 10 25 50 100 200 
+
+> Number of Demos
+> 100
+> 200
+> 300
+> 400
+> 500
+> Steps to reach 30% success ↓
+> Ours
+> no learned reward
+> TD-MPC2 + learned reward
+> MoDem
+
+Figure 8. Demonstration efficiency . Number of steps to reach a critical success rate ( 30% ) as a function of demonstration count. Data points that did not converge are assigned a 500 k step count. Results are aggregated over 2 challenging manipulation tasks (Stack Cube and Peg Insertion) and averaged across 5 seeds. Shaded areas correspond to a 95% confidence interval. 
+
+DEMO 3 shows the strongest performance in the lowest regime of demonstrations. This is particularly evident in challenging tasks such as Peg Insertion and Stack Cube, where DEMO 3 is the only method capable of reaching meaningful performance within the interaction budget (see Appendix A.2) with only 5 demonstrations. 
+
+Wall-time comparison Our method achieves competitive wall-time performance, ranking as the second fastest among all evaluated algorithms (Table 2). While slightly slower than TD-MPC2, we attribute the overhead to the additional computation required for reward learning. Importantly, DEMO 3 performs much faster than other demonstration-augmented RL approaches, such as Modem and LaNE. 
+
+Table 2. Wall-time. Hours per 100 k interaction steps, averaged across 5 seeds and all tasks in Robosuite. Lower is better ↓.
+
+Algorithm Time (hours) ↓
+
+LaNE 20 .40 
+
+MoDem 8.37 
+
+TD-MPC2 4.84 
+
+Ours 5.19 
+
+Reward granularity Figure 9 illustrates the data-efficiency of our method across the same tasks under varying reward granularities: 1 stage, 2 stages, 3 stages, and dense rewards. Please refer to D for details about the stage def-initions. As expected, dense rewards provide the optimal learning signal, resulting in the fastest task completion. Re-markably, our method achieves near-equal performance with only 2 stages, demonstrating that stage indicators combined 7Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+with a minimal set of demonstrations are sufficient to guide the learning process effectively. This result shows that over-engineered dense reward functions can easily be avoided by only providing a small number of demonstrations. By relying solely on stage indicators and demonstrations, our method simplifies the reward design process while maintain-ing high performance in complex long-horizon tasks. 0 100K 200K      
+
+> Interaction Steps
+> 0%
+> 20%
+> 40%
+> 60%
+> 80%
+> 100%
+> Dense 3 stages 2 stages 1 stage
+> Figure 9. Reward granularity . Success rate of our method with increasing granularity in the stage division of a task. Results are aggregated over 2 challenging manipulation tasks (Stack Cube and Peg Insertion) and averaged across 5 seeds. The shaded area corresponds to a 95 %confidence interval.
+
+## 5. Related work 
+
+Model-based RL Model-based Reinforcement Learning (MBRL) improves data-efficiency by leveraging a model of the environment to guide decision-making. These models can be either prior-based, such as physics-based simulators, or learned, where the agent approximates a dynamic model of the world from data. World models (Schmidhuber, 1990; Ha & Schmidhuber, 2018) are an internal representation of the environment that enables planning and policy learning without direct interaction. A notable example is MuZero (Schrittwieser et al., 2020), which extends value-based plan-ning by implicitly learning environment dynamics. Recent advances, such as Dreamer (Hafner et al., 2020; 2022; 2024) and TD-MPC (Hansen et al., 2022; 2024), improve learn-ing in high-dimensional spaces, allowing MBRL to scale to complex visual and continuous control tasks. 
+
+Demonstration-Augmented RL Learning policies purely through trial and error can be inefficient and unstable, prompting research into leveraging demonstrations to en-hance RL. During online interactions, demonstrations can serve as off-policy experience (Hester et al., 2018; Kaptur-owski et al., 2018; Ball et al., 2023; Nair et al., 2018; Escon-trela et al., 2022) or for on-policy regularization (Kang et al., 2018; Rajeswaran et al., 2017). Alternatively, demonstra-tions can be used to estimate reward functions for RL (Xie et al., 2018; Aytar et al., 2018; Vecerik et al., 2019; Zolna et al., 2020; Singh et al., 2019). In this work, we leverage demonstrations in multiple ways simultaneously: learning an initial policy, the world model, and a reward function. 
+
+Reward Learning Designing rewards is challenging due to the need for extensive domain knowledge, prompting the development of data-driven reward learning methods. Rewards can be learned from offline datasets by classifying goals (Smith et al., 2019; Kalashnikov et al., 2021; Du et al., 2023) or estimating goal distances (Zakka et al., 2022). Al-ternatively, inverse RL approaches (Ng et al., 2000; Ziebart et al., 2008; Ho & Ermon, 2016; Fu et al., 2017) leverage online interactions to infer a reward function from expert demonstrations. Additionally, reward shaping techniques (Trott et al., 2019; Wu et al., 2021; Memarian et al., 2021; Escontrela et al., 2022) transform sparse rewards into dense rewards using specific domain knowledge. The reward learn-ing in this work builds upon DrS (Mu et al., 2024), with modifications tailored for compatibility with MBRL. 
+
+## 6. Conclusions and Future Directions 
+
+In this work, we tackle the challenge of learning long-horizon manipulation skills with sparse rewards using only proprioceptive and visual feedback. We propose DEMO 3,a demonstration-augmented MBRL algorithm that simulta-neously learns a reward, policy and world-model for multi-stage manipulation. Our experiments (Section 4) show that our method achieves 40 % better performance than the cur-rent state-of-the-art. Additionally, DEMO 3 excels at the most difficult tasks, converging up to 4x faster than current methods. We propose possible future research directions: Firstly, although our experiments show that a small number of demonstrations is sufficient for accelerated learning, we do not explore the effect of using different sources, e.g. ,data collected via human teleoperation. While prior work suggests such sources have limited impact on RL perfor-mance (Hansen et al., 2023), improving robustness to di-verse demonstration types remains relevant for deployment. Another limitation is that our experiments are limited to simulation. We aim to deploy DEMO 3 on real robot hard-ware to evaluate its generalization under domain shift and whether the same constrained regime of demonstrations and interaction samples can yield reliable real-world policies. Notably, Hansen et al. (2023) shows that a similar pipeline transfers well to physical systems. Since DEMO 3 improves on these components in simulation, we are optimistic its benefits will carry over. Finally, while our 50 % demonstration sampling ratio yields strong results, more sophisticated strategies (Schaul et al., 2016) could further enhance learning efficiency. 8Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+## Acknowledgements 
+
+Nicklas Hansen is supported by NVIDIA Graduate Fellow-ship. Stone Tao is supported in part by the NSF Gradu-ate Research Fellowship Program grant under grant No. DGE2038238. 
+
+## Impact Statement 
+
+This paper presents work whose goal is to advance the field of robot learning. While there are many potential societal consequences in developing embodied intelligence for the real world, we do not feel our work presents any particular implications that should be highlighted here. 
+
+## References 
+
+Atkeson, C. G. and Schaal, S. Robot learning from demon-stration. In Proceedings of the Fourteenth International Conference on Machine Learning , ICML ’97, pp. 12–20, San Francisco, CA, USA, 1997. Morgan Kaufmann Pub-lishers Inc. ISBN 1558604863. Aytar, Y., Pfaff, T., Budden, D., Paine, T., Wang, Z., and De Freitas, N. Playing hard exploration games by watch-ing youtube. Advances in neural information processing systems , 31, 2018. Ball, P. J., Smith, L., Kostrikov, I., and Levine, S. Ef-ficient online reinforcement learning with offline data. In International Conference on Machine Learning , pp. 1577–1594. PMLR, 2023. Baumli, K., Baveja, S., Behbahani, F., Chan, H., Comanici, G., Flennerhag, S., Gazeau, M., Holsheimer, K., Hor-gan, D., Laskin, M., Lyle, C., Masoom, H., McKinney, K., Mnih, V., Neitz, A., Nikulin, D., Pardo, F., Parker-Holder, J., Quan, J., Rockt ¨aschel, T., Sahni, H., Schaul, T., Schroecker, Y., Spencer, S., Steigerwald, R., Wang, L., and Zhang, L. Vision-language models as a source of rewards, 2024. URL https://arxiv.org/abs/ 2312.09187 .Bellman, R. A markovian decision process. Indiana Univ. Math. J. , 6:679–684, 1957. ISSN 0022-2518. Clark, J. and Amodei, D. Faulty reward functions in the wild. OpenAI Blog , 2016. Di Palo, N. and Johns, E. Learning multi-stage tasks with one demonstration via self-replay. In Conference on Robot Learning (CoRL) , 2021. Du, Y., Konyushkova, K., Denil, M., Raju, A., Landon, J., Hill, F., de Freitas, N., and Cabi, S. Vision-language mod-els as success detectors. arXiv preprint arXiv:2303.07280 ,2023. Duan, Y., Andrychowicz, M., Stadie, B. C., Ho, J., Schnei-der, J., Sutskever, I., Abbeel, P., and Zaremba, W. One-shot imitation learning, 2017. URL https://arxiv. org/abs/1703.07326 .Escontrela, A., Peng, X. B., Yu, W., Zhang, T., Iscen, A., Goldberg, K., and Abbeel, P. Adversarial mo-tion priors make good substitutes for complex reward functions, 2022. URL https://arxiv.org/abs/ 2203.15103 .Fu, J., Luo, K., and Levine, S. Learning robust rewards with adversarial inverse reinforcement learning. arXiv preprint arXiv:1710.11248 , 2017. Ha, D. and Schmidhuber, J. World models. 2018. doi: 10.5281/ZENODO.1207631. URL https://zenodo. org/record/1207631 .Hafner, D., Lillicrap, T., Ba, J., and Norouzi, M. Dream to control: Learning behaviors by latent imagination, 2020. URL https://arxiv.org/abs/1912.01603 .Hafner, D., Lillicrap, T., Norouzi, M., and Ba, J. Mastering atari with discrete world models, 2022. URL https: //arxiv.org/abs/2010.02193 .Hafner, D., Pasukonis, J., Ba, J., and Lillicrap, T. Master-ing diverse domains through world models, 2024. URL 
+
+https://arxiv.org/abs/2301.04104 .Hansen, N., Wang, X., and Su, H. Temporal difference learning for model predictive control. In ICML , 2022. Hansen, N., Lin, Y., Su, H., Wang, X., Kumar, V., and Rajeswaran, A. Modem: Accelerating visual model-based reinforcement learning with demonstrations. 2023. Hansen, N., Su, H., and Wang, X. Td-mpc2: Scalable, robust world models for continuous control, 2024. Hester, T., Vecerik, M., Pietquin, O., Lanctot, M., Schaul, T., Piot, B., Horgan, D., Quan, J., Sendonaris, A., Osband, I., et al. Deep q-learning from demonstrations. In Proceed-ings of the AAAI Conference on Artificial Intelligence ,volume 32, 2018. Ho, J. and Ermon, S. Generative adversarial imitation learn-ing. Advances in neural information processing systems ,29, 2016. Kalashnikov, D., Varley, J., Chebotar, Y., Swanson, B., Jonschkowski, R., Finn, C., Levine, S., and Hausman, K. Mt-opt: Continuous multi-task robotic reinforcement learning at scale. arXiv preprint arXiv:2104.08212 , 2021. Kang, B., Jie, Z., and Feng, J. Policy optimization with demonstrations. In International conference on machine learning , pp. 2469–2478. PMLR, 2018. 9Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+Kapturowski, S., Ostrovski, G., Quan, J., Munos, R., and Dabney, W. Recurrent experience replay in distributed reinforcement learning. In International conference on learning representations , 2018. Kidambi, R., Rajeswaran, A., Netrapalli, P., and Joachims, T. Morel : Model-based offline reinforcement learning. 
+
+ArXiv , abs/2005.05951, 2020. Kumar, S., Zamora, J., Hansen, N., Jangir, R., and Wang, X. Graph inverse reinforcement learning from diverse videos. Conference on Robot Learning (CoRL) , 2022. Kwon, M., Xie, S. M., Bullard, K., and Sadigh, D. Re-ward design with language models. In The Eleventh International Conference on Learning Representations ,2023. URL https://openreview.net/forum? id=10uNUgI5Kl .Lancaster, P., Hansen, N., Rajeswaran, A., and Kumar, V. Modem-v2: Visuo-motor world models for real-world robot manipulation. In International Conference on Robotics and Automation (ICRA) , 2024. Ma, Y. J., Liang, W., Wang, G., Huang, D.-A., Bastani, O., Jayaraman, D., Zhu, Y., Fan, L., and Anandkumar, A. Eureka: Human-level reward design via coding large lan-guage models. arXiv preprint arXiv: Arxiv-2310.12931 ,2023. Memarian, F., Goo, W., Lioutikov, R., Niekum, S., and Topcu, U. Self-supervised online reward shaping in sparse-reward environments. In 2021 IEEE/RSJ Inter-national Conference on Intelligent Robots and Systems (IROS) , pp. 2369–2375. IEEE, 2021. Mu, T., Liu, M., and Su, H. Drs: Learning reusable dense re-wards for multi-stage tasks. In The Twelfth International Conference on Learning Representations , 2024. Nair, A., McGrew, B., Andrychowicz, M., Zaremba, W., and Abbeel, P. Overcoming exploration in reinforcement learning with demonstrations. In 2018 IEEE international conference on robotics and automation (ICRA) , pp. 6292– 6299. IEEE, 2018. Ng, A. Y., Russell, S., et al. Algorithms for inverse rein-forcement learning. In Icml , volume 1, pp. 2, 2000. Parisi, S., Rajeswaran, A., Purushwalkam, S., and Gupta, A. The unsurprising effectiveness of pre-trained vision mod-els for control, 2022. URL https://arxiv.org/ abs/2203.03580 .Peters, J., M ¨ulling, K., and Alt ¨un, Y. Relative entropy policy search. In Proceedings of the Twenty-Fourth AAAI Confer-ence on Artificial Intelligence , AAAI’10, pp. 1607–1612. AAAI Press, 2010. Pomerleau, D. A. Alvinn: An autonomous land vehicle in a neural network. In Touretzky, D. (ed.), Advances in Neural Information Process-ing Systems , volume 1. Morgan-Kaufmann, 1988. URL https://proceedings.neurips. cc/paper_files/paper/1988/file/ 812b4ba287f5ee0bc9d43bbf5bbe87fb-Paper. pdf .Rajeswaran, A., Kumar, V., Gupta, A., Vezzani, G., Schul-man, J., Todorov, E., and Levine, S. Learning complex dexterous manipulation with deep reinforcement learning and demonstrations. arXiv preprint arXiv:1709.10087 ,2017. Rocamonde, J., Montesinos, V., Nava, E., Perez, E., and Lindner, D. Vision-language models are zero-shot reward models for reinforcement learning, 2024. URL https: //arxiv.org/abs/2310.12921 .Schaul, T., Quan, J., Antonoglou, I., and Silver, D. Priori-tized experience replay, 2016. URL https://arxiv. org/abs/1511.05952 .Schmidhuber, J. Making the world differentiable: on us-ing self supervised fully recurrent neural networks for dynamic reinforcement learning and planning in non-stationary environments . Forschungsberichte K ¨unstliche Intelligenz. Inst. f ¨ur Informatik, 1990. URL https:// books.google.ch/books?id=9c2sHAAACAAJ .Schrittwieser, J., Antonoglou, I., Hubert, T., Simonyan, K., Sifre, L., Schmitt, S., Guez, A., Lockhart, E., Hassabis, D., Graepel, T., Lillicrap, T., and Silver, D. Mastering atari, go, chess and shogi by planning with a learned model. Nature , 588(7839):604–609, December 2020. ISSN 1476-4687. doi: 10.1038/ s41586-020-03051-4. URL http://dx.doi.org/ 10.1038/s41586-020-03051-4 .Sferrazza, C., Huang, D.-M., Lin, X., Lee, Y., and Abbeel, P. Humanoidbench: Simulated humanoid benchmark for whole-body locomotion and manipulation, 2024. Singh, A., Yang, L., Hartikainen, K., Finn, C., and Levine, S. End-to-end robotic reinforcement learning without reward engineering. arXiv preprint arXiv:1904.07854 ,2019. Smith, L., Dhawan, N., Zhang, M., Abbeel, P., and Levine, S. Avid: Learning multi-stage tasks via pixel-level trans-lation of human videos. arXiv preprint arXiv:1912.04443 ,2019. Smith, L., Dhawan, N., Zhang, M., Abbeel, P., and Levine, S. Avid: Learning multi-stage tasks via pixel-level trans-lation of human videos, 2020. URL https://arxiv. org/abs/1912.04443 .10 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+Sutton, R. S. and Barto, A. G. Reinforcement Learn-ing: An Introduction . The MIT Press, second edition, 2018. URL http://incompleteideas.net/ book/the-book-2nd.html .Tao, S., Shukla, A., Chan, T.-k., and Su, H. Reverse forward curriculum learning for extreme sample and demonstra-tion efficiency in rl. 2024a. Tao, S., Xiang, F., Shukla, A., Qin, Y., Hinrichsen, X., Yuan, X., Bao, C., Lin, X., Liu, Y., kai Chan, T., Gao, Y., Li, X., Mu, T., Xiao, N., Gurha, A., Huang, Z., Calandra, R., Chen, R., Luo, S., and Su, H. Man-iskill3: Gpu parallelized robotics simulation and ren-dering for generalizable embodied ai, 2024b. URL 
+
+https://arxiv.org/abs/2410.00425 .Trott, A., Zheng, S., Xiong, C., and Socher, R. Keeping your distance: Solving sparse reward tasks using self-balancing shaped rewards. Advances in Neural Informa-tion Processing Systems , 32, 2019. Vecerik, M., Sushkov, O., Barker, D., Roth ¨orl, T., Hester, T., and Scholz, J. A practical approach to insertion with variable socket position using deep reinforcement learn-ing. In 2019 international conference on robotics and automation (ICRA) , pp. 754–760. IEEE, 2019. Williams, G., Aldrich, A., and Theodorou, E. Model pre-dictive path integral control using covariance variable importance sampling, 2015. URL https://arxiv. org/abs/1509.01149 .Wu, Z., Lian, W., Unhelkar, V., Tomizuka, M., and Schaal, S. Learning dense rewards for contact-rich manipula-tion tasks. In 2021 IEEE International Conference on Robotics and Automation (ICRA) , pp. 6214–6221. IEEE, 2021. Xie, A., Singh, A., Levine, S., and Finn, C. Few-shot goal inference for visuomotor learning and planning. In 
+
+Conference on Robot Learning , pp. 40–52. PMLR, 2018. Xie, T., Zhao, S., Wu, C. H., Liu, Y., Luo, Q., Zhong, V., Yang, Y., and Yu, T. Text2reward: Reward shaping with language models for reinforcement learning. In The Twelfth International Conference on Learning Represen-tations , 2024. URL https://openreview.net/ forum?id=tUM39YTRxH .Yao, Y., Rosasco, L., and Caponnetto, A. On early stop-ping in gradient descent learning. Constructive Ap-proximation , 26:289–315, 2007. URL https://api. semanticscholar.org/CorpusID:8323954 .Yu, T., Thomas, G., Yu, L., Ermon, S., Zou, J. Y., Levine, S., Finn, C., and Ma, T. Mopo: Model-based offline policy optimization. ArXiv , abs/2005.13239, 2020. Yu, T., Quillen, D., He, Z., Julian, R., Narayan, A., Shively, H., Bellathur, A., Hausman, K., Finn, C., and Levine, S. Meta-world: A benchmark and evaluation for multi-task and meta reinforcement learning, 2021. URL https: //arxiv.org/abs/1910.10897 .Zakka, K., Zeng, A., Florence, P., Tompson, J., Bohg, J., and Dwibedi, D. Xirl: Cross-embodiment inverse rein-forcement learning. In Conference on Robot Learning ,pp. 537–546. PMLR, 2022. Zhan, A., Zhao, R., Pinto, L., Abbeel, P., and Laskin, M. Learning visual robotic control efficiently with con-trastive pre-training and data augmentation, 2022. URL 
+
+https://arxiv.org/abs/2012.07975 .Zhang, M., Vikram, S., Smith, L., Abbeel, P., Johnson, M. J., and Levine, S. Solar: Deep structured latent represen-tations for model-based reinforcement learning. ArXiv ,abs/1808.09105, 2018. Zhao, R., ufuk topcu, Chinchali, S. P., and Phielipp, M. Accelerating visual sparse-reward learning with latent nearest-demonstration-guided explorations. In 8th Annual Conference on Robot Learning , 2024. URL https: //openreview.net/forum?id=3NI5SxsJqf .Zhu, Y., Wong, J., Mandlekar, A., Mart ´ın-Mart ´ın, R., Joshi, A., Nasiriany, S., and Zhu, Y. robosuite: A modular simu-lation framework and benchmark for robot learning, 2022. URL https://arxiv.org/abs/2009.12293 .Ziebart, B. D., Maas, A. L., Bagnell, J. A., Dey, A. K., et al. Maximum entropy inverse reinforcement learning. In 
+
+Aaai , volume 8, pp. 1433–1438. Chicago, IL, USA, 2008. Zolna, K., Novikov, A., Konyushkova, K., Gulcehre, C., Wang, Z., Aytar, Y., Denil, M., de Freitas, N., and Reed, S. Offline learning from demonstrations and unlabeled experience. arXiv preprint arXiv:2011.13885 , 2020. 11 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+## A. Additional Results 
+
+A.1. Single Task Experimental Results 0%  
+
+> 50%
+> 100%
+
+Average Stack Cube Peg Insertion    
+
+> 0250K 500K
+> 0%
+> 50%
+> 100%
+
+Lift Peg Upright   
+
+> 0250K 500K
+
+Poke Cube   
+
+> 0250K 500K
+
+Pick Place 
+
+> Interaction Steps
+
+Ours MoDem TD-MPC2 LaNE 
+
+Figure 10. ManiSkill Manipulation results . Results averaged across 5 seeds. The shaded area corresponds to a 95 % confidence interval. 0%  
+
+> 50%
+> 100%
+
+Average Assembly Peg Insert Side    
+
+> 0250K 500K
+> 0%
+> 50%
+> 100%
+
+Pick Place   
+
+> 0250K 500K
+
+Stick Push   
+
+> 0250K 500K
+
+Stick Pull 
+
+> Interaction Steps
+
+Ours MoDem TD-MPC2 LaNE 
+
+Figure 11. Meta-World results . Results averaged across 5 seeds. The shaded area corresponds to a 95 % confidence interval. 0 250K 500K  
+
+> 0%
+> 50%
+> 100%
+
+Average   
+
+> 0250K 500K
+
+Place Apple   
+
+> 0250K 500K
+
+Transport Box 
+
+> Interaction Steps
+
+Ours MoDem TD-MPC2 LaNE 
+
+Figure 12. ManiSkill Humanoids results . Results averaged across 5 seeds. The shaded area corresponds to a 95 % confidence interval. 
+
+12 Demonstration-Augmented Reward, Policy, and World Model Learning 0 50K 100K  
+
+> 0%
+> 50%
+> 100%
+
+Lift   
+
+> 050K 100K
+
+Door    
+
+> 050K 100K
+> 0%
+> 50%
+> 100%
+
+Pick Place Can   
+
+> 050K 100K
+
+Stack 
+
+> Interaction Steps
+
+Ours MoDem TD-MPC2 LaNE 
+
+Figure 13. Robosuite results . Results averaged across 5 seeds. The shaded area corresponds to a 95 % confidence interval. 
+
+A.2. Additional Ablations 0%  
+
+> 50%
+> 100%
+
+5 demos 10 demos 25 demos    
+
+> 0250K 500K
+> 0%
+> 50%
+> 100%
+
+50 demos   
+
+> 0250K 500K
+
+100 demos   
+
+> 0250K 500K
+
+200 demos 
+
+> Interaction Steps
+
+Ours MoDem no learned reward TD-MPC2 + learned reward 
+
+Figure 14. Demonstration ablation . Success rate on an increasing number of demonstrations (5-200) in the 2 most challenging manipulation tasks in ManiSkill (Stack Cube and Peg Insertion). DEMO 3 is the only method that has a relative success with only 5 demonstrations. Results are aggregated over both tasks and averaged across 5 seeds. 
+
+13 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+A.3. Learned Reward 
+
+Figure 15. Learned reward animation . Visualization of the learned dense reward across three representative rollouts—successful, failed, and semi-successful. The reward curves closely track task progress. 
+
+14 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+## B. Baselines 
+
+B.1. Comparison to prior work 
+
+In Table 3, we compare key components of DEMO 3 to relevant prior methods on demonstration-augmented RL. Our approach is the only one incorporating online reward learning in multi-stage settings for visual inputs and sparse rewards.   
+
+> Table 3. Comparison to prior work . We compare DEMO 3to relevant approaches and ablations. Selected baselines are highlighted .
+
+Method Visual Inputs Sparse Rewards Multi-Stage Online Reward Learning 
+
+Ours ✓ ✓ ✓ ✓
+
+LaNE (Zhao et al., 2024) ✓ ✓ ✗ ✓
+
+MoDem (Hansen et al., 2023) ✓ ✓ ✗ ✗
+
+CoDER (Zhan et al., 2022) ✓ ✓ ✗ ✗
+
+SAC + DrS (Mu et al., 2024) ✗ ✓ ✓ ✗
+
+AMP (Escontrela et al., 2022) ✗ ✗ ✗ ✓
+
+B.2. Baseline Implementations TD-MPC2 We use the official implementation 1 with default parameters. We add two extra layers to the convolutional encoders to handle the higher image resolution of the Meta-World and Robosuite benchmarks. 
+
+MoDem We use the official implementation 2 with default parameters. To process observations containing multiple images, we add an extra encoder to the world model and average all the embeddings. 
+
+LaNE We use the code from the official implementation 3 with default parameters. To adapt it to our experimental setup, we add extra encoders to handle the additional observations. The proprioceptive state is passed through an MLP, and its embedding is averaged with the other inputs. Additionally, we adapt the algorithm to handle infinite-horizon MDPs by removing value function bootstrapping from the MDP. 
+
+> 1https://github.com/nicklashansen/tdmpc2
+> 2https://github.com/facebookresearch/modem
+> 3https://github.com/PhilipZRH/LaNE
+
+15 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+## C. Demonstrations 
+
+All of our demonstrations are obtained by training a TD-MPC2 model with dense rewards and state observations. The model trained on state observations is then used to rollout N episodes in the stage-based environment, from where we query image observations, proprioceptive states, and sparse stage rewards. Please find below a detailed table on the number of demonstrations used per task.  
+
+> Table 4. Number of demonstrations for each task . We use the minimum amount of demonstrations (empirically determined) to ensure that the best-performing algorithm can solve the task in the given interaction budget.
+
+Domain Task Number of Demonstrations ManiSkill Manipulation 
+
+Peg Insertion 100 
+
+Pick Place 100 
+
+Stack Cube 25 
+
+Poke Cube 5
+
+Lift Peg Upright 5Meta-World 
+
+Assembly 5
+
+Peg Insert Side 5
+
+Stick Push 5
+
+Stick Pull 5
+
+Pick Place 5ManiSkill Humanoids Place Apple 5
+
+Transport Box 5Robosuite 
+
+Lift 5
+
+Door 10 
+
+Pick Place Can 10 
+
+Stack Blocks 20 16 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+## D. Experiment Details Stack Cube Peg Insertion Poke Cube Pick Place Lift Peg Upright Assembly Peg Insert Stick Push Stick Pull Pick Place Place Apple Transport Box Lift Door Pick Place Can Stack Blocks 
+
+Figure 16. All tasks. Visual description of all tasks organized by domains. In descending order: ManiSkill Manipulation, Meta-World, ManiSkill Humanoids, and Robosuite. 
+
+D.1. Domain Implementation 
+
+Table 5. Implementation details for each of our four domains. Time horizon is measured in agent steps (policy forward passes). 
+
+Proprio. stands for Proprioceptive State. Each domain uses different image resolutions according to the detail of the scene. 
+
+ManiSkill Manipulation Meta-World ManiSkill Humanoids Robosuite Time Horizon 100 100 100 100 
+
+Image Size 128 × 128 224 × 224 128 × 128 128 × 128 
+
+Observations RGB(x2) + Proprio. RGB + Proprio. RGB(x2) + Proprio. RGB(x2) 
+
+Cameras Hand + Front Front Head + Front Hand + Front 
+
+Action Repeat 2 2 2 1
+
+Action Dim 7 4 25 7
+
+17 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+D.2. Stage Definitions  
+
+> Table 6. ManiSkill Manipulation stage definitions .
+
+Task Stage 1 Stage 2 Success Criteria 
+
+Stack Cube Cube A grabbed. Cube A above Cube B. Cube A stacked on top of Cube B. 
+
+Peg Insertion Peg grabbed. Peg aligned with hole. Peg inserted in hole. 
+
+Pick Place Cube grabbed. Cube close to goal. Cube at goal. 
+
+Poke Cube Peg grabbed. Peg touching Cube. Cube at goal. 
+
+Lift Peg Upright Peg grabbed. Peg upright. Peg upright on desk.  
+
+> Table 7. Meta-World stage definitions .
+
+Task Stage 1 Success Criteria 
+
+Assembly Grab hook. Pass nut through pole. 
+
+Peg Insert Peg grabbed. Peg inserted in hole. 
+
+Stick Push Stick grabbed. Object pushed to goal location. 
+
+Stick Pull Stick grabbed. Object pulled to goal location. 
+
+Pick Place Cube grabbed. Cube is static at goal.  
+
+> Table 8. ManiSkill Humanoids stage definitions .
+
+Task Stage 1 Stage 2 Success Criteria 
+
+Place Apple Apple is grabbed. Apple is above bowl. Apple is inside bowl. 
+
+Transport Box Box grabbed with 2 hands. Box above table 2. Box is on table 2.  
+
+> Table 9. Robosuite stage definitions .
+
+Task Success Criteria 
+
+Lift Block lifted above the desk. 
+
+Door Door is open. 
+
+Pick Place Can Can is at goal location. 
+
+Stack Block A is in contact with Block B and above the ground. 18 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+D.3. Difficulty Categorization 
+
+Across this paper, we often refer to some tasks as more difficult than others. To characterize task difficulty, we follow (Tao et al., 2024a). As in previous work on demonstration-augmented reinforcement learning (RL), we observe that environments with high complexity and substantial initial state randomization are typically more difficult to solve and require a larger number of demonstrations. For example, the Peg Insertion task from ManiSkill exhibits significant variability in the peg’s position, orientation, and the hole’s size. Consequently, around 100 demonstrations are needed to solve the task from visual inputs. In contrast, a task like Meta-World Assembly requires only 5 demonstrations to be successfully solved. Figure 17 qualitatively compares the different initial states of these two tasks. We hypothesize that this effect is related to the distributional coverage of the demonstration dataset: higher randomization reduces the likelihood that the agent encounters familiar states during training if the dataset is limited. Therefore, as the variability in a task’s initial state increases, this variability must also be well-represented in the dataset to ensure effective learning.  
+
+> Figure 17. Randomization comparison . Qualitative comparison of both Peg Insertion tasks in the ManiSkill and Meta-World domain and Door task in Robosuite. Visibly, ManiSkill presents the highest level of randomization, not only varying the initial state at reset but also changing the geometric properties of the objects.
+
+19 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+## E. Implementation Details 
+
+E.1. Model Architecture 
+
+Following TD-MPC2, all modules are implemented as MLPs. Here, as an example, we summarize our architecture for a single-camera Meta-World task using PyTorch-like notation: 
+
+Architecture: TD-MPC2 World Model Encoder: ModuleDict( (rgb_frontview): Sequential( (0): ShiftAug() (1): PixelPreprocess() (2): Conv2d(3, 32, kernel_size=(7, 7), stride=(2, 2)) (3): ReLU(inplace=True) (4): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2)) (5): ReLU(inplace=True) (6): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 2)) (7): ReLU(inplace=True) (8): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 2)) (9): ReLU(inplace=True) (10): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1)) (11): Flatten(start_dim=1, end_dim=-1) (12): Linear(in_features=512, out_features=512, bias=True) (13): SimNorm(dim=8) ))Dynamics: Sequential( (0): NormedLinear(in_features=519, out_features=512, bias=True, act=Mish) (1): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (2): NormedLinear(in_features=512, out_features=512, bias=True, act=SimNorm) )Reward: Sequential( (0): NormedLinear(in_features=519, out_features=512, bias=True, act=Mish) (1): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (2): Linear(in_features=512, out_features=101, bias=True) )Policy prior: Sequential( (0): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (1): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (2): Linear(in_features=512, out_features=14, bias=True) )Q-functions: Vectorized [Sequential( (0): NormedLinear(in_features=519, out_features=512, bias=True, dropout=0.01, act=Mish) (1): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (2): Linear(in_features=512, out_features=101, bias=True) ), Sequential( (0): NormedLinear(in_features=519, out_features=512, bias=True, dropout=0.01, act=Mish) (1): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (2): Linear(in_features=512, out_features=101, bias=True) ), Sequential( (0): NormedLinear(in_features=519, out_features=512, bias=True, dropout=0.01, act=Mish) (1): NormedLinear(in_features=512, out_features=512, bias=True, act=Mish) (2): Linear(in_features=512, out_features=101, bias=True) )] Learnable parameters: 5,448,748 Discriminator Architecture: Discriminator( (nets): ModuleList( (0): Sequential( (0): Linear(in_features=512, out_features=32, bias=True) (1): Sigmoid() (2): Linear(in_features=32, out_features=1, bias=True) ))
+
+20 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+E.2. Hyperparameters 
+
+Most of the hyperparameters remain unchanged from our backbone algorithm, TD-MPC2. Here, we list some of the most relevant to our method and highlight the ones that are unique to our approach. Please refer to the TD-MPC2 paper (Hansen et al., 2024) for a complete list of hyperparameters.  
+
+> Table 10. Hyperparameters used in the training setup.
+
+Hyperparameter Value Replay buffer 
+
+Capacity 300 , 000 
+
+Sampling Uniform 
+
+Architecture (5M) 
+
+Encoder arch. ConvNet (image inputs) MLP (state inputs) Conv. layers 7 (Meta-World) 5 (Otherwise) Encoder MLP dim 256 
+
+Dynamics MLP dim 512 
+
+Latent state dim 512 
+
+Task embedding dim 96 
+
+Optimization 
+
+Update-to-data ratio 1
+
+Batch size 256 
+
+Joint-embedding coef. 20 
+
+Reward prediction coef. 0.1
+
+Value prediction coef. 0.1
+
+Temporal coef. ( λ) 0.5
+
+Q-fn. momentum coef. 0.99 
+
+Policy prior entropy coef. 1 × 10 −4
+
+Policy prior loss norm. Moving ( 5% , 95% ) percentiles Optimizer Adam Learning rate 3 × 10 −4
+
+Encoder learning rate 1 × 10 −4
+
+Pretraining 
+
+Pretraining loss Behavioral cloning BC Policy Architecture MLP MLP dim 512 
+
+Optimizer Adam Learning rate 3 × 10 −4
+
+Encoder learning rate 3 × 10 −4
+
+α0 5 × 10 −5
+
+Reward learning 
+
+Discriminator architecture MLP MLP dim 32 
+
+Discriminator learning rate 3 × 10 −4
+
+Discriminator optimizer Adam Batch size 256 
+
+β 1/3
+
+Demo. sampling ratio 50% 
+
+21 Demonstration-Augmented Reward, Policy, and World Model Learning 
+
+E.3. Computational Resources 
+
+All our experiments run on a single NVIDIA GeForce RTX 3090 GPU and 32GB of RAM to store collected samples. 22
