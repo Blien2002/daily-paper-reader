@@ -1,0 +1,938 @@
+Title: 8237_Praxis_VLM_Vision_Grounde.pdf
+
+URL Source: https://openreview.net/pdf?id=U806q3iILo
+
+Number of Pages: 27
+
+Markdown Content:
+# Praxis-VLM: Vision-Grounded Decision Making via Text-Driven Reinforcement Learning 
+
+Zhe Hu ♠, Jing Li ♠∗ 
+
+, Zhongzhu Pu ♢† , Hou Pong Chan ♡, Yu Yin ♣♠Department of Computing, The Hong Kong Polytechnic University, ♢ Tsinghua University 
+
+† InspireOmni AI, ♡Alibaba Group, ♣Case Western Reserve University 
+
+zhe-derek.hu@connect.polyu.hk https://github.com/Derekkk/Praxis-VLM Situation  Questions  Situation  Questions 
+
+Choose the most normatively relevant or appropriate action to 
+
+perform next. 
+
+A. Point to a photo of a product and ask the person which one 
+
+they prefer. 
+
+B. Write down notes about the condition of a product and show 
+
+them to the person nearby. 
+
+C. Observe how staff interact with customers and write down 
+
+your impressions discreetly. 
+
+D. Take a picture of a product and discuss its features with the 
+
+person next to you 
+
+> …
+
+<think> The images show a store aisle with various products, including paper towels, 
+
+tissues, and disposable cups. The person in the video appears to be holding a 
+
+disposable plate, possibly considering purchasing it. Here's the analysis of each 
+
+option: 
+
+A: … - This action seems inappropriate because the person is already holding a 
+
+product , and there is no indication that they need help making a choice between 
+
+different products. 
+
+B: … - This action is also inappropriate because there is no indication that the person 
+
+needs assistance with the condition of the products. The person is simply holding a 
+
+product, not showing signs of needing information about its condition 
+
+C: …
+
+D: … - This action is appropriate because the person is holding a product, and 
+
+discussing its features could be helpful if they are unsure about the product or 
+
+want more information .</think> 
+
+<answer> Given the context and the normative appropriateness of the behavior, the 
+
+most appropriate action is (D) </answer> 
+
+You are a domestic robot that helps me 
+
+do housework in the simulation room. 
+
+Your goal is: Fill the bathtub with water. 
+
+You have soap bottle in your hands. 
+
+Based on the image, what action should 
+
+you do next? 
+
+(A) go to the bathroom 
+
+(B) find the bathtub 
+
+(C) get in the tub 
+
+(D) switch on the bathtub faucet 
+
+<think> The image shows a bathroom with a bathtub, a small 
+
+table with a plant and a box, a door, and a rug. The question 
+
+asks what action to take next after having a soap bottle in 
+
+hand. Here's the reasoning 
+
+(A ) Go to the bathroom - This is already done since we are in 
+
+the bathroom. 
+
+(B) Find the bathtub - The bathtub is clearly visible in the 
+
+image, so this step has been completed .
+
+(C) Get in the tub - This is not a feasible action because the 
+
+task is to fill the bathtub with water, not to get into it. 
+
+(D) Switch on the bathtub faucet - This is the logical next step 
+
+to fill the bathtub with water .</think> 
+
+<answer> Given the context of the question and the image, 
+
+the most appropriate action is to (D) switch on the bathtub 
+
+faucet to fill it with water </answer> 
+
+(Text -
+
+Driven 
+
+Training) 
+
+Praxis -VLM 
+
++
+
+Textual 
+
+Situation 
+
+Decision 
+
+Making 
+
+Figure 1: Illustrative examples of Praxis-VLM’s decision-making process. Employing text-driven training, Praxis-VLM performs sophisticated reasoning by analyzing visual situations, posing relevant questions, and generating reasoned textual responses to support multimodal decision-making. 
+
+Abstract 
+
+Vision Language Models exhibit impressive performance for various tasks, yet they often lack the sophisticated situational reasoning required for complex decision-making. This paper shows that VLMs can achieve surprisingly strong decision-making performance when visual scenes are replaced by textual descriptions, suggesting foundational reasoning can be effectively learned from language. Mo-tivated by this insight, we propose Praxis-VLM, a reasoning VLM for vision-grounded decision-making. Praxis-VLM employs the GRPO algorithm on textual scenarios to instill robust reasoning capabilities, where models learn to evaluate actions and their consequences. These reasoning skills, acquired purely from text, successfully transfer to multimodal inference with visual inputs, significantly reducing reliance on scarce paired image-text training data. Experiments across diverse decision-making benchmarks demonstrate that Praxis-VLM substantially outperforms standard supervised fine-tuning, exhibiting superior performance and 
+
+∗Corresponding Author 39th Conference on Neural Information Processing Systems (NeurIPS 2025). generalizability. Further analysis confirms that our models engage in explicit and effective reasoning, underpinning their enhanced performance and adaptability. 
+
+1 Introduction 
+
+> “Language is the dress of thought.” — Samuel Johnson
+
+Developing systems capable of complex real-world interaction necessitates robust, vision-grounded situational decision-making [ 1 –3 ]. Vision Language Models (VLMs) exhibited immense promise for this purpose, offering a foundation for agents that can perceive and understand visual environments [ 4]. However, current VLMs often lack the explicit reasoning capabilities needed to parse nuanced visual scenarios and make optimal decisions [ 5– 7]. This limitation hinders their deployment in crucial applications, like robotics [ 1– 3] and interactive assistants [ 8, 9], where the capacity to “think before decide,” much like humans do, is paramount for safe and effective operation. Meanwhile, advancements in recent large language models (LLMs) highlight the potential of multi-step reasoning for tackling complicated tasks [ 10 , 11 ]. Recent efforts have attempted to enhance VLMs with sophisticated reasoning capability from text-based models [ 12 –14 ]. These approaches typically utilize reasoning-oriented LLMs to generate reasoning chains, which are then used to supervise VLM training. However, they rely heavily on large-scale, high-quality vision data paired with textual ground-truth answers, which are notoriously expensive and laborious to curate across diverse real-world scenarios [ 15 –17 ]. The challenge of obtaining such paired image-text training data becomes even more pronounced in real-world decision-making contexts with diverse situations. This data acquisition challenge consequently motivates us to investigate the fundamental nature of decision-making abilities and their reliance on direct multimodal training. An essential question then arises: Is the core of decision-making ability exclusively tied to direct multimodal experience? If not, there may be more cost-effective pathways to improve the multimodal decision-making ability of VLMs. To address this, we conduct a preliminary analysis (§ 2) and find a surprisingly effective yet underexplored alternative: when visual situations are represented by textual descriptions, even standard VLMs could achieve comparative or even improved performance on complex multimodal decision-making benchmarks like VIVA [ 18 ] and PCA-Bench [ 19 ]. This observation sparked our central hypothesis: fundamental decision-making and reasoning capabilities can be disentangled 
+
+from visual perception and learned primarily through language-based representations, which can then be effectively transferred to visually grounded contexts during inference. This notion resonates with the mental model theory [20 ], which posits that humans construct internal, often language-based, representations of situations to reason, predict outcomes, and guide their decisions, later applying these internal models to sensory experiences and act upon real-world situations. Motivated by this insight, we propose Praxis-VLM , a reasoning VLM that learns high-level decision-making principles from language and applies this “praxis” to vision-grounded environments. Specifi-cally, we begin by constructing a text-based training corpus where visual situations are articulated through text descriptions, mitigating the need for image-text paired data. Then, to foster robust and transferable reasoning—the ability to “think before decide”—we employ a Reinforcement Learning (RL) approach. Specifically, we employ GRPO algorithm [ 21 ] with multi-stage training to encourage the model to generate explicit reasoning chains before reaching a decision. To facilitate effective learning, we introduce a novel adaptive R1 reward that targets different skills at each training stage. The reasoning abilities acquired through this process are then transferred when Praxis-VLM processes actual visual inputs during multimodal inference. Illustrative examples are shown in Figure 1. To evaluate Praxis-VLM, we adopt challenging decision-making benchmarks spanning diverse tasks: VIVA for human-centered situations, PCA-Bench for embodied agent tasks, and EgoNormia [ 22 ] for first-person video understanding. The results show that Praxis-VLM outperforms both the vanilla VLMs and SFT baselines. More importantly, it exhibits remarkable generalizability, suggesting that the reasoning skills acquired from the text are indeed fundamental and transferable. Moreover, in-depth analysis reveals that Praxis-VLM considers multiple meaningful dimensions of decision-making, such as situation analysis, consequence evaluation, safety considerations, and norm adherence (§ 5.4). This underpins both the improved decision quality and the potential for cross-domain transfer. Finally, the analysis of common reasoning errors further provides valuable insight for future research. 2In summary, our main contributions are: (1) We show the potential of leveraging language as a medium for instilling transferable reasoning skills in VLMs for situational decision-making; (2) Building on this, we propose a text-based RL paradigm and introduce Praxis-VLM, a novel model that learns high-level decision-making principles from language and grounds them in concrete, multimodal scenarios via an adaptive R1 reward; (3) Through extensive experiments and analyses across three diverse benchmarks, we demonstrate Praxis-VLM’s superior reasoning and generalization capabilities for decision-making, charting a practical and data-efficient path for VLM training. 
+
+2 Preliminary Analysis 
+
+The primary goal of this research is to enhance the vision-grounded situational decision-making capabilities of VLMs, enabling them to effectively reason about visually perceived situations and take appropriate actions. While recent advancements show promise in equipping models with thinking processes to tackle complex reasoning tasks [ 23 , 24 ], a significant bottleneck remains: the scarcity of large-scale, annotated datasets that pair visual inputs with optimal actions and reasoning steps. To investigate alternative pathways for developing decision-making skills , we preliminarily analyze the performance of VLMs under different input conditions. We evaluated Qwen2.5-VL [ 25 ], on two vision-grounded decision-making benchmarks: VIVA [ 18 ] and PCA-Bench [ 19 ]. Both benchmarks are framed as Visual Question Answering tasks, requiring the model to choose the best action from multiple options based on an image depicting a specific situation. We compare two settings: (1) using the original image as input situation, and (2) using a textual description of the situation, either a caption generated by GPT-4o or taken from the dataset’s annotations, in place of the image. 60.0  
+
+> 70.0
+> 80.0
+> 90.0
+> Qwen2.5-VL (3B)
+> Qwen2.5-VL (7B) 83.4 78.8 81.0 76.6
+> Image Situation
+> Text Situation
+> 30.0
+> 40.0
+> 50.0
+> 60.0
+> Qwen2.5-VL (3B)
+> Qwen2.5-VL (7B) 48.0 50.5 46.4 48.6
+> Image Situation
+> Text Situation
+> (VIVA) (PCA-Bench)
+
+Figure 2: Model accuracy on VIVA [ 18 ]and PCA-Bench [ 19 ]. Image Situation uses the original image as input, and Text Situa-tion employs the caption (text) instead. The results, presented in Figure 2, reveal a compelling insight: the text situation setting shows performance comparable to, or even slightly better than, the VLM operating directly on the image input. This observation suggests that the fundamental reasoning and decision logic required for navigating these human-centric and embodied-agent scenarios can be substantially cap-tured and learned from textual representations alone .Such findings resonate with human cognitive develop-ment, where abstract knowledge, reasoning skills, and decision-making strategies are often acquired through language, detached from an immediate perception of the real situation [ 26 ]. Based on this insight, we hypoth-esize that VLMs can similarly benefit from acquiring reasoning capabilities primarily through text-based learning. Therefore, our core methodological premise is to cultivate sophisticated reasoning and decision-making policies using rich, text-only situational descriptions paired with desired outcomes. The ultimate aim is to transfer these textually-learned reasoning skills effectively to multimodal inference for the model to ground its decisions in the actual visual information. It enables the model to leverage the text data for reasoning development while retaining the VLM’s ability to perceive and act in vision-grounded contexts. 
+
+3 Method: Learning to Reason and Decide from Text 
+
+Our primary goal is to enhance the reasoning and decision-making capabilities of VLMs in vision-grounded scenarios. Recognizing the challenges in acquiring large-scale image-text pairs for training and inspired by § 2, we propose a novel paradigm to learn decision-making skills from text-only data and transfer these skills to multimodal inference. Here, we employ Reinforcement Learning to foster the model’s ability to generate explicit reasoning processes for complex decision-making. As illustrated in Figure 3, our framework involves three key phases: (1) Creating a text-based decision-making dataset, (2) Optimizing the VLM’s reasoning and decision-making using GRPO [ 21 ], and (3) Deploying the enhanced VLM for decision-making with actual visual input during inference. 3Textual 
+
+Situation 
+
+Decision 
+
+Making           
+
+> You are the principal of a
+> high school where a fight
+> broke out between two
+> students, Maria and Jake,
+> resulting in minor injuries.
+> After investigating, …
+> Implement conflict
+> resolution sessions
+> involving both
+> students and their
+> parents to mediate …
+> <think>…</think> →Answer 1
+> …
+> <think>…</think> →Answer j
+> …
+> <think>…</think> →Answer n
+
+Decision                             
+
+> You are a driving
+> assistant .You are
+> at 20km/h now .
+> <think> The image shows a road with a
+> speed limit sign indicating 30 km/h .
+> Since the driver is currently at 20
+> km/h ,…, they can continue driving ...
+> However, it‘s important to be aware of
+> the surroundings and maintain a safe
+> distance from other vehicles ... </think>
+> <answer> Keep driving. </answer>
+> Format Reward
+> 𝑅 fmt =ቊ1.0,
+> 0.0,
+> If ans includes <think> </think>
+> otherwise.
+> 𝑅 acc =ቐ
+> 1.0
+> 1.0
+> 0.0
+> Accuracy
+> Reward
+> if symbolic ans match
+> otherwise.
+> if numeric ans match
+
+Synthetic Data Creation  Textual GRPO Training  Multimodal Decision Making 
+
+Imagery Situation   
+
+> 𝑅 fmt :
+> 𝑅 tag :
+> ቊ𝑅 tag
+> 𝑅 fmt
+> Accuracy Reward
+> 𝑅 acc
+> Think Reward
+> 𝑅 len
+> Adaptive
+> Reward
+> Model
+> Training
+
+Figure 3: Overview of Praxis-VLM: Learning transferable reasoning from text-only data for mul-timodal decision-making. The process involves (1) constructing synthetic text-based training data where situations are represented through textual descriptions, (2) training the VLM on this data using RL with adaptive rewards to develop reasoning skills, and (3) transferring the learned reasoning to vision-grounded decision-making tasks during inference. 
+
+3.1 Problem Formulation and Model Setup 
+
+We start the methodology description with the problem formulation for vision-grounded decision-making : an agent (VLM) receives a visual situation xS (e.g., an image or video frame) and a textual question xQ about action selection. The objective is to learn a policy π(y|xS , x Q) that generates a response y maximizing task success or alignment with desired criteria (e.g., human preferences, safety constraints). We initialize the policy π using Qwen2.5-VL [ 25 ] for its strong capabilities in multimodal understanding and instruction following, which enables a solid foundation. The VLM architecture M naturally supports the joint processing of visual and textual inputs: ˆy = Mθ (xS , x Q).Inspired by § 2, importantly, our training strategy focuses on enhancing reasoning capabilities primarily through text. Therefore, during the training phase, we synthesize text-based data D =
+
+{(xStext , x Q, y )}, where the visual inputs xS are replaced with textual descriptions xStext . The model is then trained on this data by updating only the language model components of the VLM, leveraging the scalability of text for efficient knowledge acquisition. Yet, during the inference phase, the entire trained VLM architecture, including the vision encoder, is used to process the image-text input pair 
+
+(xS , x Q), allowing the textually-learned reasoning skills to be applied to visual situations. 
+
+3.2 Text-Based Decision-Making Data Construction 
+
+To gather reasoning skills, a cornerstone of our methodology is the creation of a high-quality, text-only dataset specifically designed to teach complex decision-making reasoning. This dataset serves as the primary training ground for our model learning. Its design aims to be: (1) challenging enough to necessitate multi-step reasoning for optimal decision-making, and (2) structured to allow evaluation via straightforward rule-based metrics, mitigating the need for complex reward modeling and reducing the risk of reward hacking [ 27 ]. We hence formulate the task as question answering based on a textual scenario: (xStext , x Q, y ), where xStext is the textual description that replaces the visual situation, xQ
+
+is a multiple-choice question of decision making relevant to the situation, and y is the answer. Leveraging recent advances in LLM-based data synthesis [ 17 , 28 ], we employ GPT-4o [ 29 ] for data construction. Specifically, we first craft 10 seed questions as in-context examples to guide data generation, then prompt GPT-4o to produce additional samples. To maximize data diversity, we adopt a batch generation approach, producing 10 samples at a time, followed by deduplication. This strategy allows an effective generation of varied scenarios and questions, yielding a final dataset of 10K training samples and 1K validation samples. Importantly, our method requires no manual filtering or intensive curation, enabling fast, domain-agnostic training data generation while reducing reliance on costly image-pair datasets. More details of data creation are in Appendix B.3. 
+
+3.3 Reasoning Policy Optimization via GRPO 
+
+To cultivate robust reasoning abilities that go beyond the behavioral cloning limitations of supervised fine-tuning (SFT) [ 30 ], we employ Reinforcement Learning (RL) to fine-tune the VLM’s policy. 4Specifically, we utilize Group Relative Policy Optimization (GRPO) [ 21 ], an RL algorithm well-suited for optimizing decision-making policies based on sampled trajectories to enhance reasoning. Concretely, given an old policy πold and a reference policy πref , GRPO optimizes the current policy 
+
+πθ by sampling G response trajectories Oi = {oi}Gi=1 for each query x. The objective function is: 
+
+max  
+
+> θ
+
+Ex∼D ,{O i}Gi=1 ∼πold (·| x)
+
+"
+
+1
+
+G
+
+> G
+
+X
+
+> i=1
+
+min πθ (oi|x)
+
+πold (oi|x) ˆAi,
+
+clip 
+
+ πθ (oi|x)
+
+πold (oi|x) , 1 − ϵ, 1 + ϵ
+
+ ˆAi
+
+!
+
+− βD KL [πθ (·| x) ∥ πref (·| x)] 
+
+#
+
+(1) where ϵ > 0 is a policy ratio clipping hyperparameter, β > 0 balances the KL-penalty term against the advantage-weighted policy update, and DKL [πθ || πref ] is the KL divergence between the current and reference policy. The term ˆAi = ri−mean ({r1,r 2,...,r G}) 
+
+> std (( {r1,r 2,...,r G})
+
+represents the normalized advantage estimate of the i-th response at the group level. GRPO aims to improve the policy by increasing the likelihood of actions that lead to higher-than-average estimated returns within a sampled group. 
+
+3.4 Multi-Stage GRPO Training with Adaptive R1 Reward 
+
+To further encourage robust, explicit reasoning capabilities, we employ multi-stage GRPO training. It is inspired by recent findings that geometry and math data can enhance model logical reasoning ability [ 10 , 14 , 31 ]. Multi-stage GRPO, combined with a newly designed adaptive R1 reward tackling different aspects [ 32 ], allows us to first establish foundational logical structuring and then refine sophisticated decision-making skills, enabling models to learn different skills at different stages. 
+
+Stage 1: Cold Start Initialization for Foundational VLM Reasoning. The initial stage focuses on equipping the VLM with multi-step reasoning abilities. We employ the geometry3k dataset [ 33 ]for GRPO training, converting the task into numerical computation which can be readily evaluated using rule-based metrics. Following DeepSeek-R1, we enforce a specific output format: "<think> </think><answer> </answer>", compelling the model to externalize its reasoning process. A key finding of our work is that the commonly adopted SFT-then-RL paradigm, where a model is first fine-tuned on (image, question, reason) triplets with SFT to learn the desired reasoning structure before RL [ 12 , 13 ], can be circumvented. We find that directly training an instruction-tuned VLM (e.g., Qwen2.5-VL-Instruct) with GRPO is effective when coupled with an adaptive reward mechanism. In this initial phase, the rewards prioritize format adherence. Specifically, we leverage a combination of: (1) Rtag : Calculates if the count of each special token (<think>, </think>, <answer>, </answer>) in the output equals one, which strongly encourages the model to learn the basic output structure and narrows the search space; (2) Rformat : Measures if the output strictly adheres to the exact nested format; (3) Raccuracy : Rewards the correctness of the final numerical answer. Once the model consistently produces outputs in the desired format, Rtag is removed, and the focus shifts more towards Raccuracy , thereby promoting better reasoning and result accuracy. 
+
+Stage 2: RL Training for Text-Based Decision Making. The model emerging from Stage 1, now possessing a better-initialized capability for multi-step reasoning and format adherence, serves as the foundation for the second training stage. This stage targets our primary goal: enhancing sophisticated decision-making skills. Here, we utilize the curated text-based decision-making dataset and train the model to mimic human-like learning processes by exploring diverse reasoning paths for various textual scenarios. The reward function in this stage primarily emphasizes the correctness of the final decision, implicitly validating the quality of the preceding reasoning. Leveraging text data in this manner allows for the efficient adaptation and refinement of reasoning skills for sophisticated decision-making, ultimately yielding a policy designed for effective transfer to multimodal inference. For this decision-making RL training, the adaptive rewards aim to encourage both comprehensive thinking and accurate decisions. We use a combination of: (1) Rformat : Continues to ensure adher-ence to the thinking-answering structure; (2) Raccuracy : Rewards the correctness of the answer; (3) 
+
+Rlen : Encourages the model to generate deliberate and longer reasoning chains. Our observations indicate that Rlen is effective in promoting a more comprehensive consideration of the situation and 5action candidates. Contrary to some recent work suggesting that long reasoning chains might be redundant [ 34 , 35 ], our results show that encouraging longer reasoning can lead to more thorough situational analysis for more complex situations. We will provide detailed discussions on this in § 5.2. This adaptive reward strategy across stages enables efficient training by targeting different skills, including format adherence, logical computation, and complex decision-making, sequentially. 
+
+4 Experimental Settings 
+
+4.1 Tasks and Datasets 
+
+To comprehensively assess the decision-making capabilities of our model in diverse vision-grounded scenarios, we utilize three benchmarks that encompass a wide spectrum of real-world situations. 
+
+VIVA [ 18 ]: This benchmark focuses on human-centered situations . It comprises 1,240 images depicting a variety of real-world scenarios. Models are tasked with understanding social contexts and predicting appropriate actions or responses aligning with human values based on the visual scenes. 
+
+PCA-Bench [ 19 ]: A benchmark encompassing 317 scenarios of embodied robotics, autonomous driving, and interactive games . It requires models to process multimodal observations and select an action from a predefined action space. We use the open track proportion of the benchmark. 
+
+EgoNormia [ 22 ]: A dataset with 1,743 samples centered around ego-centric video understanding ,where the model needs to interpret actions and anticipate future events from an egocentric perspective. All tasks are formalized as VAQ and we employ accuracy as the evaluation metric. We consider VIVA and PCA-Bench as in-domain benchmarks, as they align with the typical image-text input and decision-making formats our model is trained on. In contrast, EgoNormia serves as an out-of-domain 
+
+benchmark, introducing additional challenges such as sequential and temporal reasoning over video frames and egocentric perception. These datasets offer a rigorous and diverse testbed for evaluation. We follow the original data splits and prompts provided by each benchmark. 
+
+4.2 Baselines and Implementations 
+
+Following previous work in reasoning-based VLMs [ 13 , 36 ], we adopt Qwen2.5-VL as our backbone model, with both its 3B and 7B parameter variants. We compare the performance of our model (Praxis-VLM) against baselines, including original backbone (vanilla) VLMs and the SFT method. The SFT baselines include two variants: one ( w/ SFT ) that directly predicts the answer y, and another (w/ Reason SFT ) that first generates a reasoning chain before producing the final answer. 
+
+Implementation Details. For both GRPO and SFT training, we finetune full model parameters. For GRPO training, we set rollout N to 5 and KL divergence coefficient to 0.01. During inference, we leverage VLLM Library [37] with greedy decoding. More details are in Appendix B.2. 
+
+5 Results and Analysis 
+
+5.1 Main Results 
+
+The main results are in Table 1, showing several key advantages of the proposed Praxis-VLM. First, our text-based GRPO training strategy effectively endows VLMs with robust decision-making skills that successfully transfer to multimodal scenarios . Across both 3B and 7B model scales, Praxis-VLM consistently outperforms Qwen2.5-VL-Instruct as well as SFT approaches on all benchmarks. This primary observation underscores the core efficacy of our approach: it successfully imbues the model with decision-making capabilities learned from textual scenarios, which are then effectively transferred and applied during multimodal inference in varied visual environments. Second, Praxis-VLM exhibits superior generalization ability compared to SFT-based ap-proaches . This advantage is particularly salient in the out-of-domain EgoNormia dataset, which features sequential video inputs distinct from our training regime. Praxis-VLM maintains strong performance here, a stark contrast to both SFT baselines, which struggle significantly when faced with such domain shifts. Such a disparity suggests that while SFT-based methods primarily learn to imitate the patterns seen during training with behavioral cloning, our GRPO-trained model internalizes more 6Models VIVA [18] PCA-Bench [19] EgoNormia [22] 
+
+Qwen2.5-VL-3B 76.61 48.58 51.92 
+
+,→ w/ SFT 77.42 46.37 35.06 
+
+,→ w/ Reason SFT 75.81 49.53 28.34 Praxis-VLM-3B (ours) 79.03 50.79 54.27 
+
+,→ w/ one-stage GRPO 79.52 50.79 53.13 Qwen2.5-VL-7B 80.97 46.37 46.19 
+
+,→ w/ SFT 81.13 45.74 34.83 
+
+,→ w/ Reason SFT 78.79 53.00 34.08 Praxis-VLM-7B (ours) 84.03 60.25 54.33 
+
+,→ w/ one-stage GRPO 83.87 58.99 49.57 
+
+Table 1: Main results measured by accuracy (%). w/ SFT denotes the SFT baseline to directly predict the answer, while w/ Reason SFT first generates a reasoning chain before producing the answer. w/ one-stage GRPO is our model variant without math cold start initialization (Stage 2 only). fundamental and broadly applicable decision-making skills. In contrast, while Reason SFT learns to replicate the reasoning patterns seen during training, it appears to overfit these specific patterns and struggles to adapt its reasoning when faced with domain shifts. By optimizing the policy based on task outcomes and allowing exploration beyond static dataset examples, Praxis-VLM learns to analyze situations, evaluate potential actions, and understand consequences in its own generated reasoning paths, cultivating a generalizable decision-making competency across diverse situations. Third, the cold-start initialization in our multi-stage framework further enhances the model’s generalization capabilities , particularly for novel and complex tasks. Comparing the full, two-stage Praxis-VLM with its one-stage variant (without the initial math cold start) reveals a distinct improvement in generalization: while both variants achieve comparable performance on in-domain tasks (VIVA, PCA-Bench), the two-stage Praxis-VLM consistently exhibits superior accuracy on the EgoNormia benchmark. This demonstrates that the math cold-start successfully bolsters the model’s foundational logical reasoning architecture, thereby enhancing its capacity to adapt and perform effectively in novel and complex decision-making scenarios. Besides, the performance gain is more pronounced in 7B models, possibly because of larger models’ better logical reasoning potential. In summary, the results demonstrate that Praxis-VLM , enhanced with text-based GRPO training, achieves substantial improvements in vision-grounded decision-making. It effectively leverages textual guidance to learn generalizable decision-making capabilities, enabling robust performance across diverse complex multimodal scenarios. Compared to SFT approaches and the original base models, Praxis-VLM exhibits markedly stronger generalization and adaptability. 
+
+5.2 Impact of Reasoning Length on Model Performance 20            
+
+> 80 45.6 51.9 55.0 54.4 64.2 44.1 49.3 49.2 54.4 62.2 Qwen2.5-VL-3B
+> Praxis-VLM-3B
+> 70
+> 90 72.7 78.7 77.9 81.9 83.6 74.0 74.8 79.2 75.7 79.6 Qwen2.5-VL-3B
+> Praxis-VLM-3B
+> 20
+> 80
+> Len1 Len2 Len3 Len4 Len5 37.7 58.8 55.9 58.1 60.6 29.0 45.2 47.3 55.1 54.1
+> Qwen2.5-VL-7B
+> Praxis-VLM-7B
+> VIVA EgoNormia
+> 70
+> 100
+> Len1 Len2 Len3 Len4 Len5 74.0 83.4 87.9 86.4 88.3 75.6 79.1 83.1 83.5 83.5
+> Qwen2.5-VL-7B
+> Praxis-VLM-7B
+> Accuracy  (%)
+
+Figure 4: Accuracy versus reasoning length on VIVA and EgoNormia. Samples are grouped into 5 quintile bins based on the reasoning length percentile generated by Praxis-VLM (Len1: shortest 20%, Len5: longest 20%). Previous results have shown explicit reasoning help-ful to our task. For a further analysis, we measure the length of the generated reasoning chain produced for each sample in VIVA and EgoNormia. 2 Based on these lengths, we divide the samples into five equal bins by length percentiles. We then calculate the accuracy within each bin for both Praxis-VLM and Qwen2.5-VL. The results are presented in Figure 4. We can observe a general trend of decreasing ac-curacy for Praxis-VLM as the reasoning length in-creases for both datasets. However, crucially, the accuracy of the baseline Qwen-VL, without reason-ing, also shows a similar downward trend. This strongly suggests that the decreasing accuracy is cor-related with sample difficulty; Praxis-VLM tends to generate longer, more detailed reasoning for instances that are inherently more challenging. 
+
+> 2
+
+We do not include PCA-bench due to the relatively small sample sizes. 
+
+7Model Name VIVA PCA-Bench EgoNormia Orig. Major. Pass@8 Orig. Major. Pass@8 Orig. Major. Pass@8 Qwen2.5-VL-7B 80.97 80.73 80.81 46.37 48.27 56.47 46.19 46.36 54.50 w/ SFT 81.13 81.21 83.55 45.74 46.37 50.16 34.83 34.60 40.79 w/ Reason SFT 78.79 80.64 89.03 53.00 58.36 82.33 34.08 35.69 66.04 Praxis-VLM-7B 83.87 84.36 89.27 58.99 61.83 77.92 49.57 55.08 72.23 
+
+Table 2: Performance of diverse sampling. Orig.: Greedy decoding accuracy. Major.: Majority vote accuracy with 8 distinct samples. Pass@8: Accuracy with at least one correct answer from 8 samples. For Praxis-VLM, we use the one-stage variant without math cold start for a fair comparison with SFT. Moreover, within nearly every length bin, Praxis-VLM consistently outperforms its corresponding Qwen2.5-VL baseline. This holds true for both the 3B and 7B models. This finding further reinforces the effectiveness of the explicit reasoning process learned by Praxis-VLM, demonstrating its robust benefit across varying levels of sample complexity. Finally, we observe a noticeable performance drop for Praxis-VLM specifically in the longest reasoning bin (Len5) on the VIVA dataset than Qwen-VL. We then manually examine these cases and find two potential contributing factors. First, some generated outputs exceed the maximum sequence length configured during inference (i.e., 1,024 tokens), causing the generation to be truncated before the final answer tag could be produced. Second, extremely long reasoning chains might sometimes cause “overthinking,” where the extended reasoning process potentially introduces noise, negatively impacting the final decision accuracy. This point may warrant further investigation in future work. 
+
+5.3 Diverse Reason Sampling for Enhanced Decision Making 
+
+To further evaluate the robustness of Praxis-VLM’s decision-making, we generate 8 diverse samples per instance with decoding temperature as 0.2 and measure accuracy via Majority Vote (" Major. ", most frequent answer) and Pass@8 (at least one correct answer). The results are shown in Table 2. Compared to greedy decoding (“ Orig. ”), we observe that for reasoning-enhanced models like Praxis-VLM and Reason SFT, the majority vote yields improved accuracy. More significantly, the Pass@8 
+
+scores demonstrate substantial improvement scores. This indicates that while the single most probable reasoning path might not always lead to the correct answer, the correct solution is often reachable and present within a small set of diverse reasoning trajectories explored by these models. Moreover, we can observe that despite Reason SFT’s ability to sometimes find the correct answer within its samples (high Pass@8 ), Praxis-VLM consistently outperforms it in the Majority Vote metric across all datasets . This suggests that while both models explore relevant reasoning paths, the central tendency of Praxis-VLM’s reasoning (as reflected by the majority vote) is more reliably accurate. We interpret this as evidence for a higher quality or more robust reasoning process 
+
+learned via GRPO. Overall, the results highlight Praxis-VLM’s strength in both exploring the solution space effectively (high Pass@8 ) and converging on the correct answer (strong Major. and Orig. ). 
+
+5.4 Exploring Praxis-VLM’s Reasoning: What Does It Consider? 19% 23% 33% 25% Reason Type                            
+
+> Clusters
+> •Scenario Interpretation
+> •Visual Evidence
+> Assessment
+> •Problem Recognition
+> •Situational Awareness
+> •…
+> •Consequence Prediction
+> •Pros and Cons of Options
+> •Comparison of Actions
+> •Process of Elimination
+> •…
+> Situational Analysis
+> •Empathy & Responsibility
+> •Social/Cultural Norms
+> •Authority Intervention
+> •Regulation Compliance
+> •…
+> Rule &Norm
+> Adherence
+> •Hazard Identi fi cation
+> •Health and Safety
+> Prioritization
+> •Risk Mitigation
+> •…
+> Safety &Risk Management
+> 19%
+> 25%
+> 23%
+> 33%
+> Action Analysis &
+> Consequence
+
+Figure 5: Dominant reasoning dimen-sions used by Praxis-VLM in decision-making. Clusters were identified by an-alyzing keyphrases generated by GPT-4o from the model’s reasoning chains. To gain deeper insights into the reasoning ability learned by Praxis-VLM, we analyze its generated reasons. We first prompt GPT-4o to generate keyphrases that sum-marize the reasoning aspects of each sample. These keyphrases are then clustered across the dataset. As shown in Figure 5, this analysis reveals four primary di-mensions characterizing the model’s reasoning process. A major aspect identified is Situational Analysis , which focuses on interpreting the scenario, assessing visual evidence, recognizing the core problem, and establish-ing situational awareness. This also highlights that the model can adapt the reason to multimodal inputs. Complementing this understanding is Action & Con-sequence Evaluation , where the model systematically compares potential actions, anticipates both positive and negative outcomes, weighs trade-offs, and often employs elimination strategies to justify its decisions. 8Situation       
+
+> What is the best action to
+> take when you are driving on
+> the road?
+> A. Slow down (✓)
+> B. Turn Right
+> C. Stop the car
+> D. Turn Left
+> E. Keep driving.
+
+Question   
+
+> Reason: The image shows a road with multiple lanes of
+> tra ffi c, and the tra ffi c light ahead is red . (…) Given that
+> the tra ffi c light is red, it is important to stop the vehicle to
+> comply with tra ffi c regulations and ensure safety (…)
+> Answer : C. Stop the car.
+
+Model Output 
+
+Situation       
+
+> Select the most appropriate initial action to take :
+> A. Immediately remove the child. (✓)
+> B. Watch from a distance to allow the child play
+> himself.
+> C. Install safety gates or barriers to prevent
+> access to the kitchen.
+> D. Teach the child to navigate the kitchen safely
+> on their own.
+> E. The situation does not require any actions.
+
+Question   
+
+> Reason: The image shows a young child reaching towards a stovetop
+> (…) A. Immediately remove the child - This is a quick response but
+> doesn't address the long-term safety issue . (…) C - This is a proactive
+> measure that can prevent similar incidents in the future. (…)
+> Answer : C.
+
+Situation       
+
+> Select the most appropriate initial action to take :
+> A. Tell the driver to stop and wait for a
+> replacement driver. (✓)
+> B. Propose that the driver should slow down to
+> mitigate risks while driving.
+> C. Suggest turning up the music to create a
+> more lively atmosphere.
+> D. Ask the driver to stop drinking and pay
+> attention to safety on the road.
+> E. No action is necessary given the scene
+> depicted in the image.
+
+Question 
+
+Model Output      
+
+> Reason: The image depicts a person in a car who appears to be drinking alcohol (…)
+> A. - This could be a viable option if the driver is willing to stop and there is another
+> person available to drive. However, it assumes that the driver will comply, which may
+> not always be the case (…) D - It directly addresses the issue by asking the driver to
+> stop drinking and focusing on safety, which is crucial for preventing accidents.
+> Answer : D.
+
+Model Output 
+
+Error 1: Misinterpretation of 
+
+Situation Context 
+
+Error 2: Safety & Prioritization 
+
+Failures 
+
+Error 3: Normative & 
+
+Appropriateness Misalignment Figure 6: Illustrative examples of common failure cases for Praxis-VLM, identified by analyzing the reasoning generated for incorrect predictions. Complete outputs are in Appendix C. Another key dimension is Safety & Risk Management , where the model actively identifies potential hazards, considers risk mitigation strategies, and prioritizes health and safety, indicating its potential in human-centered consideration. Lastly, reasoning also incorporates Rule & Norm Adherence ,which entails consideration of explicit regulations, implicit social or cultural norms, procedural correctness, and the appropriateness of involving authorities. Taken together, the clustering results suggest that Praxis-VLM develops a comprehensive and structured approach to reason in decision-making. It systematically analyzes situations, deliberates over potential actions and their consequences, and accounts for key constraints related to safety, rules, and norms. This multifaceted capability, cultivated through text-based RL, underpins the model’s improved performance and its ability to generalize across diverse scenarios. 
+
+5.5 Understanding Failures: Error Analysis Through the Lens of Reasoning 
+
+We have shown Praxis-VLM’s superiority, and here we discuss its limitations by analyzing the reasoning chains associated with error samples. This qualitative analysis helps pinpoint common failure modes in the model’s reasoning process, even when it attempts to deliberate step-by-step. Figure 6 illustrates examples of the common error categories identified through this analysis. First, Misinterpretation of Situation Context remains a challenge. In these cases, the model might acknowledge certain details but fail to grasp their full implication or overlook other critical contextual elements, leading to a flawed assessment of the situation (e.g., In the image of Example 1, the model fails to recognize the actual green light indicating permission to proceed straight). Second, we observed Safety & Prioritization Failures . This category includes errors where the model struggles to appropriately weigh immediate actions against long-term safety needs or fails to prioritize the most critical safety concern among multiple factors present in the scenario (e.g., in Example 2, the model addresses an immediate risk without selecting the best overall preventative measure). Third, errors frequently arise from Normative & Appropriateness Misalignment . Here, the model may make questionable assumptions about social interactions or select actions based on flawed reasoning about social norms, ethics, or expected behavior in a given context (e.g., in Example 3, the model fails to understand that driving under the influence is illegal and should be stopped). These failure modes highlight that while encouraging explicit reasoning is beneficial, challenges remain in ensuring deep and accurate contextual understanding, robust prioritization under complex constraints, and reliable alignment with nuanced social and ethical norms. Addressing these aspects within the reasoning process is a key direction for future research. More samples are in Appendix C. 
+
+6 Related Work 
+
+VLMs in Situational Decision-Making. The quest to enable intelligent agents to make informed decisions in real-world, situated environments is central to embodied AI research [ 2, 22 , 38 , 39 ]. VLMs have emerged as a powerful foundation for such agents, demonstrating significant promise in applications like robotics, autonomous navigation, and interactive task planning [ 40 –43 ]. These models integrate visual perception with language understanding to interpret and interact with their surroundings. However, a persistent challenge lies in equipping VLMs with the capacity for multi-step 9reasoning required to navigate and act effectively in nuanced and dynamic situations. Our work focuses on enhancing such sophisticated reasoning abilities crucial for robust decision-making. 
+
+Reasoning in VLMs. The ability to reason is fundamental to effective decision-making. Recent studies have explored VLMs’ visual reasoning capabilities across various tasks, including visual question answering and commonsense reasoning [ 44 – 47 ]. Traditional methods often rely on fine-tuning VLMs on large multimodal datasets tailored to specific tasks or reasoning styles [ 16 , 48 , 49 ]. More recently, approaches have emerged that encourage VLMs to generate explicit reasoning steps, often leveraging RL to optimize performance on complex tasks [ 13 , 36 , 50 – 52 ]. While these RL-based methods have shown success in improving reasoning, they typically necessitate extensive training on datasets comprised of paired image-text data. Our text-driven RL diverges from this by proposing a more data-efficient pathway to instill reasoning. 
+
+Text-Driven Enhancement of VLMs. Leveraging textual data to enhance VLMs is an area of growing interest. Some prior studies have utilized text to improve VLMs by aligning the embedding spaces of different modalities [ 53 –55 ]. However, these approaches generally do not target the cultivation of sophisticated reasoning abilities for situated decision-making. Building on our preliminary analysis, we introduce a novel method to employ text-driven RL to instill a generalizable decision-making competency. A crucial aspect of our contribution is finding that these reasoning skills, learned entirely from text, can be effectively transferred to diverse vision-grounded scenarios for decision-making. 
+
+7 Conclusion 
+
+We introduce Praxis-VLM, a reasoning-based VLM for complex vision-grounded decision-making. Motivated by our finding that foundational reasoning can be effectively learned from text-only descriptions, Praxis-VLM utilizes text-based GRPO to instill robust reasoning skills that successfully transfer to vision-grounded inference. The experiments on three benchmarks of diverse situations demonstrate that our approach outperforms the original VLMs and different SFT methods, particularly in generalization to out-of-domain tasks with general reasoning abilities. Our work offers a data-efficient pathway to more capable and generalizable VLMs by effectively transferring abstract reasoning learned from language to guide complex vision-grounded decision-making. 
+
+Ethics Statement and Broader Impacts 
+
+The evaluation of our models in this research is conducted using publicly available benchmarks, including VIVA, PCA-Bench, and EgoNormia. We adhered strictly to the original usage protocols and licensing terms of these benchmarks, utilizing them without modification and solely for model inference during the evaluation phase. For the generation of any synthetic text-based training data using LLMs like GPT-4, we employ keyword-based filtering mechanisms designed to mitigate the inclusion of potentially harmful, biased, or unsafe content. Despite these precautions, it is important to acknowledge that our work, Praxis-VLM, builds upon pre-trained VLMs. These foundational models are typically trained on extensive datasets scraped from the internet, which may inadvertently contain and reflect existing societal biases or problematic content. While our method focuses on learning reasoning skills, the potential for the model to inherit or amplify such underlying issues from its base architecture remains. We therefore strongly advise users and developers to conduct thorough ethical reviews, bias assessments, and impact analyses before deploying systems based on this research in real-world applications, particularly in sensitive or high-stakes domains. 
+
+Acknowledgement 
+
+This work is supported by a grant from the Research Grants Council of the Hong Kong Special Administrative Region, China (Project No. PolyU/25200821), the Innovation and Technology Fund (Project No. PRP/047/22FX), and PolyU Internal Fund from RC-DSAI (Project No. 1-CE1E). 10 References 
+
+[1] Tao Feng, Chuanyang Jin, Jingyu Liu, Kunlun Zhu, Haoqin Tu, Zirui Cheng, Guanyu Lin, and Jiaxuan You. How far are we from agi: Are llms all we need? arXiv preprint arXiv:2405.10313 ,2024. [2] Yang Liu, Weixing Chen, Yongjie Bai, Xiaodan Liang, Guanbin Li, Wen Gao, and Liang Lin. Aligning cyber space with physical world: A comprehensive survey on embodied ai. arXiv preprint arXiv:2407.06886 , 2024. [3] Qinhong Zhou, Sunli Chen, Yisong Wang, Haozhe Xu, Weihua Du, Hongxin Zhang, Yilun Du, Joshua B Tenenbaum, and Chuang Gan. Hazard challenge: Embodied decision making in dynamically changing environments. arXiv preprint arXiv:2401.12975 , 2024. [4] Bo Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li, Hao Zhang, Kaichen Zhang, Peiyuan Zhang, Yanwei Li, Ziwei Liu, et al. Llava-onevision: Easy visual task transfer. arXiv preprint arXiv:2408.03326 , 2024. [5] Zhiting Hu and Tianmin Shu. Language models, agent models, and world models: The law for machine reasoning and planning. arXiv preprint arXiv:2312.05230 , 2023. [6] Yueen Ma, Zixing Song, Yuzheng Zhuang, Jianye Hao, and Irwin King. A survey on vision-language-action models for embodied ai. arXiv preprint arXiv:2405.14093 , 2024. [7] Zongxia Li, Xiyang Wu, Hongyang Du, Huy Nghiem, and Guangyao Shi. Benchmark evalua-tions, applications, and challenges of large vision language models: A survey. arXiv preprint arXiv:2501.02189 , 2025. [8] Sonia Jawaid Shaikh. Artificially intelligent, interactive, and assistive machines: A definitional framework for intelligent assistants. International Journal of Human–Computer Interaction ,39(4):776–789, 2023. [9] Yu Chen, Scott Jensen, Leslie J Albert, Sambhav Gupta, and Terri Lee. Artificial intelligence (ai) student assistants in the classroom: Designing chatbots to support student success. Information Systems Frontiers , 25(1):161–182, 2023. [10] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025. [11] Aaron Jaech, Adam Kalai, Adam Lerer, Adam Richardson, Ahmed El-Kishky, Aiden Low, Alec Helyar, Aleksander Madry, Alex Beutel, Alex Carney, et al. Openai o1 system card. arXiv preprint arXiv:2412.16720 , 2024. [12] Yihe Deng, Hritik Bansal, Fan Yin, Nanyun Peng, Wei Wang, and Kai-Wei Chang. Open-vlthinker: An early exploration to complex vision-language reasoning via iterative self-improvement. arXiv preprint arXiv:2503.17352 , 2025. [13] Yi Yang, Xiaoxuan He, Hongkun Pan, Xiyan Jiang, Yan Deng, Xingtao Yang, Haoyu Lu, Dacheng Yin, Fengyun Rao, Minfeng Zhu, et al. R1-onevision: Advancing generalized multimodal reasoning through cross-modal formalization. arXiv preprint arXiv:2503.10615 ,2025. [14] Wenxuan Huang, Bohan Jia, Zijie Zhai, Shaosheng Cao, Zheyu Ye, Fei Zhao, Zhe Xu, Yao Hu, and Shaohui Lin. Vision-r1: Incentivizing reasoning capability in multimodal large language models. arXiv preprint arXiv:2503.06749 , 2025. [15] Zhiyang Xu, Chao Feng, Rulin Shao, Trevor Ashby, Ying Shen, Di Jin, Yu Cheng, Qifan Wang, and Lifu Huang. Vision-flan: Scaling human-labeled tasks in visual instruction tuning. In Lun-Wei Ku, Andre Martins, and Vivek Srikumar, editors, Findings of the Association for Computational Linguistics: ACL 2024 , pages 15271–15342, Bangkok, Thailand, August 2024. Association for Computational Linguistics. 11 [16] Zhiyang Xu, Ying Shen, and Lifu Huang. MultiInstruct: Improving multi-modal zero-shot learning via instruction tuning. In Anna Rogers, Jordan Boyd-Graber, and Naoaki Okazaki, editors, Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 11445–11465, Toronto, Canada, July 2023. Association for Computational Linguistics. [17] Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. Visual instruction tuning. Advances in neural information processing systems , 36:34892–34916, 2023. [18] Zhe Hu, Yixiao Ren, Jing Li, and Yu Yin. VIVA: A benchmark for vision-grounded decision-making with human values. In Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen, editors, 
+
+Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing ,pages 2294–2311, Miami, Florida, USA, November 2024. Association for Computational Linguistics. [19] Liang Chen, Yichi Zhang, Shuhuai Ren, Haozhe Zhao, Zefan Cai, Yuchi Wang, Peiyi Wang, Xiangdi Meng, Tianyu Liu, and Baobao Chang. PCA-bench: Evaluating multimodal large language models in perception-cognition-action chain. In Lun-Wei Ku, Andre Martins, and Vivek Srikumar, editors, Findings of the Association for Computational Linguistics: ACL 2024 ,pages 1086–1104, Bangkok, Thailand, August 2024. Association for Computational Linguistics. [20] John R Wilson and Andrew Rutherford. Mental models: Theory and application in human factors. Human factors , 31(6):617–634, 1989. [21] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Y Wu, et al. Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. [22] MohammadHossein Rezaei, Yicheng Fu, Phil Cuvin, Caleb Ziems, Yanzhe Zhang, Hao Zhu, and Diyi Yang. Egonormia: Benchmarking physical social norm understanding. arXiv preprint arXiv:2502.20490 , 2025. [23] Charlie Snell, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. Scaling llm test-time compute opti-mally can be more effective than scaling model parameters. arXiv preprint arXiv:2408.03314 ,2024. [24] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. Chain-of-thought prompting elicits reasoning in large language models. 
+
+Advances in neural information processing systems , 35:24824–24837, 2022. [25] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, et al. Qwen2. 5-vl technical report. arXiv preprint arXiv:2502.13923 ,2025. [26] Margaret Wilson. How did we get from there to here? an evolutionary perspective on embodied cognition. In Handbook of cognitive science , pages 373–393. Elsevier, 2008. [27] Joar Skalse, Nikolaus Howe, Dmitrii Krasheninnikov, and David Krueger. Defining and characterizing reward gaming. Advances in Neural Information Processing Systems , 35:9460– 9471, 2022. [28] Yizhong Wang, Yeganeh Kordi, Swaroop Mishra, Alisa Liu, Noah A Smith, Daniel Khashabi, and Hannaneh Hajishirzi. Self-instruct: Aligning language models with self-generated instruc-tions. arXiv preprint arXiv:2212.10560 , 2022. [29] Aaron Hurst, Adam Lerer, Adam P Goucher, Adam Perelman, Aditya Ramesh, Aidan Clark, AJ Ostrow, Akila Welihinda, Alan Hayes, Alec Radford, et al. Gpt-4o system card. arXiv preprint arXiv:2410.21276 , 2024. [30] John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347 , 2017. 12 [31] Yan Ma, Steffi Chern, Xuyang Shen, Yiran Zhong, and Pengfei Liu. Rethinking rl scaling for vision language models: A transparent, from-scratch framework and comprehensive evaluation scheme. arXiv preprint arXiv:2504.02587 , 2025. [32] Hou Pong Chan, Wang Chen, Lu Wang, and Irwin King. Neural keyphrase generation via reinforcement learning with adaptive rewards. In Anna Korhonen, David Traum, and Lluís Màrquez, editors, Proceedings of the 57th Annual Meeting of the Association for Computa-tional Linguistics , pages 2163–2174, Florence, Italy, July 2019. Association for Computational Linguistics. [33] Yaowei Zheng, Junting Lu, Shenzhi Wang, Zhangchi Feng, Dongdong Kuang, and Yuwen Xiong. Easyr1: An efficient, scalable, multi-modality rl training framework, 2025. [34] Yang Sui, Yu-Neng Chuang, Guanchu Wang, Jiamu Zhang, Tianyi Zhang, Jiayi Yuan, Hongyi Liu, Andrew Wen, Hanjie Chen, Xia Hu, et al. Stop overthinking: A survey on efficient reasoning for large language models. arXiv preprint arXiv:2503.16419 , 2025. [35] Wenjie Ma, Jingxuan He, Charlie Snell, Tyler Griggs, Sewon Min, and Matei Zaharia. Reasoning models can be effective without thinking. arXiv preprint arXiv:2504.09858 , 2025. [36] Haozhan Shen, Peng Liu, Jingcheng Li, Chunxin Fang, Yibo Ma, Jiajia Liao, Qiaoli Shen, Zilun Zhang, Kangjia Zhao, Qianqian Zhang, et al. Vlm-r1: A stable and generalizable r1-style large vision-language model. arXiv preprint arXiv:2504.07615 , 2025. [37] Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, and Ion Stoica. Efficient memory management for large lan-guage model serving with pagedattention. In Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles , 2023. [38] Andrew Szot, Max Schwarzer, Harsh Agrawal, Bogdan Mazoure, Rin Metcalf, Walter Talbott, Natalie Mackraz, R Devon Hjelm, and Alexander T Toshev. Large language models as gen-eralizable policies for embodied tasks. In The Twelfth International Conference on Learning Representations , 2023. [39] Kaiwen Zhou, Chengzhi Liu, Xuandong Zhao, Anderson Compalas, Dawn Song, and Xin Eric Wang. Multimodal situational safety. arXiv preprint arXiv:2410.06172 , 2024. [40] Gemini Team, Rohan Anil, Sebastian Borgeaud, Yonghui Wu, Jean-Baptiste Alayrac, Jiahui Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, et al. Gemini: a family of highly capable multimodal models. arXiv:2312.11805 , 2023. [41] Zipeng Fu, Tony Z Zhao, and Chelsea Finn. Mobile aloha: Learning bimanual mobile manipu-lation with low-cost whole-body teleoperation. arXiv:2401.02117 , 2024. [42] Haotian Liu, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen, and Yong Jae Lee. LLaVA-NeXT: Improved reasoning, OCR, and world knowledge, 2024. [43] Mohit Shridhar, Jesse Thomason, Daniel Gordon, Yonatan Bisk, Winson Han, Roozbeh Mot-taghi, Luke Zettlemoyer, and Dieter Fox. Alfred: A benchmark for interpreting grounded instructions for everyday tasks. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10740–10749, 2020. [44] Zhe Hu, Tuo Liang, Jing Li, Yiren Lu, Yunlai Zhou, Yiran Qiao, Jing Ma, and Yu Yin. Cracking the code of juxtaposition: Can AI models understand the humorous contradictions. In The Thirty-eighth Annual Conference on Neural Information Processing Systems , 2024. [45] Yuqing Wang and Yun Zhao. Gemini in reasoning: Unveiling commonsense in multimodal large language models. arXiv preprint arXiv:2312.17661 , 2023. [46] Nitzan Bitton-Guetta, Yonatan Bitton, Jack Hessel, Ludwig Schmidt, Yuval Elovici, Gabriel Stanovsky, and Roy Schwartz. Breaking common sense: Whoops! a vision-and-language bench-mark of synthetic and compositional images. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 2616–2627, 2023. 13 [47] Haider Al-Tahan, Quentin Garrido, Randall Balestriero, Diane Bouchacourt, Caner Hazirbas, and Mark Ibrahim. Unibench: Visual reasoning requires rethinking vision-language beyond scaling. arXiv preprint arXiv:2408.04810 , 2024. [48] Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee. Improved baselines with visual instruction tuning, 2023. [49] Ruohong Zhang, Bowen Zhang, Yanghao Li, Haotian Zhang, Zhiqing Sun, Zhe Gan, Yinfei Yang, Ruoming Pang, and Yiming Yang. Improve vision language model chain-of-thought reasoning. arXiv preprint arXiv:2410.16198 , 2024. [50] Fanqing Meng, Lingxiao Du, Zongkai Liu, Zhixiang Zhou, Quanfeng Lu, Daocheng Fu, Tiancheng Han, Botian Shi, Wenhai Wang, Junjun He, et al. Mm-eureka: Exploring the frontiers of multimodal reasoning with rule-based reinforcement learning. arXiv preprint arXiv:2503.07365 , 2025. [51] Xinyu Ma, Ziyang Ding, Zhicong Luo, Chi Chen, Zonghao Guo, Derek F Wong, Xiaoyi Feng, and Maosong Sun. Deepperception: Advancing r1-like cognitive visual perception in mllms for knowledge-intensive visual grounding. arXiv preprint arXiv:2503.12797 , 2025. [52] Yifan Du, Zikang Liu, Yifan Li, Wayne Xin Zhao, Yuqi Huo, Bingning Wang, Weipeng Chen, Zheng Liu, Zhongyuan Wang, and Ji-Rong Wen. Virgo: A preliminary exploration on reproducing o1-like mllm. arXiv preprint arXiv:2501.01904 , 2025. [53] Dasol Choi, Guijin Son, Soo Yong Kim, Gio Paik, and Seunghyeok Hong. Improv-ing fine-grained visual understanding in vlms through text-only training. arXiv preprint arXiv:2412.12940 , 2024. [54] Xiaomin Yu, Pengxiang Ding, Wenjie Zhang, Siteng Huang, Songyang Gao, Chengwei Qin, Kejian Wu, Zhaoxin Fan, Ziyue Qiao, and Donglin Wang. Unicorn: Text-only data synthesis for vision language model training. arXiv preprint arXiv:2503.22655 , 2025. [55] Yuhui Zhang, Elaine Sui, and Serena Yeung-Levy. Connect, collapse, corrupt: Learning cross-modal tasks with uni-modal data. arXiv preprint arXiv:2401.08567 , 2024. 14 A Discussions on Limitations and Future Work 
+
+The explorations in this work with Praxis-VLM open up several exciting avenues for future research, offering insights into how abstract reasoning learned from language can be effectively grounded in multimodal contexts. While we demonstrated significant gains using 3B and 7B parameter models, a broader investigation into the interplay between model scale and the efficacy of text-driven reasoning transfer would be beneficial. Understanding how models of different size perform could reveal valuable scaling dynamics for this learning paradigm. Furthermore, our current approach leverages a curated corpus of text-only situational descriptions. An insightful direction for future work lies in optimizing this data aspect further. While text offers a data-efficient route to learning reasoning, exploring advanced data selection strategies could unlock even greater efficiency. This could involve identifying or generating a smaller subset of highly "effective" textual scenarios that most potently instill transferable reasoning skills. Another promising frontier involves enhancing the synergy between the text-learned reasoning and the VLM’s foundational visual perception, which, however, is out of the scope of our work. The ultimate effectiveness of the transferred reasoning during multimodal inference hinges on how accurately the visual input is perceived and aligned with the conceptual understanding developed through text. Future research could focus on improving the VLM’s core visual grounding capabilities, perhaps through targeted pre-training or co-training strategies that explicitly link visual features to the abstract reasoning structures learned from language. Finally, despite the effectiveness of our method, the error analysis shows several common fail pattens Praxis-VLM tends to exhibit during the reasoning process. Future work may address these issues to further enhance the model’s performance. 
+
+B Experiment Details 
+
+B.1 Data Statistics Task Number 
+
+VIVA 1,240 PCA-Bench 317 EgoNormia 1,743 Table 3: Data statistics for each evalua-tion benchmark. "Number" refers to the count of test instances used. Our experiments utilize three established benchmarks for embodied decision-making, providing a comprehensive evaluation of our model’s capabilities across diverse sce-narios. Key statistics for these benchmarks are presented in Table 3. The benchmarks are: (1) VIVA [ 18 ], which is fo-cused on human-centered decision-making, presenting var-ious real-world social situations where the model must pre-dict appropriate human actions; (2) PCA-Bench [19 ] en-compasses scenarios from embodied robotics, autonomous driving, and interactive games. For our experiments, we use the open track test set provided by the benchmark; (3) 
+
+EgoNormia [ 22 ], which centers on normative decision-making from an ego-centric video perspective, requiring models to interpret actions and anticipate events involving tool use or object manipulation. Across all benchmarks, we utilize the task of action selection to measure the model decision-making ability. This is formalized as a multiple-choice question answering task, where the model is presented with a visual situation and must choose the most appropriate action from several candidates. For EgoNormia, which uses video input, we adhere to the method described in the original work: video frames are sampled at a rate of one frame per second and are then concatenated from left to right (LTR) to form a single composite image input for the model. 
+
+B.2 Implementation Details 
+
+For both GRPO and SFT training, we finetune full model parameters with BFloat16. For GRPO implementation, we use the EasyRL Library 3. We adopt the default hyper-parameters, and set rollout N to 5 and KL divergence coefficient as 0.01. The learning rate is set as 1e-6. 
+
+> 3https://github.com/hiyouga/EasyR1/tree/main
+
+15 For SFT implementation, we employ the HuggingFace TRL 4. We set the number of training epochs as 3 and learning rate as 2e-5. For Reason-SFT baseline, as there is no reasoning chains available, we first utilize GPT-4 to generate a plausible reasoning chain for each textual training sample. We then fine-tune the base VLM using SFT on these augmented (Situation, Question, Reason, Answer) samples, specifically training the model to first generate the reasoning chain and then the final answer, mimicking the desired output format. All models are trained on four NIVIDA A100 and H100 GPUs. For Praxis-VLM, we adopt the following system prompt: 
+
+System Prompt 
+
+You are a helpful AI Assistant, designed to provided well-reasoned and detailed responses. You FIRST think about the reasoning process as an internal monologue and then provide the user with the answer. The reasoning process MUST BE enclosed within <think> and </think> tags, and the final answer MUST BE enclosed within <answer> and </answer> tags. 
+
+Druing inference, we leverage VLLM Library [ 37 ] with greedy decoding. The model performance is evaluated with accuracy. To parse the model output and match it to the original options (e.g., A/B/C/D/E, etc), we first design a list of rules for matching; if it cannot be matched, we prompt GPT4-o to match the model answer with the options. The prompts for each benchmark in inference are shown below: 
+
+Inference Prompt for VIVA 
+
+You are given a situation and a question. Based on the situation provided, select the most appropriate option to answer the question: ## Situation: As shown in the given image. ## Question: _question_ Now answer the question. Just output the choice: 
+
+Inference Prompt for PCA-Bench 
+
+Please answer the question below based on the images. ## Question: _question_ Now answer the question by selecting the correct option. 
+
+Inference Prompt for EgoNormia 
+
+The given images from a first-person perspective video depict a person in a given situation. Please answer the question below based on the images. ## Question: Given the below list of behaviors, choose the single most normatively relevant or appropriate action to perform next. You shouldn’t use the info in options to learn about the context, but rather to make a decision based on the normative appropriateness of the behavior. You shouldn’t eliminate any options only based on the presence of elements in the context; you should focus on normative appropriateness. _question_ Now answer the question by selecting the correct option. 
+
+Reward. For GRPO training, we adopt rule-based rewards, eliminating the needs for parameterized reward models. For geometry3k data training, we convert the task into numerical computation and use the Math-Verify Library 5 to calculate the binary reward: 1 for correct and 0 for incorrect. For text-based decision making, which is formulated as multiple-choice question, we parse the model 
+
+> 4
+
+https://huggingface.co/docs/trl/en/index 
+
+> 5
+
+https://github.com/huggingface/Math-Verify 
+
+16 Figure 7: Training dynamics of Praxis-VLM-7B (one-stage GRPO). You are managing a                    
+
+> community evacuation due
+> to an approaching hurricane
+> and potential floods .
+> Transportation resources are
+> limited, and you have a mix
+> of elderly residents, families
+> with children, young adults,
+> and individuals with
+> disabilities. Certain areas of
+> the town are at higher risk of
+> flooding than others .
+> What should be your highest priority when
+> coordinating the evacuation?
+> A. Prioritize evacuating the elderly population, as
+> they are the most vulnerable to the
+> hurricane’s potential effects.
+> B. Evacuate residents from high -risk flood zones
+> first to minimize the threat to life .(✓)
+> C. Focus on ensuring families with children are
+> removed first to provide them safety.
+> D. Evacuate in a first -come, first -served manner
+> to ensure impartiality and avoid conflict
+> <think> When managing an evacuation with limited resources and a diverse
+> population, the highest priority must be to minimize the immediate risk to life . This
+> means identifying and evacuating those who are in the most imminent danger first.
+> While elderly individuals, people with disabilities, and families with children are all
+> vulnerable in different ways, the location -based threat posed by rising floodwaters
+> is the most time -sensitive and life -threatening factor. Those in high -risk flood zones
+> face an immediate physical danger from rapidly deteriorating conditions, such as
+> fast -moving water, building collapse, or impassable roads. Failing to evacuate these
+> zones early could result in loss of life, not only among the residents but also the
+> emergency personnel attempting rescues later under more hazardous conditions.
+> Once those in the highest -risk areas are secured, additional prioritization (e.g., based
+> on age or mobility) can be applied within the safer zones. </think>
+> <answer> B. </answer>
+
+Question Situation  Reason + Answer 
+
+Figure 8: Left: An example of a synthetic data sample used for our text-based training. It comprises a textual situation description, a multiple-choice decision-making question, and the target answer. Right: The reasoning chain, also generated by GPT-4o, is used for Reason SFT training, and not utilized during our GRPO training phase. answer using rules and match it with correct answer using a similar binary reward. For length reward (Rlen ), we first count the number of words in a multi-step reason, and then calculate the score as this word count divided by a scaling factor of 250. To prevent disproportionately long outputs from dominating, Rlen is capped at a maximum value of 1.0, which is achieved if the word count reaches or exceeds 250 words. For geometry3k training, the overall reward is: R = Raccuracy +Rformat +0 .5·Rtag .For text-based decision making training, we remove the tag reward and include the length reward, with the overall score as: R = Raccuracy + 0 .8 · Rformat + 0 .5 · Rlen .
+
+Training Dynamics. Figure 7 illustrates key aspects of the training dynamics during the GRPO phase, including the evolution of various reward components and the mean output length. The plots demonstrate that the model initially prioritizes and rapidly masters the desired output format. Rewards associated with structural correctness, such as ‘tag count‘ and ‘format‘ (reflecting proper use and placement of reasoning tags like ‘<think>‘ and ‘<answer>‘), are observed to quickly saturate at or near their maximum values early in the training process. Once format adherence is achieved, the ‘accuracy‘, which measures the correctness of the final decision, exhibits a consistent upward trend. This signifies that the model then progressively refines its reasoning capabilities to improve decision-making accuracy. Concurrently, the output length typically shows an initial increase as the model learns to generate more detailed reasoning, followed by stabilization. These dynamics effectively demonstrate how the adaptive reward strategy guides the model: first to learn the task structure, and subsequently to enhance the substantive quality and accuracy of its reasoning and outputs. 
+
+B.3 Details on Text-Based Data Creation 
+
+For the construction of our text-based decision-making dataset, we utilize GPT-4o 6. A primary objective is to generate training data that is both sufficiently challenging to necessitate multi-step reasoning and diverse in its situational contexts to enhance model generalizability. To promote this situational diversity, we implement a batch generation strategy: GPT-4o is prompted to produce 10 samples per request. These generated batches subsequently underwent a deduplication process to ensure a varied collection of scenarios and questions. This method proves effective in creating the desired dataset characteristics. The prompt used for this data generation is shown below: 
+
+6gpt-4o-2024-11-20 
+
+17 Prompt for Training Data Generation 
+
+Now your task is to create complex decision- making questions in human-centered situations. Each question contains a situation description, a multiple-choice question, and an answer. You can consider the following approaches to enhance the complexity: - Add more context to the problem, such as tools, back-ground information, or character details, making the constraints more specific; - Make the options challenging; - Consider different ways the question is asked, incorporating reverse reasoning, dialectical reasoning, critical thinking, etc. The question doesn’t necessarily have to ask which action is correct but could focus on other as-pects related to decision-making. There are no specific format or wording requirements for the questions, but they should be in the form of multiple-choice questions. You should make the situation diverse. You should also include a rationale to explain the answer. ## Examples: _example_ Now generate 10 candidate question with answer. Your output should be presented as a JSON list 
+
+We provide a synthetic sample for text-based training in Figure 8. 
+
+Data Diversity Analysis. To assess the diversity of the generated scenarios, we conduct analysis by prompting GPT-4o to cluster the generated textual situations into topical categories. The clustering results indicate a broad coverage across varied scenarios: (1) Workplace Performance and Personal Issues , (2) Resource Allocation , (3) Project Management , (4) Balancing Competing Interests , (5) 
+
+Policy, Rules & Enforcement , (6) Ethical Dilemmas , (7) Interpersonal Conflict , (8) Emergency Handling , (9) Navigating Setbacks , (10) Event Planning & Logistics , and (11) Balancing Inclusivity and Majority Preference .
+
+C Sample Outputs 
+
+We present error outputs of Praxis-VLM-7B with full reason paths in Figure 9. We further include model outputs on samples from VIVA, PCA-Bench, and EgoNormia in Figure 10, Figure 11, and Figure 12. 18 Situation 
+
+What is the best action to take 
+
+when you are driving on the 
+
+road? 
+
+A. Slow down (✓)
+
+B. Turn Right 
+
+C. Stop the car 
+
+D. Turn Left 
+
+E. Keep driving. 
+
+Question 
+
+Reason: The image shows a road with multiple lanes of tra ffi c, and the tra ffi c light ahead is red. The speed limit sign indicates 30 
+
+km/h, which is lower than the current speed of 25 km/h. Given that the tra ffi c light is red, it is important to stop the vehicle to 
+
+comply with tra ffi c regulations and ensure safety for all road users. The presence of other vehicles and pedestrians also suggests 
+
+that stopping is necessary to avoid any potential accidents or collisions. 
+
+Answer : C. Stop the car. 
+
+Model Output 
+
+Situation 
+
+Select the most appropriate initial 
+
+action to take :
+
+A. Immediately remove the child. (✓)
+
+B. Watch from a distance to allow 
+
+the child play himself. 
+
+C. Install safety gates or barriers to 
+
+prevent access to the kitchen. 
+
+D. Teach the child to navigate the 
+
+kitchen safely on their own. 
+
+E. The situation does not require 
+
+any actions. 
+
+Question 
+
+Reason: The image shows a young child reaching towards a stovetop that appears to be turned on, as indicated by the glowing red spiral pattern. This is a dangerous situation 
+
+because the child could potentially touch the hot surface or burn themselves. Here's a step-by-step analysis of the options: 
+
+A. Immediately remove the child - This is a quick response but doesn't address the long-term safety issue. It might be necessary if the child is in immediate danger, but it doesn't 
+
+prevent future accidents. 
+
+B. Watch from a distance to allow the child play himself - This is not a safe course of action because the child is at risk of injury and should not be left unattended near a hot stove. 
+
+C. Install safety gates or barriers to prevent access to the kitchen - This is a proactive measure that can prevent similar incidents in the future. It ensures that the child cannot reach the 
+
+stovetop without supervision. 
+
+D. Teach the child to navigate the kitchen safely on their own - While this is a good long-term goal, it is not appropriate for the immediate situation where the child is already at risk. 
+
+E. The situation depicted in the image does not require any actions - This is incorrect because there is a clear and present danger that needs to be addressed immediately. 
+
+Given the immediate danger, the most appropriate initial action would be to remove the child from the area and ensure they are not allowed to return until the stovetop is turned o ff and 
+
+cooled down. However, since the question asks for the most appropriate initial action, the best choice among the given options is: C. 
+
+Answer: C. 
+
+Situation 
+
+Select the most appropriate initial 
+
+action to take :
+
+A. Tell the driver to stop and wait for a 
+
+replacement driver. (✓)
+
+B. Propose that the driver should slow 
+
+down to mitigate risks while 
+
+driving. 
+
+C. Suggest turning up the music to 
+
+create a more lively atmosphere. 
+
+D. Ask the driver to stop drinking and 
+
+pay attention to safety on the road. 
+
+E. No action is necessary given the 
+
+scene depicted in the image. 
+
+Question  Model Output 
+
+Reason: The image depicts a person in a car who appears to be drinking alcohol. This is a serious issue because driving under the in fl uence (DUI) is illegal and extremely dangerous. 
+
+The person's actions pose a signi fi cant risk to themselves and others on the road. Here’s a breakdown of why each option might or might not be appropriate: 
+
+A. "Tell the driver to stop and wait for a replacement driver." - This could be a viable option if the driver is willing to stop and there is another person available to drive. However, it 
+
+assumes that the driver will comply, which may not always be the case. 
+
+B. "Propose that the driver should slow down to mitigate risks while driving." - Slowing down is not a solution to the problem of alcohol impairment. It does not address the root cause 
+
+of the issue and could lead to further accidents due to impaired judgment. 
+
+C. "Suggest turning up the music to create a more lively atmosphere." - This is completely irrelevant and does nothing to address the issue of alcohol impairment. It is also potentially 
+
+distracting and could worsen the situation. 
+
+D. "Ask the driver to stop drinking and pay attention to safety on the road." - This is the most appropriate course of action. It directly addresses the issue by asking the driver to stop 
+
+drinking and focusing on safety, which is crucial for preventing accidents. 
+
+E. "No action is necessary given the scene depicted in the image." - This is incorrect because the scene clearly indicates a dangerous situation that requires immediate intervention. 
+
+Given the context and the potential dangers involved, the most appropriate initial action is to ask the driver to stop drinking and pay attention to safety on the road. 
+
+Answer : D. 
+
+Model Output Figure 9: Error sample outputs of Praxis-VLM-7B with full model reasons. You are given a situation and a question. Based on the situation provided, 
+
+select the most appropriate option to answer the question: 
+
+A. Tell them to stop texting and focus on driving. 
+
+B. Remind them to drive slower when texting. 
+
+C. Ask them to text briefly and then put the phone down. 
+
+D. Remind them they can use voice commands to text instead. 
+
+E. Take no action, assuming they do not need help. 
+
+<think> The situation depicted in the image shows a person driving while holding a smartphone, which is a clear indication of di stracted driving. Distracted driving 
+
+can be caused by various activities such as texting, eating, or engaging in conversation, but in this case, the primary conce rn is the use of a smartphone while driving. 
+
+This behavior is dangerous because it diverts the driver's attention from the road, increasing the risk of accidents. Let's e val uate each option: 
+
+A. "Tell them to stop texting and focus on driving." - This is the most direct and appropriate action. It addresses the immediat e issue of distracted driving and ensures 
+
+the safety of the driver and others on the road. 
+
+B. "Remind them to drive slower when texting." - While this might be a good idea for general safe driving practices, it does not address the core issue of the 
+
+distraction itself. Slowing down does not eliminate the risk of an accident caused by texting while driving. 
+
+C. "Ask them to text briefly and then put the phone down." - This option suggests that the driver could continue to text, albeit for a short period. However, even brief 
+
+distractions can lead to accidents, so this is not a safe course of action. 
+
+D. "Remind them they can use voice commands to text instead." - While using voice commands might seem like a safer alternative, it still involves the driver using 
+
+their hands and eyes to interact with the phone, which is not ideal. Voice commands are better suited for hands -free devices, wh ich are not being used here. 
+
+E. "Take no action, assuming they do not need help." - Ignoring the situation is not a responsible action, especially when it po ses a significant risk to the driver and 
+
+others on the road. 
+
+Given the options, the most appropriate initial action is to tell the driver to stop texting and focus on driving. </think> 
+
+<answer> A. Tell them to stop texting and focus on driving.</answer> 
+
+Figure 10: Output of Praxis-VLM-7B with full model reasons on a sample from VIVA. 19 You are a driving assistant. Based on current image, what 
+
+should you do if you want to drive forward safely? 
+
+A. Slow down 
+
+B. Keep driving 
+
+C. Call the police. 
+
+<think> The image shows a snowy road with visible tire tracks, indicating that vehicles have already passed through. There is also a warn ing sign on 
+
+the right side of the road, which typically indicates a potential hazard or caution area. Given these observations, it is imp ort ant to be cautious and 
+
+consider the conditions before proceeding. 
+
+1. Slow down : This is a reasonable action to take when approaching a potentially hazardous area, especially in snowy conditions where vis ibi lity 
+
+might be reduced and traction could be compromised. 
+
+2. Keep driving : This option is not advisable because the presence of a warning sign suggests there may be a risk that needs to be addressed , s uch as 
+
+ice, snow, or other obstacles that could affect driving safety. 
+
+3. Call the police : While calling the police might be necessary in extreme cases, it is not the immediate action required for safe driving. The po lice 
+
+would need to be called if there is a clear danger that poses an immediate threat to public safety, but this does not seem to be the case here. </think> 
+
+<answer> Given the context, the most appropriate action is A. Slow down to ensure safe navigation of the road. </answer> Figure 11: Output of Praxis-VLM-7B with full model reasons on a sample from PCA-Bench. A. Complete your report and then cycle away. 
+
+B. Excuse yourself politely and continue delivery. 
+
+C. Resume cycling after a brief conversation. 
+
+D. Donate to the charity and then continue cycling. 
+
+E. No behavior is remotely appropriate 
+
+<think> The images show a street scene with a person walking a dog on the sidewalk. The person appears to be engaged in a casual acti vit y, possibly 
+
+walking their dog. There is no indication of a report, delivery, or charity that needs attention in the images. The most norm ati vely relevant or appropriate 
+
+action would be to continue the current activity without interruption, as it seems to be a peaceful and normal scenario. 
+
+Option A suggests completing a report and then cycling away, which is not directly related to the scene depicted in the image s. Option B implies excusing 
+
+oneself for a delivery, which is also not applicable here. Option C suggests resuming cycling after a brief conversation, whi ch could be appropriate if the 
+
+person was stopped for a moment but now continues their activity. Option D suggests donating to a charity, which is not indic ate d in the images and 
+
+seems unrelated to the context. Option E suggests that no behavior is appropriate, which is not the case since there are acti ons that can be considered 
+
+normatively relevant. 
+
+Given the context of the images, the most appropriate action would be to resume the current activity, which is likely cycling , a s it aligns with the 
+
+normative expectation of continuing a peaceful activity in a residential area. </think> 
+
+<answer> C. Resume cycling after a brief conversation. </answer> 
+
+The given images from a first -person perspective video depict a person in a given situation. Given the below list of behaviors, 
+
+choose the single most normatively relevant or appropriate action to perform next. 
+
+Figure 12: Output of Praxis-VLM-7B with full model reasons on a sample from EgoNormia. 20 NeurIPS Paper Checklist 
+
+1. Claims 
+
+Question: Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? Answer: [Yes] Justification: Our paper studies decision-making of VLMs and proposes a novel method to improve model performance, as illustrated in the Abstract and Introduction Section. Guidelines: • The answer NA means that the abstract and introduction do not include the claims made in the paper. • The abstract and/or introduction should clearly state the claims made, including the contributions made in the paper and important assumptions and limitations. A No or NA answer to this question will not be perceived well by the reviewers. • The claims made should match theoretical and experimental results, and reflect how much the results can be expected to generalize to other settings. • It is fine to include aspirational goals as motivation as long as it is clear that these goals are not attained by the paper. 2. Limitations 
+
+Question: Does the paper discuss the limitations of the work performed by the authors? Answer: [Yes] Justification: We discuss the limitations and future work in Section A. Guidelines: • The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper. • The authors are encouraged to create a separate "Limitations" section in their paper. • The paper should point out any strong assumptions and how robust the results are to violations of these assumptions (e.g., independence assumptions, noiseless settings, model well-specification, asymptotic approximations only holding locally). The authors should reflect on how these assumptions might be violated in practice and what the implications would be. • The authors should reflect on the scope of the claims made, e.g., if the approach was only tested on a few datasets or with a few runs. In general, empirical results often depend on implicit assumptions, which should be articulated. • The authors should reflect on the factors that influence the performance of the approach. For example, a facial recognition algorithm may perform poorly when image resolution is low or images are taken in low lighting. Or a speech-to-text system might not be used reliably to provide closed captions for online lectures because it fails to handle technical jargon. • The authors should discuss the computational efficiency of the proposed algorithms and how they scale with dataset size. • If applicable, the authors should discuss possible limitations of their approach to address problems of privacy and fairness. • While the authors might fear that complete honesty about limitations might be used by reviewers as grounds for rejection, a worse outcome might be that reviewers discover limitations that aren’t acknowledged in the paper. The authors should use their best judgment and recognize that individual actions in favor of transparency play an impor-tant role in developing norms that preserve the integrity of the community. Reviewers will be specifically instructed to not penalize honesty concerning limitations. 3. Theory assumptions and proofs 
+
+Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof? 21 Answer: [NA] Justification: Our work focuses on empirical studies with data-driven methods, and does not include theoretical results. Guidelines: • The answer NA means that the paper does not include theoretical results. • All the theorems, formulas, and proofs in the paper should be numbered and cross-referenced. • All assumptions should be clearly stated or referenced in the statement of any theorems. • The proofs can either appear in the main paper or the supplemental material, but if they appear in the supplemental material, the authors are encouraged to provide a short proof sketch to provide intuition. • Inversely, any informal proof provided in the core of the paper should be complemented by formal proofs provided in appendix or supplemental material. • Theorems and Lemmas that the proof relies upon should be properly referenced. 4. Experimental result reproducibility 
+
+Question: Does the paper fully disclose all the information needed to reproduce the main ex-perimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)? Answer: [Yes] Justification: Section 4 and Section B. Guidelines: • The answer NA means that the paper does not include experiments. • If the paper includes experiments, a No answer to this question will not be perceived well by the reviewers: Making the paper reproducible is important, regardless of whether the code and data are provided or not. • If the contribution is a dataset and/or model, the authors should describe the steps taken to make their results reproducible or verifiable. • Depending on the contribution, reproducibility can be accomplished in various ways. For example, if the contribution is a novel architecture, describing the architecture fully might suffice, or if the contribution is a specific model and empirical evaluation, it may be necessary to either make it possible for others to replicate the model with the same dataset, or provide access to the model. In general. releasing code and data is often one good way to accomplish this, but reproducibility can also be provided via detailed instructions for how to replicate the results, access to a hosted model (e.g., in the case of a large language model), releasing of a model checkpoint, or other means that are appropriate to the research performed. • While NeurIPS does not require releasing code, the conference does require all submis-sions to provide some reasonable avenue for reproducibility, which may depend on the nature of the contribution. For example (a) If the contribution is primarily a new algorithm, the paper should make it clear how to reproduce that algorithm. (b) If the contribution is primarily a new model architecture, the paper should describe the architecture clearly and fully. (c) If the contribution is a new model (e.g., a large language model), then there should either be a way to access this model for reproducing the results or a way to reproduce the model (e.g., with an open-source dataset or instructions for how to construct the dataset). (d) We recognize that reproducibility may be tricky in some cases, in which case authors are welcome to describe the particular way they provide for reproducibility. In the case of closed-source models, it may be that access to the model is limited in some way (e.g., to registered users), but it should be possible for other researchers to have some path to reproducing or verifying the results. 5. Open access to data and code 
+
+22 Question: Does the paper provide open access to the data and code, with sufficient instruc-tions to faithfully reproduce the main experimental results, as described in supplemental material? Answer: [Yes] Justification: We provide the corresponding code. We will also release our data and code upon publication. Guidelines: • The answer NA means that paper does not include experiments requiring code. • Please see the NeurIPS code and data submission guidelines ( https://nips.cc/pu blic/guides/CodeSubmissionPolicy ) for more details. • While we encourage the release of code and data, we understand that this might not be possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not including code, unless this is central to the contribution (e.g., for a new open-source benchmark). • The instructions should contain the exact command and environment needed to run to reproduce the results. See the NeurIPS code and data submission guidelines ( https: //nips.cc/public/guides/CodeSubmissionPolicy ) for more details. • The authors should provide instructions on data access and preparation, including how to access the raw data, preprocessed data, intermediate data, and generated data, etc. • The authors should provide scripts to reproduce all experimental results for the new proposed method and baselines. If only a subset of experiments are reproducible, they should state which ones are omitted from the script and why. • At submission time, to preserve anonymity, the authors should release anonymized versions (if applicable). • Providing as much information as possible in supplemental material (appended to the paper) is recommended, but including URLs to data and code is permitted. 6. Experimental setting/details 
+
+Question: Does the paper specify all the training and test details (e.g., data splits, hyper-parameters, how they were chosen, type of optimizer, etc.) necessary to understand the results? Answer: [Yes] Justification: Section 4 and Section B Guidelines: • The answer NA means that the paper does not include experiments. • The experimental setting should be presented in the core of the paper to a level of detail that is necessary to appreciate the results and make sense of them. • The full details can be provided either with the code, in appendix, or as supplemental material. 7. Experiment statistical significance 
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments? Answer: [No] Justification: The results are reported as accuracy estimates using greedy decoding, without error bars or confidence intervals. However, our analysis includes results from diverse sampling regarding multiple predictions, demonstrating the model robustness. Guidelines: • The answer NA means that the paper does not include experiments. • The authors should answer "Yes" if the results are accompanied by error bars, confi-dence intervals, or statistical significance tests, at least for the experiments that support the main claims of the paper. 23 • The factors of variability that the error bars are capturing should be clearly stated (for example, train/test split, initialization, random drawing of some parameter, or overall run with given experimental conditions). • The method for calculating the error bars should be explained (closed form formula, call to a library function, bootstrap, etc.) • The assumptions made should be given (e.g., Normally distributed errors). • It should be clear whether the error bar is the standard deviation or the standard error of the mean. • It is OK to report 1-sigma error bars, but one should state it. The authors should preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis of Normality of errors is not verified. • For asymmetric distributions, the authors should be careful not to show in tables or figures symmetric error bars that would yield results that are out of range (e.g. negative error rates). • If error bars are reported in tables or plots, The authors should explain in the text how they were calculated and reference the corresponding figures or tables in the text. 8. Experiments compute resources 
+
+Question: For each experiment, does the paper provide sufficient information on the com-puter resources (type of compute workers, memory, time of execution) needed to reproduce the experiments? Answer: [Yes] Justification: Section B Guidelines: • The answer NA means that the paper does not include experiments. • The paper should indicate the type of compute workers CPU or GPU, internal cluster, or cloud provider, including relevant memory and storage. • The paper should provide the amount of compute required for each of the individual experimental runs as well as estimate the total compute. • The paper should disclose whether the full research project required more compute than the experiments reported in the paper (e.g., preliminary or failed experiments that didn’t make it into the paper). 9. Code of ethics 
+
+Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics https://neurips.cc/public/EthicsGuidelines ?Answer: [Yes] Justification: Section 7. Guidelines: • The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics. • If the authors answer No, they should explain the special circumstances that require a deviation from the Code of Ethics. • The authors should make sure to preserve anonymity (e.g., if there is a special consid-eration due to laws or regulations in their jurisdiction). 10. Broader impacts 
+
+Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed? Answer: [Yes] Justification: Section 1, Section 6 and Section 7 Guidelines: • The answer NA means that there is no societal impact of the work performed. • If the authors answer NA or No, they should explain why their work has no societal impact or why the paper does not address societal impact. 24 • Examples of negative societal impacts include potential malicious or unintended uses (e.g., disinformation, generating fake profiles, surveillance), fairness considerations (e.g., deployment of technologies that could make decisions that unfairly impact specific groups), privacy considerations, and security considerations. • The conference expects that many papers will be foundational research and not tied to particular applications, let alone deployments. However, if there is a direct path to any negative applications, the authors should point it out. For example, it is legitimate to point out that an improvement in the quality of generative models could be used to generate deepfakes for disinformation. On the other hand, it is not needed to point out that a generic algorithm for optimizing neural networks could enable people to train models that generate Deepfakes faster. • The authors should consider possible harms that could arise when the technology is being used as intended and functioning correctly, harms that could arise when the technology is being used as intended but gives incorrect results, and harms following from (intentional or unintentional) misuse of the technology. • If there are negative societal impacts, the authors could also discuss possible mitigation strategies (e.g., gated release of models, providing defenses in addition to attacks, mechanisms for monitoring misuse, mechanisms to monitor how a system learns from feedback over time, improving the efficiency and accessibility of ML). 11. Safeguards 
+
+Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pretrained language models, image generators, or scraped datasets)? Answer: [Yes] Justification: Section 7 Guidelines: • The answer NA means that the paper poses no such risks. • Released models that have a high risk for misuse or dual-use should be released with necessary safeguards to allow for controlled use of the model, for example by requiring that users adhere to usage guidelines or restrictions to access the model or implementing safety filters. • Datasets that have been scraped from the Internet could pose safety risks. The authors should describe how they avoided releasing unsafe images. • We recognize that providing effective safeguards is challenging, and many papers do not require this, but we encourage authors to take this into account and make a best faith effort. 12. Licenses for existing assets 
+
+Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected? Answer: [Yes] Justification: Section B and Section 7 Guidelines: • The answer NA means that the paper does not use existing assets. • The authors should cite the original paper that produced the code package or dataset. • The authors should state which version of the asset is used and, if possible, include a URL. • The name of the license (e.g., CC-BY 4.0) should be included for each asset. • For scraped data from a particular source (e.g., website), the copyright and terms of service of that source should be provided. • If assets are released, the license, copyright information, and terms of use in the package should be provided. For popular datasets, paperswithcode.com/datasets has curated licenses for some datasets. Their licensing guide can help determine the license of a dataset. 25 • For existing datasets that are re-packaged, both the original license and the license of the derived asset (if it has changed) should be provided. • If this information is not available online, the authors are encouraged to reach out to the asset’s creators. 13. New assets 
+
+Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets? Answer: [Yes] Justification: Section B.3 for synthetic data generation Guidelines: • The answer NA means that the paper does not release new assets. • Researchers should communicate the details of the dataset/code/model as part of their submissions via structured templates. This includes details about training, license, limitations, etc. • The paper should discuss whether and how consent was obtained from people whose asset is used. • At submission time, remember to anonymize your assets (if applicable). You can either create an anonymized URL or include an anonymized zip file. 14. Crowdsourcing and research with human subjects 
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? Answer: [NA] Justification: Our paper does not involve crowdsourcing nor research with human subjects. Guidelines: • The answer NA means that the paper does not involve crowdsourcing nor research with human subjects. • Including this information in the supplemental material is fine, but if the main contribu-tion of the paper involves human subjects, then as much detail as possible should be included in the main paper. • According to the NeurIPS Code of Ethics, workers involved in data collection, curation, or other labor should be paid at least the minimum wage in the country of the data collector. 15. Institutional review board (IRB) approvals or equivalent for research with human subjects 
+
+Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained? Answer: [NA] Justification: our paper does not involve crowdsourcing nor research with human subjects. Guidelines: • The answer NA means that the paper does not involve crowdsourcing nor research with human subjects. • Depending on the country in which research is conducted, IRB approval (or equivalent) may be required for any human subjects research. If you obtained IRB approval, you should clearly state this in the paper. • We recognize that the procedures for this may vary significantly between institutions and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the guidelines for their institution. • For initial submissions, do not include any information that would break anonymity (if applicable), such as the institution conducting the review. 26 16. Declaration of LLM usage 
+
+Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does not impact the core methodology, scientific rigorousness, or originality of the research, declaration is not required. Answer: [Yes] Justification: We discuss the use of LLMs for synthetic data generation in Section B.3. Guidelines: • The answer NA means that the core method development in this research does not involve LLMs as any important, original, or non-standard components. • Please refer to our LLM policy ( https://neurips.cc/Conferences/2025/LLM )for what should or should not be described. 27

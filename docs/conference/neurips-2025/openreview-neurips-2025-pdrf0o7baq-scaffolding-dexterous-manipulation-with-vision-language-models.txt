@@ -1,0 +1,877 @@
+Title: 26290_Scaffolding_Dexterous_Ma.pdf
+
+URL Source: https://openreview.net/pdf?id=PdRf0O7baQ
+
+Number of Pages: 36
+
+Markdown Content:
+# Scaffolding Dexterous Manipulation with Vision-Language Models 
+
+Vincent de Bakker 1,2 Joey Hejna 1 Tyler Ga Wei Lum 1
+
+Onur Celik 2 Aleksandar Taranovic 2 Denis Blessing 2
+
+Gerhard Neumann 2 Jeannette Bohg 1 Dorsa Sadigh 11Stanford University 2Karlsruhe Institute of Technology 
+
+## Abstract 
+
+Dexterous robotic hands are essential for performing complex manipulation tasks, yet remain difficult to train due to the challenges of demonstration collection and high-dimensional control. While reinforcement learning (RL) can alleviate the data bottleneck by generating experience in simulation, it typically relies on carefully designed, task-specific reward functions, which hinder scalability and generalization. Thus, contemporary works in dexterous manipulation have often bootstrapped from reference trajectories. These trajectories specify target hand poses that guide the exploration of RL policies and object poses that enable dense, task-agnostic rewards. However, sourcing suitable trajectories—particularly for dexterous hands—remains a significant challenge. Yet, the precise details in explicit reference trajectories are often unnecessary, as RL ultimately refines the motion. Our key insight is that modern vision-language models (VLMs) already encode the commonsense spatial and semantic knowledge needed to specify tasks and guide exploration effectively. Given a task description (e.g., “open the cabinet”) and a visual scene, our method uses an off-the-shelf VLM to first identify task-relevant keypoints (e.g., handles, buttons) and then synthesize 3D trajectories for hand motion and object motion. Subsequently, we train a low-level residual RL policy in simulation to track these coarse trajectories or “scaffolds” with high fidelity. Across a number of simulated tasks involving articulated objects and semantic understanding, we demonstrate that our method is able to learn robust dexterous manipulation policies. Moreover, we showcase that our method transfers to real-world robotic hands without any human demonstrations or handcrafted rewards. 1
+
+## 1 Introduction 
+
+Dexterous manipulation is essential for a range of real-world tasks – such as using a power-drill or twisting a door knob – which require the fine-grained control offered by human-like hands [ 2]. Enabling dexterous capabilities has therefore been a long-standing goal in robotics. Despite the intrinsic advantages of dexterous hands over simpler end-effectors, existing learning paradigms have struggled to cope with their complexity [ 56 ]. The prevailing approach for training generalist policies – imitation learning from demonstrations [ 5 , 49 ] – has achieved limited success with robot hands, primarily due to the challenges of collecting accurate data with dexterous hardware, resulting in a scarcity of high-quality demonstrations [ 54 , 66 ]. While alternative approaches attempt to re-target demonstrations from easier interfaces [ 19 , 25 , 32 , 53 , 57 , 71 , 73 , 78 ], e.g., human hands, such approaches often induce irrecoverable errors for fine-grained tasks. To avoid both data scarcity and the embodiment gap, a combination of reinforcement learning (RL) and sim-to-real transfer has emerged as a promising approach by enabling large-scale experience generation [ 3]. However, using RL simply shifts the burden from data collection to reward design.           
+
+> 1Videos at https://sites.google.com/view/vlm-scaffolding/home
+> 39th Conference on Neural Information Processing Systems (NeurIPS 2025). ”Hammer once”
+> Image
+> 𝐼
+> ≈
+> VLM Planner Residual RL
+> Semantic
+> Keypoints
+> Motion
+> Reasoning
+> Sampled Plans
+> head
+> handle Finger
+> control 𝑞
+> Adjust
+> Δw
+> Randomization
+> 𝑥 1,𝑦 1,𝑧 1
+> 𝑥 2,𝑦 2,𝑧 2
+> …
+> 𝑥 𝑛 ,𝑦 𝑛 ,𝑧 𝑛
+
+Figure 1: Overview of our method: a VLM generates hand and object keypoint trajectories from a language command and scene image. A low-level residual RL policy is trained to track these trajectories in simulation. 
+
+Standard RL approaches for dexterous manipulation necessitate hand-crafting complex, task-specific reward functions. A large amount of this complexity arises from the need to guide exploration; with large action spaces, dexterous hands need to be coaxed towards the correct part of the observation space to make progress on a task. Thus, various approaches have used demonstrations to bootstrap the RL process [ 15 , 20 , 21 , 46 , 55 , 56 ]. In dexterous manipulation, this is often done through trajectory tracking, where instead of designing a complex reward function, a policy is rewarded for tracking the exact wrist and object positions in a demonstration, leaving RL to only make adjustments [ 6, 79 ]. By re-framing dexterous manipulation as a trajectory tracking problem, such approaches can leverage dense, task-agnostic rewards and guide exploration by using residual policies [16, 26]. Though demonstration tracking overcomes the design challenges associated with RL, it paradoxically re-introduces the same dependence on demonstrations we sought to avoid in the first place. For example, prior works [ 6, 79 ] that use tracking-based RL for dexterous manipulation often require large prior datasets with thousands of teleoperated demonstrations [ 13 , 76 ], restricting the method to tasks for which data has already been collected. Furthermore, the dependence on accurate reference trajectories extends to test time, meaning that either new demonstrations are needed each time the environment changes, or a high-level policy must accurately predict them. In the context of prior work, either solution requires more demonstrations. However, for the majority of practical tasks it is unclear why demonstrations were chosen as reference trajectories when RL only requires that motions are accurate enough to provide a suitable reward and guide exploration. Our key insight is that coarse motion plans (“scaffolds”) can be sufficient for both of these criteria. Generating such plans only requires high-level spatial and semantic reasoning, the exact abilities afforded by new advancements in vision-language models (VLMs). Due to their training on vast and diverse datasets encompassing real-world knowledge and embodied reasoning [ 64 ], VLMs have been able to synthesize [ 14 , 44 ] and discriminate [ 24 , 48 ] desired robot motions. Consequently, VLMs have the potential to supply the high-level reward signals and exploratory guidance needed for RL through coarse motions. So long as these motions generally encapsulate the desired behavior, RL can optimize per-timestep offsets and finger motions to maximize the tracking reward, ultimately surpassing human teleoperation in both performance and precision, eliminating the reliance on demonstrations. Building upon this insight, we introduce a framework for learning manipulation policies for dexterous robot hands with VLM-generated motion plans and residual RL. Given a natural language instruction (e.g., “hammer once” Fig. 1) and image, an off-the-shelf VLM first identifies relevant object keypoints. Then, provided the initial keypoints and hand pose, the VLM generates the associated 3D trajectories for both object and hand motions to define the supervision targets for a “low-level” residual RL policy trained in simulation. By controlling the robot’s hands and fingers, the low-level policy learns to effectively track the trajectory and complete the desired task. Using VLMs for high-level guidance has a number of distinct benefits. Through repeated querying, we can randomize the initial keypoints and high-level trajectories, enabling generalization to new unseen initial conditions and new trajectories at test-time. Moreover, in situations where a VLM’s high-level planning is error-prone, performance can often be substantially improved by simply providing additional in-context examples. We evaluate our method across a suite of challenging dexterous manipulation tasks in simulation requiring semantic understanding, human knowledge about concepts like “hammering”, and precise manipulation for difficult or articulated objects. Across 8 tasks, our method achieves close perfor-mance in both success rate and generalization to handcrafted, oracle plans despite requiring no manual reward engineering. We demonstrate successful sim-to-real transfer on a physical dexterous robot, achieving robust performance without any human demonstrations or manually designed rewards. 22 Related Work 
+
+Planning with Vision-Language Models. Recent advances have demonstrated the potential of VLMs to guide robotic planning through their powerful semantic and spatial reasoning capabilities. One family of approaches directly synthesizes policies by translating natural language instructions into executable code using low-level perception and control APIs [ 23 , 34 , 59 , 72 ]. To extend this to dexterous manipulation, [ 36 ] integrates predefined skill libraries, at the expense of limiting generalization and behavioral diversity. Other efforts propose using VLMs to plan actions by generating spatial keypoint constraints [ 22 ] or directly producing waypoints [ 14 , 50 ]. However, such methods operate in an open-loop fashion and lack the closed-loop feedback necessary for fine-grained, adaptive control in dexterous tasks. Aside from directly learning policies, several works use VLMs to code dense reward functions [ 41 , 65 , 80 ], but these approaches often require privileged access to environment internals and result in opaque and sometimes hard-to-interpret reward structures. Other approaches more directly leverage the vision capabilities of VLMs to act as success detectors [12 , 30 , 75 ], reward functions [ 42 ], or value functions [ 40 , 77 ] for RL. Oftentimes, these quantities can be learned from VLM generated preferences [ 28 , 31 , 69 ]. However, all of these approaches are often too imprecise to produce the dense optimization signals required for dexterous manipulation and are less efficient than using the VLM to simply produce a plan. 
+
+Learned Dexterous Manipulation. Though early works demonstrated the feasibility of deploying in-hand manipulation policies trained in simulation on real robots [ 3, 7 , 18 , 35 ], they relied on carefully crafted reward functions for each task. Such approaches have proven most successful in locomotion [ 1,4 , 29 ], where rewards are more easily designed and terrain can be replicated, unlike object dynamics in manipulation. More recent efforts scale to full-arm dexterity and multi-object grasping [ 39 , 60 ], while others incorporate human priors to improve sample efficiency [ 43 ]. Despite these advances, most approaches are still limited to only a set task, e.g. object grasping or rotation [ 52 , 67 ], where manually, task specific rewards can be designed. However, this approach remains inherently unscalable to more complex and non-cyclic tasks. Prior works address this bottleneck by tracking motions from demon-strations [ 6 ]. Our work aligns with this shift, but instead sources coarse motions from VLM feedback. 
+
+Dexterous Manipulation by Tracking Motions. When framing dexterous manipulation as a tracking problem, dense rewards are easy to obtain via tracking error [ 4, 15 , 51 ]. Some systems leverage motion capture data to extract object and wrist trajectories from human demonstrations, which are then used to train tracking policies in simulation via residual RL [ 6, 33 ] or through behavior cloning [ 17 ]. Other approaches improve robustness by iteratively adding successful rollouts to the training dataset [ 37 ]. Recent work also shows that a single demonstration can bootstrap effective policy learning [ 15 , 38 ]. However, all of these methods depend on human demonstrations, which are expensive to collect and difficult to scale. Moreover, policies trained on such data often fail to generalize to novel initial states. Our method retains the advantages of the trajectory tracking framework – dense supervision and residual policy learning – while eliminating the dependency on demonstrations by using VLMs to infer target trajectories directly. 
+
+## 3 Dexterous Manipulation via VLM Feedback 
+
+We focus on dexterous manipulation using robotic hands with visual observations and natural language instructions, with the aim of developing a general approach transferable across diverse applications and settings. Following prior work [ 4, 6], we adopt a hierarchical approach that naturally delineates planning and control. However, instead of centering plans around demonstrations, we leverage a VLM to produce coarse plans sufficient to “scaffold” low-level RL. We interface between these two components using 3D keypoints, as they provide sufficient precision for effective manipulation [ 68 ,74 ], yet are abstract enough for VLM reasoning [ 14 , 44 ] and often used during pre-training [ 27 , 64 ]. 
+
+3.1 Problem Formulation 
+
+Our goal is to learn a hierarchical policy for dexterous manipulation, where the high- and low-level policies interface via 3D keypoint-based plans or trajectory “scaffolds”. While several prior works assume access to ground-truth states (often in simulation), such information is typically only partially observable in practice. For example, it is unrealistic to assume that one is able to precisely measure object poses and velocities in the real world. Only the dexterous hand’s proprioceptive state (w, q, q̇)
+
+3comprised of the current wrist pose w ∈ SE (3) , finger joint positions q and velocities q̇ is exactly known. Instead of ground-truth states we assume access to RGB images I, depth D, and a language instruction L which communicates the task. Following standard practice in dexterous manipulation, we use an absolute action space comprised of desired wrist wtarg and finger joint positions qtarg , i.e., 
+
+(wtarg , qtarg ) ∈ A .The high-level policy πh produces a coarse, 3D keypoint-based plan τ from the language instruction L
+
+and an initial high-level observation oh 
+
+> 1
+
+at time t = 1 containing the initial image I1 and wrist position 
+
+w1. As we instantiate πh using a VLM, we assume the ability to project 2D keypoints u(i) ∈ R2
+
+in image space to 3D keypoints x(i) ∈ R3 in world coordinates, which is easily accomplished in practice using depth information D and camera parameters (intrinsic and extrinsic). The number of 3D keypoints k in the final plan τ is specified through the instruction L. We enumerate these keypoints as x(1) , . . . x(k) and abbreviate sequences of length T through time via the short-hand 
+
+1 : T . The final keypoint plan τ includes k 3D keypoint sequences x(1) 1: T , . . . x(k)1: T and a sequence of predicted wrist poses w˜ 1: T . This coarse plan encapsulates both information about the task via the 
+
+k keypoint sequences which can capture object movements, and information to guide the agent’s exploration via the wrist position w. The high-level policy can be written as: 
+
+πh(w˜ 1: T , x(1) 1: T , . . . x(k)1: T
+
+⏞ ⏟⏟ ⏞
+
+> τ
+
+| I1, w1
+
+⏞ ⏟⏟ ⏞ 
+
+> oh
+> 1
+
+, L ) (1) The high-level policy only provides a coarse plan for the wrist w – not the finger joint positions q
+
+which will be learned by the low-level policy with RL. The low-level policy πl produces wrist and finger actions at to execute the keypoint plan τ . We assume access to a keypoint tracking model, which given an initial 3D keypoint x(i)1 at time t = 1 
+
+is able to track its position over time to produce estimates xˆ(i) 
+
+> t
+
+. The low-level policy πl is then optimized via RL using a reward function that encourages consistency between the estimated 3D keypoints xˆ(i) 
+
+> t
+
+and those produced by the plan τ , x(i) 
+
+> t
+
+. To accomplish this task, it takes as input both a low-level observation olt ∈ O l, consisting of the proprioceptive state (w, q, q̇) and estimated keypoints xˆ(i), . . . , xˆ(i), and all future steps of the plan τt:T . Succinctly, 
+
+πl(wtarg  
+
+> t
+
+, qtarg 
+
+> t
+
+⏞ ⏟⏟ ⏞
+
+> at
+
+| qt, q̇ t, wt
+
+⏞ ⏟⏟ ⏞
+
+> proprio
+
+, xˆ(1)  
+
+> t
+
+, . . . , xˆ(k)
+
+> t
+
+⏞ ⏟⏟ ⏞
+
+> keypoint estimates
+
+, w˜ t:T , x(1)  
+
+> t:T
+
+, . . . , x(k)
+
+> t:T
+
+⏞ ⏟⏟ ⏞ 
+
+> plan τt:T
+
+). (2) Provided the high- and low-level decomposition of our approach, we now describe each component. 
+
+3.2 Trajectory Generation for High-Level Policies via VLMs 
+
+We implement the high-level policy πh using a VLM, which must be able to effectively translate the task description L and initial image I1 into a coarse motion plan τ for πl to complete. This necessitates a high-degree of semantic and spatial reasoning capabilities: the paths of different keypoints xˆ(i)1: T must obey the desired relationships between objects (e.g. put the apple on the cutting board) and physical constraints (e.g. the head of the hammer must remain attached to the handle). At the same time, the predicted wrist trajectory w˜ 1: T must remain close to the objects of interest to facilitate manipulation. We generate coarse keypoint plans τ using VLMs in three phases: (1) semantic keypoint detection, (2) coarse trajectory generation, and (3) interpolation. The left of Fig. 2 provides a visual overview. Optionally, generated plans τ can be improved using few-shot prompting. 
+
+Keypoint Detection. First, we elicit task-relevant keypoint names from the VLM using a standardized preamble. For example, for the “hammering” task, these keypoints (Fig. 1) could include both the handle and head of a hammer, or the position of an object and its desired location for semantic pick-place (Fig. 2). The VLM then identifies k 2D keypoints u(1) , . . . , u(k) in the image I that are relevant to completing the task described via text L. The VLM is prompted with useful keypoints for the task. The full prompts used are included in Appendix H. Since the VLM operates in the 2D image plane, we lift 2D keypoints u to 3D world coordinates x using depth information. 
+
+Trajectory Generation. Second, provided the text description l, the VLM generates waypoint sequences of length n < T for each of the initial 3D keypoints x(1) , . . . , x(k) and the wrist position 4a) Training                              
+
+> High -level Policy 𝝅 𝒉 Low -level Policy 𝝅 𝒍
+> 1. 2D Keypoints 𝑢 2. Plan Generation 𝜏
+> 3D Proj .
+> b) Inference
+> 𝑥 (1)board
+> 𝑥 (2)apple
+> 𝑤 1wrist
+> Environment
+> (with keypoint trac king)
+> Generate a motion trajectory
+> for <task> with keypoints .
+> 𝑥 1:𝑇
+> 1𝑥 1:𝑇
+> 2෥𝑤 1:𝑇
+> Action
+> (𝑤 𝑡 +Δ𝑤 𝑡 ,𝑞 𝑡 )
+> Residual Policy
+> PPO
+> Tracking Reward
+> exp −෍𝑖
+> ො𝑥 𝑡
+> (𝑖 )−𝑥 𝑡
+> (𝑖 )
+> 𝑥 𝑡 :𝑇
+> 1
+> 𝑥 𝑡 :𝑇
+> 2
+> ෥𝑤 𝑡 :𝑇
+> Plan
+> (Optional Few -Shot Feedback)
+> Image 𝐼
+> Unseen conditions
+> Keypoints
+> 𝑥 (1)board
+> 𝑥 (2)apple
+> Motion Plan
+> 𝑥 1
+> 1
+> 𝑥 1
+> 2
+> ෥𝑤 1
+> 𝑥 2
+> 1𝑥 𝑇
+> 1
+> 𝑥 2
+> 2𝑥 𝑇
+> 2
+> ෥𝑤 2෥𝑤 𝑇
+> Closed -Loop Execution
+> 𝝅 𝒍
+
+…
+
+…
+
+…   
+
+> Keypoint
+> Model
+> 𝑥 1:𝑇
+> 1𝑥 1:𝑇
+> 2෥𝑤 1:𝑇
+> State
+> ො𝑥 𝑡
+> (1)
+> ො𝑥 𝑡
+> (2)
+> (𝑤 𝑡 ,𝑞 )
+
+Figure 2: a) Training: a high-level VLM predicts 3D keypoint plans, which a low-level policy learns to track via RL. b) Inference: new plans are generated by the VLM, which are executed by the frozen low-level policy. 
+
+w1. In total, this results in (k + 1) × n 3D waypoints which will serve as the basis of the plan τ . We include the full prompts used in Appendix H. While the first keypoint detection stage depends on the VLM’s image understanding, this phase depends more on spatial understanding and reasoning – the VLM must translate semantic descriptions into motions, e.g., what “hammering” implies or how a door opens, while respecting the physical constraints between keypoints and proximity between the hand and manipulated objects. Note that we do not have the VLM produce keypoint trajectories of the full horizon T , as doing so might be more difficult and inaccurate. Instead, we posit the quality of each waypoint matters more than the number, as low-level RL can compensate for small mistakes in position but not large errors in reasoning. 
+
+Interpolation. Finally, though we have coarse waypoint trajectories of length n for all keypoints and the agent’s wrist pose, directly using these waypoints as motion targets may result in excessively fast or jittery motion. Thus, we additionally apply linear interpolation to convert the n waypoints into sequences of length T , e.g. x(i)1: T , to form the final plan τ used for training the low-level policy πl.
+
+Few-Shot Improvement. Though VLM-generated keypoint plans τ are often correct, they are not infallible. For example, sometimes the high-level policy πh will flip the world-coordinate axes, resulting in unintelligible keypoint plans. Such errors from the VLM plan are irrecoverable if they fail to complete the task. However, the accuracy of VLMs can often be improved by providing in-context examples [ 11 , 40 ]. After deploying the final system as described later in Section 3.4, we can use examples of plans successfully executed by the low-level policy as in-context examples for future generations. Provided m successful plans τ (1) , . . . , τ (m), we can prompt the high-level policy as πh(τ |s1, τ (1) , . . . , τ (m)) to produce better plans for the low-level policy. As shown in our experiments, iteratively repeating this procedure can further increase performance as the in-context plans improve. 
+
+3.3 Low-Level Control with Reinforcement Learning 
+
+The low-level policy πl ensures that the keypoint plan τ provided by πh is effectively tracked. We learn πl using residual reinforcement learning [ 16 , 26 ], which we formalize through a “plan” conditioned MDP on top of the low-level observation space Ol and action space A with horizon T .We assume the dynamics to be stochastic p(ot+1 |ot, a t) to account for noise in keypoint estimation and that the initial state ol 
+
+> 1
+
+∼ pinit  
+
+> τ
+
+is always consistent with the high-level plan τ to ensure its validity. Naïvely, πl is optimized to maximize the expected cumulative reward provided plans sampled from 
+
+πh, max πl Eτ ∼πh(·| oh 
+
+> 1)
+
+Eol  
+
+> 1: T∼πl(·| τ)
+
+[∑︁ Tt=1 rτ (olt)] where πl(·| τ ) represents the distribution of full trajectories of length T under πl and pinit  
+
+> τ
+
+. In this section, we describe how we use the plan τ to further guide the learning and exploration of πl through the reward function, policy parameterization, and environment termination conditions (right half of Fig. 2). 
+
+Dense Keypoint Rewards. Standard RL based approaches for dexterous manipulation often require complex, hand-crafted reward functions. However, provided a high-level keypoint plan τ dictating 5how all objects should move and interact, we can simply reward the agent for following the plan via keypoint distances. Though similar ideas have been used for tracking reference demonstrations [ 6]with ground-truth object poses, we instead track keypoints, which do not require full observability. Our final reward function is given by 
+
+rτ (ot) = exp (︂ −βk∑︁ ki=1 ∥xˆ(i) 
+
+> t
+
+− x˜(i) 
+
+> t
+
+∥2)︂ ⏞ ⏟⏟ ⏞
+
+> Keypoint Tracking
+
++ exp ( −1/(Ncontact (ot) + ϵ)) 
+
+⏞ ⏟⏟ ⏞
+
+> Maintaining Contact
+
+, (3) where the first term is a function of the mean Euclidean distance between the planned and observed keypoint positions, and the second term Ncontact (ot) represents the number of finger tips in contact with the environment. Rewarding contact (second term) incentivizes stable grasping, while the first term encourages accurate tracking of the plan. This reward formulation is significantly simpler than those used in previous RL approaches that lack trajectory supervision [ 39 , 60 ] and can be applied to any task sufficiently captured by keypoint trajectories. We do not reward the policy for tracking the wrist w˜ 1: T to allow it to adjust as needed. Instead, we use w˜ 1: T in the policy parameterization itself. 
+
+Residual Policy. To guide the agent towards the objective specified by the high-level plan τ , we employ “residual” RL [ 16 , 26 ] in the absolute pose action space A. Specifically, the learned low-level policy πlθ predicts offsets ∆w to the wrist plan w˜ t instead of absolute actions wtarg . Mathematically, this can be written as follows: 
+
+at = ( w˜ t + ∆ w, qtarg  
+
+> t
+
+), where (∆ w, qtarg  
+
+> t
+
+) ∼ πl(·| ot). (4) This guarantees that the learned policy follows the plan’s wrist trajectory w˜ 1: T by default and clipping of ∆w ensures it never deviates too far. This residual approach uses the world knowledge encoded by the VLM plan to guide exploration of the low-level policy to relevant parts of the state space for completing the objective. Practically, πl is implemented as a multi-layer perceptron where keypoints are provided in a fixed order and future planning steps τt:T are down-sampled to a fixed length. 
+
+Termination Conditions. To improve learning efficiency, we terminate episodes early if the tracking error, 1
+
+> k
+
+∑︁ ki=1 ∥xˆ(i) 
+
+> t
+
+− x˜(i) 
+
+> t
+
+∥2, exceeds a threshold δ. This early stopping criterion serves as a strong supervisory signal, encouraging the policy to remain close to the intended trajectory. To further guide learning, we introduce a curriculum: the initial threshold δinit is linearly annealed to δinit /2 over the course of training. This facilitates broad exploration in the early stages while promoting precise trajectory tracking later on. We select task-specific values for δinit , provided in Appendix B.3. 
+
+3.4 The Full Pipeline 
+
+The aforementioned components define the process of generating a single plan τ ∼ πh(·| s1) and using it to learn a low-level residual policy πl. Here we describe our full training and inference pipeline. 
+
+Training. The final low-level policy must be able to perform well across all plans generated by πh,which can differ in initial conditions, the selected keypoint locations, and the generated motions. Thus, following the objective from Section 3.3, we train the full system on variations in the initial poses of objects the dexterous hand. For each of N initial conditions from the environment, we sample cor-responding high-level plans from πh. We then train the low-level policy using PPO [ 58 ] by randomly sampling from the set of N initial conditions and plans across massively parallelized simulation environments. In simulation, we track keypoints using ground-truth object information to generate low-level observations ol. Training across randomized plans is crucial for πl to be robust to both the keypoints and plans generated by πh. Further training details and hyperparameters are in Appendix A. 
+
+Evaluation. At test time (Fig. 2 b)), we randomize the initial conditions of the environment. Afterwards, we generate a new plan using the VLM πh and supply it to the frozen learned policy 
+
+πlθ for closed loop control. The high-level policy inherits the robustness of the underlying VLM to visual perturbations, allowing it to easily transfer to the real world. We generate τ using captured RGB-D images, and deploy the low-level policy zero-shot in the real world. We estimate the keypoint positions for low-level observations ol using pose estimators [70]. 
+
+## 4 Experiments 
+
+We conduct a comprehensive suite of experiments to assess the effectiveness, generality, and ro-bustness of our method across a diverse range of dexterous manipulation tasks. Our evaluation is 6structured around four core questions: 1) Are VLM scaffolds effective for a broad range of dexterous tasks? 2) How much can iterative refinement improve performance? 3) What causes VLM scaffolds to fail? 4) Can our method successfully learn policies that transfer to the real world? 
+
+4.1 Experimental Setup Task Suite We construct an evaluation suite using the ManiSkill simulator [ 45 , 62 ] and Allegro Hand model designed to evaluate four core dexterous manipulation capabilities for which motion planning is difficult: i) semantic understanding, ii) unstructured motion, iii) articulated object manipulation, and iv) precise manipulation. Each of the eight tasks, two per category, is depicted in Fig. 3. Instead of reward functions, each task is specified by a language instruction L. For example, the instruction for the “Move Apple” task is “Move the apple to the cutting board”. The high-level VLM πh
+
+is additionally guided by a prompt to detect specified keypoints. Further details can be found in Appendix F. Crucially, the capabilities evaluated by our task set are difficult to design reward functions for (articulated object manipulation or requiring complex and unstructured motion) or are challenging to specify using classical motion planning (requiring semantic knowledge or precision). Precise  Manipulation                
+
+> Ar ti culated Object Manipulation
+> Unstructured Motion
+> Semantic Understanding
+> Move Apple Move Bottle
+> Hammer Wipe with Sponge
+> Open Drawer Open Fridge
+> Close Scissors Close Pliers
+> Figure 3: A depiction of the eight tasks used for evaluation. Each task belongs to one of four overarching categories.
+
+Methods Given the novelty of our problem setting, there are few applicable baselines which are also language-conditioned, demonstration-free, and do not require ground-truth state esti-mation. Thus, we mainly focus our experiments on comparison with a variety of oracles and ablations: • Iterative Keypoint Rewards (IKER): We implement Iter-ative Keypoint Rewards [50 ], in which a VLM generates code specifying reward-function parameters. We use the same prompting procedure and setup as in our method for a fair comparison. Since IKER assumes a fixed set of keypoints, we adopt the same VLM-identified keypoints used by our system to ensure parity. • Pre-recorded Trajectories: This method reuses pre-recorded trajectories from the training set at test-time, eliminating adapt-ability to new scenarios. • Oracle Keypoints and Trajectories: This baseline uses fixed, manually defined keypoints and hard-coded trajectories for each task, representing an upper bound on performance with perfect semantic understanding and keypoint detection. • Reduced Waypoints: We artificially constrain the VLM to produce shorter waypoint sequences, e.g., length three instead of n = 20 , reducing the complexity of motion that can be expressed via the keypoints and wrist. We compare against additional reinforcement learning and imi-tation learning baselines and additionally ablate adding system-atic noise into VLM predictions in Appendix E We evaluate two versions of our system: a zero-shot variant, where the vision-language model (VLM) receives no example plans, and a few-shot variant, where it is provided with three examples of successful plans τ in-context (Section 3.2). 
+
+Architectures. We use Gemini 2.5 Flash Thinking [ 63 ] as the high-level policy with a thinking budget of 1000 tokens for plan generation. A discussion on the use of open-source VLMs is provided in Appendix D. The low-level policy πl is implemented as a 3-layer MLP with hidden dimensions of size 512 and ELU activations [ 9]. We sample 100 initial states and corresponding plans τ for training πl with PPO [58]. 
+
+Evaluation. For evaluation, we construct task-specific binary success metrics (e.g., object reaches target position, door opens to a minimum angle) to measure performance. All policy evaluations are conducted across 100 initial states with novel object configurations and hand poses. We run 20 trials for each configuration for a total of 2000 evaluation episodes and average results across three seeds. 7Pre-recorded IKER (Zero-Shot) Ours (Zero-Shot) Ours (Few-Shot) Oracle              
+
+> Success Rate (%)
+> 13
+> 45
+> 84 87 95
+> Apple
+> 25
+> 63
+> 88 86 96
+> Bottle
+> 49
+> 23
+> 87 92 100
+> Drawer
+> 5
+> 19 12
+> 64
+> 100
+> Fridge
+> 27
+> 6
+> 87 84
+> 100
+> Sponge
+> 7
+> 53
+> 67 75
+> 96
+> Hammer
+> 9
+> 21
+> 67 76
+> 99
+> Scissors
+> 20 29
+> 80 86
+> 99
+> Pliers
+> 19
+> 32
+> 72 81
+> 98
+> Mean
+
+Figure 4: Results on the simulation task suite. Success rate (in %) is averaged across 3 seeds and uncertainty is given by the standard error. Our method performs nearly as well as the oracle with perfectly scripted plans. 0 1 2 3         
+
+> Iterations
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)
+> Fridge
+> 0123
+> Iterations
+> Hammer
+> 0123
+> Iterations
+> Scissors
+> Few-shot Scaling Iteration 0 Iteration 1 Iteration 2 Iteration 3
+> Trajectory Distribution Across Iterations
+
+Figure 5: (Left) The performance of our method as we iteratively refine the high-level policy πh by providing successful plans τ in-context. (Right) The projected 3D plans on the evaluation set for each iteration. 
+
+Simulation Results. Fig. 4 shows the success rates for the different simulation tasks. Our method with few-shot adaptation achieves consistently high success rates, with an average success rate of 72%, often approaching the performance of the oracle with perfect scripted plans. This suggests that modern VLMs are capable planners for scaffolding dexterous policies. Moreover, we observe that adding a few successful examples can further improve performance beyond that of zero-shot in six out of eight tasks. The most notable improvement is from the Fridge task, where the VLM commonly flips the world axes, resulting in implausible plans. Thus, providing examples of successful plans drastically improves performance. Performance of the pre-recorded baseline remains poor for all tasks, except in the drawer task, where the novel plans are likely less important at test time due to the sizable width of the drawer handle. 
+
+Iterative Refinement. We provide the VLM with successful trajectories from the training set as in-context examples to improve the proposed waypoints. We iterate this process up to three times in Fig. 5. All tasks show an increase in the success rate after the first iteration, with diminishing returns after the second iteration. This is likely because plan-generation performance plateaus and errors in other parts of the system dominate. As before, the most significant improvement is in the Fridge task. While VLMs already have solid semantic understanding, few-shot iteration can improve performance and correct common mistakes during inference. After iterative refinement, the overall success rate improves to 81%. 
+
+4.2 What Causes VLM Scaffolds To Fail? 
+
+Figure 6: Error decomposition across failure cases. Most errors stem from incomplete trajectory tracking, followed by keypoint detection issues. 
+
+Failure Modes. To comprehensively evaluate the failure modes of our pipeline across all tasks, we present a Sankey diagram in Fig. 6, categoriz-ing errors into three primary sources: (i) incor-rect keypoint detection, where keypoints do not lie on target objects, indicating deficiencies in VLM keypoint detection; (ii) incomplete trajec-tory tracking by the low-level policy, suggesting either inaccuracies in the low-level policy or un-suitable trajectories; and (iii) tracked trajectories that nonetheless fail to achieve success, reveal-ing shortcomings in VLM trajectory generation. Notably, (iii) can occur because success criteria are independent of tracking, allowing fully tracked trajectories to fail. Our analysis reveals that the most significant failure mode is incomplete trajectory tracking, occurring in 26% of the rollouts. This suggests a critical bottleneck in the low-level policy’s ability to follow the planned path, though it remains unclear whether this stems from unrealistic trajectory proposals or intrinsic policy limitations. In contrast, keypoint detection errors account for 5% of failures, while unsuccessful but fully tracked trajectories contribute 3% (not shown in diagram). Interestingly, some partially tracked trajectories still succeed, implying that perfect tracking is not always required. These findings highlight the importance of improving both trajectory generation and 85 10 20 40                
+
+> Num Waypoints
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)
+> Apple
+> 510 20 40
+> Num Waypoints
+> Hammer
+> 510 20 40
+> Num Waypoints
+> Sponge
+> 510 20 40
+> Num Waypoints
+> Pliers
+> Waypoint Scaling Ours (Zero-Shot) Traj. Oracle Keypoint Oracle
+> Success Rate (%)
+> 84
+> 91 90
+> Apple
+> 87
+> 99
+> 82
+> Drawer
+> 87 91 96
+> Sponge
+> 80
+> 90 85
+> Pliers
+
+Figure 7: (Left) Task success vs. number of waypoints in VLM plans. Most tasks saturate by 10 waypoints; only the hammer task benefits from denser trajectories. (Right) Ablation of VLM components. Replacing keypoints or trajectories with oracles highlights their relative impact across tasks. 
+
+tracking robustness. However, further automated decomposition of these errors remains challenging due to the complex interplay between high-level planning and low-level execution. 
+
+Number of Waypoints. In Fig. 7 (Left), we evaluate the performance of our method using 3, 5, 10, 20, and 40 waypoints for plan generation. The results show that planning fidelity is typically not a large source of error, unless very few (3 or 5) waypoints are used. In 3 of 4 tasks, performance saturates with 10 waypoints. Only the hammer task requires 20, as it needs repeated motion. 
+
+VLM Components. To ablate the impact of using a VLM for keypoint detection and plan generation, we replace each component with an oracle in Fig. 7 (Right). For the Keypoint oracle, we use hand-specified keypoints for generating τ . For the Traj. oracle, we use VLM keypoints but script plans for 
+
+τ . The resulting improvements vary across tasks: in the drawer task, the Traj. oracle achieves near perfect performance indicating planning was the bottleneck, however, in the sponge task the keypoint oracle improves performance the most, indicating that πh most commonly mis-specifies keypoints. 
+
+4.3 Real-World Results Slide Box  to  Bottle (85%)      
+
+> Place Bottle onto Plate (90%)
+> Hammer Three Times (65%)
+
+Figure 8: Real-world rollouts of Place Bottle onto Plate , Slide Box to Bottle and Hammer Three Times .
+
+To evaluate sim-to-real transfer, we deploy our sys-tem on a real robot using the same inference pipeline as in simulation. From a single real-world RGB-D image and a natural-language command, the vision-language planner generates wrist and keypoint tra-jectories. The low-level policy is trained entirely in simulation using a digital twin of the real-world environment, and then executed in the real-world, conditioned on the generated trajectories. Robustness to visual distractors is achieved by training the policy on state-based observations, decoupling it from raw visual input. Robustness to discrepancies in physical parameters is achieved through domain randomiza-tion in simulation. Our real-world experiments are performed using a 16-DoF Allegro hand mounted on a 7-DoF KUKA LBR iiwa 14 arm in a tabletop setting, and a ZED 1 stereo camera rigidly mounted to the table. We evaluate three real-world manipulation tasks: 
+
+Place Bottle onto Plate , Slide Box to Bottle , and 
+
+Hammer Three Times , covering semantic placement, non-prehensile pushing, and complex motion planning (Fig. 8). Each task is executed for 20 rollouts. Our system achieves a 90% success rate on 
+
+Place Bottle onto Plate , 85% on Slide Box to Bottle , and 65% on Hammer Three Times . These results indicate that the proposed modular, trajectory-based framework generalizes effectively from simulation to the real world, maintaining robust performance across a range of manipulation settings. Additional implementation and hardware details are provided in Appendix C. 
+
+## 5 Conclusion 
+
+We presented a new framework for dexterous robotic manipulation that combines VLMs with reinforcement learning to generate and execute semantically meaningful hand-object trajectories. By casting manipulation as a trajectory-tracking problem using VLM-generated keypoint plans, 9our method eliminates the need for human demonstrations or handcrafted reward functions, while enabling generalization across diverse objects, goals, and scene configurations. Our experiments in both simulation and the real world show that this approach reliably solves a variety of complex manipulation tasks, including articulated objects, semantic reasoning, and fine finger control. The system exhibits strong generalization to novel keypoints and configurations, and transfers effectively to physical hardware without additional tuning or data collection. 
+
+Limitations and Future Work. While our method demonstrates strong performance across a range of tasks, several limitations remain along with exciting directions for future work. First, our current approach assumes rigid-body interactions, which simplifies keypoint tracking but limits applicability to deformable objects. Extending to more complex, deformable objects would require the ability to track keypoints on non-rigid surfaces (e.g., point tracking models [ 27 ]). Additionally, while our approach can implicit infer orientation from three non-colinear keypoints, this is less effective for smaller objects with fewer keypoints. We see potential in exploring richer scaffold representations and more advanced VLMs to better capture orientation in these cases. The high-level trajectory generation in our system currently does not account for the low-level controller’s capabilities, which limits adaptability. Integrating feedback from the low-level controller into the VLM planner to form a more closed-loop system offers an exciting opportunity for improvement. Additionally, the current reasoning time of 1-2 minutes for VLMs restricts real-time responsiveness, motivating a shift towards faster, more efficient models. While our scaffold-based reward design is lightweight and scalable, we see opportunities to combine it with additional task-specific signals, such as force or torque constraints, to enhance performance in more complex tasks. Although the system shows strong zero-shot generalization across various object configurations, generalizing to new tasks or object categories remains a challenge. We believe combining scaffold-based reasoning with object-agnostic representations could unlock broader adaptability. Lastly, sim-to-real transfer remains an ongoing challenge, especially for tasks requiring high-precision control. We see exciting directions for improving simulation realism, multi-view perception, and sensor fusion to narrow the sim-to-real gap, particularly for fine-grained tasks such as manipulation. 
+
+Acknowledgments 
+
+We would like to thank Marcel Torne Villasevil, Michelle Pan, Shuang Li, Max Du, Amber Xie, Suvir Mirchandani, and Priya Sundaresan for their important feedback on the paper draft. This work is supported by the National Science Foundation under Grant Numbers 2342246, 2006388, 2132847 and 2218760, and by the Natural Sciences and Engineering Research Council of Canada (NSERC) under Award Number 526541680. This work is additionally funded by the German Research Foundation (DFG, German Research Foundation) - SFB-1574 - 471687386, from the pilot program Core Informatics of the Helmholtz Association (HGF), and supported by the European Research Council (ERC) under the European Union’s Horizon Europe programme through the project SMARTI³ (Grant Agreement No. 101171393). 
+
+## References 
+
+[1] Ananye Agarwal, Ashish Kumar, Jitendra Malik, and Deepak Pathak. Legged locomotion in challenging terrains using egocentric vision. In Karen Liu, Dana Kulic, and Jeff Ichnowski, editors, Proceedings of The 6th Conference on Robot Learning , volume 205 of Proceedings of Machine Learning Research , pages 403–415. PMLR, 14–18 Dec 2023. [2] Shan An, Ziyu Meng, Chao Tang, Yuning Zhou, Tengyu Liu, Fangqiang Ding, Shufang Zhang, Yao Mu, Ran Song, Wei Zhang, Zeng-Guang Hou, and Hong Zhang. Dexterous manipulation through imitation learning: A survey, 2025. [3] OpenAI: Marcin Andrychowicz, Bowen Baker, Maciek Chociej, Rafal Jozefowicz, Bob Mc-Grew, Jakub Pachocki, Arthur Petron, Matthias Plappert, Glenn Powell, Alex Ray, et al. Learning dexterous in-hand manipulation. The International Journal of Robotics Research , 39(1):3–20, 2020. [4] Xue Bin Peng, Erwin Coumans, Tingnan Zhang, Tsang-Wei Lee, Jie Tan, and Sergey Levine. Learning agile robotic locomotion skills by imitating animals. Robotics: Science and Systems (RSS), Virtual Event/Corvalis, July , pages 12–16, 2020. 10 [5] Anthony Brohan, Noah Brown, Justice Carbajal, Yevgen Chebotar, Joseph Dabis, Chelsea Finn, Keerthana Gopalakrishnan, Karol Hausman, Alex Herzog, Jasmine Hsu, Julian Ibarz, Brian Ichter, Alex Irpan, Tomas Jackson, Sally Jesmonth, Nikhil Joshi, Ryan Julian, Dmitry Kalashnikov, Yuheng Kuang, Isabel Leal, Kuang-Huei Lee, Sergey Levine, Yao Lu, Utsav Malla, Deeksha Manjunath, Igor Mordatch, Ofir Nachum, Carolina Parada, Jodilyn Peralta, Emily Perez, Karl Pertsch, Jornell Quiambao, Kanishka Rao, Michael Ryoo, Grecia Salazar, Pannag Sanketi, Kevin Sayed, Jaspiar Singh, Sumedh Sontakke, Austin Stone, Clayton Tan, Huong Tran, Vincent Vanhoucke, Steve Vega, Quan Vuong, Fei Xia, Ted Xiao, Peng Xu, Sichun Xu, Tianhe Yu, and Brianna Zitkovich. Rt-1: Robotics transformer for real-world control at scale. In arXiv preprint arXiv:2212.06817 , 2022. [6] Yuanpei Chen, Chen Wang, Yaodong Yang, and Karen Liu. Object-centric dexterous manipula-tion from human motion data. In 8th Annual Conference on Robot Learning , 2024. [7] Yuanpei Chen, Tianhao Wu, Shengjie Wang, Xidong Feng, Jiechuan Jiang, Zongqing Lu, Stephen McAleer, Hao Dong, Song-Chun Zhu, and Yaodong Yang. Towards human-level bimanual dexterous manipulation with reinforcement learning. In S. Koyejo, S. Mohamed, A. Agarwal, D. Belgrave, K. Cho, and A. Oh, editors, Advances in Neural Information Process-ing Systems , volume 35, pages 5150–5163. Curran Associates, Inc., 2022. [8] Cheng Chi, Zhenjia Xu, Siyuan Feng, Eric Cousineau, Yilun Du, Benjamin Burchfiel, Russ Tedrake, and Shuran Song. Diffusion policy: Visuomotor policy learning via action diffusion. 
+
+The International Journal of Robotics Research , page 02783649241273668, 2023. [9] Djork-Arné Clevert, Thomas Unterthiner, and Sepp Hochreiter. Fast and accurate deep network learning by exponential linear units (elus). arxiv 2015. arXiv preprint arXiv:1511.07289 , 10, 2020. [10] Matt Deitke, Christopher Clark, Sangho Lee, Rohun Tripathi, Yue Yang, Jae Sung Park, Mohammadreza Salehi, Niklas Muennighoff, Kyle Lo, Luca Soldaini, et al. Molmo and pixmo: Open weights and open data for state-of-the-art vision-language models. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 91–104, 2025. [11] Qingxiu Dong, Lei Li, Damai Dai, Ce Zheng, Jingyuan Ma, Rui Li, Heming Xia, Jingjing Xu, Zhiyong Wu, Tianyu Liu, et al. A survey on in-context learning. arXiv preprint arXiv:2301.00234 , 2022. [12] Yuqing Du, Ksenia Konyushkova, Misha Denil, Akhil Raju, Jessica Landon, Felix Hill, Nando de Freitas, and Serkan Cabi. Vision-language models as success detectors. arXiv preprint arXiv:2303.07280 , 2023. [13] Zicong Fan, Omid Taheri, Dimitrios Tzionas, Muhammed Kocabas, Manuel Kaufmann, Michael J. Black, and Otmar Hilliges. ARCTIC: A dataset for dexterous bimanual hand-object manipulation. In Proceedings IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2023. [14] Kuan Fang, Fangchen Liu, Pieter Abbeel, and Sergey Levine. Moka: Open-world robotic manipulation through mark-based visual prompting. Robotics: Science and Systems (RSS) ,2024. [15] Irmak Guzey, Yinlong Dai, Georgy Savva, Raunaq Bhirangi, and Lerrel Pinto. Bridging the human to robot dexterity gap through object-oriented rewards. arXiv preprint arXiv:2410.23289 ,2024. [16] Siddhant Haldar, Jyothish Pari, Anant Rai, and Lerrel Pinto. Teach a robot to fish: Versatile imitation from one minute of demonstrations. In Robotics: Science and Systems , 2023. [17] Siddhant Haldar and Lerrel Pinto. Point policy: Unifying observations and actions with key points for robot manipulation. arXiv preprint arXiv:2502.20391 , 2025. [18] Ankur Handa, Arthur Allshire, Viktor Makoviychuk, Aleksei Petrenko, Ritvik Singh, Jingzhou Liu, Denys Makoviichuk, Karl Van Wyk, Alexander Zhurkevich, Balakumar Sundaralingam, et al. Dextreme: Transfer of agile in-hand manipulation from simulation to reality. In 2023 
+
+11 IEEE International Conference on Robotics and Automation (ICRA) , pages 5977–5984. IEEE, 2023. [19] Ankur Handa, Karl Van Wyk, Wei Yang, Jacky Liang, Yu-Wei Chao, Qian Wan, Stan Birchfield, Nathan Ratliff, and Dieter Fox. Dexpilot: Vision-based teleoperation of dexterous robotic hand-arm system. In 2020 IEEE International Conference on Robotics and Automation (ICRA) ,pages 9164–9170. IEEE, 2020. [20] Todd Hester, Matej Vecerik, Olivier Pietquin, Marc Lanctot, Tom Schaul, Bilal Piot, Dan Horgan, John Quan, Andrew Sendonaris, Ian Osband, et al. Deep q-learning from demonstrations. In 
+
+Proceedings of the AAAI conference on artificial intelligence , volume 32, 2018. [21] Hengyuan Hu, Suvir Mirchandani, and Dorsa Sadigh. Imitation Bootstrapped Reinforcement Learning. In Proceedings of Robotics: Science and Systems , Delft, Netherlands, July 2024. [22] Wenlong Huang, Chen Wang, Yunzhu Li, Ruohan Zhang, and Li Fei-Fei. Rekep: Spatio-temporal reasoning of relational keypoint constraints for robotic manipulation. arXiv preprint arXiv:2409.01652 , 2024. [23] Wenlong Huang, Chen Wang, Ruohan Zhang, Yunzhu Li, Jiajun Wu, and Li Fei-Fei. Voxposer: Composable 3d value maps for robotic manipulation with language models. In Conference on Robot Learning , pages 540–562. PMLR, 2023. [24] Minyoung Hwang, Joey Hejna, Dorsa Sadigh, and Yonatan Bisk. Motif: Motion instruction fine-tuning, 2024. [25] Aadhithya Iyer, Zhuoran Peng, Yinlong Dai, Irmak Guzey, Siddhant Haldar, Soumith Chintala, and Lerrel Pinto. OPEN TEACH: A versatile teleoperation system for robotic manipulation. In 
+
+8th Annual Conference on Robot Learning , 2024. [26] Tobias Johannink, Shikhar Bahl, Ashvin Nair, Jianlan Luo, Avinash Kumar, Matthias Loskyll, Juan Aparicio Ojea, Eugen Solowjow, and Sergey Levine. Residual reinforcement learning for robot control. In 2019 international conference on robotics and automation (ICRA) , pages 6023–6029. IEEE, 2019. [27] Nikita Karaev, Ignacio Rocco, Benjamin Graham, Natalia Neverova, Andrea Vedaldi, and Christian Rupprecht. Cotracker: It is better to track together. In European Conference on Computer Vision , pages 18–35. Springer, 2024. [28] Martin Klissarov, Pierluca D’Oro, Shagun Sodhani, Roberta Raileanu, Pierre-Luc Bacon, Pascal Vincent, Amy Zhang, and Mikael Henaff. Motif: Intrinsic motivation from artificial intelligence feedback. arXiv preprint arXiv:2310.00166 , 2023. [29] Ashish Kumar, Zipeng Fu, Deepak Pathak, and Jitendra Malik. RMA: rapid motor adaptation for legged robots. CoRR , abs/2107.04034, 2021. [30] Minae Kwon, Sang Michael Xie, Kalesha Bullard, and Dorsa Sadigh. Reward design with language models. In The Eleventh International Conference on Learning Representations , 2023. [31] Teyun Kwon, Norman Di Palo, and Edward Johns. Language models as zero-shot trajectory generators. IEEE Robotics and Automation Letters , 9(7):6728–6735, 2024. [32] Marion Lepert, Jiaying Fang, and Jeannette Bohg. Phantom: Training robots without robots using only human videos, 2025. [33] Kailin Li, Puhao Li, Tengyu Liu, Yuyang Li, and Siyuan Huang. Maniptrans: Efficient dexterous bimanual manipulation transfer via residual learning. arXiv preprint arXiv:2503.21860 , 2025. [34] Jacky Liang, Wenlong Huang, Fei Xia, Peng Xu, Karol Hausman, Brian Ichter, Pete Florence, and Andy Zeng. Code as policies: Language model programs for embodied control. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 9493–9500. IEEE, 2023. [35] Toru Lin, Zhao-Heng Yin, Haozhi Qi, Pieter Abbeel, and Jitendra Malik. Twisting lids off with two hands. arXiv preprint arXiv:2403.02338 , 2024. 12 [36] Haichao Liu, Sikai Guo, Pengfei Mai, Jiahang Cao, Haoang Li, and Jun Ma. Robodexvlm: Vi-sual language model-enabled task planning and motion control for dexterous robot manipulation. 
+
+arXiv preprint arXiv:2503.01616 , 2025. [37] Xueyi Liu, Jianibieke Adalibieke, Qianwei Han, Yuzhe Qin, and Li Yi. Dextrack: Towards generalizable neural tracking control for dexterous manipulation from human references. arXiv preprint arXiv:2502.09614 , 2025. [38] Tyler Ga Wei Lum, Olivia Y. Lee, C. Karen Liu, and Jeannette Bohg. Crossing the human-robot embodiment gap with sim-to-real rl using one human demonstration, 2025. [39] Tyler Ga Wei Lum, Martin Matak, Viktor Makoviychuk, Ankur Handa, Arthur Allshire, Tucker Hermans, Nathan D. Ratliff, and Karl Van Wyk. DextrAH-g: Pixels-to-action dexterous arm-hand grasping with geometric fabrics. In 8th Annual Conference on Robot Learning , 2024. [40] Yecheng Jason Ma, Joey Hejna, Chuyuan Fu, Dhruv Shah, Jacky Liang, Zhuo Xu, Sean Kirmani, Peng Xu, Danny Driess, Ted Xiao, et al. Vision language models are in-context value learners. In The Thirteenth International Conference on Learning Representations , 2024. [41] Yecheng Jason Ma, William Liang, Guanzhi Wang, De-An Huang, Osbert Bastani, Dinesh Jayaraman, Yuke Zhu, Linxi Fan, and Anima Anandkumar. Eureka: Human-level reward design via coding large language models. arXiv preprint arXiv:2310.12931 , 2023. [42] Parsa Mahmoudieh, Deepak Pathak, and Trevor Darrell. Zero-shot reward specification via grounded natural language. In Kamalika Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepes-vari, Gang Niu, and Sivan Sabato, editors, Proceedings of the 39th International Conference on Machine Learning , volume 162 of Proceedings of Machine Learning Research , pages 14743–14752. PMLR, 17–23 Jul 2022. [43] Priyanka Mandikal and Kristen Grauman. Dexvip: Learning dexterous grasping with human hand pose priors from video. In Conference on Robot Learning (CoRL) , 2021. [44] Suvir Mirchandani, Fei Xia, Pete Florence, brian ichter, Danny Driess, Montserrat Gonzalez Arenas, Kanishka Rao, Dorsa Sadigh, and Andy Zeng. Large language models as general pattern machines. In 7th Annual Conference on Robot Learning , 2023. [45] Tongzhou Mu, Zhan Ling, Fanbo Xiang, Derek Cathera Yang, Xuanlin Li, Stone Tao, Zhiao Huang, Zhiwei Jia, and Hao Su. Maniskill: Generalizable manipulation skill benchmark with large-scale demonstrations. In Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2) , 2021. [46] Ashvin Nair, Bob McGrew, Marcin Andrychowicz, Wojciech Zaremba, and Pieter Abbeel. Over-coming exploration in reinforcement learning with demonstrations. In 2018 IEEE International Conference on Robotics and Automation (ICRA) , pages 6292–6299, 2018. [47] Soroush Nasiriany, Abhiram Maddukuri, Lance Zhang, Adeet Parikh, Aaron Lo, Abhishek Joshi, Ajay Mandlekar, and Yuke Zhu. Robocasa: Large-scale simulation of everyday tasks for generalist robots. arXiv preprint arXiv:2406.02523 , 2024. [48] Soroush Nasiriany, Fei Xia, Wenhao Yu, Ted Xiao, Jacky Liang, Ishita Dasgupta, Annie Xie, Danny Driess, Ayzaan Wahid, Zhuo Xu, et al. Pivot: Iterative visual prompting elicits actionable knowledge for vlms. In International Conference on Machine Learning , pages 37321–37341. PMLR, 2024. [49] Open X-Embodiment Collaboration, Abhishek Padalkar, Acorn Pooley, Ajinkya Jain, Alex Bewley, Alex Herzog, Alex Irpan, Alexander Khazatsky, Anant Rai, Anikait Singh, Anthony Brohan, Antonin Raffin, Ayzaan Wahid, Ben Burgess-Limerick, Beomjoon Kim, Bernhard Schölkopf, Brian Ichter, Cewu Lu, Charles Xu, Chelsea Finn, Chenfeng Xu, Cheng Chi, Chenguang Huang, Christine Chan, Chuer Pan, Chuyuan Fu, Coline Devin, Danny Driess, Deepak Pathak, Dhruv Shah, Dieter Büchler, Dmitry Kalashnikov, Dorsa Sadigh, Edward Johns, Federico Ceola, Fei Xia, Freek Stulp, Gaoyue Zhou, Gaurav S. Sukhatme, Gautam Salhotra, Ge Yan, Giulio Schiavi, Hao Su, Hao-Shu Fang, Haochen Shi, Heni Ben Amor, Henrik I Christensen, Hiroki Furuta, Homer Walke, Hongjie Fang, Igor Mordatch, Ilija Radosavovic, 13 Isabel Leal, Jacky Liang, Jaehyung Kim, Jan Schneider, Jasmine Hsu, Jeannette Bohg, Jeffrey Bingham, Jiajun Wu, Jialin Wu, Jianlan Luo, Jiayuan Gu, Jie Tan, Jihoon Oh, Jitendra Malik, Jonathan Tompson, Jonathan Yang, Joseph J. Lim, João Silvério, Junhyek Han, Kanishka Rao, Karl Pertsch, Karol Hausman, Keegan Go, Keerthana Gopalakrishnan, Ken Goldberg, Kendra Byrne, Kenneth Oslund, Kento Kawaharazuka, Kevin Zhang, Keyvan Majd, Krishan Rana, Krishnan Srinivasan, Lawrence Yunliang Chen, Lerrel Pinto, Liam Tan, Lionel Ott, Lisa Lee, Masayoshi Tomizuka, Maximilian Du, Michael Ahn, Mingtong Zhang, Mingyu Ding, Mohan Kumar Srirama, Mohit Sharma, Moo Jin Kim, Naoaki Kanazawa, Nicklas Hansen, Nicolas Heess, Nikhil J Joshi, Niko Suenderhauf, Norman Di Palo, Nur Muhammad Mahi Shafiullah, Oier Mees, Oliver Kroemer, Pannag R Sanketi, Paul Wohlhart, Peng Xu, Pierre Sermanet, Priya Sundaresan, Quan Vuong, Rafael Rafailov, Ran Tian, Ria Doshi, Roberto Martín-Martín, Russell Mendonca, Rutav Shah, Ryan Hoque, Ryan Julian, Samuel Bustamante, Sean Kirmani, Sergey Levine, Sherry Moore, Shikhar Bahl, Shivin Dass, Shuran Song, Sichun Xu, Siddhant Haldar, Simeon Adebola, Simon Guist, Soroush Nasiriany, Stefan Schaal, Stefan Welker, Stephen Tian, Sudeep Dasari, Suneel Belkhale, Takayuki Osa, Tatsuya Harada, Tatsuya Matsushima, Ted Xiao, Tianhe Yu, Tianli Ding, Todor Davchev, Tony Z. Zhao, Travis Armstrong, Trevor Darrell, Vidhi Jain, Vincent Vanhoucke, Wei Zhan, Wenxuan Zhou, Wolfram Burgard, Xi Chen, Xiaolong Wang, Xinghao Zhu, Xuanlin Li, Yao Lu, Yevgen Chebotar, Yifan Zhou, Yifeng Zhu, Ying Xu, Yixuan Wang, Yonatan Bisk, Yoonyoung Cho, Youngwoon Lee, Yuchen Cui, Yueh hua Wu, Yujin Tang, Yuke Zhu, Yunzhu Li, Yusuke Iwasawa, Yutaka Matsuo, Zhuo Xu, and Zichen Jeff Cui. Open X-Embodiment: Robotic learning datasets and RT-X models, 2023. [50] Shivansh Patel, Xinchen Yin, Wenlong Huang, Shubham Garg, Hooshang Nayyeri, Li Fei-Fei, Svetlana Lazebnik, and Yunzhu Li. A real-to-sim-to-real approach to robotic manipulation with vlm-generated iterative keypoint rewards. arXiv preprint arXiv:2502.08643 , 2025. [51] Xue Bin Peng, Glen Berseth, KangKang Yin, and Michiel Van De Panne. Deeploco: Dynamic locomotion skills using hierarchical deep reinforcement learning. Acm transactions on graphics (tog) , 36(4):1–13, 2017. [52] Haozhi Qi, Ashish Kumar, Roberto Calandra, Yi Ma, and Jitendra Malik. In-Hand Object Rotation via Rapid Motor Adaptation. In Conference on Robot Learning (CoRL) , 2022. [53] Yuzhe Qin, Hao Su, and Xiaolong Wang. From one hand to multiple hands: Imitation learning for dexterous manipulation from single-camera teleoperation. IEEE Robotics and Automation Letters , 7(4):10873–10881, 2022. [54] Yuzhe Qin, Wei Yang, Binghao Huang, Karl Van Wyk, Hao Su, Xiaolong Wang, Yu-Wei Chao, and Dieter Fox. Anyteleop: A general vision-based dexterous robot arm-hand teleoperation system. In Robotics: Science and Systems , 2023. [55] Ilija Radosavovic, Xiaolong Wang, Lerrel Pinto, and Jitendra Malik. State-only imitation learning for dexterous manipulation. In 2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pages 7865–7871, 2021. [56] Aravind Rajeswaran, Vikash Kumar, Abhishek Gupta, Giulia Vezzani, John Schulman, Emanuel Todorov, and Sergey Levine. Learning complex dexterous manipulation with deep reinforcement learning and demonstrations. In Proceedings of Robotics: Science and Systems , Pittsburgh, Pennsylvania, June 2018. [57] Juntao Ren, Priya Sundaresan, Dorsa Sadigh, Sanjiban Choudhury, and Jeannette Bohg. Motion tracks: A unified representation for human-robot transfer in few-shot imitation learning, 2025. [58] John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347 , 2017. [59] Ishika Singh, Valts Blukis, Arsalan Mousavian, Ankit Goyal, Danfei Xu, Jonathan Tremblay, Dieter Fox, Jesse Thomason, and Animesh Garg. Progprompt: Generating situated robot task plans using large language models. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , pages 11523–11530. IEEE, 2023. 14 [60] Ritvik Singh, Arthur Allshire, Ankur Handa, Nathan Ratliff, and Karl Van Wyk. Dextrah-rgb: Visuomotor policies to grasp anything with dexterous hands. arXiv preprint arXiv:2412.01791 ,2024. [61] Andrew Szot, Alex Clegg, Eric Undersander, Erik Wijmans, Yili Zhao, John Turner, Noah Maestre, Mustafa Mukadam, Devendra Chaplot, Oleksandr Maksymets, Aaron Gokaslan, Vladimir Vondrus, Sameer Dharur, Franziska Meier, Wojciech Galuba, Angel Chang, Zsolt Kira, Vladlen Koltun, Jitendra Malik, Manolis Savva, and Dhruv Batra. Habitat 2.0: Training home assistants to rearrange their habitat. In Advances in Neural Information Processing Systems (NeurIPS) , 2021. [62] Stone Tao, Fanbo Xiang, Arth Shukla, Yuzhe Qin, Xander Hinrichsen, Xiaodi Yuan, Chen Bao, Xinsong Lin, Yulin Liu, Tse-kai Chan, et al. Maniskill3: Gpu parallelized robotics simulation and rendering for generalizable embodied ai. arXiv preprint arXiv:2410.00425 , 2024. [63] Gemini Team, Rohan Anil, Sebastian Borgeaud, Jean-Baptiste Alayrac, Jiahui Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, Katie Millican, et al. Gemini: a family of highly capable multimodal models. arXiv preprint arXiv:2312.11805 , 2023. [64] Gemini Robotics Team, Saminda Abeyruwan, Joshua Ainslie, Jean-Baptiste Alayrac, Montser-rat Gonzalez Arenas, Travis Armstrong, Ashwin Balakrishna, Robert Baruch, Maria Bauza, Michiel Blokzijl, et al. Gemini robotics: Bringing ai into the physical world. arXiv preprint arXiv:2503.20020 , 2025. [65] David Venuto, Mohammad Sami Nur Islam, Martin Klissarov, Doina Precup, Sherry Yang, and Ankit Anand. Code as reward: Empowering reinforcement learning with VLMs. In Forty-first International Conference on Machine Learning , 2024. [66] Chen Wang, Haochen Shi, Weizhuo Wang, Ruohan Zhang, Li Fei-Fei, and C Karen Liu. Dexcap: Scalable and portable mocap data collection system for dexterous manipulation. arXiv preprint arXiv:2403.07788 , 2024. [67] Jun Wang, Ying Yuan, Haichuan Che, Haozhi Qi, Yi Ma, Jitendra Malik, and Xiaolong Wang. Lessons from learning to spin “pens”. In CoRL , 2024. [68] Qianxu Wang, Congyue Deng, Tyler Ga Wei Lum, Yuanpei Chen, Yaodong Yang, Jeannette Bohg, Yixin Zhu, and Leonidas Guibas. Neural attention field: Emerging point relevance in 3d scenes for one-shot dexterous grasping. arXiv preprint arXiv:2410.23039 , 2024. [69] Yufei Wang, Zhanyi Sun, Jesse Zhang, Zhou Xian, Erdem Biyik, David Held, and Zackory Erickson. RL-VLM-f: Reinforcement learning from vision language foundation model feedback. In Forty-first International Conference on Machine Learning , 2024. [70] Bowen Wen, Wei Yang, Jan Kautz, and Stan Birchfield. Foundationpose: Unified 6d pose estimation and tracking of novel objects. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 17868–17879, 2024. [71] Chuan Wen, Xingyu Lin, John Ian Reyes So, Kai Chen, Qi Dou, Yang Gao, and Pieter Abbeel. Any-point Trajectory Modeling for Policy Learning. In Proceedings of Robotics: Science and Systems , Delft, Netherlands, July 2024. [72] Tianbao Xie, Siheng Zhao, Chen Henry Wu, Yitao Liu, Qian Luo, Victor Zhong, Yanchao Yang, and Tao Yu. Text2reward: Reward shaping with language models for reinforcement learning. 
+
+arXiv preprint arXiv:2309.11489 , 2023. [73] Mengda Xu, Zhenjia Xu, Yinghao Xu, Cheng Chi, Gordon Wetzstein, Manuela Veloso, and Shuran Song. Flow as the cross-domain manipulation interface. In 8th Annual Conference on Robot Learning , 2024. [74] Fan Yang, Dongsheng Luo, Wenrui Chen, Jiacheng Lin, Junjie Cai, Kailun Yang, Zhiyong Li, and Yaonan Wang. Multi-keypoint affordance representation for functional dexterous grasping, 2025. 15 [75] Jingyun Yang, Max Sobol Mark, Brandon Vu, Archit Sharma, Jeannette Bohg, and Chelsea Finn. Robot fine-tuning made easy: Pre-training rewards and policies for autonomous real-world reinforcement learning, 2023. [76] Lixin Yang, Kailin Li, Xinyu Zhan, Fei Wu, Anran Xu, Liu Liu, and Cewu Lu. OakInk: A large-scale knowledge repository for understanding hand-object interaction. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022. [77] Weirui Ye, Yunsheng Zhang, Haoyang Weng, Xianfan Gu, Shengjie Wang, Tong Zhang, Mengchen Wang, Pieter Abbeel, and Yang Gao. Reinforcement learning with foundation priors: Let embodied agent efficiently learn on its own. In 8th Annual Conference on Robot Learning .[78] Zhao-Heng Yin, Changhao Wang, Luis Pineda, Krishna Bodduluri, Tingfan Wu, Pieter Abbeel, and Mustafa Mukadam. Geometric retargeting: A principled, ultrafast neural hand retargeting algorithm. arXiv preprint arXiv:2503.07541 , 2025. [79] Zhao-Heng Yin, Changhao Wang, Luis Pineda, Francois Hogan, Krishna Bodduluri, Akash Sharma, Patrick Lancaster, Ishita Prasad, Mrinal Kalakrishnan, Jitendra Malik, et al. Dexteri-tygen: Foundation controller for unprecedented dexterity. arXiv preprint arXiv:2502.04307 ,2025. [80] Wenhao Yu, Nimrod Gileadi, Chuyuan Fu, Sean Kirmani, Kuang-Huei Lee, Montserrat Gonza-lez Arenas, Hao-Tien Lewis Chiang, Tom Erez, Leonard Hasenclever, Jan Humplik, brian ichter, Ted Xiao, Peng Xu, Andy Zeng, Tingnan Zhang, Nicolas Heess, Dorsa Sadigh, Jie Tan, Yuval Tassa, and Fei Xia. Language to rewards for robotic skill synthesis. In 7th Annual Conference on Robot Learning , 2023. 16 NeurIPS Paper Checklist 
+
+1. Claims 
+
+Question: Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? Answer: [Yes] Justification: Our method performs better than baselines and closer to oracle performance. We do not claim any theoretical results. Guidelines: • The answer NA means that the abstract and introduction do not include the claims made in the paper. • The abstract and/or introduction should clearly state the claims made, including the contributions made in the paper and important assumptions and limitations. A No or NA answer to this question will not be perceived well by the reviewers. • The claims made should match theoretical and experimental results, and reflect how much the results can be expected to generalize to other settings. • It is fine to include aspirational goals as motivation as long as it is clear that these goals are not attained by the paper. 2. Limitations 
+
+Question: Does the paper discuss the limitations of the work performed by the authors? Answer: [Yes] Justification: We provide a thorough failure analysis in the results section and limitations in the conclusion. Guidelines: • The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper. • The authors are encouraged to create a separate "Limitations" section in their paper. • The paper should point out any strong assumptions and how robust the results are to violations of these assumptions (e.g., independence assumptions, noiseless settings, model well-specification, asymptotic approximations only holding locally). The authors should reflect on how these assumptions might be violated in practice and what the implications would be. • The authors should reflect on the scope of the claims made, e.g., if the approach was only tested on a few datasets or with a few runs. In general, empirical results often depend on implicit assumptions, which should be articulated. • The authors should reflect on the factors that influence the performance of the approach. For example, a facial recognition algorithm may perform poorly when image resolution is low or images are taken in low lighting. Or a speech-to-text system might not be used reliably to provide closed captions for online lectures because it fails to handle technical jargon. • The authors should discuss the computational efficiency of the proposed algorithms and how they scale with dataset size. • If applicable, the authors should discuss possible limitations of their approach to address problems of privacy and fairness. • While the authors might fear that complete honesty about limitations might be used by reviewers as grounds for rejection, a worse outcome might be that reviewers discover limitations that aren’t acknowledged in the paper. The authors should use their best judgment and recognize that individual actions in favor of transparency play an impor-tant role in developing norms that preserve the integrity of the community. Reviewers will be specifically instructed to not penalize honesty concerning limitations. 3. Theory assumptions and proofs 
+
+Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof? 17 Answer: [NA] Justification: The paper does not include any theoretical results. Guidelines: • The answer NA means that the paper does not include theoretical results. • All the theorems, formulas, and proofs in the paper should be numbered and cross-referenced. • All assumptions should be clearly stated or referenced in the statement of any theorems. • The proofs can either appear in the main paper or the supplemental material, but if they appear in the supplemental material, the authors are encouraged to provide a short proof sketch to provide intuition. • Inversely, any informal proof provided in the core of the paper should be complemented by formal proofs provided in appendix or supplemental material. • Theorems and Lemmas that the proof relies upon should be properly referenced. 4. Experimental result reproducibility 
+
+Question: Does the paper fully disclose all the information needed to reproduce the main ex-perimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)? Answer: [Yes] Justification: The method is fully explained with details in the appendix. The prompts used are also provided. We believe this provides sufficient detail to reproduce the results, up to but excluding the real world experiments which are impossible to exactly recreate in a different lab. Guidelines: • The answer NA means that the paper does not include experiments. • If the paper includes experiments, a No answer to this question will not be perceived well by the reviewers: Making the paper reproducible is important, regardless of whether the code and data are provided or not. • If the contribution is a dataset and/or model, the authors should describe the steps taken to make their results reproducible or verifiable. • Depending on the contribution, reproducibility can be accomplished in various ways. For example, if the contribution is a novel architecture, describing the architecture fully might suffice, or if the contribution is a specific model and empirical evaluation, it may be necessary to either make it possible for others to replicate the model with the same dataset, or provide access to the model. In general. releasing code and data is often one good way to accomplish this, but reproducibility can also be provided via detailed instructions for how to replicate the results, access to a hosted model (e.g., in the case of a large language model), releasing of a model checkpoint, or other means that are appropriate to the research performed. • While NeurIPS does not require releasing code, the conference does require all submis-sions to provide some reasonable avenue for reproducibility, which may depend on the nature of the contribution. For example (a) If the contribution is primarily a new algorithm, the paper should make it clear how to reproduce that algorithm. (b) If the contribution is primarily a new model architecture, the paper should describe the architecture clearly and fully. (c) If the contribution is a new model (e.g., a large language model), then there should either be a way to access this model for reproducing the results or a way to reproduce the model (e.g., with an open-source dataset or instructions for how to construct the dataset). (d) We recognize that reproducibility may be tricky in some cases, in which case authors are welcome to describe the particular way they provide for reproducibility. In the case of closed-source models, it may be that access to the model is limited in some way (e.g., to registered users), but it should be possible for other researchers to have some path to reproducing or verifying the results. 18 5. Open access to data and code 
+
+Question: Does the paper provide open access to the data and code, with sufficient instruc-tions to faithfully reproduce the main experimental results, as described in supplemental material? Answer: [Yes] Justification: We will provide code for simulated experiments in the the supplementary materials, though instructions may be lacking due to time limitations. We are working on improving this. Guidelines: • The answer NA means that paper does not include experiments requiring code. • Please see the NeurIPS code and data submission guidelines ( https://nips.cc/ public/guides/CodeSubmissionPolicy ) for more details. • While we encourage the release of code and data, we understand that this might not be possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not including code, unless this is central to the contribution (e.g., for a new open-source benchmark). • The instructions should contain the exact command and environment needed to run to reproduce the results. See the NeurIPS code and data submission guidelines ( https: //nips.cc/public/guides/CodeSubmissionPolicy ) for more details. • The authors should provide instructions on data access and preparation, including how to access the raw data, preprocessed data, intermediate data, and generated data, etc. • The authors should provide scripts to reproduce all experimental results for the new proposed method and baselines. If only a subset of experiments are reproducible, they should state which ones are omitted from the script and why. • At submission time, to preserve anonymity, the authors should release anonymized versions (if applicable). • Providing as much information as possible in supplemental material (appended to the paper) is recommended, but including URLs to data and code is permitted. 6. Experimental setting/details 
+
+Question: Does the paper specify all the training and test details (e.g., data splits, hyper-parameters, how they were chosen, type of optimizer, etc.) necessary to understand the results? Answer: [Yes] Justification: We include hyperparameters in the Appendix. Guidelines: • The answer NA means that the paper does not include experiments. • The experimental setting should be presented in the core of the paper to a level of detail that is necessary to appreciate the results and make sense of them. • The full details can be provided either with the code, in appendix, or as supplemental material. 7. Experiment statistical significance 
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments? Answer: [Yes] Justification: We run three seeds for all experiments and visually depict error bars. If they do not appear in the charts it is because they are too small to appear. Guidelines: • The answer NA means that the paper does not include experiments. • The authors should answer "Yes" if the results are accompanied by error bars, confi-dence intervals, or statistical significance tests, at least for the experiments that support the main claims of the paper. 19 • The factors of variability that the error bars are capturing should be clearly stated (for example, train/test split, initialization, random drawing of some parameter, or overall run with given experimental conditions). • The method for calculating the error bars should be explained (closed form formula, call to a library function, bootstrap, etc.) • The assumptions made should be given (e.g., Normally distributed errors). • It should be clear whether the error bar is the standard deviation or the standard error of the mean. • It is OK to report 1-sigma error bars, but one should state it. The authors should preferably report a 2-sigma error bar than state that they have a 96% CI, if the hypothesis of Normality of errors is not verified. • For asymmetric distributions, the authors should be careful not to show in tables or figures symmetric error bars that would yield results that are out of range (e.g. negative error rates). • If error bars are reported in tables or plots, The authors should explain in the text how they were calculated and reference the corresponding figures or tables in the text. 8. Experiments compute resources 
+
+Question: For each experiment, does the paper provide sufficient information on the com-puter resources (type of compute workers, memory, time of execution) needed to reproduce the experiments? Answer: [Yes] Justification: Yes, we provide compute resources in the Appendix. Guidelines: • The answer NA means that the paper does not include experiments. • The paper should indicate the type of compute workers CPU or GPU, internal cluster, or cloud provider, including relevant memory and storage. • The paper should provide the amount of compute required for each of the individual experimental runs as well as estimate the total compute. • The paper should disclose whether the full research project required more compute than the experiments reported in the paper (e.g., preliminary or failed experiments that didn’t make it into the paper). 9. Code of ethics 
+
+Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics https://neurips.cc/public/EthicsGuidelines ?Answer: [Yes] Justification: Yes, we have reviewed the code of ethics. Guidelines: • The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics. • If the authors answer No, they should explain the special circumstances that require a deviation from the Code of Ethics. • The authors should make sure to preserve anonymity (e.g., if there is a special consid-eration due to laws or regulations in their jurisdiction). 10. Broader impacts 
+
+Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed? Answer: [NA] Justification: Dexterous manipulation is too broadly in its infancy to have a direct societal impact at present. Guidelines: • The answer NA means that there is no societal impact of the work performed. 20 • If the authors answer NA or No, they should explain why their work has no societal impact or why the paper does not address societal impact. • Examples of negative societal impacts include potential malicious or unintended uses (e.g., disinformation, generating fake profiles, surveillance), fairness considerations (e.g., deployment of technologies that could make decisions that unfairly impact specific groups), privacy considerations, and security considerations. • The conference expects that many papers will be foundational research and not tied to particular applications, let alone deployments. However, if there is a direct path to any negative applications, the authors should point it out. For example, it is legitimate to point out that an improvement in the quality of generative models could be used to generate deepfakes for disinformation. On the other hand, it is not needed to point out that a generic algorithm for optimizing neural networks could enable people to train models that generate Deepfakes faster. • The authors should consider possible harms that could arise when the technology is being used as intended and functioning correctly, harms that could arise when the technology is being used as intended but gives incorrect results, and harms following from (intentional or unintentional) misuse of the technology. • If there are negative societal impacts, the authors could also discuss possible mitigation strategies (e.g., gated release of models, providing defenses in addition to attacks, mechanisms for monitoring misuse, mechanisms to monitor how a system learns from feedback over time, improving the efficiency and accessibility of ML). 11. Safeguards 
+
+Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pretrained language models, image generators, or scraped datasets)? Answer: [NA] Justification: Our paper does not include a release of large models or datasets. Guidelines: • The answer NA means that the paper poses no such risks. • Released models that have a high risk for misuse or dual-use should be released with necessary safeguards to allow for controlled use of the model, for example by requiring that users adhere to usage guidelines or restrictions to access the model or implementing safety filters. • Datasets that have been scraped from the Internet could pose safety risks. The authors should describe how they avoided releasing unsafe images. • We recognize that providing effective safeguards is challenging, and many papers do not require this, but we encourage authors to take this into account and make a best faith effort. 12. Licenses for existing assets 
+
+Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected? Answer: [Yes] Justification: Yes, we only use open-source and permissible license environments which we cite. Guidelines: • The answer NA means that the paper does not use existing assets. • The authors should cite the original paper that produced the code package or dataset. • The authors should state which version of the asset is used and, if possible, include a URL. • The name of the license (e.g., CC-BY 4.0) should be included for each asset. • For scraped data from a particular source (e.g., website), the copyright and terms of service of that source should be provided. 21 • If assets are released, the license, copyright information, and terms of use in the package should be provided. For popular datasets, paperswithcode.com/datasets 
+
+has curated licenses for some datasets. Their licensing guide can help determine the license of a dataset. • For existing datasets that are re-packaged, both the original license and the license of the derived asset (if it has changed) should be provided. • If this information is not available online, the authors are encouraged to reach out to the asset’s creators. 13. New assets 
+
+Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets? Answer: [NA] Justification: We do not introduce new assets. Guidelines: • The answer NA means that the paper does not release new assets. • Researchers should communicate the details of the dataset/code/model as part of their submissions via structured templates. This includes details about training, license, limitations, etc. • The paper should discuss whether and how consent was obtained from people whose asset is used. • At submission time, remember to anonymize your assets (if applicable). You can either create an anonymized URL or include an anonymized zip file. 14. Crowdsourcing and research with human subjects 
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? Answer: [NA] Justification: We do not conduct experiments with human subjets. Guidelines: • The answer NA means that the paper does not involve crowdsourcing nor research with human subjects. • Including this information in the supplemental material is fine, but if the main contribu-tion of the paper involves human subjects, then as much detail as possible should be included in the main paper. • According to the NeurIPS Code of Ethics, workers involved in data collection, curation, or other labor should be paid at least the minimum wage in the country of the data collector. 15. Institutional review board (IRB) approvals or equivalent for research with human subjects 
+
+Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained? Answer: [NA] Justification: We do not use crowdsoruce or research with human subjects. Guidelines: • The answer NA means that the paper does not involve crowdsourcing nor research with human subjects. • Depending on the country in which research is conducted, IRB approval (or equivalent) may be required for any human subjects research. If you obtained IRB approval, you should clearly state this in the paper. 22 • We recognize that the procedures for this may vary significantly between institutions and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the guidelines for their institution. • For initial submissions, do not include any information that would break anonymity (if applicable), such as the institution conducting the review. 16. Declaration of LLM usage 
+
+Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does not impact the core methodology, scientific rigorousness, or originality of the research, declaration is not required. Answer: [Yes] Justification: Yes, we include descriptions of how we use VLMs in our work, including the full prompts. Guidelines: • The answer NA means that the core method development in this research does not involve LLMs as any important, original, or non-standard components. • Please refer to our LLM policy ( https://neurips.cc/Conferences/2025/LLM )for what should or should not be described. 23 A Hyperparameters 
+
+A.1 PPO 
+
+The hyperparameters of our PPO training are detailed in Table 1.  
+
+> Table 1: PPO Hyperparameters
+
+Hyperparameter Value 
+
+Normalize Advantage per Mini-Batch True Value Loss Coefficient 1.0 Clip Parameter 0.2 Use Clipped Value Loss True Desired KL 0.01 Entropy Coefficient 0.01 Discount Factor (Gamma) 0.99 GAE Lambda (Lam) 0.95 Max Gradient Norm 1.0 Learning Rate 0.0003 Number of Learning Epochs 5Number of Mini-Batches 16 Schedule Adaptive Policy Class Name ActorCritic Activation Function ELU Actor Hidden Dimensions [512, 512, 512] Critic Hidden Dimensions [512, 512, 512] Initial Noise Std 1.0 Noise Std Type Scalar Number of Steps per Environment 24 Max Iterations 2000 Empirical Normalization True Number of Environments 2048 
+
+A.2 Simulation 
+
+We use Maniskill3 [ 62 ] for our simulations. Our hyperparameters are listed in Table 2. We situate our tasks in simulated scenes from the ReplicaCAD dataset [ 61 ]. Some of the objects in the tasks are from the RoboCasa project [47]. 
+
+A.3 VLM 
+
+We detail our query settings in Table 3. 
+
+## B Environment 
+
+B.1 Observation Space 
+
+Table 4 details the components of our observation space. Importantly, our policy does not rely on privileged information such as contact forces during training, making the observation space more amenable to real-world deployment. 
+
+B.2 Action Space 
+
+We use a residual action space on the wrist pose, and directly control the fingers. We normalized the action space to the range [-1, 1]. A "zero" action corresponds to following the reference trajectory precisely with an entirely open hand. 24 Table 2: Simulation and Control Settings 
+
+Setting Value 
+
+Action Exponential Average Gamma 0.9 Simulation Frequency 120 Hz Control Frequency 60 Hz Max Rigid Contact Count 2048 × 2048 × 8
+
+Max Rigid Patch Count 2048 × 2048 × 2
+
+Found Lost Pairs Capacity 227 
+
+Gravity [0, 0, -9.81] Bounce Threshold 2.0 Solver Position Iterations 8Solver Velocity Iterations 0Default Dynamic Friction 1.0 Default Static Friction 1.0 Restitution 0Finger Static Friction 2.0 Dummy Joint Stiffness 2000 Dummy Joint Damping 100 Dummy Joint Force Limits 1000 Finger Joint Stiffness 10 Finger Joint Damping 0.3 Finger Joint Force Limit 10 Controller Type PD Joint Targets  
+
+> Table 3: VLM Configuration
+
+Hyperparameter Value 
+
+Image Size 800 × 800 Trajectory Query Thinking Budget 1000 Keypoint Query Temperature 0.5 Trajectory Query Code Execution Enabled We only control the fingers individually for the scissors and pliers tasks since we did not see any benefit for the other tasks. For the scissors and pliers task we have one action for every finger (instead of every joint). This makes hand action space four dimensional for the allegro hand. For all other tasks we control all fingers with one action, only opening or closing the entire hand. 
+
+B.3 Termination Thresholds 
+
+We detail our initial termination thresholds per task in Table 5. The initial thresholds are linearly reduced to half of their initial value over the course of training. 
+
+## C Hardware Experiment Details 
+
+C.1 Inference-Time Pipeline Details 
+
+At inference-time, we run our policy in the real-world as follows: 1. Capture an RGB-D image of the scene. 2. Query the VLM for 2D keypoints, given the RGB image and natural language command. 3. Backproject the 2D keypoints into 3D keypoints using the depth camera and camera intrin-sics. 4. Transform the 3D keypoints from camera frame to world frame using camera extrinsics. 5. Query the VLM for a wrist pose trajectory and keypoint trajectories, given the initial wrist pose and 3D keypoints. 25 Table 4: Observation Space Configuration 
+
+Observation Type Dimension 
+
+Joint Position (Dummy Joints + Fingers) 22 Joint Velocity (Dummy Joints + Fingers) 22 Exponential Average Action 22 Finger Poses 4 × 7 = 28 
+
+Initial Keypoint Positions 3 × k
+
+Current Keypoint Positions 3 × k
+
+Planned Future Keypoint Positions 3 × 15 × k
+
+Current Wrist Pose 6
+
+Planned Future Wrist pose 6 × 15 = 30 
+
+Total 130 + 6 × k + 3 × 15 × k 
+
+> Table 5: Initial Termination Thresholds for Manipulation Tasks
+
+Object Threshold (cm) 
+
+Apple 10 Bottle 10 Hammer 8Drawer 15 Sponge 8Plier 5Scissors 3Fridge 20 6. Run FoundationPose [ 70 ] to track the objects, which allows us to track their associated keypoints (we assume the keypoint does not move relative to the object frame) 7. Run the low-level policy, given the base wrist pose trajectory and tracked keypoints. 
+
+C.2 Mapping Wrist Actions to Arm Joints 
+
+In simulation-only experiments, we control a floating (non-physical) hand whose wrist pose can be commanded directly. To train a policy in simulation that can be executed on a real robot, the wrist is attached to a 7-DoF KUKA LBR iiwa 14 arm, so the residual wrist-pose action produced by the policy must be converted into incremental arm joint commands. We perform this conversion with damped–least–squares inverse kinematics (DLS-IK). Let J ∈ R6×Narm be the analytical Jacobian of the arm ( Narm = 7 in our setup), evaluated at the current joint configuration θ ∈ RNarm , and let e ∈ R6 be the 6-D spatial error twist (concatenated position and orientation error) between the current wrist pose and the target wrist pose. The arm joint update ∆θ ∈ RNarm is computed as: 
+
+∆θ = J⊤(︁ JJ ⊤ + λ2I6)︁ −1 e, (5) where λ = 0 .5 is a constant damping factor. Equation (5) implements the damped pseudoinverse 
+
+J† 
+
+> λ
+
+= J⊤(JJ ⊤ + λ2I6)−1, yielding the minimum-norm solution to J∆θ = e while regularising the update near kinematic singularities. Lastly, we compute a joint position target θtarget = θ + ∆ θ,clamp this to stay within the joint limits, and then send this as the target to a low-level joint-position PD controller running at 200 Hz. By default, the target wrist pose is specified by the wrist pose trajectory generated by the VLM. The policy outputs a residual wrist pose action that modifies this target, allowing fine-grained corrections. The resulting target is then used to compute the spatial error e. By construction, if the residual wrist pose action is 0, the error e corresponds exactly to the difference between the current wrist pose and the original VLM-generated trajectory, so the arm will simply follow the given wrist pose trajectory. 26 C.3 Tasks 
+
+We evaluate our system on three real-world manipulation tasks: • Slide Box to Bottle : The goal is to push the box to the bottle. The box starts from a face-down orientation approximately 35cm away from the bottle. A trial is considered successful if the box makes contact with the bottle. • Place Bottle onto Plate : The goal is to grasp the bottle and place it onto a plate. The bottle starts from an upright orientation approximately 42cm away from the plate. The task is considered successful if the bottle is lifted and makes contact with the top surface of the plate. • Hammer Three Times : The goal is to grasp a hammer by its handle and strike a fixed surface three times in succession. The hammer starts in a resting position on the table within the robot’s reachable workspace. A trial is considered successful if three distinct strikes are executed with observable contact between the hammer head and the table surface. This task requires precise control of contact dynamics and pose stabilization, making it substantially more challenging than pushing or pick-and-place tasks. For each task, we run 20 trials across 4 VLM-generated trajectories. The procedure is as follows: We first initialize the objects in random positions with the same range as used in simulation training. Next, we capture an RGB-D image of the scene, and then query the VLM to generate a wrist trajectory and keypoint trajectories based on the image and a natural language instruction. Each generated trajectory is tested in 5 repeated trials, resetting the objects to similar initial poses before each attempt. This process is repeated 4 times with new randomized object positions and new trajectory queries, resulting in 20 total trials per task. 
+
+C.4 Domain Randomization 
+
+We improve the policy’s ability to transfer to the real world in a zero-shot setting through domain randomization. This enables robustness to physical parameters that are unknown, noisy, or inaccu-rately modeled in the real environment. Specifically, we apply the following randomizations during training: • Joint stiffness and damping are multiplied from their default values by a factor sampled from a uniform distribution: U(0 .3, 3.0) . These parameters are sampled once at the start of training (independently for each parallel environment) and remain fixed throughout training. • Observation noise is added to each of the robot proprioception observations, sampled independently from a normal distribution: N (0 , 0.05 2). This is uncorrelated noise that is sampled at every control timestep. • Action noise is added to exponential average action, sampled from: N (0 , 0.05 2). This is uncorrelated noise that is sampled at every control timestep. 
+
+C.5 Additional Adjustments 
+
+• The observation space is nearly identical to that described in Table 4, except that the dummy joints used to control the floating-hand wrist pose are replaced with the arm’s actual joints (for joint positions, velocities, and exponentially averaged actions). • We increase the exponential smoothing factor for the action average to γ = 0 .98 to produce smoother motions and reduce jitter in the executed actions. • We adjusted the trajectories to be twice as long for real-world experiments to effectively slow the robot motion down. We found that higher-speed motions typically resulted in less reliable policies, as this likely worsened the sim-to-real gap. • To prevent significant collisions between the hand and the table, we clamp the z-coordinate of the target wrist pose to remain above the table height. 27 C.6 Digital Twin Construction 
+
+Our digital twin simulation environment consisted of a robot, table, and two objects per task. The robot URDF and physics parameters were acquired by standard open-source repositories. We measured the dimensions of the table and its position relative to the robot with a measuring tape, which took about 5 minutes. The objects were scanned using an off-the-shelf 3D LiDAR scanning app called Kiri Engine, which took about 3 minutes per object. 
+
+C.7 Kinematic Reachability 
+
+Object positions are initialized to ensure kinematic feasibility within the robot’s workspace. Although VLMs are not explicitly aware of robot kinematics, our few-shot refinement process biases the model toward feasible trajectories by conditioning on successful prior samples. Furthermore, we introduce substantial noise during plan sampling, encouraging diversity of action proposals such that a significant number of the sampled plans during RL training are kinematically viable. 
+
+C.8 Additional Qualitative Analysis 
+
+• We found that VLM keypoint detection worked significantly better on real world images, as they are more likely to be in-distribution than simulation images. • As the low-level policy operates in a closed-loop fashion, we find it to be robust to dynamics differences between simulation and reality. • The low-level RL policy appeared to optimize the task objective (moving the object keypoint along the generated keypoint trajectory) very well. For example, on the Slide Box to Bottle 
+
+task, when the predicted box keypoint was on the bottom side of the box, the policy would not only push the box to the bottle, but rotate the box so that the bottom side of the box would be as close as possible to the bottle. On the Place Bottle onto Plate task, when the predicted bottle keypoint was on the upper half of the bottle, the policy would often place the bottle on its side so that the keypoint would be as close to the plate as possible. • The most common failure mode came from the keypoint tracking errors. While the initial predicted keypoints were accurate, our pose tracker was only reliable when the object was completely unoccluded. The pose predictions got worse when the object was occluded and occasionally got very bad when highly occluded, which degraded policy performance. • We performed preliminary experiments testing our policy on unseen objects with different but similar geometry (e.g., replacing the bottle with a mustard bottle or tall cup, replacing the plate with a different sized plate). The policy still worked reasonably well on these unseen objects due to the VLM’s common-sense understanding to select good keypoints and the RL policy’s state-based observations. 
+
+## D Open Vision-Language Models 
+
+While our main experiments use Gemini 2.5 Flash Thinking, we additionally evaluate whether open-source VLMs can serve as effective alternatives within our framework. Specifically, we test Molmo [10], a recent open VLM designed for general multimodal understanding. We evaluate Molmo on three representative tasks from our simulated benchmark: drawer opening, hammer, and pliers. For each task, both Gemini and Molmo are queried using identical prompts to generate 2D keypoints and trajectories. A keypoint prediction is counted as correct if it corresponds to a semantically meaningful and geometrically relevant location on the object, and a trajectory is considered feasible if it produces a physically executable motion in simulation. Molmo successfully identified accurate and semantically relevant keypoints across all evaluated tasks but consistently failed to produce physically plausible or coherent trajectories. This suggests that while open VLMs like Molmo demonstrate strong visual grounding and scene understanding, they currently lack the higher-level spatial reasoning needed for multi-step action sequencing. In contrast, Gemini 2.5 Flash Thinking generated both correct keypoints and feasible trajectories in the majority of trials. This can be attributed to its broader training on complex multimodal reasoning 28 Table 6: Comparison between an open VLM (Molmo) and a proprietary general-purpose VLM (Gemini 2.5 Flash Thinking) on three simulated tasks. 
+
+Model Drawer Hammer Pliers Keypoints (%) Traj. (%) Keypoints (%) Traj. (%) Keypoints (%) Traj. (%) Molmo 100 (10/10) 0 (0/10) 100 (10/10) 0 (0/10) 100 (10/10) 0 (0/10) Gemini 100 87 87 67 90 80 tasks, which supports stronger high-level planning capabilities, critical for generating structured motion scaffolds in our setting. Further benchmarking across open VLMs could provide additional insights into model-specific strengths, but such exploration is considered orthogonal to the core contribution of this work, which focuses on the framework design rather than VLM selection. 
+
+## E Additional Baselines and Ablations 
+
+E.1 Reinforcement Learning (RL) RL (Simple Reward) RL (Complex Reward) Ours + Keypoint Oracle         
+
+> Success Rate (%)
+> 0
+> 98 90
+> Apple
+> 99 99
+> 86
+> Bottle
+> 0
+> 100
+> 82
+> Drawer
+> 00
+> 26
+> Fridge
+> 00
+> 96
+> Sponge
+> 00
+> 81
+> Hammer
+> 100 100 91
+> Scissors
+> 65 99
+> 85
+> Pliers
+> 33
+> 62
+> 80
+> Mean
+
+Figure 9: Results on the simulation task suite. Success rate (in %) is averaged across three seeds; uncertainty reflects the standard error. Our method performs comparably to the oracle with perfectly scripted plans. 
+
+We introduce two additional RL-based baselines: one with a simple reward function and another with a complex, task-specific reward. 
+
+RL with Simple Reward. In this baseline, a policy is trained from scratch using reinforcement learning (RL). The reward function mirrors that of our main method, combining contact and keypoint-distance-to-target terms, but uses oracle keypoints rather than those detected by the VLM. Importantly, this baseline does not use any trajectory guidance or demonstrations. 
+
+RL with Complex Reward. This baseline employs a more detailed, hand-crafted, task-specific reward function that includes contact, keypoint-distance-to-target, hand-distance-to-object, and an additional success signal (assuming access to a success detector). This setup is intended to approximate the upper bound of performance achievable through extensive manual reward engineering. As with the previous baseline, no trajectory supervision or demonstrations are used. To ensure a fair comparison, we evaluate it alongside our method under identical oracle keypoint conditions (i.e., Ours + keypoint oracle ), while still relying on VLM-generated trajectories. Policies are trained using PPO. The results are summarized in Fig. 9. 
+
+E.2 Imitation Learning (IL) Diffusion Policy (10 demos) Diffusion Policy (20 demos) Diffusion Policy (50 demos) Ours (Zero-Shot) Ours (Few-Shot)                  
+
+> Success Rate (%)
+> 26
+> 52
+> 84 84 87
+> Apple
+> 7
+> 17
+> 80 88 86
+> Bottle
+> 47
+> 74 85 87 92
+> Drawer
+> 36
+> 60
+> 96
+> 12
+> 64
+> Fridge
+> 94 99 99
+> 87 84
+> Sponge
+> 45 45
+> 65 67 75
+> Hammer
+> 52
+> 70
+> 89
+> 67 76
+> Scissors
+> 45
+> 60
+> 79 80 86
+> Pliers
+> 44
+> 60
+> 85
+> 72 81
+> Mean
+
+Figure 10: Results of imitation learning baselines on the simulation task suite. Success rate (in %) is averaged across three seeds, with uncertainty represented by the standard error. Our method performs comparably to Diffusion policy with 50 perfect demonstrations. 
+
+29 For imitation learning evaluation, we train a Diffusion Policy [ 8 ] model using successful rollouts from the oracle RL policy as demonstrations. Experiments are conducted with 10, 20, and 50 demonstrations. This represents a best-case scenario for imitation learning, as the demonstrations are perfect , originating from scripted trajectories and the oracle RL policy, rather than noisy human demonstrations. Success rates are reported with the mean standard error computed over three random seeds per task in Fig. 10. 
+
+E.3 Noisy VLM Predictions 0.00 0.01 0.02 0.05    
+
+> Waypoint noise std
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Success Rate (%)
+> Apple
+> 0.00 0.01 0.02 0.05
+> Waypoint noise std
+> Drawer
+> 0.00 0.01 0.02 0.05
+> Waypoint noise std
+> Hammer
+> 0.00 0.01 0.02 0.05
+> Waypoint noise std
+> Scissors
+> Waypoint Noise Scaling
+
+Figure 11: Effect of Gaussian noise on VLM predictions in the simulation task suite. Success rate (in %) is averaged across three seeds; uncertainty indicates the standard error. 
+
+The performance of our method depends on the accuracy of the VLM’s outputs. Errors in keypoint detection or trajectory prediction can adversely affect downstream RL performance. To quantify this sensitivity, we report results using oracle keypoint and trajectory predictions, repre-senting an upper bound corresponding to perfect VLM outputs, in the main paper (see 7). Oracle predictions yield varying levels of performance improvement across tasks, and in some cases enable near-perfect success rates. We additionally evaluate the opposite case by introducing artificial noise into the VLM outputs. Specifically, we add Gaussian noise N (0 , σ 2) to the waypoints proposed by the VLM, thereby simulating planning errors. Noise is injected during both training and inference. Success rates are reported as the mean standard error computed over three random seeds per task in Fig. 11. 
+
+## F Tasks 
+
+We provide brief descriptions of the eight simulated tasks we evaluated: • Move Apple: An apple and a cutting board are placed on a kitchen counter. The keypoints are the apple and the cutting board. The agent’s objective is to pick up the apple and place it on top of the cutting board. • Move Bottle: A bottle is positioned on a kitchen counter next to a sink, either lying down or standing upright. The keypoints are the bottle and a target point on the counter across the sink. The goal is for the agent to pick up the bottle and place it upright on the opposite side of the sink. • Open Drawer: A closed cupboard with multiple drawers is located in a living room. The handle of the top drawer serves as the sole keypoint. The objective is to open this drawer by at least 20 cm. • Open Fridge: A closed refrigerator is situated in a kitchen. The handle of the fridge is the only keypoint. The agent’s task is to open the fridge door by at least 60 degrees. • Hammer: A hammer rests on a kitchen counter, with the head and handle defined as keypoints. The goal is for the agent to pick up the hammer and perform a hammering motion with at least three swings. A swing is defined as an upward and downward movement of at least 5 cm. • Wipe with Sponge: A sponge is located on a kitchen counter, acting as the sole keypoint. The task is to perform a wiping motion on the counter, with success defined as moving the sponge at least 30 cm on the counter. • Close Scissors: An open pair of scissors is situated on a kitchen counter, with the handles serving as keypoints. The goal is to close the scissors until the blades form an angle of less than 5 degrees. 30 • Close Pliers: An open pair of pliers is positioned on a kitchen counter, with the handles defined as keypoints. The objective is to close the pliers until the handles form an angle of less than 5 degrees. 
+
+## G Compute Resources 
+
+Our training is performed on NVIDIA GPUs, ranging from A5000s to L40s. Depending on the specific task and hardware configuration, training durations vary between 1.5 and 6 hours. For real-world inference, we utilize two RTX 4090 GPUs. 
+
+## H Prompt Examples 
+
+H.1 Keypoint Elicitation Prompt 
+
+You are an expert in robot manipulation. Above is an image of the environment. Your task is to {task_description} with a robot hand. Identify a **minimal set of keypoints** needed to plan the motion. Avoid small, sharp, or occluded areas like corners or edges. Choose large, stable regions visible from many angles. Use **spatially descriptive, short names** (e.g., "left handle", "top surface") and avoid ambiguous labels like "part 1". Only include points that are essential for completing the task. Reply with a JSON list of keypoint names. 
+
+H.2 Move Apple H.2.1 Keypoint Prompt 
+
+Point to the apple and the cutting board in the image. The answer should follow the json format: [{"name": "apple", "point": [...]}, {"name ": "cutting board", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.2.2 Trajectory Prompt 
+
+Your are controlling a robot hand to pick up an apple and put it on a cutting board. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the apple. Then grasp the apple and lift it up. Finally move the apple on the cutting board and put it down. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the apple is [0.00, 0.00, 0.00]. The initial position of the cutting board is [-0.01, -0.38, -0.05]. The initial position of the hand is [-0.07, -0.09, 0.26]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "apple": {"x": float, "y": float, "z": float}, "cutting board": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.3 Move Bottle H.3.1 Keypoint Prompt 
+
+31 Point to the water bottle on the kitchen counter, and pinpoint a point on the kitchen counter to the right of the kitchen sink in the image. The answer should follow the json format: [{"name": "bottle", "point": [...]}, {" name": "point", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.3.2 Trajectory Prompt 
+
+Your are controlling a robot hand to move a bottle to the target position called " point" on the kitchen counter. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the bottle. Then grasp the bottle and lift it up. Finally move the bottle to the target position called "point" and put it down. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the bottle is [0.00, 0.00, 0.00]. The initial position of the point is [-0.22, 0.80, -0.13]. The initial position of the hand is [0.25, -0.08, 0.20]. Use the following json format for the trajectory: [\{ "waypoint_num": 0, "bottle": {"x": float, "y": float, "z": float}, "point": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} \} ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.4 Open Drawer H.4.1 Keypoint Prompt 
+
+Point to the handle of the top cabinet drawer in the image. The answer should follow the json format: [{"name": "handle", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.4.2 Trajectory Prompt 
+
+Your are controlling a robot hand to pull open a cabinet drawer. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the handle of the drawer. Then grasp the handle. Finally pull the drawer open by at least 30cm. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the handle is [0.00, 0.00, 0.00]. The initial position of the hand is [0.32, -0.05, 0.12]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "handle": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+32 H.5 Open Fridge H.5.1 Keypoint Prompt 
+
+Point to the top handle of the refrigerator door in the image. The answer should follow the json format: [{"name": "handle", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.5.2 Trajectory Prompt 
+
+Your are controlling a robot hand to open a refrigerator door. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. The refrigerator faces in x direction. The y axis points to the right, and the z axis points up. First figure out how large the door is. Then describe how the x and y coordinates of the handle change as the door is opened .Now move the robot hand towards the handle. Then grasp the handle. Finally fully open the door. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the handle is [0.00, 0.00, 0.00]. The initial position of the hand is [0.50, 0.00, -0.22]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "handle": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.6 Hammer H.6.1 Keypoint Prompt 
+
+Point to the brown handle and the metal head of the hammer in the image. The answer should follow the json format: [{"name": "handle", "point": [...]}, {" name": "head", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.6.2 Trajectory Prompt 
+
+Your are controlling a robot hand to make a hammering motion. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the handle. Then grasp the handle. Finally hit on the kitchen counter 3 times. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the handle is [0.00, 0.00, 0.00]. The initial position of the head is [-0.02, -0.15, 0.03]. The initial position of the hand is [0.01, 0.06, 0.27]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "handle": {"x": float, "y": float, "z": float}, "head": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} 
+
+33 } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.7 Wipe with Sponge H.7.1 Keypoint Prompt 
+
+Point to the green yellow sponge on the kitchen counter in the image. The answer should follow the json format: [{"name": "sponge", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.7.2 Trajectory Prompt 
+
+Your are controlling a robot hand to wipe a kitchen counter with a sponge. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the sponge. Then grasp the sponge. Finally wipe the kitchen counter with the sponge. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the sponge is [0.00, 0.00, 0.00]. The initial position of the hand is [0.26, 0.03, 0.29]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "sponge": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.8 Close Scissors H.8.1 Keypoint Prompt 
+
+Point to the two loops of the scissors in the image. The answer should follow the json format: [{"name": "loop 1", "point": [...]}, {" name": "loop 2", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.8.2 Trajectory Prompt 
+
+Your are controlling a robot hand to close a pair of scissors. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the scissors. Then grasp the two loops and entirely close the scissors. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the loop 1 is [0.00, 0.00, 0.00]. The initial position of the loop 2 is [-0.07, 0.07, 0.01]. The initial position of the hand is [0.03, -0.06, 0.33]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "loop 1": {"x": float, "y": float, "z": float}, "loop 2": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+34 H.9 Close Pliers H.9.1 Keypoint Prompt 
+
+Point to the left and right handles of the plier in the image. The answer should follow the json format: [{"name": "handle left", "point": [...]}, {"name": "handle right", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.9.2 Trajectory Prompt 
+
+Your are controlling a robot hand to close a plier. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the plier. Then grasp the left and right handles and entirely close the plier. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the handle left is [0.00, 0.00, 0.00]. The initial position of the handle right is [-0.05, 0.16, 0.00]. The initial position of the hand is [0.01, -0.08, 0.31]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "handle left": {"x": float, "y": float, "z": float}, "handle right": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.10 Place Bottle onto Plate H.10.1 Keypoint Prompt 
+
+Point to the middle of the bottle and the plate on the table in the image. The answer should follow the json format: [{"name": "bottle", "point": [...]}, {" name": "plate", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.10.2 Trajectory Prompt 
+
+Your are controlling a robot hand to move a bottle onto a plate. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the bottle. Then grasp the bottle and lift it up. Then place the bottle on to the plate. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the bottle is [0.00, 0.00, 0.00]. The initial position of the plate is [0.30, 0.38, -0.15]. The initial position of the hand is [-0.15, -0.29, 0.09]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "bottle": {"x": float, "y": float, "z": float}, "plate": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+35 H.11 Slide Box to Bottle H.11.1 Keypoint Prompt 
+
+Point to the box and the bottle on the table in the image. The answer should follow the json format: [{"name": "box", "point": [...]}, {"name": "bottle", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.11.2 Trajectory Prompt 
+
+Your are controlling a robot hand to slide the box over the table to the bottle. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the box. Then slide the box over the table to the bottle. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the box is [0.00, 0.00, 0.00]. The initial position of the bottle is [0.17, 0.23, 0.08]. The initial position of the hand is [-0.22, -0.29, 0.19]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "box": {"x": float, "y": float, "z": float}, "bottle": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+H.12 Hammer Three Times H.12.1 Keypoint Prompt 
+
+Point to the handle and the head of the hammer in the image. The answer should follow the json format: [{"name": "handle", "point": [...]}, {" name": "head", "point": [...]}] The points are in [y, x] format normalized to 0-1000. 
+
+H.12.2 Trajectory Prompt 
+
+Your are controlling a robot hand to make a hammering motion. The coordinates are measured in meters. The x axis is forward, the y axis is left and the z axis is up. First move the robot hand towards the hammer handle. Then grasp the hammer handle. Finally hit on the kitchen counter 3 times. Describe a very realistic trajectory of exactly 20 waypoints. Use code to generate the output. The initial position of the handle is [0.00, 0.00, 0.00]. The initial position of the head is [0.19, 0.13, -0.04]. The initial position of the hand is [0.12, 0.01, 0.12]. Use the following json format for the trajectory: [{ "waypoint_num": 0, "handle": {"x": float, "y": float, "z": float}, "head": {"x": float, "y": float, "z": float}, "hand": {"x": float, "y": float, "z": float} } ...] **Only** print the json output. Do **not** print anything else with the code. 
+
+36
