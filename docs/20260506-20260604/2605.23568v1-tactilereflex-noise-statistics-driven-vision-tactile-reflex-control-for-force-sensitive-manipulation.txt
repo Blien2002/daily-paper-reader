@@ -1,0 +1,607 @@
+Title: TactileReflex: Noise-Statistics-Driven Vision-Tactile Reflex Control for Force-Sensitive Manipulation
+
+URL Source: https://arxiv.org/pdf/2605.23568v1
+
+Published Time: Mon, 25 May 2026 00:53:37 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# TactileReflex: Noise-Statistics-Driven Vision-Tactile Reflex Control for Force-Sensitive Manipulation 
+
+Ziyan Feng 1, Yulong Fu 1, Zheng Li 1, Yuxin He 1, Jieji Ren 2, Lujia Wang 1,Jinni Zhou 1, Yudong Zhong 1, Qiang Nie 1,∗
+
+Abstract — Manipulating fragile deformable containers, such as disposable plastic cups filled with liquid, demands real-time grip-force adaptation within an extremely narrow force margin: insufficient force causes slip, while excessive force irreversibly deforms the thin wall. Existing approaches struggle to achieve such force-sensitive manipulation tasks. We propose a noise-statistics-based calibration-driven reflex control paradigm with vision-based tactile sensing : by analyzing the sensor’s intrinsic noise characteristics (via a brief static-hold-and-unload proto-col), we directly derive all controller thresholds, eliminating external force calibration, trial-and-error manual tuning, or material-specific physical models. Instantiating this paradigm, we present TactileReflex , a three-channel closed-loop controller that extracts three image-level proxies, shear intensity ( Sy), contact intensity ( Fn), and center of pressure ( C), from dual visuo-tactile sensors and drives prioritized reflex channels at 
+
+∼12 Hz for slip suppression, weight-adaptive release, and force protection. Each channel closes the loop directly on its proxy via noise-derived thresholds. Ablation demonstrates that only the full three-channel system is able to prevent irreversible container deformation (5/5 success vs. at most 1/5 for partial configurations). In a dynamic pouring task, fixed-effort base-lines fail in all 10 attempts due to pose drift, while TactileReflex achieves 9/10 success across two water volumes. As a self-contained and interpretable controller, TactileReflex can serve as a plug-and-play safety layer beneath high-level manipulation pipelines, including haptic-free VR teleoperation and vision-language-action (VLA) policies. 
+
+Index Terms — Vision-based tactile sensing, force-sensitive manipulation, slip detection, closed-loop grasp control, noise-statistics-based calibration 
+
+I. INTRODUCTION 
+
+Manipulating deformable containers (soft plastic cups, thin-walled bottles, flexible pouches) is a daily task for humans yet remains challenging for robots. Consider acommonplace disposable plastic cup: it weighs only 3.5–5 g, its wall is just 0.3–0.5 mm thick, it is transparent (offering minimal visual contrast for external cameras), and the margin between the minimum force needed to prevent slip and the force that permanently crushes the cup is remarkably narrow. Now fill it with water and pour: the shifting liquid continuously redistributes the gravitational load along the gripper fingers, demanding real-time effort modulation that fixed-effort or open-loop grasping cannot achieve. The core difficulty is that grasp stability and object safety are tightly coupled: insufficient effort leads to micro-slip and drop,   
+
+> 1Thrust of Robotics and Autonomous Systems, The Hong Kong Univer-sity of Science and Technology (Guangzhou), Guangzhou, China.
+> 2School of Mechanical Engineering, Shanghai Jiao Tong University, Shanghai, China.
+> ∗Corresponding author: Qiang Nie, qiangnie@hkust-gz.edu.cn .
+
+while only slightly more force causes irreversible deforma-tion. A practical grasp controller must therefore (1) detect and suppress incipient slip in real time, (2) reduce effort when the carried load decreases to prevent over-gripping, and (3) enforce a hard safety limit on contact force. The central challenge is ensuring grasp stability while preventing irreversible deformation during dynamic tasks. 
+
+Limitations of existing approaches. Force/torque sen-sors can provide continuous feedback for adaptive grasping, but typically require per-sensor calibration and are sensitive to mounting/compliance effects [1], [2]. Vision-based tactile sensors [3], [4] offer rich contact imagery that can address the perception side of this challenge, yet are typically used for binary slip classification [5] or as inputs to end-to-end learned policies [6], neither of which constitutes an effective control framework. Classification outputs only a discrete decision without specifying how much to adjust the grasp, while end-to-end policies, without interpretable intermediates, cannot impose transparent safety bounds. 
+
+Our approach. To bridge this gap, we propose a noise-statistics-based calibration-driven reflex control paradigm 
+
+for vision-based tactile sensing. A brief ( ∼2 min) static-hold-and-unload calibration captures the sensor’s intrinsic noise profile, from which percentile quantiles (e.g., P95 , P99 .9)automatically set all controller thresholds—eliminating trial-and-error manual tuning and any external force reference. This paradigm also clarifies how thresholds transfer across objects: some thresholds are robust to material/contact geom-etry, while the rest are re-derived by repeating the calibration on each new target, without modifying the controller. Instantiating this paradigm, we extract three interpretable image-level proxies—shear intensity Sy, contact intensity Fn,and center of pressure C—and close the loop directly , with-out intermediate classification or explicit force estimation. Embedding these signals in a prioritized reflex architecture yields a controller functionally analogous to the human grasp reflex [7]: fast, involuntary grip-force adjustments that stabilize the grasp independent of higher-level policies. 
+
+Contributions.  
+
+> •
+
+A noise-statistics-based calibration-driven reflex control paradigm with vision-based tactile sensing that derives all controller thresholds automatically from the sensor’s intrinsic noise statistics, requiring no external force sensor, no trial-and-error manual parameter tuning, and no material-specific physical models.  
+
+> •
+
+TactileReflex , an instantiation of this paradigm as a three-channel closed-loop controller (anti-slip / weight-
+
+> arXiv:2605.23568v1 [cs.RO] 22 May 2026
+
+adaptive release / force-protect) that operates at ∼12 Hz using only tactile images, with experimentally validated convergence behavior for each channel and robustness to severe left–right sensor asymmetry.  
+
+> •
+
+Systematic real-robot validation demonstrating: (i) cross-material calibration achieves 100% true-positive and 0% false-positive rates for slip detection; (ii) abla-tion confirms that only the full three-channel system is able to prevent irreversible container deformation (5/5 success vs. max 1/5); and (iii) a dynamic pouring task where fixed-effort baselines universally fail (0/10) while TactileReflex succeeds (9/10). 
+
+II. RELATED WORK 
+
+Gel-based optical tactile sensors (e.g., GelSight [3], DIGIT [4], GelSlim [8], MC-Tac [9]) provide dense contact geometry without per-taxel calibration. While typically ex-ploited for high-level perception [10], [11], [12] or binary slip classification via analytical [5], [13], [14] and learned [15], [16] methods, these paradigms often introduce perception– action latency. A smaller body of work explores tighter tactile servoing [17], [18], yet most evaluate detection accuracy in isolation without demonstrating closed-loop grasp stability under continuous dynamic loading. Building on this “control-first” philosophy, we bypass high-level feature extraction. Instead, we close the loop directly using three minimal image-level proxies ( Sy, Fn,C) and a noise-statistics-based calibration, eliminating the need for task-specific training or discrete slip detection. Classical force-adaptive grasping relies on F/T sen-sors [19], [20], which are sensitive to mounting compliance and challenging to calibrate for continuously deforming objects. Conversely, recent deformable-manipulation learn-ing frameworks and benchmarks [21], [22] advance data-driven control, while Vision-Language-Action (VLA) models (e.g., RT-2 [23], π0 [24]) produce end-to-end commands but lack built-in, hard contact-force guarantees. Even tactile-integrated VLAs like TaF-VLA [6] rely on the learned policy for force regulation. To bridge this gap, we design TactileReflex as a complementary, low-level reflex layer [25]. Analogous to human spinal reflexes [7], it uses tactile proxies as surrogate force signals to enforce explicit safety bounds. By intercepting gripper commands, it transparently enables grasp stability at ∼12 Hz beneath any high-level semantic planner. 
+
+III. SYSTEM OVERVIEW 
+
+Fig. 1 shows the overall architecture and hardware. The TactileReflex layer sits between a high-level policy (trajectory replay, teleoperation, or a learned planner) and the gripper hardware, intercepting gripper commands and applying real-time tactile corrections. 
+
+A. Hardware Platform 
+
+Our platform consists of a single-arm robot equipped with a Piper parallel gripper. Two MC-Tac vision-based tactile sensors [9] are mounted on opposing fingertips via custom 3D-printed adapters, each capturing 640 ×480 tactile images. To ensure measurement consistency, camera exposure and white balance are fixed during operation. 
+
+B. Software Architecture 
+
+The control loop is implemented in a single Python process running on a standard workstation. Each cycle performs the following steps sequentially: (i) capture a synchronized pair of tactile images, (ii) compute per-sensor proxies ( Fn, Sy, C)and EMA updates (Sec. IV-A), (iii) evaluate the reflex state machine (Sec. IV-B), and (iv) send the resulting effort and position commands to the gripper. The system operates at approximately 12 Hz, sufficient for real-time reflex control. 
+
+C. Applicability as a Transparent Safety Layer 
+
+Because TactileReflex operates entirely at the gripper level and exposes only a standard effort/position interface, it can be inserted beneath any high-level manipulation pipeline— fixed trajectories, learned policies, or teleoperation—without modifying the upstream planner. A representative use case is haptic-free VR teleoperation: standard controllers (e.g., Meta Quest 3) lack precise force feedback, making demonstrations on fragile objects prone to crushing. With TactileReflex enforcing contact-safety bounds locally, operators can col-lect high-quality dynamic manipulation data (e.g., pouring trajectories for deformable containers) without attending to low-level force constraints, thereby lowering the barrier to scalable demonstration collection for robot learning. 
+
+IV. METHOD 
+
+A. Image-Level Tactile Processing 
+
+Each MC-Tac sensor captures 640 ×480 grayscale images. Let It denote the image at time t and let Iref be a no-contact reference (computed during initialization and periodically updated during non-contact phases). Let u = ( x, y) denote pixel coordinates, with H=480 and W =640 being image height and width. The per-pixel difference is 
+
+∆It (u) = It (u) − Iref (u) . (1) Thresholding ∆It at noise floor τ (P98 , the 98th percentile of pixel noise; Sec. IV-C) followed by morphological opening yields a binary contact mask ˆBt and the contact support Ut =
+
+{u | ˆBt (u)= 1}; a frame is considered no-contact if |Ut | <
+
+Nmin , where Nmin denotes the minimum contact pixel count. The tactile weight is 
+
+Wt (u) = 
+
+(
+
+∆It (u)γ , u ∈ Ut ,
+
+0, otherwise , (2) where γ > 0 is a sensitivity exponent. Grayscale processing avoids spectral sensitivity to lighting changes; ∆It further cancels global brightness shifts and γ>1 suppresses residual noise, yielding robustness to ambient illumination. We compute three image-level proxies on each sensor ( s ∈{L, R}). 
+
+Normal-contact proxy. 
+
+Fraw ,sn (t) = 1
+
+HW ∑
+
+> u
+
+W st (u), (3) (a) System architecture 
+
+(b) Hardware and experiment setup 
+
+(c) Processed left and right tactile images 
+
+Fig. 1. System overview. (a) The TactileReflex layer sits beneath a high-level policy (VLA/teleop/trajectory), which provides the arm joint trajectory q(t)
+
+and a nominal grasp effort einit . It extracts three image-level proxies (shear intensity Sy, contact intensity Fn, center of pressure C) from dual MC-Tac sensors and feeds them into three prioritized reflex channels (anti-slip, release, force-protect) that jointly adjust gripper effort e and stroke position p. The anti-slip channel tightens the grasp by increasing e while decreasing p, whereas the release and force-protect channels loosen it by decreasing e while increasing 
+
+p; force-protect can override the other two channels. (b) Hardware and experiment setup with MC-Tac sensors on the Piper gripper. (c) Processed tactile images from the left and right finger sensors, showing proxy extraction and real-time monitoring. 
+
+where the superscript raw denotes the unfiltered instanta-neous reading (before the EMA smoothing introduced below) and s ∈ { L, R} indexes the left and right sensor. Fn is a dimensionless contact-intensity proxy, not an absolute force in Newtons. 
+
+Center of pressure (CoP). 
+
+Cst = ∑u W st (u) u
+
+∑u W st (u) . (4) Let Csy,t denote the vertical (gravity-aligned) component of 
+
+Cst . The mean vertical center of pressure across both sensors is: 
+
+ˆCy,t = 12
+
+ CLy,t +CRy,t
+
+. (5) This is computed only when both sensors detect valid contact (|U Lt | ≥ Nmin and |U Rt | ≥ Nmin ). 
+
+Shear/slip proxy. Using Farneback optical flow [26] 
+
+vst (u) = ( vx, vy) computed between consecutive frames: vst =
+
+Farneback (Ist−1, Ist ), where vst (u) is the optical flow vector at pixel u:
+
+Sraw ,sy (t) = median u∈U st vsy,t (u) . (6) The median is area-invariant: it remains robust even under severe left-right contact area asymmetry, maintaining a con-sistent noise floor (Sec. V-A.3), making the slip threshold θs
+
+(Sec. IV-C) robust to contact geometry. Selected channels undergo exponential moving average (EMA) smoothing: ˜xt = αxraw  
+
+> t
+
++ ( 1−α) ˜xt−1, and are ag-
+
+TABLE I 
+
+Signal processing pipeline for each reflex channel. Thresholds: θs
+
+(slip), θq (quiet shear), Flim (force limit). P95 /P99 .9: 95th/99.9th percentiles of static-hold noise. 
+
+Channel Signal Filtering Threshold Calibration Basis Anti-slip Sraw ,sy None θs Static/Slip Sraw 
+
+> y
+
+Release ˜Smax  
+
+> y
+
+EMA θq P95 (Sraw  
+
+> y
+
+)
+
+Protection ˜Fmax  
+
+> n
+
+EMA Flim P99 .9(Fraw  
+
+> n
+
+)
+
+gregated across sensors via element-wise maximum ( ˜Smax  
+
+> y
+
+,
+
+˜Fmax  
+
+> n
+
+). As Table I shows, anti-slip uses the raw signal to maintain responsiveness, while release and protection employ EMA-filtered signals to mitigate high-frequency noise. 
+
+B. Three-Channel Reflex Control 
+
+The system operates in three sequential states: Idle (grip-per open), Closing (stroke decreasing at fixed effort einit 
+
+until min (Fraw ,Ln , Fraw ,Rn ) ≥ Fstop ), where Fstop is the grasp-stop force threshold, and Holding (reflex control active). The three reflex channels described below are active only during Holding .
+
+Control variables and channel priority. We jointly control gripper effort et ∈ [einit , emax ] and stroke position 
+
+pt ∈ [pmin , phold ], where einit is the initial holding effort, emax 
+
+is the maximum effort limit, pmin is the minimum stroke position, and phold is the position when stable holding was first established. Each reflex channel adjusts both variables in a synergistic manner. R2 (anti-slip) and R3 (release) are mutually exclusive; at most one fires per cycle. R1 (force-protect) is evaluated independently after R2/R3 and can override their effects; when R1 co-triggers with R2, the net effort change is +∆eslip − ∆eprot , always yielding a decrease since ∆eprot > ∆eslip by design. 
+
+1) (R1) Force-Protect (Highest Priority): If ˜Fmax  
+
+> n
+
+> Flim :
+
+et+1 = max  e′ 
+
+> t
+
+− ∆eprot , einit 
+
+, (7) 
+
+pt+1 = min  p′ 
+
+> t
+
++ ∆pprot , phold 
+
+, (8) where e′ 
+
+> t
+
+, p′ 
+
+> t
+
+denote effort and position after any R2/R3 action in the same cycle. 
+
+2) (R2) Anti-Slip: Slip is detected per-sensor with contact gating: 
+
+slip s = 1|U st | ≥ Nmin 
+
+ · 1Sraw ,sy ≥ θs
+
+, s ∈ { L, R}. (9) If slip L ∨ slip R:
+
+et+1 = min  et + ∆eslip , emax 
+
+, (10) 
+
+pt+1 = max  pt − ∆pslip , pmin 
+
+, (11) subject to ∑ ∆ pslip ≤ ∆pmax , where ∆pmax is the maximum total stroke reduction to avoid excessive gripper tightening and irreversible container deformation. The contact gate prevents false triggers from non-contacting sensors. Using raw Sy preserves single-frame responsiveness. 
+
+3) (R3) Weight-Adaptive Release: We track the CoP ref-erence ¯Cy as a slowly varying baseline. Let ∆Cy,t = ˆCy,t − ¯Cy
+
+denote the CoP shift along the gravity-aligned axis. Release fires only when three preconditions hold: (i) dual contact on both sensors, (ii) CoP reference ¯Cy initialized and tracked, (iii) quiet shear ˜Smax  
+
+> y
+
+< θq.The CoP reference ¯Cy is maintained at two rates : 
+
+> •
+
+Background (every holding frame): ¯Cy ← (1−αbg ) ¯Cy +
+
+αbg ˆCy,t , αbg =0.02 , compensating slow sensor drift;  
+
+> •
+
+Release (only when R3 fires): ¯Cy ←(1−αrel ) ¯Cy +αrel ˆCy,t ,
+
+αrel =0.3, enabling convergence within 3–4 frames. If all preconditions hold and ∆Cy,t < θc:
+
+et+1 = max  et − ∆erel , einit 
+
+, (12) 
+
+pt+1 = min  pt + ∆prel , phold 
+
+. (13) 
+
+Closed-loop property. The fast CoP tracking drives ¯Cy
+
+toward ˆCy,t , shrinking |∆Cy,t | each frame until ∆Cy,t > θc and release halts automatically. Each channel applies fixed per-cycle increments 
+
+∆eslip , ∆eprot , ∆erel to effort and ∆pslip , ∆pprot , ∆prel to stroke position, with the design constraint ∆eprot > ∆eslip so that force-protect always yields a net effort decrease when co-triggering with anti-slip. Algorithm 1 summarizes the per-cycle control loop. 
+
+C. Noise-Statistics-Based Threshold Calibration 
+
+All controller thresholds are derived from a single, brief (∼2 min) static-hold-and-unload calibration that character-izes the sensor’s intrinsic noise profile, instantiating the 
+
+Algorithm 1 Tactile Reflex Control (per cycle, Holding 
+
+state) 
+
+Require: Tactile images ILt , IRt ; current effort e, position p 
+
+> 1:
+
+Compute proxies Fraw ,sn , Sraw ,sy , Cs for s ∈ { L, R} 
+
+> 2:
+
+Update EMA: ˜Fsn , ˜Ssy 
+
+> 3:
+
+Background CoP tracking: ¯Cy ← (1−αbg ) ¯Cy + αbg ˆCy,t 
+
+> 4:
+
+slip s ← 1[|U st | ≥ Nmin ] · 1[Sraw ,sy ≥ θs] for s ∈ { L, R} 
+
+> 5:
+
+if slip L ∨ slip R then  
+
+> 6:
+
+e ← min (e + ∆eslip , emax ) 
+
+> 7:
+
+p ← max (p − ∆pslip , pmin ) 
+
+> 8:
+
+else if dual contact ∧ ∆Cy,t < θc ∧ ˜Smax  
+
+> y
+
+< θq then  
+
+> 9:
+
+e ← max (e − ∆erel , einit ) 
+
+> 10:
+
+p ← min (p + ∆prel , phold ) 
+
+> 11:
+
+¯Cy ← (1−αrel ) ¯Cy + αrel ˆCy,t 
+
+> 12:
+
+end if  
+
+> 13:
+
+if ˜Fmax  
+
+> n
+
+> Flim then  
+
+> 14:
+
+e ← max (e − ∆eprot , einit ) 
+
+> 15:
+
+p ← min (p + ∆pprot , phold ) 
+
+> 16:
+
+end if  
+
+> 17:
+
+Send (p, e) to gripper noise-statistics-based paradigm introduced in Sec. I. Per-centile quantiles of the recorded proxy signals serve as principled decision boundaries: the noise floor τ = P98 (∆I),the quiet-shear threshold θq = P95 (Sraw  
+
+> y
+
+), the force protection limit Flim = P99 .9(Fraw  
+
+> n
+
+), and the slip threshold θs is placed by a conservative rule just above the noise ceiling to capture the weakest observed slip (100% TPR, 0% FPR on both test materials), where TPR = correctly detected slips / all actual slips and FPR = false alarms / all non-slip samples. The CoP threshold θc is derived from manual load-decrease events during the same protocol. As Table II summarizes, the resulting parameters separate into two groups: universal or near-universal parameters ( θs,
+
+θq, γ, α) whose values remain constant or nearly so across different objects, and material-dependent parameters ( Flim ,
+
+θc, Fstop ) that are automatically re-derived by repeating the same brief protocol on each new target object. This two-tier structure ensures that adapting the controller to an unseen object requires only re-running the calibration—no manual parameter search, no retraining, and no structural change. Because all thresholds originate from raw-signal statistics, which are inherently noisier than the EMA-filtered signals used at runtime, triggering is conservative by construction. 
+
+V. EXPERIMENTS 
+
+We evaluate TactileReflex through three experimental phases of increasing complexity: Phase 1 calibrates all thresholds and validates the three proxy signals on two materials; Phase 2 ablates each reflex channel to quantify its marginal contribution; and Phase 3 tests the full controller during a dynamic pouring task. We use the thresholds derived from Phase 1 calibration: slip threshold θs = 0.20 (universal), quiet-shear threshold TABLE II                                        
+
+> Threshold values and their generality across materials.
+> Parameter Symbol Soft Hard Generality Slip threshold θs0.20 0.20 ✓univ. Quiet threshold θq0.12 0.10 ≈univ. CoP decrease θc−10.0 px −3.5 px ×mat.-dep. Protection limit Flim 45 100 ×mat.-dep. Grasp-stop Fstop 1.3 5.5 ×mat.-dep. Weight exponent γ1.5 1.5 ✓univ. EMA coefficient α0.3 0.3 ✓univ.
+
+θq = 0.12 /0.10 (soft/hard cup), force protection limit Flim =
+
+45 /100 (soft/hard cup), and CoP release threshold θc =
+
+−10 .0/−3.5 px (soft/hard cup). See Table II in Sec. IV-C for complete parameter values. 
+
+A. Phase 1: Threshold Calibration and Signal Validation 
+
+Phase 1 executes the noise-statistics-based calibration protocol described in Sec. IV-C, deriving all controller thresholds from the sensor’s intrinsic noise profile on two contrasting materials. 
+
+1) Experimental Protocol: We use two contrasting cups: (i) a soft cup (disposable plastic, 3.5–5 g, 0.3–0.5 mm wall, highly compliant with narrow safe-force margin) and (ii) a 
+
+hard cup (rigid 100 mL measuring cup, negligible deforma-tion). The full trial set comprises 19 trials ( ∼20 000 frames) across both materials in three progressively complex experi-ments: Exp. 1 (static holding) establishes the noise baseline; 
+
+Exp. 2 (liftoff, support → unsupported) produces slip events; and Exp. 3 (manual push + press-release) produces shear and load-decrease events. 
+
+2) Signal Characterization and Threshold Derivation: 
+
+Exp. 1: Material-insensitive noise floor. Static holding trials (6 477 frames across both materials) establish the noise floor of each proxy. Sy noise P95 is 0.08–0.11 (soft) and 
+
+∼0.08 (hard), nearly identical despite 3–4 × differences in Fn,confirming that the median optical-flow statistic is material-insensitive. This supports θq=0.12 (soft) / 0.10 (hard). Fn
+
+exhibits strong L/R asymmetry (up to 10 ×) reflecting contact geometry; P99 .9 yields Flim =45 (soft) and 100 (hard). 
+
+Exp. 2: Universal slip threshold (100% TPR, 0% FPR). 
+
+Removing the support block transfers the object weight to the gripper, producing a transient Sy spike. Across both materials (7 trials, 18 slip events), Sy peaks range from 0.204 to 0.77, yielding 2.4 × separation (minimum peak / noise P95 ;Table III) to 6.9 × at maximum peak. The anti-slip reflex responded within ∼170–340 ms in every trial, preventing ob-ject drop (Fig. 2). We set the slip threshold by a conservative rule: P99 .9(Snoise  
+
+> y
+
+) ≤ θs ≤ Smin -slip  
+
+> y
+
+, where Snoise  
+
+> y
+
+is computed from Exp. 1 static-hold frames. The threshold is placed just above the no-motion noise ceiling while still at or below the weakest observed slip across both materials, ensuring 0% FPR and 100% TPR simultaneously. In our data, Smin -slip  
+
+> y
+
+=
+
+0.2006 (a minimal hard-cup push) and P99 .9(Snoise  
+
+> y
+
+) < 0.20 ,so we use θs = 0.20 . Across ≥100 slip events and ∼6 500 static frames on both materials, this threshold yields 100% TPR and 0% FPR with the ≥ criterion in Eq. (9).                                      
+
+> TABLE III
+> Synoise–slip separation. θs=0.20 : 100% TPR, 0% FPR. SNR denotes the separation ratio (slip min / noise P95 ).
+> Source Noise P95 Slip (min) SNR N
+> Soft Exp. 1 0.112 ———Soft liftoff —0.429 3.8 ×11 Soft push —0.207 —≥55 Hard Exp. 1 0.083 ———Hard liftoff —0.204 2.4 ×7Hard push —0.201 —45
+> Fig. 2. Exp. 2 liftoff trial (soft cup). Upon liftoff, Syspikes above θs,triggering three successive anti-slip responses that raise effort from 1 200 to 2 100 within ∼0.34 s.
+
+Exp. 3: θs cross-validated; θc per-material. Manual pushes add 45 slip events on the hard cup ( Sy peaks 0.201– 1.45, all ≥ θs). Press-release trials test the CoP channel: ∆Cy
+
+clusters at −3.0 to −3.6 px on the hard cup and −10 to 
+
+−29 px on the soft cup, motivating θc=−3.5 and −10 .0 px respectively. The 3–8 × difference in |θc| confirms that θc
+
+requires per-material calibration while θs does not. 
+
+3) Cross-Material Comparison and L/R Asymmetry: 
+
+Table IV summarizes the cross-material and L/R sensor asymmetry findings from Phase 1. L/R sensor asymmetry reaches 7–10 × in Fn and 6–8 × in contact area on the soft cup, yet Sy noise remains ∼1× on both sides (Eq. (6)), confirming that θs generalizes across asymmetric contacts without adjustment. 
+
+B. Phase 2: Ablation Study — Three-Channel Necessity 1) Setup and Metrics: To quantify the marginal contribu-tion of each reflex channel, we perform a systematic ablation with four controller configurations (Table V). The soft cup is chosen because its narrow safe-force margin makes de-formation, rather than drop, the discriminating failure mode. Each trial follows a standardized protocol: grasp → liftoff 
+
+→ pull downward → press-release → push sideways. We TABLE IV                                                                                  
+
+> Cross-material comparison and L/R asymmetry robustness. Syis material-insensitive and area-invariant despite up to 10 ×L/R asymmetry; Fn, CoP require per-material Flim ,θc.
+> Metric Soft cup Hard cup Ratio Note
+> Noise (Exp. 1 static holding)
+> SyP95 .08–.11 .08–.08 ∼1×material-insens.
+> Fn2–27 18–89 3–4 ×stiffness-sens.
+> Event response
+> Liftoff Sypeak 0.43–0.77 0.20–0.63 —comparable Release |∆Cy|10–29 px 3.0–3.6 px 3–8 ×per-material θc
+> L/R sensor asymmetry (dominant / non-dominant)
+> FnL/R 7–10 ×3–4 ×—geometry-dep. Contact area 6–8 ×2–3 ×—geometry-dep.
+> Synoise ∼1×∼1×—area-invariant
+> TABLE V
+> Ablation configurations and results (soft cup, N=5/config). Only D achieves 5/5 success.
+> Config Slip Rel. Prot. Nslip Fpeak
+> n∆eSuccess
+> A: Sy-only ✓××43 .7±10 .063 .0±12 .63800 ±00/5 B: Sy+Prot. ✓×✓48 .3±6.170 .4±17 .21367 ±1457 0/5 C: Sy+Rel. ✓✓×49 .7±14 .670 .5±6.93600 ±346 1/5 D: Full ✓✓✓40 .3±4.767 .3±6.6667 ±1155 5/5
+
+record drop (0/1) and irreversible deformation (0/1, defined as failure to self-recover upon release or creating spillage risk); success requires both = 0. Metrics: Nslip (slip events), 
+
+Fpeak  
+
+> n
+
+(peak contact intensity), ∆e (observed effort range). 
+
+2) Results and Analysis: Table V summarizes the perfor-mance across 20 total trials ( N=5 per configuration). All four configurations achieved 0% drop rate (0/20 drops), confirm-ing that the base anti-slip channel reliably prevents object loss. However, only the full three-channel configuration D achieved 100% success (5/5, no irreversible deformation). Config C (Sy+Release) achieved 1/5 in a trial where per-turbation magnitudes happened to remain low enough for 
+
+Release to recover effort despite the absence of Protect ;configs A and B failed in every trial. 
+
+Config A (Sy-only): effort peaks and never decreases. 
+
+Effort climbs monotonically to emax =5 000 and remains locked there for the rest of the trial ( ∆e=3800 in every trial; Fig. 3, column A). Without Release or Protect , no mechanism exists to reduce the accumulated effort once the perturbation subsides, and the cup irreversibly deforms under sustained over-gripping. 
+
+Config B (Sy+Protect): large-amplitude oscillation, re-active only at Flim . Protect intervenes only after ˜Fmax 
+
+> n
+
+exceeds Flim , producing a characteristic effort sawtooth with large swings ( +300 per anti-slip step, −400 per Protect 
+
+step; Fig. 3, column B). Because the correction engages 1– 2 frames late and nothing drains effort between spikes, Fn
+
+peaks ( 70 .4±17 .2) repeatedly overshoot the limit and still cause irreversible deformation. 
+
+Config C (Sy+Release): small, infrequent adjustment with no force protection. Release only fires when shear is quiet ( ˜Smax  
+
+> y
+
+<θq), yet at high effort residual shear keeps this precondition blocked— Release triggers only 4.7
+
+times vs. 9.3 in D, producing negligible effort reduction (∆e=3600 ±346 ; Fig. 3, column C). Without Protect , Fn
+
+peaks go entirely unchecked: there is no force ceiling to limit contact force, and the cup irreversibly deforms. 
+
+Config D (Full): timely adjustment with prompt force protection. All three channels cooperate (Fig. 3, column D): when Fn approaches Flim , Protect fires promptly, capping force and reducing effort; the resulting drop in Sy satisfies the quiet-shear precondition, enabling Release to detect CoP-based load decreases and further drain effort. Effort recovers to near-initial levels ( ∆e=667 ±1155 ), making this the only configuration achieving 5/5 success. 
+
+Summary. Each channel addresses a distinct failure mode: anti-slip prevents drop (all configs achieve 0% drop rate); Protect caps force peaks but cannot actively drain accumulated effort (B still deforms); Release can drain effort but needs the quiet conditions that only Protect 
+
+can create (C rarely fires). Only their combination reliably prevents irreversible deformation (Fisher exact test: config D 5/5 vs. pooled A/B/C 1/15, p<0.001 ). 
+
+C. Phase 3: Dynamic Pouring Task 
+
+Pouring from a disposable plastic cup is a particularly demanding test: the shifting liquid continuously redistributes the gravitational load, leaving almost no static operating point. We deliberately use the compliant soft cup to stress-test the reflex layer under realistic conditions. 
+
+1) Trajectory: Trajectories via kinesthetic teaching (lift →
+
+tilt → pour → return). 
+
+2) Experimental Conditions: We test two water volume conditions: Low (45 ml, ∼1/3 cup) and High (90 ml, ∼3/4 cup) , with 5 trials per configuration. Both groups share an 
+
+identical grasping phase : the reflex controller closes the gripper and stabilizes in Holding for 2 s, after which the steady-state effort egrasp and position pgrasp are recorded. The two conditions then diverge:  
+
+> •
+
+No reflex (baseline): replay q(t) with gripper frozen at (egrasp , pgrasp ). Tactile signals are still logged but no gripper adjustments are made;  
+
+> •
+
+With reflex (config D): replay the same q(t) while TactileReflex adjusts effort and position in real time. This design ensures the baseline effort is not an arbitrary constant but the controller’s own optimal static-hold output for each specific cup and water volume, providing the fairest possible comparison. 
+
+3) Metrics: From the execution phase of each trial we extract:  
+
+> •
+
+Pour success : water enters the target container and the cup is neither dropped nor irreversibly deformed (binary, per trial);  
+
+> •
+
+Slip fraction : percentage of execution-phase frames in which Sraw  
+
+> y
+
+≥ θs (for reflex-off trials these are logged as 
+
+FROZEN SLIP );  
+
+> •
+
+Effort range ∆e: difference between observed maxi-mum and minimum effort during the pour ( ∆e=0 for the frozen baseline); Fig. 3. Ablation time-series (soft cup). A (Sy-only): effort saturates at emax . B (Sy+Protect): effort sawtooth oscillation. C (Sy+Release): release rarely fires. D (Full): all three channels active, effort recovers. TABLE VI                                     
+
+> Pouring results: no reflex (frozen effort) vs. reflex (config D). Values are mean ±s.d. across trials. Min FLnis omitted for the reflex-on condition as the controller maintains continuous contact on both sensors throughout.
+> Condition Reflex Success Slip % ∆eSpeak
+> ymin FLn
+> Low (45 ml) OFF 0/5 42 ±4%02.5±0.50.18 ±0.07
+> ON 5/5 35 ±4%3700 ±141 1.8±0.4—High (90 ml) OFF 0/5 63 ±1%03.4±0.70.33 ±0.06
+> ON 4/5 42 ±5%3725 ±150 3.3±0.7—
+> •
+
+Peak shear Speak  
+
+> y
+
+and min FLn (weaker side), indicating slip severity and proximity to contact loss. 
+
+4) Results and Analysis: Table VI summarizes the pour-ing results. The outcome is clear: every no-reflex trial failed to pour water (0/10), while the reflex controller achieved 9/10 success (5/5 at 45 ml, 4/5 at 90 ml). 
+
+Failure mode: pose drift, not drop. The cup was never dropped in any no-reflex trial. Instead, with frozen effort, the cup continuously slid within the gripper , progressively tilting until its mouth no longer aligned with the target (Fig. 4, left). This pose-drift failure is arguably more representative of real-world manipulation than catastrophic drop, because the object is still “held” yet the task goal cannot be achieved. 
+
+Slip fraction scales with water volume. Frozen-effort slip fraction rose from 42 ±4% (45 ml) to 63 ±1% (90 ml), because heavier water increases the gravitational torque during tilting. At 90 ml, L/R force asymmetry exceeded 90 ×,indicating the cup was nearly held by one fingertip alone. 
+
+Reflex suppresses slip and maintains pose. With the reflex active, the controller increased effort from the frozen baseline ( ∼1 200) to 4 200–5 000 and tightened the grip by ∼3 mm over the course of the trajectory. Slip fraction dropped from 42% to 35% at 45 ml and from 63% to 42% at 90 ml. Peak shear ( Speak  
+
+> y
+
+) was also reduced at 45 ml (from 2.5 to 1.8), indicating that the closed-loop response actively dampened slip transients rather than merely tolerating them. At 90 ml, peak shear remained similar between groups (3.4 vs. 3.3) because the gravitational torque is too large to fully suppress, but the reflex’s continuous effort adaptation kept the cup oriented correctly in 4 of 5 trials (Fig. 4, right). The single failure occurred when the cup’s initial placement was slightly off-center, causing an early slip cascade that exceeded the controller’s effort headroom ( emax =5 000 ). 
+
+Three-channel synergy. At 90 ml, one reflex-on trial triggered Protect for the first time in Phase 3 ( Fpeak  
+
+> n
+
+=57 .9 >
+
+Flim =45 ), demonstrating all three channels operating in con-cert during a real dynamic task, consistent with the synergy identified in Phase 2 (Sec. V-B). 
+
+Frozen effort is statically optimal but dynamically insufficient. The frozen-effort baseline uses the controller’s own steady-state output, not an arbitrary constant; its univer-sal failure (0/10; Fisher exact test vs. reflex 9/10: p<0.001 )shows that tilting induces time-varying gravitational torque requiring real-time closed-loop adaptation. 
+
+VI. DISCUSSION AND CONCLUSION 
+
+We proposed a noise-statistics-based closed-loop reflex control paradigm for vision-tactile sensing and instantiated Fig. 4. Pouring task comparison (45 ml, slow). Left: without reflex, the cup continuously slid within the gripper during arm motion, drifting to an orientation where the cup mouth no longer faces the target container; water cannot be poured despite the arm reaching the correct tilt angle. Right: 
+
+with reflex, anti-slip maintains the cup’s orientation throughout the tilting motion; water is successfully poured into the container. 
+
+it as TactileReflex. By automatically deriving all thresholds from intrinsic sensor noise via a brief 2-minute calibration, it eliminates manual tuning, external force calibration, and task-specific training. Operating at ∼12 Hz, this prioritized three-channel controller (anti-slip, release, force-protect) achieves fast, stable grasping. Experiments confirm the cross-material universality of our area-invariant slip metric ( Sy) and the strict necessity of all three channels operating in synergy to prevent irreversible deformation during dynamic tasks, where fixed-effort baselines categorically fail. As a plug-and-play safety layer, TactileReflex integrates seamlessly beneath fixed trajectories, learned policies, and VR teleoperation. By locally enforcing safety bounds, it enables scalable, haptic-free demonstration collection for fragile objects. 
+
+Limitations and Future Work. Limitations include a gripper-centric scope and grayscale-only processing (chosen for lighting robustness and efficiency, but forgoing RGB in-formation). Future work will exploit full-color tactile images, explore broader material sets—leveraging the self-calibrating thresholds—extend to arm-level reflexes, and integrate di-rectly with VLA policies [23], [24]. 
+
+References 
+
+[1] F. J. Andrade Chavez, S. Traversaro, and D. Pucci, “Six-axis force torque sensor model-based in situ calibration method and its impact in floating-based robot dynamic performance,” Sensors , vol. 19, no. 24, p. 5521, 2019. [2] FAQ – Force/Torque Sensors , ATI Industrial Automation, 2020. [3] W. Yuan, S. Dong, and E. H. Adelson, “GelSight: High-resolution robot tactile sensors for estimating geometry and force,” Sensors ,vol. 17, no. 12, p. 2762, 2017. [4] M. Lambeta, P.-W. Chou, S. Tian, B. Yang, B. Maloon, V. R. Most, D. Stroud, R. Santos, A. Byagowi, G. Kammerer, et al. , “DIGIT: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation,” IEEE Robotics and Automation Letters , vol. 5, no. 3, pp. 3838–3845, 2020. [5] S. Dong, D. Ma, E. Donlon, and A. Rodriguez, “Maintaining grasps within slipping bounds by monitoring incipient slip,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2019, pp. 3818–3824. [6] J. Huang, S. Wang, F. Lin, Y. Hu, C. Wen, and Y. Gao, “Tactile-VLA: Unlocking vision-language-action model’s physical knowledge for tactile generalization,” 2025, arXiv:2507.09160. [7] R. S. Johansson and G. Westling, “Roles of glabrous skin receptors and sensorimotor memory in automatic control of precision grip when lifting rougher or more slippery objects,” Exp Brain Res , vol. 56, no. 3, pp. 550–564, 1984. [8] E. Donlon, S. Dong, M. Liu, J. Li, E. Adelson, and A. Rodriguez, “GelSlim: A high-resolution, compact, robust, and calibrated tactile-sensing finger,” in Proc. IEEE/RSJ Int. Conf. Intell. Robots Syst. (IROS) , 2018, pp. 1927–1934. [9] J. Ren, J. Zou, and G. Gu, “MC-Tac: Modular camera-based tactile sensor for robot gripper,” in Int. Conf. Intell. Robot. Appl. (ICIRA) ,2023, pp. 169–179. [10] R. Li, R. Platt, W. Yuan, A. ten Pas, N. Roscup, M. A. Srinivasan, and E. Adelson, “Localization and manipulation of small parts using GelSight tactile sensing,” in Proc. IEEE/RSJ Int. Conf. Intell. Robots Syst. (IROS) , 2014, pp. 3988–3993. [11] M. Bauza, A. Bronars, and A. Rodriguez, “Tac2pose: Tactile object pose estimation from the first touch,” The International Journal of Robotics Research , vol. 42, no. 13, pp. 1185–1209, 2023. [12] R. Calandra, A. Owens, D. Jayaraman, J. Lin, W. Yuan, J. Malik, E. H. Adelson, and S. Levine, “More than a feeling: Learning to grasp and regrasp using vision and touch,” IEEE Robotics and Automation Letters , vol. 3, no. 4, pp. 3300–3307, 2018. [13] J. W. James, N. Pestell, and N. F. Lepora, “Slip detection with a biomimetic tactile sensor,” IEEE Robotics and Automation Letters ,vol. 3, no. 4, pp. 3340–3346, 2018. [14] Z. Su, K. Hausman, Y. Chebotar, A. Molchanov, G. E. Loeb, G. S. Sukhatme, and S. Schaal, “Force estimation and slip detec-tion/classification for grip control using a biomimetic tactile sensor,” in Proc. IEEE-RAS Int. Conf. Humanoid Robots , 2015, pp. 297–303. [15] J. Li, S. Dong, and E. Adelson, “Slip detection with combined tactile and visual information,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2018, pp. 7772–7777. [16] R. Calandra, A. Owens, M. Upadhyaya, W. Yuan, J. Lin, E. H. Adelson, and S. Levine, “The feeling of success: Does touch sensing help predict grasp outcomes?” 2017, arXiv:1710.05512. [17] F. Veiga, H. van Hoof, J. Peters, and T. Hermans, “Stabilizing novel objects by learning to predict tactile slip,” in Proc. IEEE/RSJ Int. Conf. Intell. Robots Syst. (IROS) , 2015, pp. 5065–5072. [18] F. R. Hogan, M. Bauza, O. Canal, E. Donlon, and A. Rodriguez, “Tac-tile regrasp: Grasp adjustments via simulated tactile transformations,” in Proc. IEEE/RSJ Int. Conf. Intell. Robots Syst. (IROS) , 2018, pp. 2963–2970. [19] J. M. Romano, K. Hsiao, G. Niemeyer, S. Chitta, and K. J. Kuchen-becker, “Human-inspired robotic grasp control with tactile sensing,” 
+
+IEEE Transactions on Robotics , vol. 27, no. 6, pp. 1067–1079, 2011. [20] N. C. Dafle, A. Rodriguez, R. Paolini, B. Tang, S. S. Srinivasa, M. Erdmann, M. T. Mason, I. Lundberg, H. Staab, and T. Fuhlbrigge, “Extrinsic dexterity: In-hand manipulation with external forces,” in 
+
+Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2014, pp. 1578–1585. [21] D. Seita, P. Florence, J. Tompson, E. Coumans, V. Sindhwani, K. Gold-berg, and A. Zeng, “Learning to rearrange deformable cables, fabrics, and bags with goal-conditioned transporter networks,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2021, pp. 4568–4575. [22] X. Lin, Y. Wang, J. Olkin, and D. Held, “SoftGym: Benchmarking deep reinforcement learning for deformable object manipulation,” in 
+
+Proc. Conf. Robot Learn. (CoRL) , 2021, pp. 432–448. [23] A. Brohan, N. Brown, J. Carbajal, Y. Chebotar, X. Chen, K. Choro-manski, et al. , “RT-2: Vision-language-action models transfer web knowledge to robotic control,” 2023, arXiv:2307.15818. [24] K. Black, N. Brown, D. Driess, A. Esmail, M. Equi, C. Finn, et al. ,“π0: A vision-language-action flow model for general robot control,” 2024, arXiv:2410.24164. [25] P. Liu, H. Bou-Ammar, J. Peters, and D. Tateo, “Safe reinforcement learning on the constraint manifold: Theory and applications,” IEEE Transactions on Robotics , vol. 41, pp. 3442–3461, 2025. [26] G. Farneb¨ ack, “Two-frame motion estimation based on polynomial expansion,” in Image Analysis , 2003, pp. 363–370.

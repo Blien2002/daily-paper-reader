@@ -1,0 +1,463 @@
+Title: HapticLDM: A Diffusion Model for Text-to-Vibrotactile Generation
+
+URL Source: https://arxiv.org/pdf/2605.09971v1
+
+Published Time: Tue, 12 May 2026 02:05:25 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> 1
+
+# HapticLDM: A Diffusion Model for Text-to-Vibrotactile Generation 
+
+Jiahao Xiong ∗, Fei Wang ∗#, Anran Xu, Pinzhi Huang, Tao Wen, Lijia Pan, and Cai Chen #
+
+Abstract —Text-to-vibration generation converts natural lan-guage into haptic feedback, enabling vibration-effect designers to get scenarios-fitted vibrations more efficiently, which shows great potentials in application fields such as metaverse, games, and film to enrich the user experience in interactive scenarios. The core challenge in this field is how to generate accurate, consistent, and complete vibrations according to textual semantics. Very recent autoregressive (AR) approaches (e.g., HapticGen) exhibit limited capacity in fully capturing global dependencies, owing to the inherent sequential nature of their modeling and prevailing data constraints. In this paper, we proposed HapticLDM, the first text-to-vibration generative model built upon Latent Diffusion Models (LDMs). Firstly, with respect to the data, we introduced a text-processing strategy that emphasizes dynamic characteristics to curate high-quality data pairs for fine-grained dynamic modeling. Secondly, HapticLDM incorporates a global denoising mecha-nism that regulates coherent and stable variations in the tem-poral envelope. Furthermore, we conduct extensive evaluations, including A/B testing against the state-of-the-art baseline and a user study involving 30 participants. The results demonstrate that our model enhances realism and semantic alignment. Qualitative feedback further indicates that HapticLDM simplifies the haptic design workflow while generating diverse, subtle, and physically precise vibrations. 
+
+Index Terms —Text-to-Vibration Generation, Latent Diffusion Models, Haptic Feedback Generation, Multimodal Generative Modeling 
+
+I. I NTRODUCTION 
+
+Vibrotactile feedback plays a critical role in immersive user experiences, enhancing engagement in virtual reality (VR), gaming, films, and assistive technologies [1]–[4]. However, designing high-fidelity haptic effects remains a complex and labor-intensive endeavor. It demands specialized expertise, extensive practical experience and iterative refinement [5], [6], resulting in a high entry barrier for novice designers and limited design efficiency. Traditional design workflows predominantly rely on manual editing tools to create tactile effects by adjusting parameters such as amplitude, temporal intervals, and frequency [7]–[9]. 
+
+This work was supported by Guangdong Provincial R&D Program in Key Areas under Grant 2023B0101200011. Jiahao Xiong and Fei Wang contributed equally to this work. Jiahao Xiong, Fei Wang and Cai Chen are with Technology Develop-ment Center, Guangzhou Shiyuan Electronic Technology Company Limited, Guangzhou 510535, China. Anran Xu and Tao Wen are with School of Automation and Intelligence, Beijing Jiaotong University, Beijing 100044, China. Pinzhi Huang is with Department of Architecture, University of California, Berkeley, Berkeley, CA 94720, USA Lijia Pan is with School of Electronic Science and Engineering, Nanjing University, Nanjing 210093, China. Corresponding authors: Fei Wang (wangfei8398@cvte.com) and Cai Chen (chencai@cvte.com). 
+
+Commercial platforms, such as AAC Technologies’ RichTap Studio [10], provide parameterized control over signal proper-ties, including amplitude envelopes and spectral components — facilitating iterative composition of vibrotactile patterns. While these toolkits are functional, these approaches are largely experience-driven and require substantial expertise [5]. Existing libraries of predefined vibration patterns further sup-port design through reuse and modification [11], [12]. How-ever, prior research underscores significant limitations: design creativity is constrained by tool capabilities, and producing high-quality haptic signals still depends on expert knowledge, intuition, and exhaustive trials and errors [5], [8], [13]. To mitigate these barriers, recent research has increasingly focused on cross-modal transformation and generation. Given the inherent perceptual coupling between auditory and tactile senses, audio has long been used as a primary proxy for haptic design. Okazaki et al. [14] demonstrated that frequency-shifting techniques can enhance musical experiences via audio-to-tactile conversion. More recently, Zhan et al. [15] proposed a Residual U-Net for audio-to-tactile generation. In industry, Meta introduced audio-to-vibration functionality in Meta Hap-tic Studio [16], while Sony leveraged audio-driven processing to deliver high-fidelity haptic feedback in the DualSense con-troller [17]. However, despite their efficacy, these approaches are fundamentally constrained by their reliance on pre-existing audio inputs, lacking the capability to directly generate haptic signals from high-level textual descriptions. HapticGen [18] addresses this limitation by introducing text-to-vibration generation using a generative model. It en-ables natural language-driven haptic content creation, signif-icantly improving accessibility and efficiency. Its key contri-butions include constructing a large-scale haptic dataset from audio sources and employing an Autoregressive (AR) model for waveform generation. However, limitations remain in both data construction and model design. HapticGen builds its dataset using Large Lan-guage Model (LLM)-based haptic label augmentation and audio-to-haptic conversion. Since LLM-generated descriptions are guided by linguistic priors rather than signal-level temporal characteristics [19], inconsistencies may arise between textual annotations and actual vibration patterns. Such discrepancies, potentially caused by semantic hallucination [19], introduce noise during training. From a modeling perspective, AR generation is inher-ently constrained by its sequential prediction mechanism [20]. Neuroscience studies indicate that perception of mid-to high frequency vibrations (40–400 Hz) is governed primarily by temporal structure encoding rather than instantaneous ampli-  
+
+> arXiv:2605.09971v1 [cs.HC] 11 May 2026 2Prompt :Riding a horse galloping
+> on hard ground
+> Action-Related Descriptions
+
+# HapticLDM    
+
+> Text-to-Vibration Model
+> Training Datasets
+> Pretraining
+> Audio-to-Haptic
+> Conversion Filter & Rewrite Processed
+> Data
+> Training Strategy
+> Supervised
+> Fine-Tuning
+> Direct Preference
+> Optimization
+> All Data
+> Sources
+> input
+> output
+> play
+> Fig. 1. Overview of HapticLDM. A text prompt is initially provided as input. A corresponding vibration signal is then generated using HapticLDM. Output vibrations are displayed on a desktop-based user interface. Finally, generated vibrations are evaluated by designers through playback on VR controllers.
+
+tude [21], [22]. Thus, temporal dynamics—such as rhythmic patterns and envelope variations—serve as the primary carriers of haptic semantics [23]. However, AR models lack ex-plicit mechanisms to capture such global temporal structures, making it difficult to generate coherent long-range patterns. Consequently, generated signals tend to be repetitive or overly uniform [24]. Furthermore, since each prediction depends on previously generated outputs, errors accumulate over time [25], further degrading modal alignment. Therefore, both the data construction process and the generative model remain inadequate to achieve effective modal alignment, required in cross-modal generation [26]–[28]. To improve cross-modal alignment in text-to-vibration gen-eration, we propose the Haptic Latent Diffusion Model (Hap-ticLDM) (Fig. 1). First, to mitigate mismatches between converted signals and textual descriptions, we develop an automated data processing pipeline that emphasizes tactile-relevant characteristics and filters out invalid samples. Com-pared with the LLaMA-3-8B model used in HapticGen [29], we adopt the larger Qwen2.5-32B model [30] to enable more accurate extraction and reconstruction of semantics related to temporal dynamics from the raw text. This process removes irrelevant content and rewrites subjective expressions into neutral, vibration-oriented descriptions. As a result, temporal structures can be represented more precisely, improving cross-modal consistency. Second, to better model temporal structure, we introduce Latent Diffusion Models (LDMs) for vibrotactile generation, allowing for the generation of 10-second vibration sequences directly from textual input. To the best of our knowledge, this is the first application of LDMs to haptic signal generation. Our approach adapts the Stable Audio architecture [31] to the haptic domain. The global denoising process in latent space aligns naturally with the dependence of vibration signals on global envelope evolution. By modeling signal envelopes holistically, rather than relying on point-wise autoregressive prediction, HapticLDM achieves stronger temporal coherence and physical continuity over long sequences. We evaluate our method using VR controllers from Meta Quest 3 [32], conducting both user studies and A/B testing on this platform. In summary, the contributions of this work are as follows:  
+
+> •
+
+Dataset Construction: We propose an automated data processing pipeline that enhances tactile-relevant charac-teristics in the dataset. Through filtering and objective rewriting, textual descriptions are transformed into neu-tral, vibration-oriented representations, reducing cross-modal inconsistencies and improving training quality.  
+
+> •
+
+Generative Method: We introduce HapticLDM, the first latent diffusion framework for haptic signal generation. The model outperforms in global temporal structure gen-eration. Its superiority in immersive haptic generation was also demonstrated in following. II. R ELATED WORK 
+
+A. Haptic Dataset Development and Augmentation 
+
+Compared with text-to-image and text-to-audio generation, text-to-vibration generation is constrained by the lack of large-scale datasets [18]. Existing vibration datasets are limited in scale, annotation richness, and task relevance. Early vibrotac-tile libraries, such as VibViz [12] and Feel Effects [33], provide only a small number of signals with tags or ratings. While use-ful for browsing and perceptual analysis, they are insufficient for training modern text-conditioned generative models. Many datasets also focus on textures and material properties, such as the LMT haptic texture database [34] and the Penn Haptic Texture Toolkit [35]. These datasets cover only a limited range of vibrotactile patterns required in interactive applications. 3
+
+In addition, RecHap [36] augments a small set of mid-air ultrasound haptic signals through geometric transformations. However, this approach targets a different haptic modality and provides limited semantic diversity for text-to-vibration tasks. Recent work has begun to address the lack of textual annotations for vibration signals. HapticCap [37] introduced the first large-scale, fully human-annotated vibration-caption dataset, significantly enriching the language component of haptic data. However, it is primarily designed for caption retrieval and understanding rather than generation. Moreover, constructing such datasets is time-consuming and costly, as users must physically experience each signal before anno-tation. This process is further complicated by the lack of standardized vocabulary for vibration description [38] and the difficulty of interpreting haptic signals without contextual cues [39]. To address these challenges, HapticGen [18] proposed a cross-modal bootstrapping strategy. Instead of relying on a large text-vibration corpus, it converts the captioned audio dataset WavCaps [40] into vibration signals and augments captions with haptic-oriented descriptions using an LLM [29]. This approach effectively expands the training data and en-ables large-scale text-to-vibration generation. HapticGen also introduces expert- and user-preference datasets to improve alignment. However, the augmented texts are still derived from audio captions and LLM-generated descriptions, rather than grounded in the actual temporal dynamics of vibration signals. As a result, textual descriptions may include temporal details that are not reflected in the corresponding signals. For example, when HapticGen utilizes an LLM for text augmen-tation with the system prompt, “Write a tactile expression description sentence in third person perspective action”, an original audio caption such as “A thunderstorm is happening.” is expanded into: “The air vibrates with intense tremors as the thunderstorm rages on, the ground shuddering beneath her feet with each deafening crack of thunder.” This augmented description introduces highly specific, synchronized temporal events (e.g., ”the ground shuddering beneath her feet with each deafening crack of thunder”) that the corresponding vibration signal cannot guarantee to accurately reflect. This limitation indicates that the challenge lies not only in data scarcity but also in the lack of accurately aligned text-signal pairs. Motivated by this observation, our work emphasizes filtering and rewriting textual descriptions to better reflect vibration-oriented characteristics. “A thunderstorm is happening.” 
+
+B. Generative Paradigms for Physical Signal Generation 
+
+Early approaches to physical signal generation were pri-marily based on variational autoencoders (VAEs) [41] and generative adversarial networks (GANs) [42]. These models provided initial solutions for signal reconstruction and syn-thesis. However, their ability to model complex cross-modal sequences remains limited. In particular, when long-range temporal dependencies and fine-grained semantic control are required, these methods struggle to maintain both generation quality and semantic consistency [43]–[46]. With the rapid development of text-conditioned generation, more effective paradigms have emerged for signal synthesis. Take text-to-audio generation [47] for example. Two repre-sentative routes have emerged. The first is based on autore-gressive (AR) modeling over discrete tokens, as exemplified by AudioGen [20]. In this framework, waveform signals are first quantized into discrete tokens, which are then generated sequentially by a Transformer decoder conditioned on text. The second approach is diffusion-based, such as AudioLDM [24], where generation is performed in a continuous latent space learned by a VAE, and guided by text through a shared language–audio representation. These two paradigms form the foundation of modern text-to-audio generation. In the haptic domain, HapticGen [18] introduced the first generative framework for text-to-vibration synthesis. It adopts an autoregressive Transformer adapted from the MusicGen [48] and AudioGen [20] family, and trains it on a haptic dataset bootstrapped from WavCaps. This work demonstrates the feasibility of text-to-vibration generation. However, the limitations of AR models become more pronounced for long-duration signals, such as 10-second sequences. Since inference is strictly causal and performed token by token, the model lacks a global view of the sequence. This leads to error accumulation and weak long-range structural coherence [49]– [51]. In addition, the global temporal envelope is difficult to model, often resulting in repetitive or over-smoothed patterns [24]. Neuroscientific studies [52], [53] suggest that perception of mid-to-high-frequency(40-400 Hz) vibrations is primarily governed by temporal dynamics, including rhythmic patterns and envelope variations, rather than individual sample points. Therefore, accurately modeling temporal structure and global envelope under text conditions is critical for text-to-vibration generation. To address this challenge, we propose HapticLDM, the first latent diffusion model for vibration generation. Un-like autoregressive methods, our approach performs global denoising in latent space, enabling modeling under a broader receptive field. By adapting the Stable Audio framework [31] for 10-second vibration synthesis, HapticLDM generates signals with more coherent temporal dynamics and improved alignment with textual descriptions. III. M ETHODOLOGY 
+
+A. Semantic Filtering for Haptic-Effective Text Inputs 
+
+To construct effective text–vibration training pairs, we first analyze the semantic composition of textual descriptions. Prior work in natural language processing shows that text contains heterogeneous semantic components, including action-related structures (e.g., predicates and events) [54], affective expres-sions [55], and abstract semantic content represented in lexical spaces [56]. Affective states can further be characterized along an arousal dimension, distinguishing high-arousal from low-arousal expressions [57]. Based on these observations, we categorize textual inputs into four types: action-related de-scriptions, high-arousal emotions, low-arousal emotions, and abstract concepts. Haptic interfaces are particularly effective for conveying action-related information and salient affective cues. Action-related events can be encoded into vibrotactile signals through 4                      
+
+> TABLE I EXAMPLES OF TACTILE -O RIENTED FILTERING .
+> Input Text Reason for Filtering Out
+> A bicycle is producing a sound. ‘A bicycle is producing a sound’ is too vague and does not specify a distinct physical action or texture. String ensemble is playing a se-quence of major chords. ‘String ensemble playing chords’ de-scribes amelodic musical perfor-mance which loses its meaning in RMS envelope extraction. Noise is being removed from a sound file. ‘Noise removal’ is a process descrip-tion without a clear sound/vibration source. TABLE II EXAMPLES OF OBJECTIVE REWRITING .
+> Input Text Rewritten Text
+> This reminds me when I am waking up early in the morning with my alarm and switch it off Waking up early in the morning with an alarm and switching it off It is like continues low frequency vibration with different pitch levels Continuous low frequency vibra-tion with different pitch levels I would descibe the sensation as stim-ulative. Stimulative sensation
+
+temporal patterns and force variations [58], [59]. Typical examples include patterns such as “rhythmic pulsing,” “engine starting,” and “alarm vibration.” In addition, variations in in-tensity and rhythm can reliably convey high-arousal emotions in affective haptics [60], [61], such as “shock” or “trembling.” Consistent with the results in Section V-A, we find that action-related descriptions and high-arousal emotions are more reliably represented and recognized in vibration signals. In contrast, low-arousal emotions and abstract concepts are dif-ficult to encode using vibrotactile feedback. Therefore, we retain action-related descriptions and high-arousal emotions as effective inputs for text-to-vibration generation. 
+
+B. Dataset Construction 
+
+Dataset construction is aligned with a three-stage model training paradigm: pretraining, supervised fine-tuning (SFT), and direct preference optimization (DPO). Initially, a large-scale pretraining dataset is assembled to establish general text-vibration correspondence, where inherently invalid speech-related samples are removed. Subsequently, tactile-oriented filtering and objective rewriting are applied to source data to construct an SFT dataset, thereby achieving modal alignment. Finally, a preference dataset sourced from HapticGen [18] is adopted for DPO training to further align generated signals with human perception. As preference data is directly utilized without further modification, detailed construction procedures outlined below focus on pretraining and SFT datasets. 
+
+1) Pretraining DataSet: Audio-to-Haptic Conversion: Alarge-scale pretraining dataset is first constructed from Wav-Caps [40]. To begin with, speech-related samples are removed by Qwen2.5-32B [30]. In WavCaps, a considerable portion of the data describes speech content, such as speaking, talking, or monologues. However, speech is difficult to be reproduced effectively through vibrotactile feedback. And training on such samples may introduce noise, which is useless for meaningful vibration genration. Therefore, text-audio pairs whose captions contain speech-related content are filtered out. After this step, the dataset size is reduced from 400K to 343K. Remaining audio data are then converted into vibration signals through audio-to-haptic conversion. Following prior work [18], [62], amplitude envelope is extracted from each audio waveform and converted into a one-dimensional vibra-tion signal, which is used as a reference haptic signal during pretraining. During this conversion process, the sampling rate is set to 8 kHz, consistent with the PCM output specifi-cation of Meta Haptics Studio [16]. The converted signals can be directly deployed and evaluated on Quest 3 devices. This configuration reduces sequence length and inference cost while remaining sufficient to capture the perceptually relevant components of low-frequency vibrotactile signals. In addition, each haptic sample is fixed to 10s to remain consistent with HapticGen, enabling direct comparison in later experiments. The paired text is adopted directly from the original audio caption. Different from HapticGen, no caption augmentation is applied at this stage. The original audio captions are retained to preserve large-scale event-level corresponding relations, mean-while avoiding additional linguistic noise introduced by LLM rewriting [63]. As a result, the pretraining dataset provides broad but relatively clean supervision for learning general text-vibration corresponding relations. 
+
+2) SFT DataSet: Tactile-oriented Filtering and Objective Rewriting: The SFT dataset is constructed from two sources: the pretraining dataset and HapticCap [37]. The former pro-vides large-scale event descriptions, while the latter provides human-written descriptions of vibration signals. In HapticCap, each vibration is described from three perspectives: sensory, emotional, and associative. Although high-arousal emotional text can be valid in principle, such text is not available in either dataset for SFT. In particular, the emotional annota-tions in HapticCap mainly describe users’ subjective affective responses after experiencing the vibration, rather than the signal’s observable dynamic properties. Therefore, they are not used in SFT and are removed from the dataset. In this work, supervision is restricted to text with clear tactile orientation. For the pretraining dataset, dynamic orientation filtering is applied with Qwen2.5-32B. Captions that do not contain explicit physical processes or clear temporal dynamics are removed. In particular, abstract descriptions and emotion-related descriptions are excluded, since they provide limited guidance for vibration generation in the current data setting. This step retains only text–vibration pairs with clearer action progression or temporal change. For HapticCap, only sensory and associative descriptions are retained. These descriptions are then rewritten with Qwen2.5-32B into objective, vibration-oriented text. Subjective rhetoric 5
+
+and personal judgments are suppressed. At the same time, dynamic properties of the vibration signal, such as onset, intensity growth, repetition, and decay, are made more explicit. Concrete dynamic events, such as alarm-clock vibration, are also expressed more clearly. According to the size of processed HapticCap subset, an equal number of samples are then selected from filtered pretraining dataset randomly. These two processed datasets are combined in a 1:1 ratio to form the SFT dataset, consisting of a total of 114k samples. In this way, the SFT dataset balances the coverage of large-scale event data and the precision of human-written haptic descriptions, while providing clearer dynamic supervision for fine-tuning. The effects of tactile-oriented filtering and objective rewriting are illustrated in Table I and Table II. The system prompts used in these two processes are pro-vided in Appendix A. 
+
+C. Model Architecture 
+
+To satisfy the requirement of dynamic consistency, Hapti-cLDM is built on the overall architecture of Stable Audio [31], with its latent diffusion pipeline adapted for text-to-vibration generation. The model consists of two main components: latent-space modeling with a variational autoencoder (VAE), and vibration generation in latent space with a Diffusion Transformer (DiT). Text conditioning is introduced through a T5-base encoder [64]. To compress high-dimensional waveforms, a VAE based on the Oobleck backbone [31] is employed. This choice follows the waveform autoencoding design of Stable Audio [31] and is suitable for one-dimensional vibration signals. Its hierarchical encoder-decoder architecture enables substantial temporal compression while preserving information needed for waveform reconstruction. The model is initialized with pretrained weights [31] and then adapted to vibration data. The input consists of normalized one-dimensional vibration waveforms sampled at 8 kHz and fixed to a duration of 10 seconds. Through this module, each waveform is mapped into a latent space with a downsampling ratio of 2048 and 64 latent channels, which substantially reduces sequence length. To improve reconstruction quality, a composite loss is adopted. The overall VAE objective, denoted by Ltotal , is defined as the sum of four components: 
+
+Ltotal = LL1 + LST F T + Ladv + LKL . (1) The waveform L1 loss, denoted by LL1 , measures the absolute difference between the original vibration signal x and the reconstructed signal ˆx in the time domain: 
+
+LL1 = E[|x − ˆx|]. (2) To preserve frequency-domain fidelity, a multi-resolution short-time Fourier transform (STFT) loss LSTFT is further introduced [65]. This loss is computed over M analysis win-dows so that spectral differences can be penalized at multiple resolutions. For each resolution m, spectral convergence and log-magnitude distance are combined as follows: 
+
+LST F T = 1
+
+M
+
+> M
+
+X
+
+> m=1
+
+∥| STFT m(x)| − | STFT m(ˆ x)|∥ F
+
+∥| STFT m(x)|∥ F
+
++ ∥ log |STFT m(x)| − log |STFT m(ˆ x)|∥ 1
+
+!
+
+.
+
+(3) Perceptual realism is further encouraged by introducing an adversarial loss Ladv [66]. Under this objective, reconstructed signals are penalized when they are identified as artificial by the discriminator D:
+
+Ladv = E[(1 − D(ˆ x)) 2]. (4) A separate objective is used to train the discriminator D.In this step, both real vibration signals x and reconstructed signals ˆx are evaluated, and the discriminator loss Ldis is defined as: 
+
+Ldis = E[( D(x) − 1) 2 + D(ˆ x)2]. (5) During optimization, the VAE parameters are updated with 
+
+Ltotal , while the discriminator parameters are updated with 
+
+Ldis in an alternating manner. This training scheme helps maintain stable convergence. The encoded latent distribution q(z|x) is further regularized toward the standard normal prior p(z) through a Kullback– Leibler (KL) divergence loss LKL [67]. This term encourages a continuous latent space for subsequent diffusion modeling: 
+
+LKL = E[DKL (q(z|x) ∥ p(z))] . (6) Empirically, these combined objectives preserve temporal envelope structure in the adapted latent representation, which is important for haptic perception. Once the VAE has learned a continuous latent space, a DiT-based diffusion model is trained on the compressed latent representations. Text conditioning is introduced through cross-attention, using embeddings from a T5-base encoder [64]. Diffusion is performed directly in latent space. Compared with direct waveform generation, latent-space modeling reduces temporal resolution and simplifies the denoising problem. As a result, the model can focus more on slowly varying dynamic structure, such as rhythm and envelope change, instead of sample-level fluctuations. This is well suited to vibration generation, where perceptual meaning is conveyed primarily through temporal evolution rather than fine waveform detail. Following Stable Audio [31], the diffusion model is trained with v-parameterization [68], implemented as a mean squared error loss between the target velocity v and the predicted velocity vθ :
+
+Ldif f = Ez0,ϵ,t 
+
+∥v − vθ (zt, t, c )∥22
+
+ , (7) where zt denotes the noisy latent at timestep t, c denotes the text condition, and the target velocity is defined according to continuous-time schedules. After sampling, the generated latents are decoded into waveform space by the VAE decoder. A post-processing amplitude validity check is then applied to 6E G
+
+> latent: Z
+
+# D
+
+> STFT
+
+L 1LL
+
+> KL
+
+L
+
+> adv
+
+L
+
+> True/False
+> dis
+
+L 
+
+> Vt
+> “A can of beer is being
+> opened with a pop.”
+
+# T5 
+
+# Q
+
+# K V 
+
+> ×N
+
+# ... 
+
+> Denoising DiT
+
+# Q
+
+# K V Z
+
+> diff
+
+L 
+
+> condition dropout
+> add noise ℇ
+> Zt
+> V-parameterization
+> Vt_pred
+> Forward
+> Backward
+
+E VAE Encoder 
+
+G VAE Decoder 
+
+D Discriminator            
+
+> T5 T5-Base
+> VAE training
+> DiT training
+> Fig. 2. The overall training framework of HapticLDM. Top (VAE Training): The VAE (comprising Encoder E and Decoder G) and the Discriminator (D) are trained alternately in an adversarial manner. Specifically, D is updated to distinguish real vibrations from reconstructed ones using Ldis , while the VAE is optimized to fool D via Ladv , alongside the reconstruction losses ( LST F T ,LL1) and the KL divergence ( LKL ). Bottom (DiT Training): In the latent space learned by the VAE, a Diffusion Transformer (DiT) is trained to predict the velocity target Vtguided by text conditions. The text embedding acts as Keys (K) and Values (V) via cross-attention. Condition dropout is randomly applied to the text embeddings during this training phase. The diffusion model is optimized using the v-parameterization loss ( Ldif f ).
+
+discard overly weak outputs. Specifically, the absolute wave-form values are evaluated, and both the maximum amplitude and the 99.5th percentile amplitude are computed. A generated signal is retained only when both values exceed predefined minimum thresholds; otherwise, it is discarded. 
+
+D. Training Strategy 
+
+The training process of HapticLDM is illustrated in Fig.2. The training pipeline consists of four stages: VAE adapta-tion, diffusion pretraining, supervised fine-tuning, and pref-erence optimization [69]. All experiments are conducted on 4 NVIDIA RTX 5880 Ada GPUs. For all datasets, the data are split into training and validation sets with a ratio of 9:1. Initially, VAE adaptation is executed on a comprehensive collection of vibration signals, which comprises all data from both pretraining and SFT datasets. During this process, batch size of 20 is utilized. Since VAE weights are derived from audio-based pretraining, inherent mismatch may exist between original audio-oriented latent space and target vibration sig-nals. Consequently, weights are tuned on vibration data so that compressed representations can better preserve vibration-specific temporal structures, especially envelope patterns that are considered important for haptic perception. After VAE adaptation, the diffusion model is trained in three stages. In the first stage, pretraining is performed on the pretraining dataset with a batch size of 512. This stage is used to learn general text-vibration correspondence from large-scale paired data. Although the converted vibration signals and original captions are not as precise as human-written haptic descriptions, they still provide useful supervision on diverse physical events and temporal patterns. In this way, the model is first given general coverage before later refinement. In the second stage, the pretrained diffusion model is further fine-tuned on the SFT dataset with a batch size of 512. Compared with the pretraining dataset, the SFT dataset provides cleaner and more vibration-oriented supervision after tactile-oriented filtering and objective rewriting. This stage is used to refine the alignment between textual dynamics and generated vibration patterns. In particular, clearer physical processes and temporal cues are emphasized, and vague or weakly dynamic descriptions are reduced. As a result, the signals generated by proposed method are expected to be more consistent with the dynamic content of the prompts. In the third stage, preference optimization is performed on the DPO dataset constructed from HapticGen [18], with a batch size of 128. This stage is introduced after supervised fine-tuning to further improve generation quality at the prefer-ence level. Although previous stages mainly rely on paired supervision, they do not directly model relative preference between candidate outputs. DPO training is used to address this issue. By learning from pairwise preference signals, the model is further guided toward outputs that are better aligned with human preference in terms of vibration quality and text correspondence. Overall, the training strategy is designed in a progressive manner. The VAE is first adapted to establish a vibration-7 
+
+> Fig. 3. The workflow of random A/B test for performance comparison between HapticLDM and HapticGen
+
+oriented latent space. The diffusion model is then pretrained on large-scale data, refined with higher-quality supervision, and finally aligned with preference signals. This staged de-sign helps combine data scale, text quality, and preference alignment within a unified training pipeline. IV. E XPERIMENT 
+
+In this section, we design experiments to evaluate both the dataset and the proposed method for text-to-vibration generation. The experimental setup is described as follows. 
+
+A. Verification of High-Quality Data Pairs 
+
+As described in Section III-A, the dataset is divided into four semantic categories: action-related descriptions, high-arousal emotions, abstract concepts, and low-arousal emotions. To evaluate whether vibration signals can accurately represent textual semantics, we randomly select five samples from each category in both the HapticCap and HapticGen datasets, resulting in 20 groups in total. For each text, its corresponding vibration signal is treated as a positive sample. A vibration signal associated with another semantically similar text from the same category is used as a negative sample. This process yields a test set of 40 samples (20 positive and 20 negative). Twenty participants rate the matching degree between text and vibration on a 5-point Likert scale. A score above 3 indicates that the vibration effectively conveys the seman-tic content. The difference in scores between positive and negative samples reflects discriminability. Samples with both high matching scores and clear discriminative differences are considered high-quality. 
+
+B. Verification of the Superiority of Proposed Method 
+
+As shown in Fig. 3, we compare our method with HapticGen using the same prompt themes: sport, interaction, game, and simulation. A total of 25 prompts are randomly generated by GPT-5.4 [70]. Corresponding vibration signals are then generated by both the proposed method and HapticGen. To evaluate efficiency and randomness, each method generates five vibration signals per prompt. An A/B test is then con-ducted as follows: 1) The 25 prompts are divided into three groups. 2) In each group, methods A and B are randomly as-signed to HapticLDM or HapticGen, and participants are blinded to the assignment. 3) For each prompt, five samples from method A and five from method B are presented. Participants evaluate whether each vibration is suitable for the prompt and vote accordingly. 4) Participants rate both methods within each group on three aspects—satisfaction, expressiveness, and real-ism—using a 5-point Likert scale. They also indicate an overall preference. 5) After evaluation, a semi-structured interview is con-ducted to collect feedback on user experience, impres-sions, and suggestions. A total of 30 participants from diverse professional back-grounds, age groups, and regions are recruited. Among them, 10 are experts in haptic feedback or human–computer inter-action. V. R ESULTS 
+
+A. The quality of data with different prompt type 
+
+As introduced in Section IV-A, data pairs from four categories—action-related descriptions, high-arousal emo-tions, abstract concepts, and low-arousal emotions—are eval-uated in terms of suitability. Scores are reported as mean ± standard deviation. According to Fig. 4 and Table III, action-related descriptions and high-arousal emotions outper-form abstract concepts and low-arousal emotions. Specifi-cally, action-related data achieve a score of 3.44 ± 1.21 ,while high-arousal emotions reach 3.23 ± 1.22 . In contrast, abstract concepts and low-arousal emotions perform worse, with scores of 2.76 ± 1.22 and 2.68 ± 1.31 , respectively Fig. 4 also illustrates recognizability by comparing positive and negative samples. Action-related descriptions show the largest score difference between positive and negative samples (1.04 ), indicating strong discriminability. In contrast, although high-arousal emotions achieve a relatively high score ( 3.23 ), their negative samples also receive high ratings ( 2.98 ), sug-gesting limited distinguishability. Overall, action-related data exhibit both high suitability and strong discriminability, and are therefore considered high-quality data for model training. In contrast, abstract concepts and low-arousal emotions lack 8              
+
+> TABLE III THE STATISTIC RESULTS OF EVALUATIONS ON POSITIVE AND NEGATIVE SAMPLES BY CATEGORIES
+> Category Positive samples Mean ±SD Negative samples Mean ±SD |Diff |
+> Action-related Description 3.44 ±1.21 2.40 ±1.24 1.04
+> High Arousal 3.23 ±1.22 2.98 ±1.23 0.25 Abstract Concepts 2.76 ±1.22 2.12 ±1.09 0.64 Low Arousal 2.68 ±1.31 2.33 ±1.37 0.35
+
+explicit dynamic mappings and are less suitable for text-to-vibration generation.  
+
+> Fig. 4. (a) Box plot of the 5-Likert scale scoring results for 4 types data pairs as action-related descriptions, high-arousal emotions, abstract concepts, and low-arousal emotions. (b) The histogram of absolute difference between positive and negative samples on 5-Likert scale scores.
+
+B. The performance comparison between HapticGen and HapticLDM 
+
+The results of Experiment IV-B are summarized in Fig. 5 and Table IV. Quantitative analysis of voting results and Likert-scale ratings shows a consistent preference for Hapti-cLDM over HapticGen across all test groups. As illustrated in Fig. 5(a), HapticLDM outperforms HapticGen in all aspects, including satisfaction, expressiveness, and realism. The largest improvement is observed in expressiveness, where HapticLDM achieves a score of 3.86 compared to 2.54 for HapticGen. Interview feedback further supports this result. Many partic-ipants report that vibrations generated by HapticGen often have insufficient intensity and do not match the input text well. Statistical analysis using t-tests (Table IV) confirms that HapticLDM significantly outperforms HapticGen in all three aspects (p <0.001). The overall score of 3.79 demonstrates the effectiveness of HapticLDM for text-to-vibration generation. To account for the stochastic nature of generative models, adoption rates are reported in Fig. 5(b). HapticLDM achieves an average adoption rate above 70%, significantly higher than the 40.5% achieved by HapticGen.                           
+
+> TABLE IV TTEST RESULTS OF EVALUATIONS ON HAPTIC LDM AND HAPTIC GEN
+> Metric Student’s t Cohen’s d pSignificant
+> Satisfaction 7.834 1.713 < . 001 ∗ ∗ ∗
+> Expressiveness 8.477 1.880 < . 001 ∗ ∗ ∗
+> Realism 7.284 1.559 < . 001 ∗ ∗ ∗
+> ∗∗∗ p < 0.001 ,∗∗ p < 0.01 ,∗p < 0.05
+> Fig. 5. Results of the Experiment 4.3, comparing the performance of Haptic LDM and Haptic Gen by A/B test. (a) The evaluation of methods on different aspects as satisfaction, expressiveness and realism. (b) The adopting rate of methods in different groups.
+
+Interview results also highlight improvements in rhythm and frequency matching, with HapticLDM providing more accu-rate feedback patterns. However, several limitations are noted. Experts point out the lack of precise “aftershock” (damping) effects across different materials, as well as insufficient low-frequency performance for simulating “swaying” or “heavy shaking” in complex interactions. Hardware constraints, such as actuator performance, are also identified as a limiting factor. From a usability perspective, participants generally agree that the generative system is valuable for rapid prototyping and can serve as an “inspiration aid” for haptic design. However, they 9
+
+note that the “hit rate”—the frequency of generating satisfac-tory outputs—still requires improvement to meet professional standards. VI. D ISCUSSION 
+
+Further reflections on the proposed method, including its main contributions and limitations, are discussed as follows. 
+
+A. Reflections on Contributions 
+
+This study examines two key aspects: data validity and the 
+
+generative method .First, data validity is identified as a critical factor in constructing high-quality datasets. Compared with abstract concepts and low-arousal emotions, action-related descrip-tions and high-arousal emotions exhibit clearer perceptual mappings. These categories achieve better performance in vibration generation and are therefore more suitable for model training. Experimental results further confirm the difficulty of evaluating data associated with abstract concepts and low-arousal emotions. Participants report that it is challenging to associate such descriptions with concrete vibration patterns. For example, prompts such as “Just finishing an exam after doing no study” are difficult to translate into meaningful tactile feedback. In addition, prompt specificity significantly affects evalua-tion outcomes. Participants tend to assign higher satisfaction scores to coarse or underspecified prompts (e.g., “a rhythmic heartbeat”), as multiple vibration patterns can reasonably match the same description. For instance, both slow and fast rhythms may be considered appropriate. In contrast, detailed prompts require precise control over rhythm, texture, and intensity, leading to stricter evaluation criteria. Second, we propose HapticLDM with a progressive align-ment training strategy for high-fidelity and long-duration vibration generation. Evaluations involving 30 participants demonstrate that the proposed method outperforms baseline approaches in text-to-vibration tasks, achieving higher satis-faction, realism, and expressiveness. These gains come from the diffusion-based formulation. It refines signals in continu-ous space and preserves global temporal structure, resulting in more stable long-duration generation than auto-regressive models, which often accumulate errors. The iterative process also enables fine-grained conditioning on text. In addition, sampling from a noise prior captures the multi-modal nature of vibration signals and avoids over-smoothed outputs. The pro-gressive alignment strategy further improves the consistency between text and vibration. However, the iterative sampling process increases computational cost and limits real-time use. 
+
+B. Limitations and Future work 
+
+The shortcomings in the quality of generation. As noted by participants, the current generative method still faces chal-lenges in accurately simulating material-specific textures and complex physical feedback. The precision of rhythmic patterns and frequency representation also requires improvement. One key limitation lies in the lack of structured and detailed textual descriptions, which constrains the model’s ability to capture fine-grained temporal characteristics. From a modeling per-spective, both the network architecture and training strategy re-quire further refinement to better control rhythm and frequency features, thereby improving generation quality. In addition, hardware plays a critical role in vibrotactile feedback, as it fundamentally determines the upper performance bound of the system. Factors such as the number and type of actuators, their spatial arrangement, and supporting structures all influence the resulting feedback. Although the proposed method considers the frequency response of the device, it remains insufficient for generating complex physical interactions and material-specific textures. Incorporating hardware characteristics into the generative process is therefore an important direction for future work in physical signal generation. 
+
+Multi-modal scene matching. Haptic feedback generation from multimodal data remains a challenging and important research problem. Compared with audio and visual modali-ties, text exhibits a larger representational gap with vibration signals, making it more difficult to establish reliable sensory mappings between text and haptics. In this study, several participants noted that visual cues, such as images or videos, could assist in evaluating vibration effects. However, incor-porating multimodal inputs introduces additional complexity, as it requires precise temporal alignment across different modalities. 
+
+Complex scene and unfixed-length sequence genera-tion. Experimental results indicate that the proposed method struggles to reconstruct complex vibration patterns involving multiple interacting factors, such as “Rowing a boat on choppy water with strong waves.” The temporal dynamics in the gener-ated signals are often insufficiently pronounced or inaccurate. These limitations are primarily attributed to both the dataset and the training strategy. In particular, only a small portion of prompts explicitly describe detailed temporal dynamics, which restricts the model’s ability to learn fine-grained variations. Moreover, extracting structured feature representations from text across different dimensions remains challenging, limiting the design of effective control and training strategies. In addi-tion, several participants noted that fixing the generation length to 10 seconds is suboptimal. In some cases, the generated signals appear repetitive due to prolonged patterns, while in others, the temporal evolution is incomplete within the fixed duration. These observations suggest that adaptive length generation conditioned on prompt semantics is necessary for more realistic haptic synthesis. 
+
+Adopting rate. Efficiency is a critical factor for the practical adoption of generative methods. Although the pro-posed approach can produce high-quality vibration signals, the experimental adoption rate of 50% indicates a non-negligible failure rate. Due to the inherent stochasticity of the genera-tion process, the quality of the outputs remains inconsistent. Therefore, improving reliability and ensuring stable generation quality remain important challenges. 
+
+Prompt control. Analysis of failure cases indicates that the proposed method is insensitive to fine-grained feature prompts, such as “3/4 beat” and “rapid decrease in intensity,” and thus fails to generate precise vibration patterns corresponding to 10 
+
+these specifications. This limitation primarily arises from the current generation strategy. Specifically, the model processes the entire prompt holistically during generation, without ex-plicit control over individual features. As a result, it favors global reconstruction and often loses fine-grained temporal characteristics. Incorporating feature-level control mechanisms could further improve the precision and controllability of the generated results. VII. C ONCLUSION 
+
+In this study, we introduce HapticLDM to enable more effi-cient and immersive haptic feedback generation. The improve-ments are achieved from both data and modeling perspectives. From the data perspective, experimental results show that action-related descriptions provide more reliable representa-tions for vibration synthesis. By filtering and rewriting textual prompts, vibration-oriented characteristics are enhanced. The processed data exhibits more precise dynamic characteristics and perceptual mappings, which guaranties more effective model training. From the modeling perspective, user evalu-ations demonstrate the superiority of diffusion-based models in generating coherent and expressive vibration signals. In summary, the proposed method shows strong potential for simplifying haptic design and improving generation efficiency and quality. It also provides insights into generative modeling strategies for physical vibration signals. ACKNOWLEDGMENT 
+
+This work was supported by Guangdong Provincial R&D Program in Key Areas under Grant 2023B0101200011. The authors would like to thank Dr. Guangyao Xu for helpful discussions and technical support. REFERENCES [1] D. Degraen, B. Fruchard, F. Smolders, E. Potetsianakis, S. G¨ ung¨ or, A. Kr¨ uger, and J. Steimle, “Weirding haptics: In-situ prototyping of vibrotactile feedback in virtual reality through vocalization,” in The 34th Annual ACM symposium on user interface software and technology ,2021, pp. 936–953. [2] E. Kim and O. Schneider, “Defining haptic experience: foundations for understanding, communicating, and evaluating hx,” in Proceedings of the 2020 CHI conference on human factors in computing systems , 2020, pp. 1–13. [3] T. Singhal and O. Schneider, “Juicy haptic design: Vibrotactile embel-lishments can improve player experience in games,” in Proceedings of the 2021 chi conference on human factors in computing systems , 2021, pp. 1–11. [4] G. Yun, M. Mun, J. Lee, D.-G. Kim, H. Z. Tan, and S. Choi, “Generating real-time, selective, and multimodal haptic effects from sound for gaming experience enhancement,” in Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems , 2023, pp. 1–17. [5] O. Schneider, K. MacLean, C. Swindells, and K. Booth, “Haptic experience design: What hapticians do and where they need help,” 
+
+International Journal of Human-Computer Studies , vol. 107, pp. 5–21, 2017. [6] H. Seifi, M. Chun, C. Gallacher, O. Schneider, and K. E. MacLean, “How do novice hapticians design? a case study in creating haptic learning environments,” IEEE transactions on haptics , vol. 13, no. 4, pp. 791–805, 2020. [7] K. John, Y. Li, and H. Seifi, “Adaptics: A toolkit for creative design and integration of real-time adaptive mid-air ultrasound tactons,” in Pro-ceedings of the 2024 CHI Conference on Human Factors in Computing Systems , 2024, pp. 1–15. [8] H. Seifi, S. Chew, A. J. Nasc` e, W. E. Lowther, W. Frier, and K. Hornbæk, “Feellustrator: A design tool for ultrasound mid-air haptics,” in Pro-ceedings of the 2023 CHI Conference on Human Factors in Computing Systems , 2023, pp. 1–16. [9] C. Swindells, E. Maksakov, K. E. MacLean, and V. Chung, “The role of prototyping tools for haptic behavior design,” in 2006 14th symposium on haptic interfaces for virtual environment and teleoperator systems .IEEE, 2006, pp. 161–168. [10] AAC Technologies, “RichTap: Advanced Haptic Feedback Solution for Mobile Devices,” https://www.aactechnologies.com/, 2026, accessed: 2026-04. [11] O. S. Schneider and K. E. MacLean, “Studying design process and example use with macaron, a web-based vibrotactile effect editor,” in 
+
+2016 IEEE Haptics Symposium (Haptics) . IEEE, 2016, pp. 52–58. [12] H. Seifi, K. Zhang, and K. E. MacLean, “Vibviz: Organizing, visual-izing and navigating vibration libraries,” in 2015 IEEE World Haptics Conference (WHC) . IEEE, 2015, pp. 254–259. [13] K. E. MacLean, O. S. Schneider, and H. Seifi, “Multisensory haptic interactions: understanding the sense and designing for it,” in The Handbook of Multimodal-Multisensor Interfaces: Foundations, User Modeling, and Common Modality Combinations-Volume 1 , 2017, pp. 97–142. [14] R. Okazaki, H. Kuribayashi, and H. Kajimoto, “The effect of frequency shifting on audio–tactile conversion for enriching musical experience,” in Haptic Interaction: Perception, Devices and Applications . Springer, 2015, pp. 45–51. [15] Y. Zhan, X. Sun, Q. Wang, and W. Nai, “Method for audio-to-tactile cross-modality generation based on residual u-net,” IEEE Transactions on Instrumentation and Measurement , vol. 73, pp. 1–14, 2023. [16] Meta Platforms, Inc., “Meta Haptics Studio,” 2023, accessed: 2026-04. [Online]. Available: https://developers.meta.com/horizon/resources/ haptics-studio/ [17] Sony Group Corporation, “Taking on new challenges with haptics— a technology that stimulates the sense of touch, one of the five senses,” 2020, accessed: 2026-04. [Online]. Available: https: //www.sony.com/en/SonyInfo/technology/stories/entries/Haptics/ [18] Y. Sung, K. John, S. H. Yoon, and H. Seifi, “Hapticgen: generative text-to-vibration model for streamlining haptic design,” in Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems , 2025, pp. 1–24. [19] L. Huang, W. Yu, W. Ma, W. Zhong, Z. Feng, H. Wang, Q. Chen, W. Peng, X. Feng, B. Qin et al. , “A survey on hallucination in large language models: Principles, taxonomy, challenges, and open questions,” 
+
+ACM Transactions on Information Systems , vol. 43, no. 2, pp. 1–55, 2025. [20] F. Kreuk, G. Synnaeve, A. Polyak, U. Singer, A. D´ efossez, J. Copet, D. Parikh, Y. Taigman, and Y. Adi, “Audiogen: Textually guided audio generation,” arXiv preprint arXiv:2209.15352 , 2022. [21] M. A. Harvey, H. P. Saal, J. F. Dammann III, and S. J. Bensmaia, “Multiplexing stimulus information through rate and temporal codes in primate somatosensory cortex,” PLoS biology , vol. 11, no. 5, p. e1001558, 2013. [22] A. I. Weber, H. P. Saal, J. D. Lieber, J.-W. Cheng, L. R. Manfredi, J. F. Dammann III, and S. J. Bensmaia, “Spatial and temporal codes mediate the tactile perception of natural textures,” Proceedings of the National Academy of Sciences , vol. 110, no. 42, pp. 17 107–17 112, 2013. [23] M. Hollins and S. R. Risner, “Evidence for the duplex theory of tactile texture perception,” Perception & psychophysics , vol. 62, no. 4, pp. 695– 705, 2000. [24] H. Liu, Z. Chen, Y. Yuan, X. Mei, X. Liu, D. Mandic, W. Wang, and M. D. Plumbley, “Audioldm: Text-to-audio generation with latent diffusion models,” arXiv preprint arXiv:2301.12503 , 2023. [25] Y. Ren, C. Hu, X. Tan, T. Qin, S. Zhao, Z. Zhao, and T.-Y. Liu, “Fastspeech 2: Fast and high-quality end-to-end text to speech,” arXiv preprint arXiv:2006.04558 , 2020. [26] J. Li, R. Selvaraju, A. Gotmare, S. Joty, C. Xiong, and S. C. H. Hoi, “Align before fuse: Vision and language representation learning with momentum distillation,” Advances in neural information processing systems , vol. 34, pp. 9694–9705, 2021. [27] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark et al. , “Learning transferable visual models from natural language supervision,” in International conference on machine learning . PmLR, 2021, pp. 8748–8763. [28] Y. Wu, K. Chen, T. Zhang, Y. Hui, T. Berg-Kirkpatrick, and S. Dubnov, “Large-scale contrastive language-audio pretraining with feature fusion and keyword-to-caption augmentation,” in ICASSP 2023-2023 IEEE 11 
+
+International Conference on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 2023, pp. 1–5. [29] A. Grattafiori, A. Dubey, A. Jauhri, A. Pandey, A. Kadian, A. Al-Dahle, A. Letman, A. Mathur, A. Schelten, A. Vaughan et al. , “The llama 3 herd of models,” arXiv preprint arXiv:2407.21783 , 2024. [30] Q. Team, “Qwen2.5: A party of foundation models,” September 2024. [Online]. Available: https://qwenlm.github.io/blog/qwen2.5/ [31] Z. Evans, J. D. Parker, C. Carr, Z. Zukowski, J. Taylor, and J. Pons, “Stable audio open,” in ICASSP 2025-2025 IEEE International Confer-ence on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 2025, pp. 1–5. [32] Meta, “Meta Quest 3: New Mixed Reality VR Headset,” https://www. meta.com/quest/quest-3/, 2023, accessed: 2026-04. [33] A. Israr, S. Zhao, K. Schwalje, R. Klatzky, and J. Lehman, “Feel effects: enriching storytelling with haptic feedback,” ACM Transactions on Applied Perception (TAP) , vol. 11, no. 3, pp. 1–17, 2014. [34] M. Strese, J.-Y. Lee, C. Schuwerk, Q. Han, H.-G. Kim, and E. Steinbach, “A haptic texture database for tool-mediated texture recognition and classification,” in 2014 IEEE International Symposium on Haptic, Audio and Visual Environments and Games (HAVE) Proceedings . IEEE, 2014, pp. 118–123. [35] H. Culbertson, J. Unwin, and K. J. Kuchenbecker, “Modeling and rendering realistic textures from unconstrained tool-surface interactions,” 
+
+IEEE transactions on haptics , vol. 7, no. 3, pp. 381–393, 2014. [36] K. Theivendran, A. Wu, W. Frier, and O. Schneider, “Rechap: an interactive recommender system for navigating a large number of mid-air haptic designs,” IEEE Transactions on Haptics , vol. 17, no. 2, pp. 165–176, 2023. [37] G. Hu, D. Hershcovich, and H. Seifi, “Hapticcap: A multimodal dataset and task for understanding user experience of vibration haptic signals,” 
+
+arXiv , 2025. [38] M. Obrist, S. A. Seah, and S. Subramanian, “Talking about tactile experiences,” in Proceedings of the SIGCHI conference on human factors in computing systems , 2013, pp. 1659–1668. [39] K. E. MacLean, “Foundations of transparency in tactile information design,” IEEE Transactions on Haptics , vol. 1, no. 2, pp. 84–95, 2008. [40] X. Mei, C. Meng, H. Liu, Q. Kong, T. Ko, C. Zhao, M. D. Plumbley, Y. Zou, and W. Wang, “Wavcaps: A chatgpt-assisted weakly-labelled audio captioning dataset for audio-language multimodal research,” 
+
+IEEE/ACM Transactions on Audio, Speech, and Language Processing ,vol. 32, pp. 3339–3354, 2024. [41] L. Girin, S. Leglaive, X. Bie, J. Diard, T. Hueber, and X. Alameda-Pineda, “Dynamical variational autoencoders: A comprehensive review,” 
+
+Foundations and Trends in Machine Learning , vol. 15, no. 1-2, pp. 1– 175, 2022. [42] E. Brophy, Z. Wang, Q. She, and T. Ward, “Generative adversarial networks in time series: A systematic literature review,” ACM Computing Surveys , vol. 55, no. 10, pp. 1–31, 2023. [43] S. Bond-Taylor, A. Leach, Y. Long, and C. G. Willcocks, “Deep generative modelling: A comparative review of vaes, gans, normalizing flows, energy-based and autoregressive models,” IEEE transactions on pattern analysis and machine intelligence , vol. 44, no. 11, pp. 7327– 7347, 2021. [44] P. Dhariwal, H. Jun, C. Payne, J. W. Kim, A. Radford, and I. Sutskever, “Jukebox: A generative model for music,” arXiv preprint arXiv:2005.00341 , 2020. [45] Z. Borsos, R. Marinier, D. Vincent, E. Kharitonov, O. Pietquin, M. Shar-ifi, D. Roblek, O. Teboul, D. Grangier, M. Tagliasacchi et al. , “Audi-olm: a language modeling approach to audio generation,” IEEE/ACM transactions on audio, speech, and language processing , vol. 31, pp. 2523–2533, 2023. [46] Q. Wen, T. Zhou, C. Zhang, W. Chen, Z. Ma, J. Yan, and L. Sun, “Trans-formers in time series: A survey,” arXiv preprint arXiv:2202.07125 ,2022. [47] Y. Zhao, M. Yang, Y. Lin, X. Zhang, F. Shi, Z. Wang, J. Ding, and H. Ning, “Ai-enabled text-to-music generation: A comprehensive review of methods, frameworks, and future directions,” Electronics , vol. 14, no. 6, p. 1197, 2025. [48] J. Copet, F. Kreuk, I. Gat, T. Remez, D. Kant, G. Synnaeve, Y. Adi, and A. D´ efossez, “Simple and controllable music generation,” Advances in neural information processing systems , vol. 36, pp. 47 704–47 720, 2023. [49] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “Bert: Pre-training of deep bidirectional transformers for language understanding,” in Pro-ceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies, volume 1 (long and short papers) , 2019, pp. 4171–4186. [50] J. Gu, J. Bradbury, C. Xiong, V. O. Li, and R. Socher, “Non-autoregressive neural machine translation,” arXiv preprint arXiv:1711.02281 , 2017. [51] Z. Borsos, M. Sharifi, D. Vincent, E. Kharitonov, N. Zeghidour, and M. Tagliasacchi, “Soundstorm: Efficient parallel audio generation,” 
+
+arXiv preprint arXiv:2305.09636 , 2023. [52] S. J. Bensma¨ ıa and M. Hollins, “The vibrations of texture,” Somatosen-sory & motor research , vol. 20, no. 1, pp. 33–43, 2003. [53] L. R. Manfredi, H. P. Saal, K. J. Brown, M. C. Zielinski, J. F. Dammann III, V. S. Polashock, and S. J. Bensmaia, “Natural scenes in tactile texture,” Journal of neurophysiology , vol. 111, no. 9, pp. 1792– 1802, 2014. [54] M. Palmer, D. Gildea, and P. Kingsbury, “The proposition bank: An annotated corpus of semantic roles,” Computational linguistics , vol. 31, no. 1, pp. 71–106, 2005. [55] B. Liu, “Sentiment analysis and opinion mining,” Synthesis Lectures on Human Language Technologies , vol. 5, no. 1, p. 1, 2012. [56] T. Mikolov, K. Chen, G. Corrado, and J. Dean, “Efficient estimation of word representations in vector space,” 2013. [57] J. A. Russell, “A circumplex model of affect.” Journal of personality and social psychology , vol. 39, no. 6, p. 1161, 1980. [58] M. A. Srinivasan and C. Basdogan, “Haptics in virtual environments: Taxonomy, research status, and challenges,” Computers & Graphics ,vol. 21, no. 4, pp. 393–404, 1997. [59] S. Choi and K. J. Kuchenbecker, “Vibrotactile display: Perception, technology, and applications,” Proceedings of the IEEE , vol. 101, no. 9, pp. 2093–2104, 2012. [60] M. A. Eid and H. Al Osman, “Affective haptics: Current research and future directions,” IEEE Access , vol. 4, pp. 26–40, 2015. [61] H. Seifi and K. E. Maclean, “A first look at individuals’ affective ratings of vibrations,” in 2013 World Haptics Conference (WHC) . IEEE, 2013, pp. 605–610. [62] D.-G. Kim, J. Lee, G. Yun, H. Z. Tan, and S. Choi, “Sound-to-touch crossmodal pitch matching for short sounds,” IEEE Transactions on Haptics , vol. 17, no. 1, pp. 2–7, 2023. [63] K. Krishna, Y. Song, M. Karpinska, J. Wieting, and M. Iyyer, “Para-phrasing evades detectors of ai-generated text, but retrieval is an effective defense,” Advances in neural information processing systems , vol. 36, pp. 27 469–27 500, 2023. [64] C. Raffel, N. Shazeer, A. Roberts, K. Lee, S. Narang, M. Matena, Y. Zhou, W. Li, and P. J. Liu, “Exploring the limits of transfer learning with a unified text-to-text transformer,” Journal of machine learning research , vol. 21, no. 140, pp. 1–67, 2020. [65] R. Yamamoto, E. Song, and J.-M. Kim, “Parallel wavegan: A fast waveform generation model based on generative adversarial networks with multi-resolution spectrogram,” in ICASSP 2020-2020 IEEE In-ternational Conference on Acoustics, Speech and Signal Processing (ICASSP) . IEEE, 2020, pp. 6199–6203. [66] J. Kong, J. Kim, and J. Bae, “Hifi-gan: Generative adversarial networks for efficient and high fidelity speech synthesis,” Advances in neural information processing systems , vol. 33, pp. 17 022–17 033, 2020. [67] D. P. Kingma and M. Welling, “Auto-encoding variational bayes,” arXiv preprint arXiv:1312.6114 , 2013. [68] T. Salimans and J. Ho, “Progressive distillation for fast sampling of diffusion models,” arXiv preprint arXiv:2202.00512 , 2022. [69] B. Wallace, M. Dang, R. Rafailov, L. Zhou, A. Lou, S. Purushwalkam, S. Ermon, C. Xiong, S. Joty, and N. Naik, “Diffusion model alignment using direct preference optimization,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 8228–8238. [70] OpenAI, “Introducing GPT-5.4,” https://openai.com/index/ introducing-gpt-5-4/, 2026, accessed: 2026-04. 12 
+
+APPENDIX ASYSTEM PROMPTS FOR TACTILE -ORIENTED FILTERING AND OBJECTIVE REWRITING 
+
+The primary system instructions used for tactile-oriented filtering are presented below. 
+
+System Prompt: Haptic Feedback Filtering 
+
+You are an expert in Haptic Feedback Design and Vibration Texture Analysis. Your task is to filter text descriptions of audio files to determine if they are suitable for accompanying a vibration signal generated via RMS envelope extraction. The audio is converted to vibration solely based on amplitude and rhythm. Pitch and melody are lost. The goal is to keep descriptions where the user, upon feeling the vibration and reading the text, feels high consistency. 
+
+Classification Dimensions: Dimension 1 (Objective Perception): Describes intensity, en-velope, texture, or rhythm (e.g., “pulsing”, “banging”, “steady hum”). → KEEP Dimension 2.1 (Concrete/Physical Association): Describes a specific physical object, material interaction, or biological action that creates a distinct physical vibration pattern and al-lows humans to directly associate it with a consistent vibration scenario when reading this description. 
+
+Dimension 2.2 (Abstract/Emotional): Describes emotions, mood, functional meaning, or internal states (e.g., “scary”, “good news”, “victory”, “suspenseful”, “zombie wanting brains”). → DISCARD Dimension 3 (Other): Vague ambiance, pure silence, or visual-only descriptions without clear sound/vibration source. 
+
+→ DISCARD Filtering Rules:  
+
+> •
+
+KEEP if the text falls strictly into Dimension 1 or Dimension 2.1.  
+
+> •
+
+DISCARD if the text relies heavily on Dimension 2.2 or Dimension 3.  
+
+> •
+
+DISCARD descriptions of “music”, “melodies”, or “songs” unless they describe a rhythmic physical action (like “drum roll”), because RMS destroys melody. 
+
+Critical Output Requirement: 
+
+You must respond with only a valid json object. Do not include any other text, explanations, markdown, or formatting. Your response must be EXACTLY in this format: 
+
+{‘‘keep’’: true/false, ‘‘reason’’: your explanation here }
+
+To further guide the model, several few-shot examples are appended to the system prompt. These examples and their expected outputs are detailed in Table V. The primary system instructions used for data cleaning and objective rewriting are presented below. 
+
+System Prompt: Objective Rewriting and Data Cleaning 
+
+You are a strict data cleaning assistant for a haptic feedback dataset. Your task is to filter and rewrite raw user text into objective, concise captions. You must analyze the input and output a VALID JSON object. 
+
+Filtering Rules ( ‘‘keep’’: true or false ): 
+
+Check if the input falls into one of the rejection categories below. If it does, set ‘‘keep’’: false and provide the specific ‘‘reason’’ .
+
+Rejection Categories:  
+
+> •
+
+“N/A”: For placeholders like “NA”, “N.A.”, “n.a”, “n/a”, “.”, “None”, “Unknown”, “Null”.  
+
+> •
+
+“No Sensation”: If it is explicitly stated that no sensation was felt (e.g., “I don’t think so”, “No”, “Never experi-enced it”, “I did not feel it”, “Nothing”, “Hard to tell”). 
+
+Rewriting Standards (If ‘‘keep’’: true ): 
+
+The text must be rewritten by applying all the following standards simultaneously. 
+
+A. Data Integrity (No Hallucination - Critical):  
+
+> •
+
+NEVER add actions, adjectives, intensities, frequencies, or speeds that are not explicitly present.  
+
+> •
+
+Only preserve details that are already in the input text.  
+
+> •
+
+If information is vague, it must be kept vague. Do not clarify or infer. 
+
+B. Style & Perspective Transformation:  
+
+> •
+
+Remove conversational/reflective phrases: Delete “I think”, “I feel”, “This sensation”, “It feels like”, “It reminds me of”.  
+
+> •
+
+Remove observer perspective: Focus on the described phenomenon itself, rather than the act of sensing.  
+
+> •
+
+Convert analogies into direct references: – “reminds me of EDM music” → “EDM music” 
+
+– “feels like a heartbeat” → “A heartbeat” 
+
+– “reminds me of my palm twitching” → “Palm twitching”  
+
+> •
+
+Generalize personal references: – “my phone” → “A mobile phone” 
+
+– “my hand” → “A hand” 
+
+Output Format (Strict JSON):  
+
+> •
+
+If keeping: 
+
+{‘‘keep’’: true, ‘‘rewritten_text’’: cleaned_string } 
+
+> •
+
+If rejecting: 
+
+{‘‘keep’’: false, ‘‘reason’’: CATEGORY_NAME }
+
+(Choose one of: “N/A”, “No Sensation”) To further guide the objective rewriting process, several few-shot examples are appended to the system prompt. These examples and their expected outputs are detailed in Table VI. 13 
+
+TABLE V FEW -SHOT EXAMPLES PROVIDED FOR TACTILE -ORIENTED FILTERING .
+
+Input Text Expected JSON Output & Reasoning 
+
+“A heartbeat sound effect, great for hospital or human sound.” 
+
+{"keep": true, "reason": "Dimension 2.1: Heartbeat is a distinct rhythmic physical event compatible with RMS envelopes." }
+
+“A ta da sound effect for good news or win-ning.” 
+
+{"keep": false, "reason": "Dimension 2.2: ’Ta da’, ’good news’, and ’winning’ are abstract cultural concepts/emotions, not physical textures." }
+
+“A skillet hits someone in the head, great for cartoon or movie scene.” 
+
+{"keep": true, "reason": "Dimension 2.1: Metal hitting head is aconcrete physical impact." }
+
+“Zombies have a thirst for brains.” {"keep": false, "reason": "Dimension 2.2/3: Describes an internal desire/state, not a sound-making action." }
+
+“Strange pulsing alien noise is happening.” {"keep": true, "reason": "Dimension 1: ’Pulsing’ describes the objective rhythm/envelope." }
+
+“Kids are laughing.” {"keep": true, "reason": "Dimension 2.1: Laughter is a specific biological vocalization characterized by rhythmic bursts of amplitude, creating a distinct physical texture." }
+
+“Someone is eating chips.” {"keep": true, "reason": "Dimension 2.1: ’Eating chips’ implies a distinct crunching texture (sharp transients) that translates well to tactile feedback." }
+
+“Drum kit is playing.” {"keep": true, "reason": "Dimension 2.1: While musical, drums are purely rhythmic and percussive, providing clear physical impacts for vibration." }
+
+“An engine is being heard.” {"keep": true, "reason": "Dimension 2.1: Engines produce acontinuous, rumbling physical vibration pattern." }
+
+“Room tone and distant activity are being recorded.” 
+
+{"keep": false, "reason": "Dimension 3: ’Room tone’ and ’distant activity’ are vague ambiance descriptions without clear sound/vibration source." }
+
+TABLE VI FEW -SHOT EXAMPLES PROVIDED FOR OBJECTIVE REWRITING AND DATA CLEANING .
+
+Input Text Expected JSON Output 
+
+“The sensation is like smooth waves.” {"keep": true, "rewritten_text": "Smooth waves" }
+
+“n.a.” {"keep": false, "reason": "N/A" }
+
+“This reminds me of watching a bouncy ball bounce up and down.” 
+
+{"keep": true, "rewritten_text": "A bouncy ball bouncing up and down" }
+
+“I have never felt this before.” {"keep": false, "reason": "No Sensation" }
+
+“It feels sort of like a heartbeat.” {"keep": true, "rewritten_text": "A heartbeat" }
+
+“NA” {"keep": false, "reason": "N/A" }
+
+“This sensation reminds of my phones ringtone vibration.” 
+
+{"keep": true, "rewritten_text": "A mobile phone ringtone vibration" }
+
+“I dont think so” {"keep": false, "reason": "No Sensation" }
+
+“A really strong buzz.” {"keep": true, "rewritten_text": "A really strong buzz" }

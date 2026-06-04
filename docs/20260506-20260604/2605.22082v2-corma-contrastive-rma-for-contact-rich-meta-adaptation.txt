@@ -1,0 +1,282 @@
+Title: CoRMA: Contrastive RMA for Contact-Rich Meta-Adaptation
+
+URL Source: https://arxiv.org/pdf/2605.22082v2
+
+Published Time: Fri, 29 May 2026 00:40:58 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# CoRMA: Contrastive RMA for Contact-Rich Meta-Adaptation 
+
+Wentian Wang 
+
+Synthoid AI 
+
+Chutong Wen 
+
+Synthoid AI 
+
+Hongxu Ma 
+
+Synthoid AI 
+
+Wuhao Wang 
+
+Synthoid AI 
+
+Zhexiong Xue 
+
+Synthoid AI 
+
+Abdul Haseeb Nizamani 
+
+Synthoid AI 
+
+Dandi Zhou 
+
+Synthoid AI 
+
+Xinhai Sun 
+
+Synthoid AI 
+
+Jian-Qiao Zhu 
+
+HKU 
+
+Abstract: We present CoRMA (Contrastive Robotic Motor Adaptation), a context-based meta-adaptation framework that modifies RMA for force-dominant assembly. CoRMA replaces raw simulator-parameter adaptation with a compact 6D simulator-only semantic contact context describing contact onset, lateral engagement, guided transition, contact direction, and jamming. A deployable causal Transformer adapter infers this context online from force, proprioceptive, and action histories using semantic regression and a force-regime contrastive objective. At deployment, oracle context is removed and replaced by the inferred context, enabling within-episode adaptation without demonstrations, privileged inputs, or gradient updates. We evaluate CoRMA on PegInsert, GearMesh, and NutThread in Isaac Lab / Isaac Sim 5.0 and deploy on a real Marvin arm. Compared with FORGE baselines that achieve high simulation success but degrade substantially on hardware, CoRMA retains higher verified real success under controlled target-pose noise. These results support semantic contact inference as a reusable adaptation interface within a related assembly task family, while broader unseen-task generalization and Real2Sim calibration remain future work. 
+
+Keywords: Contact-Rich Assembly, Sim-to-Real, Meta Learning 
+
+## 1 Introduction 
+
+Contact-rich robotic assembly [ 1, 2 , 3] remains a long-standing challenge in robotics. Tasks such as PegInsert, GearMesh, and NutThread require precise geometric alignment, sustained contact regulation, and recovery from intermittent failures over long horizons. Unlike free-space manipulation, small mismatches in contact geometry, friction, compliance, sensing, or actuation can produce jamming, unstable transitions, or irreversible failure. Robust assembly therefore depends not only on generating motion, but also on interpreting what a sequence of contact forces means during execution. Recent sim-to-real assembly systems, including FORGE [ 4], show that reinforcement learning can produce robust contact-rich behaviors under uncertainty. However, these policies are still commonly trained and tuned in a task-specific manner. New parts, fixtures, or objectives may require new policy training or additional real-world calibration, even when the underlying contact mechanisms are closely related. Many successful manipulation systems also rely on demonstration-heavy pipelines, such as behavior cloning [ 5 , 6 ], imitation learning [ 7, 8, 9, 10 ], or residual sim-to-real fine-tuning [ 11 , 12 , 13 ]. Classical robotics has addressed manipulation uncertainty through adaptive control and disturbance compensation, typically for tracking and stabilization rather than for learning reusable cross-task contact representations [ 14 ]. While effective, these approaches can be costly to extend across task variants and operating conditions because they require repeated data collection, calibration, or adaptation whenever the setup changes [15]. This motivates a meta-adaptation view of contact-rich assembly [ 16 , 17 ]: instead of learning each assembly policy in isolation, the robot should infer an interaction context online and reuse this context        
+
+> arXiv:2605.22082v2 [cs.RO] 28 May 2026 Stage 1: Teacher Model
+> Traning with Privileged Z
+> Privileged Z
+> [Onset, Lateral, Guided, Dir-X, Dir-Y, Jam]
+> Stage 2: CoRMA Adapter
+> Training
+> Stage 3: Sim↔Real Transfer
+> And Evaluation
+> RL-Games PPO
+> PegInsert GearMesh NutThread
+> Isaac Lab Forge Environment
+> Simulation + Domain Randomization
+> Privileged ZForce-Regime
+> Labels
+> Dual Objective
+> Sementic Regression + Contrastive Loss
+> Ηforce + H action Predicted
+> Context ẑ
+> Fine-Tune + Evaluation
+> Success Rate, Ablation and Robustness
+> Frozen
+> CoRMA
+> Adapter
+> Real Robot
+> Fine-Tuned
+> Policy
+> Sim Task
+> Real Logs
+> Sim2Real
+> Real2Sim
+> Augmentation
+> ẑ
+> CoRMA
+> Adapter
+> Causal
+> Transformer
+> Encoder
+
+## CoRMA Pipeline Figure 1: CoRMA pipeline overview. Stage 1 trains privileged contact-aware policies in Isaac Lab FORGE using RL-Games PPO with a simulator-only 6D semantic contact latent zt . Stage 2 trains a causal Transformer adapter to infer ˆzt from deployable force, proprioceptive, and action histories, using semantic regression and force-regime contrastive learning. Stage 3 removes oracle 
+
+zt and injects the adapter prediction ˆzt into the policy during fine-tuning and real deployment. This implements an RMA-style non-cheating deployment interface for context-based meta-adaptation: privileged contact semantics are used only as simulation supervision, while the deployed controller adapts online from sensor history. Real logs are used for deployment diagnostics and motivate future Real2Sim calibration. across related tasks. Teacher–student frameworks such as Rapid Motor Adaptation (RMA) [ 18 ]provide a useful template for this goal. RMA trains a privileged teacher in simulation and learns an adapter that predicts privileged context from deployable sensor history, so privileged information is used only during training while deployment relies only on onboard observations. For contact-rich assembly, however, the standard RMA formulation is not directly sufficient. Many manipulation-oriented adaptation systems rely on visual or object-centric cues, whereas our deployment setting uses force, proprioception, and action history. Once contact begins, the critical question is not only where the object is, but whether the interaction is in free motion, first touch, lateral engagement, guided sliding, thread or tooth engagement, or a jammed regime. We propose CoRMA, a force-based context adaptation framework that modifies RMA for contact-rich assembly. CoRMA is built on the hypothesis that related assembly tasks share recurring semantic contact structure . Instead of using raw simulator parameters as privileged context, CoRMA constructs a compact 6D Privileged Z describing contact onset, lateral engagement, guided contact transition, contact direction along two axes, and jam or stick–slip tendency. Force is treated as deployable evidence, while Privileged Z represents the semantic interpretation of contact that is useful for control. Because raw force histories can be ambiguous under pointwise regression, CoRMA uses a causal Transformer adapter to infer ˆzt from force/action histories and adds a force-regime contrastive objective [19, 20] to organize histories by contact semantics rather than by raw trajectory similarity. Fig. 1 summarizes the CoRMA pipeline. Stage 1 trains privileged contact-aware policies in Isaac Lab FORGE using RL-Games PPO with zt appended to the observation. Stage 2 trains the CoRMA adapter to predict ˆzt from deployable history using semantic regression and force-regime contrastive learning. Stage 3 removes oracle zt and injects the adapter prediction ˆzt into the policy during fine-tuning and real deployment. In this sense, CoRMA is a context-based meta-adaptation system rather than a MAML-style gradient inner-loop method: adaptation happens online through the inferred contact context, without demonstrations, privileged inputs, or test-time gradient updates. We evaluate CoRMA on PegInsert, GearMesh, and NutThread in simulation and on a real Marvin arm. Our current evaluation tests reuse within a related contact-rich assembly family rather than unconstrained 2generalization to arbitrary unseen tasks, and the results show that semantic contact inference can reduce the real-world degradation observed in strong task-specific FORGE baselines. 
+
+## 2 Related Works 
+
+2.1 Meta-Reinforcement Learning and Context Adaptation 
+
+Meta-RL methods aim to train agents that can adapt rapidly to new tasks or dynamics by leveraging experience over a task distribution. Gradient-based methods such as MAML [ 17 ] learn parameters that can be fine-tuned with a small number of gradient steps, but require inner-loop updates and additional adaptation data at test time. Recurrent meta-RL methods such as RL 2 [ 21 ] instead learn an implicit adaptation procedure in the hidden state of a recurrent policy. Context-based methods such as PEARL [ 22 ] and variBAD [ 23 ] infer an explicit latent context under partial observability, allowing the policy to condition on an estimated task or dynamics belief. CoRMA follows this context-based view, but specializes it to contact-rich assembly. Rather than learning a generic task embedding only from rewards, CoRMA uses simulator-derived semantic con-tact labels as supervised targets for an amortized context estimator. At deployment, adaptation occurs through online latent inference from force, proprioceptive, and action history, without demonstrations or MAML-style gradient updates. Thus, CoRMA is best understood as context-based meta-adaptation within a related assembly task family. 
+
+2.2 Privileged Adaptation and Rapid Motor Adaptation 
+
+RMA trains a privileged teacher policy in simulation and then learns an adaptation module that predicts the teacher’s latent context from deployable history. This privileged-train / deployable-test paradigm is attractive for robotics because simulator-only quantities can guide training while the deployed policy remains non-cheating. Manipulation-oriented RMA variants extend this idea to object manipulation, often using visual or object-centric information to infer privileged properties [24]. CoRMA keeps the RMA deployment principle but changes three components for force-dominant assembly. First, the privileged target is not a broad vector of raw simulator parameters or visual object properties, but a compact semantic contact context describing contact onset, lateral engagement, guided transition, directional bias, and jamming tendency. Second, the adapter uses deployable force/proprioceptive/action history rather than camera input. Third, the history encoder and objective are modified: CoRMA uses a causal Transformer and a force-regime contrastive loss to structure contact histories by interaction semantics. 
+
+2.3 Long-Horizon History Encoders and Contrastive Representation Learning 
+
+Self-attention provides a mechanism for aggregating sparse evidence over long horizons. In rein-forcement learning, Transformer-based architectures such as GTrXL [ 25 ] have been used to improve memory and stability in partially observable sequential decision problems. This is relevant for contact-rich assembly because brief force transients, early contact onset, or delayed jam signatures can affect later corrective actions. Contrastive learning has been widely used to improve representation quality in RL and robotics, including pixel-based methods such as CURL [ 26 ] and general contrastive objectives such as In-foNCE [ 19 , 20 ]. CoRMA uses contrastive learning not as a visual pretraining objective, but as a weak semantic regularizer for contact-context inference. The adapter retains a supervised regression head for the 6D contact context, while an auxiliary contrastive head groups histories with similar force-regime labels, such as first contact or guided sliding. This separates numerical context prediction from representation structuring and avoids replacing the privileged regression objective. 3Figure 2: CoRMA adapter. A causal Transformer encodes deployable force/proprioceptive/action history with a learned readout token. The semantic head predicts the 6D context ˆz used by the policy, while an auxiliary contrastive head produces ut for force-regime InfoNCE. Positives are defined by coarse contact regimes: free motion, first contact, guided sliding, and jamming. 
+
+## 3 Method 
+
+CoRMA formulates contact-rich assembly as a partially observable context-adaptation problem. At timestep t, the robot observes deployable signals ot , including proprioception, force/torque measurements, force-threshold information, and previous actions, but it does not directly observe the semantic contact state that explains the interaction. CoRMA therefore learns a deployable adapter that infers a compact contact context from recent history and injects this context into the policy. Unlike visual RMA variants, CoRMA uses no camera input at deployment; the evidence for adaptation comes from force, proprioceptive, and action histories. 
+
+3.1 Semantic Contact Context 
+
+Instead of adapting through a broad vector of raw simulator parameters, CoRMA de-fines a simulator-only semantic latent, Privileged Z. In the current implementation, zt =[zonset  
+
+> t
+
+, zlateral  
+
+> t
+
+, zguided  
+
+> t
+
+, zdir-xt , zdir-yt , zjam  
+
+> t
+
+] ∈ R6, where the dimensions represent contact onset, lateral engagement, guided contact transition, contact direction along two axes, and jam or stick–slip ten-dency. These scores are computed from simulator contact and force dynamics and are used only during training. The distinction is important: force is deployable evidence, while zt is the semantic interpretation of that evidence. This gives PegInsert, GearMesh, and NutThread a shared contact vocabulary even though their geometries, rewards, and success checks differ. 43.2 Privileged Teacher Rollouts 
+
+For each task in the evaluated assembly family, we train a privileged teacher policy in Isaac Lab [ 27 ]using RL-Games PPO [ 28 ] with observations augmented by Privileged Z, written compactly as 
+
+at ∼ πi(at | ot , zt ), where i indexes the task. The teacher is not directly deployable because zt is simulator-only. Its role is to generate contact-rich trajectories and provide supervised semantic-context targets for adapter training. Teacher rollouts are converted into history-window samples 
+
+D = {(ot−H+1: t , at−H+1: t , zt , ct )}, where H is the history length and ct is a weak force-regime label. Sampling windows across the entire trajectory exposes the adapter to approach, first contact, guided motion, and jam/failure phases rather than only terminal outcomes. 
+
+3.3 CoRMA Adapter and Contrastive Objective 
+
+Fig. 2 shows the CoRMA adapter. The adapter maps deployable history to a semantic context prediction ˆzt = φ (ot−H+1: t , at−H+1: t ). A causal Transformer with a learned readout token encodes the history into ht = fθ (ot−H+1: t , at−H+1: t ). The readout representation is passed to two heads: a semantic head ˆzt = gsem (ht ) and an auxiliary contrastive head ut = gnce (ht ). Only ˆzt is used by the policy; ut is used only during adapter training to shape the representation. The semantic head is trained to regress all six Privileged Z dimensions with Lsem = ∥ˆzt − zt ∥22. We do not use a static/dynamic split: contact onset, lateral engagement, guided transition, contact direction, and jam tendency are all active targets. However, pointwise regression alone does not explicitly teach the adapter that histories from different tasks can share the same contact meaning. For this reason, CoRMA adds a force-regime InfoNCE objective over the auxiliary embedding ut .The contrastive labels are weak semantic regimes computed from deployable force evidence: free ,
+
+first_contact , guided_slide , and jam . For an anchor history, positives are histories with the same force-regime label and negatives are histories with different labels, regardless of task identity. The resulting loss is 
+
+Lnce = − log exp (sim (ut , u+)/τ)
+
+exp (sim (ut , u+)/τ) + ∑u−∈Nt exp (sim (ut , u−)/τ) ,
+
+where sim (·, ·) is cosine similarity and τ is the temperature. This objective encourages histories with similar contact semantics to cluster in the auxiliary space, while the semantic head preserves numerical fidelity to the 6D contact context. The Stage 2 objective is Ladapter = Lsem + λnce Lnce . We use the contrastive term as a weak semantic regularizer rather than as a replacement for supervised Privileged Z regression. 
+
+3.4 Latent Injection for Deployment 
+
+During fine-tuning and real deployment, oracle Privileged Z is removed. The frozen adapter predicts ˆzt online from deployable history, and the policy receives ˆzt in place of simulator-computed zt , i.e., 
+
+at ∼ π(at | ot , ˆzt ). This preserves the RMA non-cheating principle: privileged contact semantics supervise training, but deployment uses only onboard force/proprioceptive/action history. In our evaluation, the same semantic latent-injection interface is used across PegInsert, GearMesh, and NutThread; broader held-out task generalization is left for future work. 
+
+## 4 Experiments 
+
+4.1 Experimental Setup 
+
+We evaluate CoRMA in Isaac Lab / Isaac Sim 5.0 and on the real Marvin arm. Our simulator is based on the Isaac Lab FORGE direct RL environment for contact-rich assembly. FORGE was originally designed around a 6-DoF Franka/Panda-style task-space action interface; to deploy on our 7-DoF Marvin arm, we preserve the FORGE-style observation, reward, reset, and task definitions as much as possible, and modify only the robot-specific control interface. The policy receives deployable 5(a) PegInsert (b) GearMesh (c) NutThread 
+
+Figure 3: Real-robot deployment tasks. CoRMA and FORGE are evaluated on the same Marvin hardware interface across PegInsert, GearMesh and NutThread. proprioceptive, force/torque, force-threshold, and previous-action observations. For CoRMA teacher training, we append the simulator-only 6D Privileged Z; for FORGE baselines, this latent is removed. For real deployment, Cartesian policy targets are converted to Marvin joint commands through TRAC-IK [29], matching the execution path used by the real robot. As shown in Fig. 3, we evaluate three FORGE-style assembly tasks: PegInsert, GearMesh, and NutThread. PegInsert requires inserting a held bolt into a fixed hole under lateral pose uncertainty. GearMesh requires inserting and meshing a gear with discrete tooth engagement. NutThread requires long-horizon alignment and threading under sustained contact. All three tasks share the same policy observation convention and action interface, while task-specific configuration files define object geometry, reset distributions, reward terms, and success conditions. The real-robot experiments use approximately 3 mm target-position noise to emulate camera-based localization error. Our current prototype does not include an onboard camera, so the noisy target is injected directly into the deployment pipeline. This evaluates force/proprioceptive adaptation under controlled pose perturbation, not a full vision-force system. Both CoRMA and FORGE are deployed through the same Marvin hardware interface, so the comparison uses the same IK layer, execution stack, force sensor, and verification rule. 
+
+4.2 Training, Baselines, and Evaluation Protocol 
+
+All simulation policies are trained with the Isaac Lab / RL-Games PPO pipeline. Stage 1 trains privileged CoRMA teachers with observations augmented by Privileged Z. Stage 2 collects teacher rollouts and trains the CoRMA adapter from fixed-length histories of force, proprioception, and actions. Stage 3 freezes the adapter and fine-tunes or evaluates policies by replacing oracle zt with the online adapter prediction ˆ zt .The main baseline is FORGE trained under the same task family and deployed through the same Marvin real-robot interface, but without Privileged Z and without an adapter. CoRMA is evaluated in student mode, where the frozen adapter predicts ˆzt online and no oracle Privileged Z is used. Each simulation result is computed over 80 episodes. For real-robot evaluation, success is computed per logged run by grouping rows by run_id and taking the maximum insertion_verified value within each run. Runs without a final verified insertion are counted as non-success. For FORGE NutThread, all 20 real trials failed the same deployment-side insertion-verification criterion used for CoRMA, so we report the verified success rate as 0/20 rather than treating it as missing data. 
+
+4.3 Simulation and Real-Robot Results 
+
+Table 1 summarizes simulation success, real-robot verified success, sim-to-real degradation, and Wilson 95% confidence intervals for the real success rates. Real success is measured by the final 6Table 1: Simulation and real-robot verified success. Real success is measured by the final 
+
+insertion_verified signal. The gap is real verified success rate minus simulation success rate in percentage points. Wilson 95% confidence intervals quantify finite-sample uncertainty in the real-robot success rate.                                 
+
+> Task Method Sim Success Real Success Gap Real 95% CI
+> PegInsert CoRMA 48/80 (60.00%) 11/22 (50.0%) -10.00 [30.7, 69.3]%
+> FORGE 79/80 (98.75%) 3/24 (12.5%) -86.25 [4.3, 31.0]% GearMesh CoRMA 74/80 (92.50%) 13/20 (65.0%) -27.50 [43.3, 81.9]%
+> FORGE 80/80 (100.00%) 5/20 (25.0%) -75.00 [11.2, 46.9]% NutThread CoRMA 73/80 (91.25%) 16/27 (59.3%) -31.95 [40.7, 75.5]%
+> FORGE 54/80 (67.50%) 0/20 (0.0%) -67.50 [0.0, 16.1]%
+
+insertion_verified signal after policy execution and the post-policy probing procedure. The confidence intervals are computed from the existing real-robot success/failure counts and quantify finite-sample uncertainty; they do not require additional robot trials. The key observation is that high simulation success alone is not a reliable predictor of real deployment performance. FORGE achieves near-perfect simulation success on GearMesh and PegInsert, but its real verified success drops sharply to 25.0% and 12.5%, respectively. CoRMA is not uniformly better in simulation: it is slightly lower than FORGE on GearMesh and substantially lower on PegInsert. However, under the same Marvin deployment interface, CoRMA retains higher verified real success on both tasks, achieving 65.0% on GearMesh and 50.0% on PegInsert. The Wilson intervals are wide because the real-robot evaluation contains tens rather than hundreds of trials, but the intervals make this uncertainty explicit. On NutThread, CoRMA obtains 16/27 verified real successes, while FORGE obtains 0/20 under the same final insertion-verification rule. We interpret this comparison cautiously because threading is the task most affected by real contact, actuation, force sensing, and verification mismatch. Still, across the evaluated tasks, CoRMA shows a smaller sim-to-real degradation than FORGE. These results support the main empirical claim that semantic contact inference can reduce real-world degradation for force-dominant assembly, while also showing that CoRMA does not eliminate the sim-to-real gap. 
+
+4.4 Adapter and Representation Analysis 
+
+Table 2 summarizes the Stage 2 adapter validation results; full ablations are reported in Appendix B. The causal Transformer is the dominant architectural factor: replacing it with an RMA-style Conv1D adapter reduces mean validation R2 from 0.8792 to 0.4336 and increases mean MSE from 0.1208 to 0.5664. The force-regime contrastive objective gives a smaller but consistent gain over Transformer-MSE, improving mean R2 from 0.8688 to 0.8792 and reducing mean MSE from 0.1312 to 0.1208. We therefore interpret InfoNCE as a semantic structuring regularizer rather than the sole driver of performance. Appendix D provides complementary diagnostics for the adapter representation. The PCA visual-izations compare the supervised semantic output ˆzt with the auxiliary contrastive embedding ut : ˆzt
+
+is optimized to predict the 6D Privileged Z used by the policy, while ut is optimized only through force-regime InfoNCE. Across task pairs, the contrastive space shows clearer organization by coarse contact regimes than the regression output alone, supporting the intended role of InfoNCE as a representation-structuring objective. The appendix also reports ˆzt versus oracle zt scatter plots and force-regime separability probes, showing that the deployed context remains predictive of the simulator-derived semantic contact labels and retains regime-relevant information. These diagnos-tics support the two-head adapter design, but we do not claim that the learned embedding is fully task-invariant. On the real robot, oracle Privileged Z is unavailable, so real-world adapter accuracy cannot be measured directly. Instead, we use deployment logs diagnostically by comparing predicted ˆzt with 7Table 2: Stage-2 adapter validation summary. Mean validation metrics across task pairs. The causal Transformer provides the dominant gain over an RMA-style Conv1D encoder, while force-regime InfoNCE gives a smaller regularization benefit over Transformer-MSE. 
+
+Adapter R2 Pearson Cos-Sim MSE 
+
+RMA-Conv 0.4336 0.6411 0.6307 0.5664 RMA-Transformer 0.8688 0.9313 0.9151 0.1312 CoRMA (Ours) 0.8792 0.9369 0.9215 0.1208 
+
+compensated wrench, force onset, end-effector motion, and final insertion verification. Appendix C shows real wrench-derived patterns motivating the coarse force-regime labels used for contrastive training. These diagnostics support the plausibility of the contact-regime labels, but do not replace a full Real2Sim calibration study. 
+
+## 5 Limitations 
+
+This work has several limitations. First, the evaluation covers reuse within three related assembly tasks, but does not include a held-out unseen task; therefore, our results support task-family-level meta-adaptation rather than unconstrained generalization. Second, our real deployment uses a 7-DoF Marvin arm rather than the Franka/Panda-style setup used by FORGE, and Cartesian targets are executed through TRAC-IK. This introduces additional variables, including IK convergence, joint-limit handling, tracking error, servo timing, and arm-specific compliance, so real success depends on both the learned policy and the deployment stack. Third, we have not yet performed Real2Sim calibration from real logs; the remaining sim-to-real gap likely reflects mismatch in dynamics, contact compliance, friction, sensing, latency, and controller timing. Fourth, the current force pipeline uses basic smoothing but no dedicated state estimator, so future work should incorporate principled filtering to reduce sensor noise while preserving contact-onset events. Finally, the real-robot study contains tens of trials per task rather than a large-scale reliability evaluation, so the reported results should be interpreted as controlled deployment evidence rather than full reliability certification. 
+
+## 6 Conclusion 
+
+We presented CoRMA , a context-based meta-adaptation framework for contact-rich robotic as-sembly. CoRMA modifies RMA by replacing raw simulator-parameter adaptation with a com-pact semantic contact context, using a causal Transformer adapter to infer this context from force/proprioceptive/action history, and adding a force-regime contrastive objective for semantic representation structuring. At deployment, oracle Privileged Z is replaced by the adapter prediction ˆzt , enabling online contact-context inference without demonstrations, privileged inputs, or test-time gradient updates. Across PegInsert, GearMesh, and NutThread, CoRMA provides a reusable adaptation interface within a related assembly family and retains higher verified real success than FORGE baselines under the same Marvin deployment interface. The results suggest that semantic contact inference from force history is a promising direction for robust sim-to-real assembly. Future work should evaluate held-out tasks, train a single multi-task teacher and shared adapter, perform Real2Sim calibration, and improve deployment-time force estimation. 8References 
+
+[1] Y. Narang, K. Storey, I. Akinola, M. Macklin, P. Reist, L. Wawrzyniak, Y. Guo, A. Moravanszky, G. State, M. Lu, A. Handa, and D. Fox. Factory: Fast contact for robotic assembly, 2022. URL 
+
+https://arxiv.org/abs/2205.03532 .[2] B. Tang, M. A. Lin, I. Akinola, A. Handa, G. S. Sukhatme, F. Ramos, D. Fox, and Y. Narang. Industreal: Transferring contact-rich assembly tasks from simulation to reality, 2023. URL 
+
+https://arxiv.org/abs/2305.17110 .[3] B. Tang, I. Akinola, J. Xu, B. Wen, A. Handa, K. V. Wyk, D. Fox, G. S. Sukhatme, F. Ramos, and Y. Narang. Automate: Specialist and generalist assembly policies over diverse geometries, 2024. URL https://arxiv.org/abs/2407.08028 .[4] M. Noseworthy, B. Tang, B. Wen, A. Handa, C. Kessens, N. Roy, D. Fox, F. Ramos, Y. Narang, and I. Akinola. Forge: Force-guided exploration for robust contact-rich manipulation under uncertainty, 2025. URL https://arxiv.org/abs/2408.04587 .[5] D. Pomerleau. Alvinn: An autonomous land vehicle in a neural network. In D. Touretzky, editor, Proceedings of (NeurIPS) Neural Information Processing Systems , pages 305 – 313. Morgan Kaufmann, December 1989. [6] S. Ross, G. J. Gordon, and J. A. Bagnell. A reduction of imitation learning and structured prediction to no-regret online learning, 2011. URL https://arxiv.org/abs/1011. 0686 .[7] S. Schaal. Is imitation learning the route to humanoid robots? Trends in Cognitive Sci-ences , 3(6):233–242, 1999. ISSN 1364-6613. doi:https://doi.org/10.1016/S1364-6613(99) 01327-3. URL https://www.sciencedirect.com/science/article/pii/ S1364661399013273 .[8] P. Abbeel and A. Y. Ng. Apprenticeship learning via inverse reinforcement learning. In 
+
+Proceedings of the twenty-first international conference on Machine learning (ICML ’04) , pages 1–8. ACM, 2004. [9] C. Finn, S. Levine, and P. Abbeel. Guided cost learning: Deep inverse optimal control via policy optimization, 2016. URL https://arxiv.org/abs/1603.00448 .[10] J. Ho and S. Ermon. Generative adversarial imitation learning, 2016. URL https://arxiv. org/abs/1606.03476 .[11] T. Johannink, S. Bahl, A. Nair, J. Luo, A. Kumar, M. Loskyll, J. A. Ojea, E. Solowjow, and S. Levine. Residual reinforcement learning for robot control, 2018. URL https://arxiv. org/abs/1812.03201 .[12] T. Silver, K. Allen, J. Tenenbaum, and L. Kaelbling. Residual policy learning, 2019. URL 
+
+https://arxiv.org/abs/1812.06298 .[13] L. Ankile, Z. Jiang, R. Duan, G. Shi, P. Abbeel, and A. Nagabandi. Residual off-policy rl for finetuning behavior cloning policies, 2025. URL https://arxiv.org/abs/2509. 19301 .[14] T. Salloom, X. Yu, W. He, and O. Kaynak. Adaptive neural network control of underwater robotic manipulators tuned by a genetic algorithm. Journal of Intelligent & Robotic Systems ,97(3–4):657–672, 2020. doi:10.1007/s10846-019-01008-y. URL https://doi.org/10. 1007/s10846-019-01008-y .[15] S. Levine, P. Pastor, A. Krizhevsky, and D. Quillen. Learning hand-eye coordination for robotic grasping with deep learning and large-scale data collection, 2016. URL https: //arxiv.org/abs/1603.02199 .9[16] K. Rakelly, A. Zhou, D. Quillen, C. Finn, and S. Levine. Efficient off-policy meta-reinforcement learning via probabilistic context variables, 2019. URL https://arxiv.org/abs/1903. 08254 .[17] C. Finn, P. Abbeel, and S. Levine. Model-agnostic meta-learning for fast adaptation of deep networks, 2017. URL https://arxiv.org/abs/1703.03400 .[18] A. Kumar, Z. Fu, D. Pathak, and J. Malik. Rma: Rapid motor adaptation for legged robots, 2021. URL https://arxiv.org/abs/2107.04034 .[19] G. Liu, M. Tang, and B. Eysenbach. A single goal is all you need: Skills and exploration emerge from contrastive rl without rewards, demonstrations, or subgoals, 2024. URL https: //arxiv.org/abs/2408.05804 .[20] B. Eysenbach, T. Zhang, R. Salakhutdinov, and S. Levine. Contrastive learning as goal-conditioned reinforcement learning, 2023. URL https://arxiv.org/abs/2206. 07568 .[21] Y. Duan, J. Schulman, X. Chen, P. L. Bartlett, I. Sutskever, and P. Abbeel. Rl 2: Fast reinforce-ment learning via slow reinforcement learning, 2016. URL https://arxiv.org/abs/ 1611.02779 .[22] R. Liu, Y. Du, F. Bai, J. Lyu, and X. Li. Pearl: Zero-shot cross-task preference alignment and robust reward learning for robotic manipulation, 2024. URL https://arxiv.org/abs/ 2306.03615 .[23] L. Zintgraf, K. Shiarlis, M. Igl, S. Schulze, Y. Gal, K. Hofmann, and S. Whiteson. Varibad: A very good method for bayes-adaptive deep rl via meta-learning, 2020. URL https:// arxiv.org/abs/1910.08348 .[24] Y. Liang, K. Ellis, and J. Henriques. Rapid motor adaptation for robotic manipulator arms, 2024. URL https://arxiv.org/abs/2312.04670 .[25] E. Parisotto, H. F. Song, J. W. Rae, R. Pascanu, C. Gulcehre, S. M. Jayakumar, M. Jaderberg, R. L. Kaufman, A. Clark, S. Noury, M. M. Botvinick, N. Heess, and R. Hadsell. Stabilizing transformers for reinforcement learning, 2019. URL https://arxiv.org/abs/1910. 06764 .[26] A. Srinivas, M. Laskin, and P. Abbeel. Curl: Contrastive unsupervised representations for reinforcement learning, 2020. URL https://arxiv.org/abs/2004.04136 .[27] NVIDIA, :, M. Mittal, P. Roth, J. Tigue, A. Richard, O. Zhang, P. Du, A. Serrano-Muñoz, X. Yao, R. Zurbrügg, N. Rudin, L. Wawrzyniak, M. Rakhsha, A. Denzler, E. Heiden, A. Borovicka, O. Ahmed, I. Akinola, A. Anwar, M. T. Carlson, J. Y. Feng, A. Garg, R. Gasoto, L. Gulich, Y. Guo, M. Gussert, A. Hansen, M. Kulkarni, C. Li, W. Liu, V. Makoviychuk, G. Malczyk, H. Mazhar, M. Moghani, A. Murali, M. Noseworthy, A. Poddubny, N. Ratliff, W. Rehberg, C. Schwarke, R. Singh, J. L. Smith, B. Tang, R. Thaker, M. Trepte, K. V. Wyk, F. Yu, A. Millane, V. Ramasamy, R. Steiner, S. Subramanian, C. Volk, C. Chen, N. Jawale, A. V. Kuruttukulam, M. A. Lin, A. Mandlekar, K. Patzwaldt, J. Welsh, H. Zhao, F. Anes, J.-F. Lafleche, N. Moënne-Loccoz, S. Park, R. Stepinski, D. V. Gelder, C. Amevor, J. Carius, J. Chang, A. H. Chen, P. de Heras Ciechomski, G. Daviet, M. Mohajerani, J. von Muralt, V. Reutskyy, M. Sauter, S. Schirm, E. L. Shi, P. Terdiman, K. Vilella, T. Widmer, G. Yeoman, T. Chen, S. Grizan, C. Li, L. Li, C. Smith, R. Wiltz, K. Alexis, Y. Chang, D. Chu, L. J. Fan, F. Farshidian, A. Handa, S. Huang, M. Hutter, Y. Narang, S. Pouya, S. Sheng, Y. Zhu, M. Macklin, A. Moravanszky, P. Reist, Y. Guo, D. Hoeller, and G. State. Isaac lab: A gpu-accelerated simulation framework for multi-modal robot learning, 2025. URL https://arxiv.org/abs/2511.04831 .[28] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov. Proximal policy optimization algorithms, 2017. URL https://arxiv.org/abs/1707.06347 .10 [29] P. Beeson and B. Ames. TRAC-IK: An open-source library for improved solving of generic inverse kinematics. In 2015 IEEE-RAS 15th International Conference on Humanoid Robots (Humanoids) , pages 928–935, Seoul, South Korea, 2015. IEEE. doi:10.1109/HUMANOIDS. 2015.7363472. 11 Table 3: Stage-2 adapter hyperparameter ablation. All entries evaluate 6D Privileged Z prediction on the validation set. Higher R2, Pearson correlation, and cosine similarity are better; lower MSE is better. Failed or missing runs are omitted. 
+
+ID Configuration R2 Pearson Cos-Sim MSE 
+
+A2 MSE only 0.7453 0.8572 0.7815 0.2547 A3 NCE λ = 0.5 0.6799 0.8135 0.7396 0.3201 A4 MSE + NCE + smooth λ = 0.05 0.6782 0.8145 0.7414 0.3218 B1 NCE temperature = 0.5 0.7413 0.8546 0.7777 0.2587 B2 NCE temperature = 0.05 0.7131 0.8360 0.7612 0.2869 C1 Small Transformer, d = 64, 2 layers 0.6640 0.8016 0.7314 0.3360 C2 Large Transformer, d = 256, 4 layers 0.8148 0.9000 0.8335 0.1852 C3 Dropout = 0.1 0.6792 0.8170 0.7405 0.3208 D2 Large + NCE λ = 0.01 0.9044 0.9502 0.9136 0.0956 
+
+D3 Large + NCE λ = 0.05 0.8115 0.8978 0.8301 0.1885 D4 Large + NCE λ = 0.2 0.7886 0.8843 0.8134 0.2114 D6 Large + NCE λ = 0.5 0.7639 0.8693 0.7945 0.2361 D7 Large + NCE λ = 0.1, temp = 0.05 0.8492 0.9196 0.8629 0.1508 D8 Large + NCE λ = 0.1, temp = 0.5 0.8556 0.9232 0.8684 0.1444 D9 Large + dropout = 0.1 0.7662 0.8733 0.8009 0.2338 E1 Large + NCE λ = 0.01 + texture λ = 0.05 0.8380 0.9132 0.8507 0.1620 E2 Large + NCE λ = 0.01 + texture λ = 0.1 0.8025 0.8926 0.8219 0.1975 E3 Large + texture λ = 0.1, no NCE 0.8112 0.8976 0.8278 0.1888 
+
+## A Additional Experimental Results 
+
+This appendix provides supplementary results for the Stage 2 adapter and real-world force analysis. Appendix B reports ablation studies for the adapter architecture and training objective. Appendix C shows real wrench evidence motivating the four force-regime labels used for contrastive learning. Appendix D provides additional diagnostics showing that the Stage 2 adapter learns a structured and predictive contact representation. 
+
+## B Stage-2 Ablation Experiments 
+
+Table 3 studies the effect of adapter capacity and auxiliary loss weights on 6D Privileged Z prediction. The large causal Transformer with a weak contrastive weight, NCE λ = 0.01 , gives the best overall validation performance. This supports the use of a high-capacity temporal encoder with contrastive learning as a regularizer rather than as a dominant objective. Table 4 isolates the architectural and objective-level contributions. Replacing the causal Transformer with a Conv1D RMA-style adapter causes a large performance drop across all task pairs. The contrastive objective gives a smaller but consistent aggregate gain over MSE-only training, indicating that force-regime structure improves representation quality without sacrificing latent prediction accuracy. 
+
+## C Real-Force Motivation for Contact Regime Labels 
+
+The Stage 2 contrastive objective uses four weak force-regime labels: 
+
+free , first_contact , guided_slide , jam .
+
+These labels are not intended to provide exact physical state estimation. Instead, they define coarse positive and negative pairs for contrastive representation learning from deployable force history. Figs. 4–7 show real wrench-derived features aligned at contact onset for different contact directions. Across trials, the transition from free motion to first contact produces a sharp change in lateral force 12 Table 4: Stage-2 structure ablation across task pairs. CoRMA uses a causal Transformer adapter with semantic regression and force-regime InfoNCE. The MSE-only variant removes the contrastive objective, while RMA-Conv replaces the causal Transformer with a Conv1D RMA-style adapter. Mean values are computed across the three task pairs. 
+
+Method Task Pair R2 Pearson Cos-Sim MSE 
+
+CoRMA GearMesh–NutThread 0.9025 0.9497 0.9455 0.0975 CoRMA GearMesh–PegInsert 0.8555 0.9234 0.8915 0.1445 CoRMA NutThread–PegInsert 0.8797 0.9375 0.9275 0.1203 Transformer-MSE GearMesh–NutThread 0.9053 0.9512 0.9470 0.0947 Transformer-MSE GearMesh–PegInsert 0.8507 0.9210 0.8896 0.1493 Transformer-MSE NutThread–PegInsert 0.8505 0.9217 0.9088 0.1495 RMA-Conv GearMesh–NutThread 0.5220 0.7184 0.7172 0.4780 RMA-Conv GearMesh–PegInsert 0.4872 0.6820 0.6776 0.5128 RMA-Conv NutThread–PegInsert 0.2915 0.5229 0.4972 0.7084 
+
+CoRMA Mean All pairs 0.8792 0.9369 0.9215 0.1208 
+
+Transformer-MSE Mean All pairs 0.8688 0.9313 0.9151 0.1312 RMA-Conv Mean All pairs 0.4336 0.6411 0.6307 0.5664 
+
+Figure 4: Real force-regime evidence for positive X contact direction. Wrench-derived features are aligned at contact onset. Direct flat-surface contact and inner-rim sliding show different lateral-force ratios, force derivatives, and contact-direction signatures, motivating the coarse contact regimes used for contrastive supervision. ratio and lateral-force derivative near t = 0. Sliding contact along the inner rim produces sustained force texture and a distinct contact-direction signature compared with direct flat-surface contact. These repeated patterns motivate the use of force-regime labels as weak semantic supervision for CoRMA. 
+
+## D Stage-2 Adapter Diagnostics 
+
+This section provides supplementary diagnostics for the Stage 2 CoRMA adapter. The main paper reports quantitative validation in Table 2; here we visualize how the supervised semantic output ˆzt
+
+13 Figure 5: Real force-regime evidence for negative X contact direction. The sharp change near contact onset indicates the transition from free motion to first contact, while the sustained post-onset force texture differentiates guided sliding from direct contact. and the auxiliary contrastive embedding ut organize validation histories. These diagnostics support the two-head adapter design: the semantic head should preserve numerical fidelity to the simulator-derived 6D Privileged Z, while the contrastive head should organize histories by coarse force-regime semantics. All plots in this section are diagnostic and do not imply fully task-invariant representation learning. 
+
+D.1 Contrastive Regime Organization 
+
+The Stage 2 InfoNCE objective defines positives as histories with the same coarse force-regime label and negatives as histories with different labels, regardless of task identity. Therefore, if the contrastive objective is working as intended, the auxiliary embedding ut should show clearer regime-level organization than the regression output ˆzt alone. Figs. 8–10 compare these two spaces for the three pairwise adapters. In each figure, the left panel shows PCA of ˆzt , which is trained for numerical prediction of the 6D Privileged Z; the right panel shows PCA of ut , which is trained only by the force-regime contrastive head. Across task pairs, ut exhibits more separated force-regime structure, especially for first-contact and guided-sliding histories. This supports the use of force-regime InfoNCE as a semantic regularizer, while the remaining overlap and task-specific structure indicate that the representation is not fully task-invariant. 
+
+D.2 Semantic Context Prediction Fidelity 
+
+The policy receives ˆzt , not the auxiliary contrastive embedding ut , during Stage 3 fine-tuning and real deployment. Therefore, the contrastive head is useful only if the semantic head still predicts the simulator-derived Privileged Z accurately. Figs. 11–13 compare predicted ˆzt against oracle zt for the six trained semantic dimensions across the three pairwise adapters. The points concentrate around the diagonal across contact onset, lateral engagement, guided transition, contact direction, and jam tendency, indicating that the adapter learns a deployable approximation of the privileged semantic context rather than a constant latent. Together with the contrastive embedding diagnostics above, these plots support the intended division of labor in CoRMA: supervised regression preserves the control-relevant 6D context, while InfoNCE shapes an auxiliary representation by contact regime. 14 Figure 6: Real force-regime evidence for positive Y contact direction. The lateral-force ratio, nor-malized force derivative, and contact-direction angle provide deployable wrench cues for separating first contact, guided sliding, and jam-like interaction. 
+
+D.3 Force-Regime Separability from Predicted Context 
+
+We further evaluate whether the predicted semantic context ˆzt preserves the coarse force-regime information used to define contrastive positives and negatives. For each pairwise adapter, we train a simple probe to predict the four force-regime labels from either oracle zt or predicted ˆzt . If ˆzt
+
+retains the semantic structure of Privileged Z, its regime-prediction accuracy should be close to the oracle zt probe and above the chance level of 25% . Fig. 14 shows that the predicted context remains regime-informative across task pairs. This diagnostic complements the PCA visualizations: the contrastive head structures the auxiliary embedding ut , while the deployed context ˆzt still carries regime-relevant semantic information for policy conditioning. 15 Figure 7: Real force-regime evidence for negative Y contact direction. Across probe groups, inner-rim sliding exhibits sustained lateral-force structure and directionally consistent contact signatures, supporting the use of coarse force-regime labels in Stage 2. 
+
+Figure 8: GearMesh–PegInsert adapter embedding diagnostic. Left: PCA of the predicted semantic context ˆzt . Right: PCA of the auxiliary contrastive embedding ut . Colors indicate coarse force regimes and markers indicate task identity. Compared with ˆzt , the contrastive embedding shows clearer regime-level organization, supporting the use of force-regime positives and negatives for InfoNCE. 16 Figure 9: GearMesh–NutThread adapter embedding diagnostic. Left: PCA of ˆzt . Right: PCA of ut . The auxiliary contrastive embedding provides clearer force-regime organization than the semantic regression output alone. This visualization supports the contrastive head as a representation-structuring objective, not as a replacement for supervised Privileged Z regression. 
+
+Figure 10: NutThread–PegInsert adapter embedding diagnostic. Left: PCA of ˆzt . Right: PCA of 
+
+ut . The contrastive space separates coarse contact regimes more clearly than the regression output alone, indicating that force-regime positives and negatives provide useful semantic structure. Task-specific structure may still remain, so this should be interpreted as qualitative diagnostic evidence rather than proof of complete task invariance. 
+
+Figure 11: GearMesh–PegInsert semantic context prediction. Predicted ˆzt is plotted against oracle Privileged Z for the six semantic dimensions. The diagonal trend indicates that the adapter preserves numerical fidelity to the simulator-derived contact context. 17 Figure 12: GearMesh–NutThread semantic context prediction. Predicted ˆzt follows oracle zt
+
+across the trained semantic dimensions, supporting the use of ˆzt as the deployable context injected into the policy. 
+
+Figure 13: NutThread–PegInsert semantic context prediction. The adapter prediction ˆ zt remains aligned with oracle Privileged Z across contact semantics, showing that the contrastive auxiliary objective does not replace or collapse the supervised semantic regression target.   
+
+> (a) GearMesh–PegInsert (b) GearMesh–NutThread (c) NutThread–PegInsert
+
+Figure 14: Force-regime separability from semantic context. For each pairwise adapter, a simple probe predicts coarse force-regime labels from oracle zt and predicted ˆzt . The predicted context remains above chance and close to the oracle context across task pairs, indicating that ˆzt preserves regime-relevant semantic information. This diagnostic supports the use of ˆzt as a deployable contact context, but does not by itself prove downstream causal improvement or full task-invariant general-ization. 18

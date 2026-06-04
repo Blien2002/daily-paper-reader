@@ -1,0 +1,466 @@
+Title: IsaacIPC: Coupling High-Fidelity Simulation and Realistic Rendering for Contact-Rich Robotic Systems
+
+URL Source: https://arxiv.org/pdf/2605.24339v1
+
+Published Time: Tue, 26 May 2026 00:32:10 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# IsaacIPC: Coupling High-Fidelity Simulation and Realistic Rendering for Contact-Rich Robotic Systems 
+
+# Qixin Liang 
+
+Anker Humanoid Lab Shenzhen, China The University of Hong Kong Hong Kong SAR, China 
+
+# Zhongqing Han 
+
+Anker Humanoid Lab Shenzhen, China 
+
+Figure 1: IsaacIPC qualitative demonstrations across rigid–deformable robotic systems: a soft Universal Manipulation Interface (UMI) gripper, a dexterous hand, and a quadruped robot. 
+
+## Abstract 
+
+We present IsaacIPC, a robotic simulation framework that couples GPU accelerated incremental potential contact (IPC) with Isaac Sim / Isaac Lab. IsaacIPC maps simulated deformation between sim-ulation and visual meshes, enabling real-time realistic rendering with applications to data collection and policy evaluation. For tac-tile sensing, we introduce the geometric mortar contact potential (GMCP), which defines a barrier potential over contact samples on tactile surfaces to better resolve contact-pressure distributions. We evaluate GMCP on contact benchmarks and demonstrate IsaacIPC on rigid–deformable robotic simulations including a quadruped robot, a dexterous hand, and a universal manipulation interface (UMI) gripper. 
+
+## CCS Concepts 
+
+• Computing methodologies → Physical simulation ; Robot-ics .
+
+## Keywords 
+
+Contact Simulation, Robotic Simulation, Tactile, Embodied Intelli-gence, Data Engine, IsaacSim/Lab 
+
+## 1 Introduction 
+
+High-fidelity robotic simulation frameworks are increasingly impor-tant for embodied intelligence: they enable scalable policy training, systematic evaluation, and contact-rich interactions that are ex-pensive to collect in the real world [Genesis Authors 2024; Mittal et al . 2025]. Contact simulation is central to these systems because manipulation, locomotion, and tactile sensing all rely heavily on physical interaction with the environment. Incremental Potential Contact (IPC) [Li et al . 2020] is attractive in this setting because its barrier formulation, combined with continuous collision detec-tion, robustly maintains intersection- and inversion-free simulation under large deformations and challenging contact. Recent work has improved IPC along complementary direc-tions. For efficiency, IPC has been accelerated by projective dy-namics [Lan et al . 2022b], preconditioned nonlinear conjugate gra-dients [Shen et al . 2024], and GPU Gauss–Newton solvers [Huang et al . 2024, 2025a]. For accuracy, Convergent IPC [Li et al . 2023] and GCP [Huang et al . 2025b] study continuous contact potentials and their discretization. These developments have made IPC-based con-tact simulation increasingly useful in robotics: IPC-GraspSim [Kim et al . 2022] applies IPC to grasp simulation, while TacIPC [Du et al .2024a], Taccel [Li et al . 2025], TacEx [Nguyen et al . 2024], UniV-TAC [Chen et al . 2026], and Tac2Real [Yan et al . 2026] use IPC or its variants for tactile simulation, data generation, and policy learning. Tactile sensing places a strong requirement on contact pressure accuracy, as many tactile sensors rely on contact-induced defor-mation to generate signals. TacEx [Nguyen et al . 2024] integrates GIPC [Huang et al . 2024] with Isaac Sim / Isaac Lab [Mittal et al .2025] for GelSight visuotactile sensor [Yuan et al . 2015], but GIPC-modeled objects are not mapped to high-fidelity visual assets with textures and material appearance for NVIDIA Omniverse [NVIDIA 2026]. UniVTAC [Chen et al . 2026] builds on TacEx for visuo-tactile data generation and benchmarking, and inherits this limitation. This leaves a practical gap for real-to-sim workflows that require robust deformable contact, scalable rollout, and high-fidelity ren-dering from detailed visual assets. In this work, we make two key contributions. 
+
+• First, we introduce IsaacIPC, a simulation framework that bridges IsaacSim/Lab [Mittal et al . 2025] with libuipc [spir-iMirror 2026] through a dual-mesh mapper, combining high-fidelity contact simulation with realistic rendering for data collection and robot-learning policy evaluation. 
+
+> arXiv:2605.24339v1 [cs.RO] 23 May 2026
+
+• Second, we propose the Geometric Mortar Contact Potential (GMCP), a mortar-based contact formulation that samples contact on tactile surfaces and incorporates the barrier po-tential to improve contact-pressure simulation for tactile sensing. Together, these contributions offer a practical foundation for im-proving contact-rich simulation in robotic interactions. 
+
+## 2 Related Work 2.1 Barrier-Based Contact Simulation 
+
+Incremental Potential Contact (IPC) [Li et al . 2020] formulates con-tact as a smoothed barrier potential with continuous collision de-tection (CCD), guaranteeing intersection- and inversion-free tra-jectories under implicit time integration. This framework has been extended along multiple axes: to rigid bodies with curved-trajectory CCD [Ferguson et al . 2021], to stiff affine bodies with reduced de-grees of freedom [Lan et al . 2022a], to unified rigid-deformable multibody systems with articulation constraints [Chen et al . 2022], to high-order finite element meshes [Ferguson et al . 2023a], and to adaptive remeshing within the timestep [Ferguson et al. 2023b]. A major thrust of recent work accelerates IPC to practical speeds. Lan et al. [Lan et al . 2022b] integrate the barrier into projective dy-namics on the GPU. Shen et al. [Shen et al . 2024] eliminate Hessian assembly via a preconditioned nonlinear conjugate gradient (PNCG) method, and Zhang et al. [Zhang et al . 2026] further improve this with multilevel preconditioning. GIPC [Huang et al. 2024] derives analytic eigensystems for GPU-friendly Gauss–Newton solves, and StiffGIPC [Huang et al . 2025a] adds multilevel preconditioning and affine-deformable coupling for stiff materials. Barrier-Augmented Lagrangian [Guo et al . 2024] combines barriers with augmented Lagrangian for improved conditioning, while AL-IPC [Zheng et al .2026] replaces barriers entirely with a second-order augmented Lagrangian, avoiding TOI locking. On the accuracy side, Convergent IPC [Li et al . 2023] reformu-lates IPC in the continuous setting and gives a convergent discretiza-tion, with convergence demonstrated under joint refinement of the mesh, time step, and contact activation distance. The Geometric Contact Potential (GCP) [Huang et al . 2025b] derives a continuum barrier from geometric interaction sets and uses an adaptive lo-cality parameter to avoid rest-state spurious forces while relaxing the coupling between barrier extent and mesh resolution. Classical mortar contact methods improve interface consistency by enforcing contact constraints in a weak, integrated form over overlapping slave-master regions, and are widely used for accurate contact pres-sure transfer on nonmatching meshes [Farah et al . 2018; Puso and Laursen 2004; Wohlmuth 2000]. They are typically formulated with Lagrange multiplier or augmented Lagrangian enforcement rather than feasible-iterate barrier formulations [Huang et al . 2025b]; our work instead incorporates mortar integration into a barrier po-tential to improve contact pressure accuracy while retaining non-penetration. 
+
+## 2.2 IPC in Robotic Simulation 
+
+IPC has recently been adopted in robotics applications involving ro-bust contact handling and deformable objects. IPC-GraspSim [Kim et al . 2022] introduced IPC to parallel-jaw grasp simulation with compliant fingertips, showing that explicitly modeling soft jaw de-formation and frictional contact can improve grasp outcome predic-tion. ZeMa [Du et al . 2024b] further extended IPC-based simulation to unified rigid-deformable robotic manipulation, combining (finite element method) FEM and affine rigid bodies for applications in-cluding grasp generation, grasp repair, and reinforcement learning. Embedded IPC [Du et al . 2024c] improves the runtime of this line of work by using a reduced subspace for elasticity while retain-ing contact constraints on an embedded high-resolution surface, targeting interactive robot manipulation scenarios. IPC-based methods have also been explored for visuo-tactile sens-ing, where elastomer deformation and frictional contact directly determine the tactile signal. TacIPC [Du et al . 2024a] uses FEM with IPC to simulate optical tactile sensor gels with intersection-and inversion-free deformation, enabling tactile image and marker displacement prediction. TacEx [Nguyen et al . 2024] integrates GIPC [Huang et al . 2024] with Isaac Sim / Isaac Lab [Mittal et al .2025], combining FEM with visuotactile rendering modules for GelSight sensors [Yuan et al . 2015]. Taccel [Li et al . 2025] scales this direction further by combining IPC and affine body dynam-ics with NVIDIA Warp [Macklin 2022] to support many parallel tactile-robotics environments. UniVTAC [Chen et al . 2026] builds on TacEx [Nguyen et al . 2024] from the data and evaluation side, pro-viding a unified visuo-tactile simulation platform, representation-learning pipeline, and benchmark for tactile-driven manipulation. Tac2Real [Yan et al . 2026] targets online reinforcement learning and zero-shot sim-to-real transfer, using PNCG-IPC [Shen et al . 2024] as the contact solver in a visuotactile simulation framework. These works demonstrate the value of IPC-quality contact for robotics, while also motivating simulation frameworks that combine robust deformable contact, scalable GPU execution, and direct integration with modern robot-learning environments. 
+
+## 3 IsaacIPC 
+
+In this section, we present IsaacIPC (Fig. 2), a simulation framework that couples the high-fidelity real-time rendering and massively parallel environment infrastructure of Isaac Sim / Isaac Lab [Mit-tal et al . 2025] with the GPU-accelerated contact simulation of libuipc [Huang et al . 2024, 2025a; spiriMirror 2026], incorporating our GMCP contact model (§4.1) and a Dual-Mesh Mapper (§3.2). 
+
+## 3.1 System Architecture 
+
+IsaacIPC adopts a three-layer architecture (Fig. 2). The IsaacSim/Lab 
+
+layer provides robot articulation and photorealistic rendering via the Universal Scene Description (USD) / Fabric stage, with an op-tional one-way coupling to PhysX [NVIDIA Corporation 2025]. The IsaacIPC layer mediates between IsaacSim/Lab and libuipc: the 
+
+ExternalSim Bridge coordinates each physics step; the Articulation Constraint reads joint-driven body poses and applies them as con-straints inside libuipc; the Dual-Mesh Mapper (§3.2) interpolates the visual mesh Mvis onto the simulation mesh Msim each frame; and the Fabric Bridge writes the interpolated Mvis vertex positions back to the USD / Fabric stage. The libuipc layer runs all physics on the GPU: the Simulations block handles rigid and deformable body dynamics with GPU contact, of which GMCP (§4.1) is one con-tact model; the Subscene Tabular layout partitions the simulation RL Policy Articulation     
+
+> joint drives PhysX USD / Fabric
+> render stage
+> ExternalSim Bridge
+> step coordinator
+> Articulation Constraint
+> Dual-Mesh Mapper
+> Fabric Bridge
+> USD write
+> GPU Engine GMCP Contact
+> Subscene Tabular
+> N-env parallel
+> Simulations
+> IsaacSim/Lab
+> IsaacIPC
+> libuipc
+> deform. state
+> joint state
+> Msim
+> Mvis
+
+Figure 2: System architecture of IsaacIPC. 
+
+into multiple fully isolated subscenes on a single GPU, enabling massively parallel rollouts. 
+
+## 3.2 Dual-Mesh Mapper v0
+
+v1v2
+
+p𝑖 
+
+ˆp𝑖 
+
+Mvis 
+
+Msim 
+
+Figure 3: Dual-mesh mapper. 
+
+Reconstructed or procedurally gen-erated simulation assets [Tencent Hunyuan3D Team 2025] typically provide only surface meshes, whereas deformable simulation requires vol-umetric discretization (e.g., tetrahe-dralization via TetGen [Si 2015]), which may alter mesh topology and break texture-coordinate parameter-ization and material bindings essen-tial for photorealistic rendering. In-spired by barycentric embedding in skeleton-driven animation [Capell et al . 2002] and Embedded IPC [Du et al . 2024c], we therefore maintain two meshes: a simulation mesh Msim 
+
+for contact and deformation, and a visual mesh Mvis for rendering, preserving the original texture coordinates, materials bindings, and topology. 
+
+Precomputation. At initialization, each visual vertex p𝑖 ∈ V 
+
+(𝑖 = 1, . . . , 𝑁 ) is embedded onto the surface of the simulation mesh 
+
+Msim via closest-point projection. For each p𝑖 , we find the nearest simulation triangle 𝑇 𝑖 ∈ Msim (subscript 𝑖 labels the assignment to vertex p𝑖 , not a global enumeration of triangles) with vertices 
+
+{v0, v1, v2 }, and compute its barycentric coordinates (𝑢 𝑖 , 𝑣 𝑖 , 𝑤 𝑖 ) such that 
+
+ˆp𝑖 = 𝑢 𝑖 v0 + 𝑣 𝑖 v1 + 𝑤 𝑖 v2, 𝑢 𝑖 + 𝑣 𝑖 + 𝑤 𝑖 = 1, (1) where ˆp𝑖 is the projection of p𝑖 onto 𝑇 𝑖 . Let e1 = v1 −v0, e2 = v2 −v0,and n𝑖 = (e1 × e2)/∥ e1 × e2 ∥ be the unit normal of 𝑇 𝑖 . Setting 
+
+d = p𝑖 − v0 and 𝛿 𝑖 = d · n𝑖 (signed offset of p𝑖 from the plane of 𝑇 𝑖 ), we have 
+
+d = 𝑣 𝑖 e1 + 𝑤 𝑖 e2 + 𝛿 𝑖 n𝑖 . (2) 𝑇 𝑠 
+
+Face sample 
+
+𝑇 𝑚 
+
+𝑇 𝑠 
+
+Edge sample 
+
+𝑒 𝑚 
+
+𝑇 𝑠 
+
+Point sample 
+
+𝑣 𝑚 
+
+Figure 4: Contact sampling on a slave triangle, which is ex-tracted from the tactile surface. 
+
+Taking the dot product of Eq. (2) with e1 and e2 in turn, the 𝛿 𝑖 n𝑖 
+
+term vanishes since n𝑖 · e1 = n𝑖 · e2 = 0, yielding 
+
+e1 · e1 e1 · e2
+
+e1 · e2 e2 · e2
+
+  𝑣 𝑖 
+
+𝑤 𝑖 
+
+
+
+=
+
+d · e1
+
+d · e2
+
+
+
+, (3) with 𝑢 𝑖 = 1 − 𝑣 𝑖 − 𝑤 𝑖 . The mapping {( 𝑇 𝑖 , 𝑢 𝑖 , 𝑣 𝑖 , 𝑤 𝑖 , 𝛿 𝑖 )} 𝑁 𝑖 =1 is com-puted once and stored. 
+
+Per-frame update. After each simulation step, the simulation ver-tices are updated to deformed positions. The visual vertex positions are recovered by interpolating the deformed simulation vertices and restoring the normal offset: 
+
+p′ 
+
+> 𝑖
+
+= 𝑢 𝑖 v′ 
+
+> 0
+
++ 𝑣 𝑖 v′ 
+
+> 1
+
++ 𝑤 𝑖 v′ 
+
+> 2
+
++ 𝛿 𝑖 n′ 
+
+> 𝑖
+
+, 𝑖 = 1, . . . , 𝑁 , (4) where v′
+
+> 0
+
+, v′
+
+> 1
+
+, v′ 
+
+> 2
+
+are the deformed positions of the three vertices of 
+
+𝑇 𝑖 , and n′ 
+
+> 𝑖
+
+is the unit normal of the deformed triangle 𝑇 𝑖 . The mesh topology, texture coordinates, and material bindings of Mvis remain unchanged throughout; only the vertex positions {p′ 
+
+> 𝑖
+
+} are updated each frame. The mapping is rigid-invariant and introduces a piecewise-linear approximation error of 𝑂 (ℎ2) for general deformations, where ℎ is the simulation triangle edge length; rendering fidelity thus improves quadratically with mesh refinement. 
+
+## 4 Geometric Mortar Contact Potential 
+
+We consider contacts in which pressure is evaluated on a tactile surface. We use this surface as the slave geometry. The opposing geometry is the master side, whose local contact feature may be a surface patch, a line segment, or a point. 
+
+## 4.1 Contact Sampling 
+
+The slave triangulated mesh S provides the local parameterization and normal field n𝑠 . Contact samples are constructed by projecting and clipping master features against local slave triangles. We refer to samples on clipped face overlaps as face samples , samples on clipped edge segments as edge samples , and projected master vertices as 
+
+point samples (see Fig. 4). Each sample 𝑘 is either a quadrature point on a clipped face overlap or edge segment, or a projected master vertex. It stores a position x𝑠,𝑘 on S, an associated master position 
+
+x𝑚,𝑘 , a sample weight 𝑤 𝑘 , and a signed gap 𝑔 𝑘 measured along the slave normal. 
+
+Face samples. For a slave triangle 𝑇 𝑠 and a master triangle 𝑇 𝑚 , we project both triangles onto the tangent plane of 𝑇 𝑠 and clip their overlap using Sutherland-Hodgman clipping [Sutherland and Hodg-man 1974]. The clipped polygon is fan-triangulated and integrated with 2D Gauss quadrature. At sample 𝑘 , barycentric coordinates 
+
+𝛽 𝑠 𝑎,𝑘 and 𝛽 𝑚 𝑎,𝑘 interpolate the slave and master positions, 
+
+x𝑠,𝑘 = Í𝑎 𝛽 𝑠 𝑎,𝑘 x𝑠,𝑎 , x𝑚,𝑘 = Í𝑎 𝛽 𝑚 𝑎,𝑘 x𝑚,𝑎 𝑎 = 0, 1, 2. (5) The signed gap is 
+
+𝑔 𝑘 = n𝑠 · ( x𝑚,𝑘 − x𝑠,𝑘 ). (6) 
+
+Edge samples. For a master edge 𝑒 𝑚 = (x𝑒 𝑚, 0, x𝑒 𝑚, 1), we project the edge onto the tangent plane of a slave triangle and clip the projected segment by the triangle. Using the edge parameter 𝜂 ∈ [ 0, 1],
+
+x𝑚,𝑘 = (1 − 𝜂 𝑘 )x𝑒 𝑚, 0 + 𝜂 𝑘 x𝑒 𝑚, 1, (7) each 1D Gauss point gives slave barycentric coordinates 𝛽 𝑠 𝑎,𝑘 on 𝑇 𝑠 
+
+and 
+
+x𝑠,𝑘 = Í𝑎 𝛽 𝑠 𝑎,𝑘 x𝑠,𝑎 , 𝑎 = 0, 1, 2. (8) The signed gap is 
+
+𝑔 𝑘 = n𝑠 · ( x𝑚,𝑘 − x𝑠,𝑘 ). (9) 
+
+Point samples. For a master vertex, we project this vertex onto a slave triangle and generate a point sample. The sample uses the projected slave position x𝑠,𝑘 and the master vertex position x𝑚,𝑘 to compute the gap 𝑔 𝑘 as in Eq. (6) and Eq. (9). 
+
+## 4.2 GMCP Barrier Potential 
+
+Let K𝑞 denote the contact samples of type 𝑞 on the slave surface. The discrete barrier potential is 
+
+Ψ =∑︁ 
+
+> 𝑞 ∈ { 2,1,0}
+
+∑︁ 𝑘 ∈ K 𝑞 
+
+𝜅 𝑞 𝑤 𝑘 𝛾 𝑘 𝐵 (𝑔 𝑘 , 𝜀 𝑘 ), (10) where 𝑞 = 2, 1, 0 denotes face, edge, and point samples, 𝑤 𝑘 is the sample weight, with units corresponding to area, length, or a point contribution, 𝜅 𝑞 is the barrier stiffness for sample type 𝑞 , 𝛾 𝑘 is a master-feature weight defined in Sec. 4.3, and 𝜀 𝑘 is the barrier support radius defined in Sec. 4.4. The barrier function 𝐵 follows IPC [Li et al . 2020]; other function, such as GCP [Huang et al . 2025b], can also be adopted. For the current contact samples, we use the gradient and Hessian approximation 
+
+∇Ψ =∑︁ 
+
+> 𝑞
+
+∑︁ 𝑘 ∈ K 𝑞 
+
+𝜅 𝑞 𝑤 𝑘 𝛾 𝑘 
+
+𝜕𝐵 𝜕𝑔 𝑘 
+
+∇𝑔 𝑘 , (11) 
+
+∇2Ψ =∑︁ 
+
+> 𝑞
+
+∑︁ 𝑘 ∈ K 𝑞 
+
+𝜅 𝑞 𝑤 𝑘 𝛾 𝑘 
+
+𝜕 2𝐵 𝜕𝑔 2
+
+> 𝑘
+
+∇𝑔 𝑘 (∇ 𝑔 𝑘 )𝑇 , (12) with Hessian contributions projected to the positive semi-definite cone. 
+
+## 4.3 Master-Feature Weights 𝛾 
+
+The weight 𝛾 controls transitions between face, edge, and point samples on the master side. We use the 𝐶 1 Hermite step to smoothly scale sample contributions near master-feature boundaries. 
+
+𝐻 (𝑥, 𝛿 ) =
+
+
+
+0 𝑥 ≤ 0,
+
+3𝑡 2 − 2𝑡 3, 𝑡 = 𝑥 /𝛿 0 < 𝑥 < 𝛿, 
+
+1 𝑥 ≥ 𝛿, 
+
+(13) For face samples, we use 
+
+𝑓 𝑇 = 𝐻 
+
+
+
+min  
+
+> 𝑎
+
+𝛽 𝑚 𝑎 , 𝛿 𝑇 
+
+
+
+, (14) where 𝛽 𝑚 𝑎 are barycentric coordinates on the master triangle and 𝛿 𝑇 
+
+is the transition width near master-triangle edges. For edge samples, we use 
+
+𝑓 𝑒 = 𝐻 (𝜂, 𝛿 𝑒 )𝐻 (1 − 𝜂, 𝛿 𝑒 ). (15) Here 𝜂 is the master edge parameter and 𝛿 𝑒 is the transition width near master-edge endpoints. The master-feature weight is 
+
+𝛾 =
+
+
+
+𝑓 𝑇 face sample ,𝑓 𝑒 edge sample ,
+
+1 point sample .
+
+(16) Thus face samples decay near master-triangle edges, edge samples decay near master-edge endpoints, and point samples keep full weight. 
+
+## 4.4 Adaptive Barrier Support Radius 
+
+Inspired by GCP [Huang et al . 2025b], we use an adaptive support radius 𝜀 𝑘 for each contact sample 𝑘 to avoid spurious forces. We assign the support radius as: 
+
+𝜀 𝑘 = min  0.9 𝑔 ref ,𝑘 , 𝜀 max 
+
+, (17) where 𝑔 ref ,𝑘 is the gap to the associated master feature, and 𝜀 max 
+
+is a prescribed support-radius bound. This choice gives 𝑔 ref ,𝑘 > 𝜀 𝑘 
+
+which avoids spurious forces. 
+
+## 4.5 Linearized Gap Step Size 
+
+For the current contact samples, we compute a step-size bound from the linearized gap. For a displacement Δx that decreases sample 𝑘 ’s gap, we use 
+
+𝛼 ∗ 
+
+> 𝑘
+
+= 0.9 𝑔 𝑘 
+
+−∇ 𝑔 𝑘 · Δx , ∇𝑔 𝑘 · Δx < 0. (18) The global step size is 
+
+𝛼 = min  
+
+> 𝑘
+
+𝛼 ∗ 
+
+> 𝑘
+
+, (19) where the minimum is taken over all contact samples 𝑘 with ∇𝑔 𝑘 ·
+
+Δx < 0, with 𝑔 𝑘 and ∇𝑔 𝑘 evaluated at the penetration-free positions. 
+
+## 5 Results 
+
+In this section, we evaluate GMCP and IsaacIPC through quantita-tive and qualitative tests. All tests were run on a workstation with an AMD EPYC 9T24 CPU with 32 cores and an NVIDIA RTX5880-Ada-48Q GPU. 
+
+## 5.1 Quantitative Tests for GMCP 
+
+In this subsection, 𝐸 is Young’s modulus, 𝜈 is Poisson’s ratio, 𝑢 𝑥 ,
+
+𝑢 𝑦 , and 𝑢 𝑧 are displacement components along the 𝑥 , 𝑦 , and 𝑧 axes, and 𝜎 𝑖 𝑗 , 𝑖, 𝑗 ∈ { 𝑥, 𝑦, 𝑧 } is a Cauchy stress component. All quantities are reported in SI units. GMCP is implemented in libuipc, which branches from main at commit 1dd8e36 .
+
+Contact patch test. The contact patch test checks whether a con-tact method transmits a uniform stress state across a non-matching interface [Wriggers and Laursen 2006]. We use two linear-elastic blocks of size 1 × 1 × 0.5, separated by an initial gap of 0.002 .xyzFigure 5: Contact patch test. 
+
+The bottom block has 56 vertices and 125 tetrahedra, while the top block has 32 vertices and 70 tetra-hedra. Both use 𝐸 = 1000 and 
+
+𝜈 = 0. The bottom surface of the bottom block is constrained with 
+
+𝑢 𝑥 = 𝑢 𝑦 = 𝑢 𝑧 = 0, the top block is constrained with 𝑢 𝑥 = 𝑢 𝑦 = 0,and a uniform pressure of 10 is applied to the top surface of the top block along −𝑧 . All runs are quasi-static, frictionless, and use barrier support radius 0.001 .The analytical solution is 𝜎 𝑧𝑧 = −10 uniformly in both blocks, with all other stress components equal to zero. We report the maxi-mum relative 𝜎 𝑧𝑧 error and the maximum spurious stress, denoted 
+
+𝜎 spur , defined as the largest absolute non-target Cauchy stress com-ponent among 𝜎 𝑥𝑥 , 𝜎 𝑦𝑦 , 𝜎 𝑥 𝑦 , 𝜎 𝑦𝑧 , and 𝜎 𝑥𝑧 . As shown in Table 1, GMCP transmits the target uniform stress with small relative error for all tested barrier stiffness 𝜅 values. 
+
+Table 1: GMCP contact patch test results.          
+
+> 𝜅 𝜎 𝑧𝑧 max rel. err. 𝜎 spur
+> 10 48.00 ×10 −46.00 ×10 −3
+> 10 64.66 ×10 −52.48 ×10 −4
+> 10 84.66 ×10 −52.48 ×10 −4
+
+Hertzian Contact. The Hertzian contact test evaluates how accu-rately the method recovers the normal pressure distribution in smooth curved contact at finite resolution [Laursen 2003]. We use a quarter-symmetry model in which a deformable one-eighth hemisphere of radius 𝑅 = 0.05 indents a deformable elastic block represented by a quarter-cylinder sector of outer radius 0.12 and height 0.06 . The block has 10,488 vertices and 55,921 tetrahedra, and the hemisphere has 11,838 vertices and 61,843 tetrahedra. The minimum initial gap between the block and the hemisphere is 
+
+5 × 10 −5. Both bodies use the same linear-elastic material, with 
+
+𝐸 = 2.1 × 10 11 and 𝜈 = 0.3. The block bottom is fixed with 𝑢 𝑧 = 0.xy z
+
+Figure 6: Hertzian con-tact. 
+
+On both bodies, the two sym-metry planes 𝑥 = 0 and 𝑦 = 0
+
+impose 𝑢 𝑥 = 0 and 𝑢 𝑦 = 0, re-spectively. On the hemisphere, a uniform pressure 𝑄 = 10 7 is ap-plied to the top surface along −𝑧 
+
+and ramped over 10 load steps. The simulation is quasi-static and frictionless, with GMCP bar-rier support radius 10 −5.The analytical contact pres-sure is given by the Hertz solu-tion [Johnson 1987], 
+
+𝑝 (𝑟 ) = 3𝑄𝑅 2
+
+2𝛼 2√︂ 1 − 𝑟 2
+
+𝛼 2 , 𝛼 =
+
+ 3𝑞𝜋𝑅 3
+
+4𝐸 ∗
+
+1/3
+
+,
+
+where 𝑟 is the radial distance from the contact center and 𝐸 ∗ =
+
+𝐸 /[ 2(1 − 𝜈 2)] is the effective Young’s modulus. Fig. 7 compares this 0.0 0.5 1.0 1.5 2.0 2.5 3.0  
+
+> Radial distance 𝑟 (mm)
+> 0
+> 1000
+> 2000
+> 3000
+> 4000
+> Contact pressure (MPa)
+> GMCP Analytical
+
+Figure 7: Hertz contact of GMCP compared with the analyti-cal solution. 
+
+analytical profile with the numerical GMCP result, which shows close agreement. The small oscillations of a few numerical points are expected to decrease with mesh refinement or higher-order elements. 
+
+## 5.2 Qualitative Tests for IsaacIPC 
+
+Unless otherwise specified in this subsection, rigid bodies are sim-ulated using affine body dynamics [Lan et al . 2022a], while de-formable bodies are simulated using linear tetrahedral finite ele-ments. This subsection focuses on qualitative demonstrations of the capabilities of the IsaacIPC framework. The contact model can be GMCP or another suitable model, and detailed simulation settings are omitted. 
+
+Legged locomotion. The Unitree Go2 quadruped robot [Unitree Robotics 2026], shown in the right panel of Fig. 1, is modeled as a full-body articulated system with rigid links and joint constraints in libuipc. All components are represented as rigid bodies except for the four black foot pads, which are modeled using FEM. For sim-ulation efficiency, the simulation mesh is coarser than the render-ing mesh; nevertheless, high-quality visual rendering is preserved through the dual-mesh mapper (Fig. 3). To ensure that the qualitative behavior of the system is gov-erned by transparent and interpretable kinematic commands, we use a manually designed open-loop trot controller as the motion input. The controller generates an alternating diagonal-leg trot gait and plans D-shaped foot trajectories in the sagittal plane. Fig. 9 visualizes the distribution of contact forces between the feet and the ground. The same setup also supports multi-environment parallel execution with domain randomization over foot elastic modulus, friction coefficient, and controller parameters, enabled by the subscene-based IsaacIPC architecture (see Fig. 8). Single-environment reset further enables selective reset, providing a prac-tical option for rigid-deformable coupled reinforcement learning environments. 
+
+Dexterous in-hand manipulation. The Sharpa Wave dexterous hand [Sharpa Robotics 2026], shown in the middle panel of Fig. 1, is demonstrated on an in-hand ball-rotation task. As in the legged Figure 8: Parallel multi-environment simulation of the legged locomotion test. 
+
+Figure 9: Contact force distribution on the four foot pads of the legged robot. 
+
+locomotion example, the rigid links and joint constraints are han-dled by libuipc, while the five green elastomer fingertips and the manipulated ball are modeled with FEM. The target trajectories for the hand’s 22 actuated degrees of freedom are obtained from rollouts of a trained IsaacLab in-hand manipulation policy. Fig. 11 visualizes the fingertip contact force distribution, and Fig. 10 shows the corresponding domain randomized multi environ-ment simulation. This example illustrates how IsaacIPC can support high-quality data collection for dexterous in-hand manipulation. 
+
+UMI gripper manipulation. The Universal Manipulation Interface (UMI) [Chi et al . 2024] facilitates large-scale manipulation data collection for robot policy training. We model the UMI gripper in IsaacIPC. In this test, the Franka robotic arm inverse kinematics is solved by IsaacSim, and the UMI gripper is driven one-way by the arm. Fig. 12 shows a fisheye view of rigid-cube pick-and-place manipulation, with the scene background sourced from LeHome [Li et al . 2026]. To expose richer contact details on the inner gripper sur-faces, where piezoresistive tactile sensors are commonly mounted, we additionally show a softer-cylinder grasping example in Fig. 13. This setup can also be used to evaluate robot learning policies. 
+
+Figure 10: Parallel multi-environment simulation of dexter-ous hand manipulation test. 
+
+Figure 11: Contact force distribution on the five fingertips of the dexterous hand. 
+
+## 6 Conclusion 
+
+We presented IsaacIPC, a robotic simulation framework that con-nects libuipc with IsaacSim/Lab. Through a dual-mesh mapper, IsaacIPC computes contact and deformation on simulation meshes while preserving the visual meshes, material bindings, USD / Fabric representation, and parallel environment infrastructure used by Omniverse based rendering and robot simulation. This design is not tied to a single contact model and can be extended to other physics backends. We also introduced geometric mortar contact potential (GMCP), a mortar-based contact formulation for tactile simulation. GMCP constructs a barrier potential from contact samples on the tactile surface, providing a direct discretization of contact pressure on the sensor side. The contact patch and Hertzian contact tests validate its behavior on normal contact-pressure transfer, and the robotic ex-amples demonstrate how IsaacIPC can be used in rigid–deformable contact-rich systems. Figure 12: Fisheye view of UMI pick-and-place manipulation with a rigid cube. 
+
+Figure 13: Contact force distribution on the inner flat sur-faces of the UMI gripper. 
+
+Several limitations remain. High-fidelity robotic simulation al-ways have to balance accuracy, robustness, and efficiency, especially when scaling rigid–deformable contact simulation to real-time or near-real-time reinforcement-learning settings. The current GMCP formulation mainly focuses on normal contact pressure; tangen-tial traction, friction, stick–slip transitions, and shear deformation are important for tactile sensing and should be considered. Mortar formulations also depend on reliable projection, clipping, and quad-rature on the contact interface, and can become more involved near sharp features, rapidly changing contact topology, or highly non-matching meshes. Exploring alternative pressure-transfer schemes, adaptive quadrature, or higher-order contact representations may further improve accuracy, robustness, and efficiency. Future work will also broaden IsaacIPC beyond the current rigid– deformable examples. Promising directions include coupling GPU-accelerated IPC with additional physical effects such as fluids, frac-ture, and other multiphysics phenomena; integrating asset gen-eration and scene reconstruction pipelines; and using large-scale simulation to generate tactile and force-feedback data for pretrain-ing and post-training embodied foundation models. 
+
+## References 
+
+Steve Capell, Seth Green, Brian Curless, Tom Duchamp, and Zoran Popović. 2002. Interactive Skeleton-Driven Dynamic Deformations. ACM Transactions on Graphics 
+
+21, 3 (2002), 586–593. doi:10.1145/566654.566622 Baijun Chen, Weijie Wan, Tianxing Chen, Xianda Guo, Congsheng Xu, Yuanyang Qi, Haojie Zhang, Longyan Wu, Tianling Xu, Zixuan Li, Yizhe Wu, Rui Li, Xiaokang Yang, Ping Luo, Wei Sui, and Yao Mu. 2026. UniVTAC: A Unified Simulation Platform for Visuo-Tactile Manipulation Data Generation, Learning, and Benchmarking. arXiv:2602.10093 [cs.RO] Yunuo Chen, Minchen Li, Lei Lan, Hao Su, Yin Yang, and Chenfanfu Jiang. 2022. A Unified Newton Barrier Method for Multibody Dynamics. ACM Transactions on Graphics 41, 4, Article 66 (July 2022), 14 pages. doi:10.1145/3528223.3530076 Cheng Chi, Zhenjia Xu, Chuer Pan, Eric Cousineau, Benjamin Burchfiel, Siyuan Feng, Russ Tedrake, and Shuran Song. 2024. Universal Manipulation Interface: In-the-Wild Robot Teaching Without In-the-Wild Robots. arXiv preprint arXiv:2402.10329 
+
+(2024). Wenxin Du, Wenqiang Xu, Jieji Ren, Zhenjun Yu, and Cewu Lu. 2024a. TacIPC: Intersection- and Inversion-free FEM-based Elastomer Simulation for Optical Tactile Sensors. IEEE Robotics and Automation Letters (2024). Wenxin Du, Siqiong Yao, Xinlei Wang, Yuhang Xu, Wenqiang Xu, and Cewu Lu. 2024b. Intersection-free Robot Manipulation with Soft-Rigid Coupled Incremental Potential Contact. IEEE Robotics and Automation Letters (2024). Wenxin Du, Chang Yu, Siyu Ma, Ying Jiang, Zeshun Zong, Yin Yang, Joe Masterjohn, Alejandro Castro, Xuchen Han, and Chenfanfu Jiang. 2024c. Embedded IPC: Fast and Intersection-free Simulation in Reduced Subspace for Robot Manipulation. arXiv:2409.16385 [cs.RO] P. Farah, W. A. Wall, and A. Popp. 2018. A mortar finite element approach for point, line, and surface contact. Internat. J. Numer. Methods Engrg. 114, 3 (2018), 255–291. doi:10.1002/nme.5743 Zachary Ferguson, Pranav Jain, Denis Zorin, Teseo Schneider, and Daniele Panozzo. 2023a. High-Order Incremental Potential Contact for Elastodynamic Simulation on Curved Meshes. In Special Interest Group on Computer Graphics and Interactive Techniques Conference Proceedings (SIGGRAPH ’23) . Los Angeles, CA, USA. doi:10. 1145/3588432.3591488 Zachary Ferguson, Minchen Li, Teseo Schneider, Francisca Gil-Ureta, Timothy Langlois, Chenfanfu Jiang, Denis Zorin, Danny M. Kaufman, and Daniele Panozzo. 2021. Intersection-free Rigid Body Dynamics. ACM Transactions on Graphics 40, 4, Article 183 (Aug. 2021), 16 pages. doi:10.1145/3450626.3459802 Zachary Ferguson, Teseo Schneider, Danny M. Kaufman, and Daniele Panozzo. 2023b. In-Timestep Remeshing for Contacting Elastodynamics. ACM Transactions on Graphics 42, 4, Article 145 (Aug. 2023), 15 pages. doi:10.1145/3592428 Genesis Authors. 2024. Genesis: A Generative and Universal Physics Engine for Robotics and Beyond. https://github.com/Genesis-Embodied-AI/Genesis. Dewen Guo, Minchen Li, Yin Yang, Sheng Li, and Guoping Wang. 2024. Barrier-Augmented Lagrangian for GPU-based Elastodynamic Contact. ACM Transactions on Graphics 43, 6, Article 225 (Nov. 2024), 17 pages. doi:10.1145/3687988 Kemeng Huang, Floyd M. Chitalu, Huancheng Lin, and Taku Komura. 2024. GIPC: Fast and Stable Gauss-Newton Optimization of IPC Barrier Energy. ACM Transactions on Graphics 43, 2 (Jan. 2024), 18 pages. doi:10.1145/3643028 Kemeng Huang, Xinyu Lu, Huancheng Lin, Taku Komura, and Minchen Li. 2025a. StiffGIPC: Advancing GPU IPC for Stiff Affine-Deformable Simulation. ACM Transactions on Graphics (2025). Zizhou Huang, Maxwell Paik, Zachary Ferguson, Daniele Panozzo, and Denis Zorin. 2025b. Geometric Contact Potential. ACM Transactions on Graphics 44, 4 (Aug. 2025), 24 pages. doi:10.1145/3731142 Kenneth Langstreth Johnson. 1987. Contact mechanics . Cambridge university press. Chung Min Kim, Michael Danielczuk, Isabella Huang, and Ken Goldberg. 2022. IPC-GraspSim: Reducing the Sim2Real Gap for Parallel-Jaw Grasping with the Incre-mental Potential Contact Model. In Proceedings of the IEEE International Conference on Robotics and Automation (ICRA) . 6180–6187. Lei Lan, Danny M. Kaufman, Minchen Li, Chenfanfu Jiang, and Yin Yang. 2022a. Affine Body Dynamics: Fast, Stable and Intersection-free Simulation of Stiff Materials. 
+
+ACM Transactions on Graphics 41, 4, Article 67 (July 2022), 14 pages. doi:10.1145/ 3528223.3530064 Lei Lan, Guanqun Ma, Yin Yang, Changxi Zheng, Minchen Li, and Chenfanfu Jiang. 2022b. Penetration-free Projective Dynamics on the GPU. ACM Transactions on Graphics 41, 4, Article 69 (July 2022), 16 pages. doi:10.1145/3528223.3530069 Tod A Laursen. 2003. Computational contact and impact mechanics: fundamentals of modeling interfacial phenomena in nonlinear finite element analysis . Springer Science & Business Media. Minchen Li, Zachary Ferguson, Teseo Schneider, Timothy Langlois, Denis Zorin, Daniele Panozzo, Chenfanfu Jiang, and Danny M. Kaufman. 2020. Incremental Potential Contact: Intersection- and Inversion-free, Large-Deformation Dynamics. 
+
+ACM Transactions on Graphics 39, 4, Article 49 (July 2020), 20 pages. doi:10.1145/ 3386569.3392425 Minchen Li, Zachary Ferguson, Teseo Schneider, Timothy Langlois, Denis Zorin, Daniele Panozzo, Chenfanfu Jiang, and Danny M. Kaufman. 2023. Convergent Incremental Potential Contact. arXiv:2307.15908 [math.NA] Yuyang Li, Wenxin Du, Chang Yu, Puhao Li, Zihang Zhao, Tengyu Liu, Chenfanfu Jiang, Yixin Zhu, and Siyuan Huang. 2025. Taccel: Scaling Up Vision-based Tactile Robotics via High-performance GPU Simulation. arXiv:2504.12908 [cs.RO] Zeyi Li, Yushi Yang, Shawn Xie, Kyle Xu, Tianxing Chen, Yuran Wang, Zhenhao Shen, Yan Shen, Yue Chen, Wenjun Li, Yukun Zheng, Chaorui Zhang, Siyi Lin, Fei Teng, Hongjun Yang, Ming Chen, Steve Xie, and Ruihai Wu. 2026. LeHome: A Simulation Environment for Deformable Object Manipulation in Household Scenarios. arXiv:2604.22363 [cs.RO] https://arxiv.org/abs/2604.22363 Miles Macklin. 2022. Warp: A High-performance Python Framework for GPU Simula-tion and Graphics. https://github.com/NVIDIA/warp. NVIDIA GPU Technology Conference (GTC). Mayank Mittal, Pascal Roth, James Tigue, Antoine Richard, Octi Zhang, Peter Du, Antonio Serrano-Munoz, Xinjie Yao, René Zurbrügg, Nikita Rudin, et al . 2025. Isaac lab: A gpu-accelerated simulation framework for multi-modal robot learning. arXiv preprint arXiv:2511.04831 (2025). Duc Huy Nguyen, Tim Schneider, Guillaume Duret, Alap Kshirsagar, Boris Belousov, and Jan Peters. 2024. TacEx: GelSight Tactile Simulation in Isaac Sim – Combining Soft-Body and Visuotactile Simulators. In 8th Conference on Robot Learning (CoRL 2024) . Munich, Germany. NVIDIA. 2026. NVIDIA Omniverse. https://www.nvidia.com/en-us/omniverse/. Ac-cessed: 2026-05-22. NVIDIA Corporation. 2025. PhysX SDK. https://developer.nvidia.com/physx-sdk. Michael A. Puso and Tod A. Laursen. 2004. A Mortar Segment-to-Segment Contact Method for Large Deformation Solid Mechanics. Computer Methods in Applied Mechanics and Engineering 193, 6–8 (2004), 601–629. doi:10.1016/j.cma.2003.10.010 Sharpa Robotics. 2026. Sharpa Robotics GitHub Organization. https://github.com/ sharpa-robotics. Accessed: 2026-05-20. Xing Shen, Runyuan Cai, Mengxiao Bi, and Tangjie Lv. 2024. Preconditioned Nonlinear Conjugate Gradient Method for Real-time Interior-point Hyperelasticity. In Special Interest Group on Computer Graphics and Interactive Techniques Conference Papers (SIGGRAPH ’24) . Denver, CO, USA, 11 pages. doi:10.1145/3641519.3657490 Hang Si. 2015. TetGen, a Delaunay-Based Quality Tetrahedral Mesh Generator. ACM Trans. Math. Software 41, 2 (2015), 11:1–11:36. doi:10.1145/2629697 spiriMirror. 2026. libuipc. https://github.com/spiriMirror/libuipc. Accessed: 2026-05-21. Ivan E. Sutherland and Gary W. Hodgman. 1974. Reentrant polygon clipping. Commun. ACM 17, 1 (Jan. 1974), 32–42. doi:10.1145/360767.360802 Tencent Hunyuan3D Team. 2025. Hunyuan3D 2.5: Towards High-Fidelity 3D Assets Generation with Ultimate Details. arXiv:2506.16504 [cs.CV] https://arxiv.org/abs/ 2506.16504 Unitree Robotics. 2026. Unitree Robotics GitHub Organization. https://github.com/ unitreerobotics. Accessed: 2026-05-20. Barbara I. Wohlmuth. 2000. A Mortar Finite Element Method Using Dual Spaces for the Lagrange Multiplier. SIAM J. Numer. Anal. 38, 3 (2000), 989–1012. doi:10.1137/ S0036142999350929 Peter Wriggers and Tod A Laursen. 2006. Computational Contact Mechanics . Vol. 2. Springer. Ningyu Yan, Shuai Wang, Xing Shen, Hui Wang, Hanqing Wang, Yang Xiang, and Jiangmiao Pang. 2026. Tac2Real: Reliable and GPU Visuotactile Simula-tion for Online Reinforcement Learning and Zero-Shot Real-World Deployment. arXiv:2603.28475 [cs.RO] Wenzhen Yuan, Rui Li, Mandayam A. Srinivasan, and Edward H. Adelson. 2015. Mea-surement of Shear and Slip with a GelSight Tactile Sensor. In 2015 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 304–311. Yu Zhang, Xing Shen, Kemeng Huang, Wei Chen, Yin Yang, Taku Komura, Tiantian Liu, and Xingang Pan. 2026. An Efficient Multilevel Preconditioned Nonlinear Conjugate Gradient Method for Incremental Potential Contact. arXiv:2604.19892 [cs.GR] Juntian Zheng, Zhaofeng Luo, and Minchen Li. 2026. Robust and Efficient Penetration-Free Elastodynamics without Barriers. ACM Transactions on Graphics (2026). doi:10. 1145/3811035

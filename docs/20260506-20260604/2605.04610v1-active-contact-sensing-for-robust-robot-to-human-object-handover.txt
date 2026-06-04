@@ -1,0 +1,374 @@
+Title: Active Contact Sensing for Robust Robot-to-Human Object Handover
+
+URL Source: https://arxiv.org/pdf/2605.04610v1
+
+Published Time: Thu, 07 May 2026 00:38:10 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Active Contact Sensing for Robust Robot-to-Human Object Handover 
+
+Linfeng Li, Lin Shao and David Hsu 
+
+Abstract — Robot-to-human object handover is an essential skill for robot assistants, from serving drinks at home to passing surgical tools in the operating room. We expect robots to perform handover robustly—to release the object only after a firm human grasp while ignoring incidental touches. Existing passive-sensing methods struggle to generalize across diverse objects and human behaviors, as they lack informative perturbations to disambiguate different contact conditions, such as firm grasp versus incidental touch. We propose an active sensing approach for robust handovers: the robot applies information-gathering motions and senses the resulting human-applied forces to infer the contact state. A firm grasp produces forces in multiple directions, while an accidental touch does not. To capture this distinction, we model the contact state with a Bayesian linear model: a distribution over piecewise-linear mappings from robot motions to human-applied forces. This model enables firm grasp detection and active information gathering. In experiments with 12 participants and 30 diverse rigid objects, our method achieved a 97.5% success rate—over 30% higher than two common baselines. 
+
+I. I NTRODUCTION 
+
+Robot-to-human object handover is a fundamental skill for robot helpers, enabling applications from passing surgical tools in the operating room to delivering drinks in daily life [1]–[3]. Physical interaction during handover starts when the human touches the object and ends when the robot releases it. To ensure safety and fluency, the robot must release only after the human has formed a firm grasp, while ignoring incidental touches (Fig. 1). In practice, this decision often relies on signals from a wrist-mounted force-torque (FT) sensor, as contact forces provide direct information on the human-object interaction. However, interpreting these signals is difficult: both objects and human behaviors vary widely, and heuristics that work for one combination often fail for another. For example, a common approach triggers release when the object is pulled upward [4]–[6], yet an accidental touch from below produces the same sensor signal. This ambiguity reflects a deeper issue: different contact conditions produce distinct interaction patterns, but passive-sensing methods lack informative perturbations to distinguish them; to compensate, they assume deliberate human actions (e.g., an upward pull)—assumptions that do not generalize. We take an active-sensing approach for robust handovers: By applying small probing motions and measuring the re-sulting human-object interaction forces with the FT sensor, the robot infers the human-object contact condition. Across diverse object types and human behaviors, a firm human grasp resists probing in multiple directions, while an acciden-tal touch does not. However, the force responses are noisy, and the robot’s probing motions must respect its dynamics. The robot needs a representation that extracts information FT Sensor   
+
+> (a) (b)
+> Fig. 1. (a) We use a wrist-mounted force-torque (FT) sensor to sense human-object contact. (b) Example human-object contacts during robot-to-human handovers: firm grasps on the left, where the robot can safely release the object, and incidental touches on the right, where premature release risks dropping the object. Across diverse rigid objects and grasp behaviors, our active sensing approach reliably distinguishes between them, while passive methods often fail.
+
+robustly from motion-force data and guides feasible probing. We represent the hand-object contact state as a distri-bution over piecewise-linear mappings from desired robot motions to human-applied forces. The piecewise-linear struc-ture aligns with the non-smooth unilateral nature of contact, providing an efficient approximation of the force range for firm-grasp detection. The probabilistic formulation quanti-fies uncertainty, which both ensures robust detection under uncertainty and guides active-sensing motions. In implementation, we model the contact state as aBayesian linear model, updated iteratively online using the robot’s historical action-observation data. A grasp is deemed firm if, at a chosen confidence level, the model predicts the human can both support the object’s weight and apply op-posing forces; these conditions are verified via robust linear programs. To decide active-sensing motions, we combine the model with the robot’s dynamics and optimize feasible motion commands to minimize model uncertainty. We conducted handover experiments with 12 human re-ceivers using 30 rigid objects, selected based on the YCB dataset [7] and a prior human study [8] (Fig. 4). We com-pared our method against two baselines: one that releases the gripper when the sensed object load diminishes, and another that releases when the force reading changes beyond a threshold. Our proposed method achieved a 97.5% success rate—over 30% higher than the two baselines. Our proposed method only utilizes force feedback and is limited to rigid objects. Future work could explore incorpo-rating additional modalities, such as vision and verbal cues, and extending the approach to deformable objects. 
+
+> arXiv:2605.04610v1 [cs.RO] 6 May 2026
+
+II. R ELATED WORK 
+
+Human-robot object handover is a joint action between a giver and a receiver consisting of two phases: a pre-handover 
+
+phase, in which the partners coordinate their intentions and align their poses for transfer, and a physical handover or 
+
+transfer phase [9], [10], during which the receiver grasps the object and the giver releases it. This work focuses on the 
+
+physical handover phase of robot-to-human handover, where the robot serves as the giver and the human as the receiver. In this phase, the robot should release the object only after the human establishes a firm grasp while ignoring incidental touches. Many methods use heuristics to decide the gripper release, such as releasing when changes in force, displacement, or voltage readings exceed a threshold [3], [11]–[13], mon-itoring the robot’s grasp stability and releasing upon loss [14], or following predefined human action protocols [15]. Others learn a handover controller from human data [4]–[6], [16], sometimes with additional sensors [17], or learn release conditions directly from raw signals [18], [19]. However, these passive-sensing methods observe without informative perturbations and thus cannot disambiguate different contact conditions. To compensate, they assume deliberate human actions—specified a priori or implicitly encoded in the train-ing data (e.g., an upward pull)—which limits generalization. In contrast, we actively sense how the robot’s motions produce force responses, enabling firm-grasp detection that generalizes across diverse objects and human behaviors. This active-sensing capability builds on a probabilistic contact state model that predicts how human-applied forces respond to small robot motions, capturing the motion-force relationship needed to infer contact conditions and decide informative probing actions. Previous work commonly mod-els contact either as continuous impedance relations between motion and force [20]–[25] or as discrete symbolic states in hidden Markov models [18]. The former assumes fixed contact modes, and the latter simplifies the interaction into a few high-level states; both fail to capture the variability of human grasping behaviors and do not support active sensing. By incorporating suitable features within a Bayesian linear regression framework, our model extends the classic linear impedance model into a probabilistic piecewise-linear model that generalizes across diverse objects and human behaviors while enabling active sensing. III. O VERVIEW 
+
+We address the problem of handing over rigid objects from a robot to a human. The robot starts by holding the object and measuring its positive-valued weight L ∈ R>0
+
+in Newtons with a wrist-mounted force-torque (FT) sensor. Then, our method takes as inputs the robot’s proprioception, the interaction forces between the human and the object f ∈
+
+R3 inferred from FT sensor measurements (Appendix A), and an approximate position of the human hand p ∈ R3
+
+detected by an RGB-D camera; it outputs the binary gripper release command and the desired gripper position rd ∈ R3
+
+to hand over the object to the human. From rd, a compliant Deciding  
+
+> Informative
+> Motion
+> Evaluating
+> Grasp
+> Firmness
+> Motion -force
+> history
+> Robot
+> motion
+> command
+> Gripper
+> command
+> Contact state
+> Estimating
+> Contact
+> State
+> Robot
+> internal state
+> Fig. 2. Our method centers on a human-object contact state represented as a Bayesian linear model, estimated online from motion-force history (Section IV). The model is used to (i) assess whether the human has formed a firm grasp (Section V) and (ii) plan active-sensing motions that reduce model uncertainty while respecting the robot’s dynamics (Section VI).
+
+controller continuously computes and tracks a desired linear velocity u ∈ R3 while keeping the gripper orientation fixed [26]. In robot-to-human handovers, passive force measurements are often ambiguous. As shown in Fig. 3(a)–(b), an incidental touch and a firm grasp can produce indistinguishable force signals. Resolving this ambiguity requires active sensing, where the robot applies small probing motions to induce force responses that reveal how the human is interacting with the object. Fig. 3(c)–(d) demonstrate how active sensing induces distinctive data patterns. To robustly interpret these force responses and to guide active sensing, we need a representation of the human-object contact state. We represent this contact state as the relationship between the robot’s intended motion u and the resulting human-object interaction force f . This choice is motivated by the physics of contact: interaction forces arise only when an intended motion is resisted by contact. In our setting, the human hand generates contact forces on the object that resist the robot’s intended gripper motion. Consequently, the motion-force relationship provides a direct representation of whether, and in which directions, the human resists the object’s motion. This perspective connects to classic linear impedance models, which can be viewed as a linear approximation of this motion-force relationship [20]–[25]. We model the contact state C as a distribution over piecewise-linear mappings from desired velocity u to in-teraction force f , implemented using a Bayesian linear model (Section IV). The piecewise-linear structure reflects the unilateral, non-smooth nature of contact; the probabilistic formulation accounts for sensor noise and quantifies the uncertainty arising from insufficient probing. We leverage this probabilistic piecewise-linear structure to determine if the human grasp is firm and to plan active sensing actions. To determine grasp firmness, we check if the estimated contact state predicts that the human can both support the object’s weight and apply opposing forces (Section V). To plan active sensing actions, we leverage the model’s uncertainty: by predicting how candidate motions reduce future uncertainty, we select and execute feasible motions that maximize information gain (Section VI). The overall pipeline of our system is illustrated in Fig. 2. IV. A B AYESIAN LINEAR MODEL OF CONTACT 
+
+In this section, we describe how we model the hand-object contact state C as a distribution over piecewise-linear (a) (b) (c)              
+
+> 00.05 -0.05
+> 0
+> 2.5
+> 5
+> -2.5
+> -5
+> Vertical Desired Robot Velocity [m/sec]
+> Interaction  Force  [N]
+> 95%CI Data pair Mean
+> Robot
+> motion
+> 00.05 -0.05 00.05 -0.05 00.05 -0.05
+> (d)
+> Vertical Fig. 3. Contact states modeled as probabilistic piecewise-linear mapping from vertical desired velocity to vertical interaction force. The top row shows the physical contact (blue arrows indicate robot motion). The bottom row shows the estimated model: grey dots are data pairs ⟨u, f ⟩, the blue line is the posterior mean m⊤ϕ(u), and the shaded band is the 95% confidence interval. (a)–(b) Passive sensing scenario: Downward-only motion produces indistinguishable signals for an incidental touch (a) and a firm grasp (b). The model cannot distinguish them, resulting in high uncertainty for the unobserved direction ( u > 0). (c)–(d) Active sensing scenario: Bidirectional probing reveals the underlying human-object interaction pattern. The distinct motion-force relationships are estimated with low uncertainty, showing unilateral resistance for an incidental touch (c) versus bilateral resistance for a firm grasp (d).
+
+mappings between the robot’s desired motion u and the human-applied forces f using Bayesian linear regression. 
+
+A. Bayesian Linear Regression 
+
+We now revisit the basics of Bayesian linear regression. Consider N scalar input-output pairs D = {⟨ ui, f i⟩} Ni=1 ,Bayesian linear regression models the relationship between the input ui and the output fi as 
+
+fi = w⊤ϕ(ui) + η, η ∼ Gaussian (0 , β I) , (1) where w ∈ Rd is the weight vector, η is the measurement noise from a Gaussian distribution with zero mean and covariance βI, β ∈ R>0 is a known constant, I is the identity matrix of appropriate size, and ϕ : R → Rd is a constant feature mapping [27]. Bayesian linear regression treats the weight vector w
+
+as a random variable with a Gaussian prior distribution 
+
+Gaussian ( m0, S0). Given the input-output pairs D, the posterior distribution of the weight vector w is also Gaussian, with mean m and covariance S given by 
+
+m = S
+
+S−10 m0 + β−1 X 
+
+> ⟨u,f ⟩∈ D
+
+f ϕ(u)
+
+ ,
+
+S−1 = S−10 + β−1 X
+
+> ⟨u, ·⟩∈ D
+
+ϕ(u)ϕ(u)⊤.
+
+(2) We represent the contact state model using the mean and covariance of the Gaussian distribution C = ⟨m, S⟩. For a new input u′, the output f ′ predicted by this model is also a Gaussian distribution 
+
+f ′ ∼ Gaussian  m⊤ϕ(u′), ϕ(u′)⊤Sϕ(u′) . (3) 
+
+B. Hand-Object Contact State Modeling 
+
+In this subsection, we present our choice of the inputs, out-puts, and feature mapping for the Bayesian linear regression model that represents the hand-object interactions. We select the corresponding directional components from the desired velocity ut and interaction force ft at timestep t,
+
+ut = [ ux 
+
+> t
+
+uy 
+
+> t
+
+uz 
+
+> t
+
+]⊤ and ft = [ f x 
+
+> t
+
+f y 
+
+> t
+
+f z 
+
+> t
+
+]⊤ ,
+
+as the input and output of the Bayesian linear regression model. In this work, we choose u = uzt as the input and f =
+
+f zt as the output, and the model predicts the human reaction to the robot’s vertical motion. We only consider the vertical direction as it provides reasonably sufficient information to determine whether the human can support the object’s weight and apply opposing forces. This design choice was guided by observations from a pilot study involving four participants, which showed that vertical direction alone was a reliable indicator of grasp stability. Admittedly, it can fail when the human receiver applies a strong lateral push, where friction may be misinterpreted as opposing normal forces. We choose the feature mapping as 
+
+ϕ(u) = [ReLU( u) − ReLU( −u)] ⊤ , (4) where ReLU( ·) is the rectified linear unit function 
+
+ReLU( s) = 
+
+ s if s ≥ 0,
+
+0 otherwise .
+
+With the above choices of input, output, and features, the Bayesian linear regression model in (3) can be interpreted as a piecewise-linear model with dimension d = 2 , consisting of two segments: one active when the robot moves upward, and the other when it moves downward. In each of the segments, only half of the elements in the weight w are active, and the active elements can be interpreted as linear impedances. This mirrors the unilateral nature of contact: the human-object interaction can be viewed as multiple non-sticking contacts, each resisting motion along a single direction, whose positive span produces the overall contact effect [28]. 
+
+C. Implementation Details 
+
+The contact state model Ct is updated at 200 Hz using the most recent 200 pairs of desired velocities u and interaction forces f . At each timestep t, the newest pair ⟨ut, ft⟩ is appended to the data buffer D, and the oldest sample is removed once the buffer is full; the updated D is then used to compute the new model Ct according to (2). In imple-mentation, this update is performed recursively as described in Appendix B. 
+
+D. Examples 
+
+Fig. 3 illustrates several examples of the regressed contact-state models under different combinations of human-object contact and robot motion. Fig. 3(a)–(b) show a passive sensing scenario where robot motion u is only negative (downward). Because the robot never excites the positive direction, the model has low variance only for u < 0, while the segment for u > 0 remains uncertain. This uncertainty reflects the model’s inability to distinguish a light touch from a firm grasp when only downward robot motion is observed. In contrast, Fig. 3(c)–(d) demonstrate the active sensing scenario, where probing motions span both negative and positive directions. This bidirectional excitation substantially reduces uncertainty across both segments. As a result, the motion-force relationships for a light touch (c) and a firm grasp (d) become clearly different: the firm grasp produces consistent force responses in both directions, whereas the light touch does not. These examples demonstrate how our contact-state model captures both the motion-force relationship and its associated uncertainty. The uncertainty allows us to robustly detect firm grasps and to decide informative probing motions. V. E VALUATING GRASP FIRMNESS 
+
+In this section, we describe how to decide whether the human has firmly grasped the object given a contact state model C. The main idea is to check if the human can support the object’s weight and apply opposing forces, as indicated by the model’s feasible outputs. If a firm grasp is detected, we open the robot gripper to release the object. 
+
+A. Firm Grasp as Feasibility of Desired Outputs 
+
+We define a “firm grasp” as the human’s ability to exert a specified set of target forces on the object. Since (3) models the relationship between the robot’s desired velocity and the resulting human-applied interaction forces, we evaluate whether a given target force f target is feasible under the model—i.e., whether it can be produced by the model for some u within a specified range. This range is defined as U = {u | − vmax ≤ u ≤ vmax }, based on the velocity bound vmax introduced in (13). Because the model outputs a distribution rather than a single value, we formalize this notion of feasibility in probabilistic terms. 
+
+Definition 1 (c-feasibility) . Given a model C = ⟨m, S⟩, we say that the target force f target is c-feasible if 
+
+f target ∈ F (w, U) :=  w⊤ϕ(u) u ∈ U (5) 
+
+for all w ∈ Wc, where Wc is the c confidence ellipsoid of the Gaussian distribution with mean m and covariance S
+
+Wc = m + Pz ∥z∥ ≤ 1, z ∈ R2 , (6) 
+
+where P is a positive-definite matrix calculated from the confidence level 0 < c < 1 and the covariance S.
+
+In this work, we consider the minimal set of target forces 
+
+Ftarget = {0.5L, 0.5, −0.5} . (7) The first element is set to half of the object’s weight, reflecting the assumption that the human can support the object. The second and third elements represent a pair of opposing forces, indicating the ability to reject perturbations. We selected 0.5 N because it exceeds the sensor’s typical noise floor while remaining small enough to ensure a smooth handover. These values were validated through a pilot study with four participants. Given a confidence level c, we consider a grasp to be firm if all target forces in the set Ftarget are c-feasible. In this work, we set c = 0 .99 to ensure a high level of robustness in verifying the firmness of the human grasp. 
+
+B. Checking Output Feasibility 
+
+Having defined c-feasibility as the criterion for a firm grasp, we now describe how to verify whether a target force 
+
+f target satisfies this condition. In this subsection, we present a sufficient condition for f target to be c-feasible under a given model C = ⟨m, S⟩. This verification is formulated and implemented as robust linear programs [29]. Since the model is piecewise linear, we partition the model’s feasible input U into 2 pieces, in each piece the model is linear. We denote the two sets of input as U− =
+
+{u| − vmax ≤ u ≤ 0} and U+ = {u|0 ≤ u ≤ vmax }, where 
+
+vmax ∈ R> 0 is the maximum gripper velocity. Let U′ denote either of the two partitions, U− or U+.Since U′ ⊂ U, a target force f target is c-feasible if it is in the corresponding output set F (w, U′) ⊂ F (w, U) for all 
+
+w ∈ Wc. Thus, we can check c-feasibility separately for each partition: as long as the target force is c-feasible within at least one partition, it satisfies the overall check. Our feature ϕ defined in (4) selects the component of the weight vector w corresponding to the sign of the input. Therefore, for an input partition U′ ∈ { U+, U−}, we can select the corresponding dimension of the weight vector w
+
+as w′ = E′w such that w′u = w⊤ϕ(u), where E+ = [1 0] 
+
+and E− = [0 1] are the selection matrices. Then, we can rewrite the output set in (5) over U′ as 
+
+F (w, U′) = { w′u| u ∈ U′, w ′ = E′w} , (8) which is a convex set because linear transformation preserves convexity of U′ [30]. Taking advantage of the convexity within the partition 
+
+U′, we propose a sufficient condition for c-feasibility as the feasibility of two robust linear programs (LPs) 
+
+min u 0 · u
+
+s.t. u ∈ U′
+
+(E′ (m + Pz )) u ≤ f target ∀ ∥ z∥ ≤ 1
+
+(9) and 
+
+min u 0 · u
+
+s.t. u ∈ U′
+
+(E′ (m + Pz )) u ≥ f target ∀ ∥ z∥ ≤ 1.
+
+(10) If the first robust LP (9) is feasible, there exists f less ∈
+
+F (w, U′) such that f less ≤ f target for all w ∈ Wc; similarly, the second (10) checks f greater ≥ f target . If both robust LPs are feasible, we have 
+
+f less , f greater ∈ F (w, U′) for all w ∈ Wc. (11) Since f less ≤ f target ≤ f greater , and F (w, U′) is convex, we have f target ∈ F (w, U′) ⊂ F (w, U) for all w ∈ Wc, which is Definition 1. The two robust LPs are equivalent to two second-order cone programs (SOCPs) [29], which can be efficiently solved using off-the-shelf solvers. In summary, given an estimated model C, we consider the human grasp to be firm if all target forces in the set 
+
+Ftarget are c-feasible. To check the feasibility of a target force f target ∈ Ftarget , we solve the two robust LPs (9) and (10) for each partition U′ ∈ { U+, U−}; the target force is c-feasible if both robust LPs are feasible in any partition. In implementation, firm-grasp detection runs at 50 Hz. At each timestep t, we evaluate the latest contact-state model Ct;if a firm grasp is detected, the robot releases the object, otherwise it continues holding it. VI. D ECIDING INFORMATIVE MOTION 
+
+As shown in Section IV-D, without informative motions 
+
+ut, the contact state model retains high uncertainty, making it difficult to distinguish a firm grasp from a light touch. To resolve such ambiguity, we select robot motions that both reduce contact state uncertainty and respect the robot’s dynamics. To formally reason about which motions are informa-tive, we first quantify the uncertainty of the contact state model C using the entropy of its weight distribution w ∼
+
+Gaussian( m, S) [31]. The entropy is H(w) = 0 .5d(1 + log 2 π) + 0 .5 log |S|, where | · | denotes the matrix deter-minant. Since the entropy of a Gaussian depends only on its covariance, we write H(S) to denote the entropy of the contact state model. Given two models C′ = ⟨m′, S′⟩ and 
+
+C = ⟨m, S⟩, the information gain from the former over the latter is defined as 
+
+IG (S, S′) = H(S) − H(S′). (12) A larger information gain corresponds to a greater reduction in model uncertainty. To evaluate the information gain for potential probing motions, we must predict how the robot’s future actions will affect the model’s covariance. The covariance S only depends on the inputs u in the data D of the model (2). Hence, if we can predict future u resulting from a rd, we can predict the information gain obtained by applying rd.The desired velocity u is computed from the desired reference position rd and the actual position q. Specifically, 
+
+u =
+
+ uraw if ∥uraw ∥ ≤ vmax ,vmax uraw / ∥uraw ∥ otherwise, (13) where vmax ∈ R> 0 is the maximum gripper velocity, 
+
+uraw ∈ R3 is the raw desired velocity, and | · | denotes the Euclidean norm. The raw velocity is given as uraw =
+
+kI(r − q), where k ∈ R> 0 is a scalar gain, and r ∈ R3
+
+is the smoothened desired reference position rd ∈ R3 using the first-order low-pass filter 
+
+˙r = α(rd − r), (14) with α ∈ R>0 set to achieve a cutoff frequency of 10 Hz. This filtering ensures that the commanded motion satisfies the hardware’s smoothness constraints. To predict future u given rd, we need to predict future 
+
+q. We achieve this through the approximate translational dynamics of the robot gripper 
+
+˙v = D (u − v) + M−1
+
+> t
+
+
+
+00
+
+m⊤ 
+
+> t
+
+ϕ(u)
+
+ , ˙q = v, (15) where v is the gripper velocity, D ∈ R3×3 is a positive-definite constant diagonal damping matrix of the low-level controller, Mt ∈ R3×3 is the robot gripper translational mass at timestep t, treated as a constant. This model has a few simplifications: (i) it ignores the coupling between the translational and rotational motions, (ii) it treates the operational mass as a constant, and (iii) it only has an approximate model of the human forces m⊤ 
+
+> t
+
+ϕ(u) and treats the model mt as a constant. Still, this model is sufficiently accurate for our decision-making. By combining the reference dynamics (14) and the gripper dynamics (15), we can simulate the closed-loop system and predict how a candidate reference position rd influences information gain. Formally, we combine (14) and (15) as a single differential equation 
+
+˙x = AugmentedDynamics( x, rd), (16) where x is the concatenation of q, v, and r. Given a desired reference position rd, we use the latest qt, vt, and rt as the initial condition, and predict the future state x for a duration of T seconds. In this work, we set T = 0 .25 seconds. Then, we sample the future desired robot velocities u from the predicted state x using (13) with the same frequency as the contact state update rate. Using the current data Dt and the predicted new input data, we can predict the future model covariance S′ using the posterior update (2). Finally, we predict the information gain (12). We select the optimal desired reference position rd⋆ by maximizing the information gain with a regularization term 
+
+rd⋆ = arg max 
+
+> z
+
+IG (S, pred( z)) − creg ∥z − qt∥ , (17) where we use pred( rd) to denote the prediction of future model covariance S′ of a desired reference position z, and 
+
+creg ∈ R>0 is a constant regularization weight. We solve the maximization via grid-search: we sample 11 candidates along the vertical direction around the current gripper position qt
+
+with a distance range of ±2 cm. In implementation, we decide the active-sensing motion at 10 Hz. At each timestep t, we first check whether the human is in contact with the object, defined as |ft| ≥ 0.5 N. If no contact is detected, we guide the gripper toward the estimated human hand position pt by setting rd 
+
+> t
+
+= pt. If contact is detected, we use the current system state xt and the estimated contact model Ct to compute a new reference position rd 
+
+> t
+
+=
+
+rd⋆ that generates dynamically feasible probing motions to reduce model uncertainty. VII. E XPERIMENTS 
+
+We evaluate our method and two baselines on 30 diverse rigid objects (see Fig. 3) with 12 participants. The primary evaluation criterion is whether the human maintains a firm grasp on the object at the moment the robot releases it. Our method achieves significantly higher success rates than the two baselines, demonstrating its effectiveness in robot-to-human object handovers. Fig. 4. We selected 30 types of objects from the YCB dataset [7] and a human study [8]. These objects span a broad range of shapes and weights. RGB -D 
+
+> Camera
+> FT Sensor
+> Blindfolded
+> Participant
+> Fig. 5. Hardware setup. The ATI Gamma sensor and Franka Hand are mounted on a Franka Research 3 arm, and an Intel Realsense L515 RGB-D camera is mounted at the top.
+
+A. Experimental Setup 
+
+We conducted our experiments using a Franka Emika Research 3 (FR3) robotic arm. An ATI Gamma force-torque sensor was mounted on the arm’s flange, with a Franka Hand parallel gripper attached to the sensor. To detect the human hand position, we used an Intel RealSense L515 RGB-D camera mounted above the workspace. During handover tri-als, participants were seated or standing in front of the robot, facing the robot sideways. Participants were blindfolded to evaluate the robot’s release decision in isolation, minimizing human compensation for potential robot errors [16]. This also emulates scenarios where humans lack visual feedback— for example, visually impaired users or mechanics working under a vehicle. The overall setup is shown in Fig. 5. We selected 30 objects representing the types defined in the YCB dataset [7] and a human study [8], excluding non-rigid items and those too heavy or too small. The resulting set spans diverse shapes, sizes, and masses (Fig. 4). We recruited 12 participants for the study. Each participant interacted with 10 objects sampled from the full set of 30 objects (Fig. 4); we ensured that each object was tested by four different participants. To minimize learning effects, we randomized the order of objects and methods. Each participant evaluated all three methods sequentially. After completing the 10 trials for each method, they completed a post-experiment survey consisting of two standard question-naires—NASA Task Load Index without weighting (RTLX) [32] and System Usability Scale (SUS) [33]—as well as an optional section for free-form feedback. At the beginning of the experiment, participants were instructed to (i) receive the object by grasping it and (ii) avoid moving too quickly or forcefully after grasping. Beyond these guidelines, they were free to interact with the object as they preferred to preserve the diversity of human behaviors. The handover process was demonstrated once before the participant was blindfolded. Each handover trial began by placing the object in the robot gripper with a predefined orientation. The robot then moved its gripper to a randomly sampled initial pose within a defined range. Participants were told the object type and notified when the trial started. During the trial, if their hand was outside the robot’s operational range, we provided verbal cues to guide them back to the robot’s operational range. A handover trial concluded either when the robot released the object—regardless of whether the participant maintained their grasp—or, if the robot failed to release it, when the participant requested intervention to terminate the trial. Before the experiment, we conducted a pilot study with four participants and 12 objects to determine the parameters of all methods. 
+
+B. Baselines 
+
+We compare our method with two baselines. The first base-line, ForceThr, is a simple heuristic that releases the object when the interaction force magnitude ∥f ∥ exceeds 1 Newton. This approach does not take the human’s actual grasp status into account and may result in premature releases. The second baseline, WeightThr, simplifies a widely used approach in which the robot adjusts its grasping force propor-tionally to the sensed object load [4]–[6]. Because our grip-per (Franka Hand) does not support real-time force control and the grasp controller may require object-specific tuning, we adopt a threshold-based release condition instead. Specif-ically, the robot releases the object if the sensed load drops below 20% of the object’s weight L—as in [5]—or if a non-negligible upward force is detected for lightweight objects. Formally, the object is released if f z ≥ max (0 .8L, 0.5) .Prior work has shown that this simplification does not reduce the method’s success rate [5]. This baseline implicitly expects the human to perform a deliberate upward motion to signal readiness for release. All three methods incorporate visual feedback in the same manner, as described in Section VI. For both baselines, once contact is detected, we set the current position q as the desired reference position rd. For example handovers of all methods, please see the supplementary video. 
+
+C. Results 
+
+Our method significantly outperforms the two baselines in 
+
+success rate , achieving 97.5% with low variance, compared to 67.5% for ForceThr and 65.0% for WeightThr (Fig. 6(a)). 100                   
+
+> Success Rates [%]
+> 80
+> 60
+> 40
+> 20
+> 0
+> Ours WeightThr ForceThr Fig. 6. Success rates for each method across 12 participants; error bars indicate 95% confidence intervals. Our method significantly outperforms the baselines. TABLE I RTLX AND SUS S URVEY SCORES (0-100) Metric Ours ForceThr WeightThr Raw NASA TLX (RTLX) ↓34.6 28.9 39.3 System Usability Scale (SUS) ↑63.5 67.9 56.5
+
+A handover is considered successful if the object is firmly grasped by the human at the moment of robot release. Grasp firmness is assessed from video recordings by three independent experts blinded to the method, with the final outcome determined by majority vote. We measure our experiment’s inter-rater reliability by Fleiss’ kappa, which is 0.803, indicating substantial agreement among raters [34]. ForceThr often failed due to premature release, where the robot opened the gripper before the human had firmly grasped the object. It tended to release almost immediately after initial contact, frequently causing the object to drop. Participants’ free-form feedback confirmed this issue: “The system drops the object a bit early” (Participant #2, abbre-viated as P2), “...it released the bleach cleanser too quickly for me to catch” (P3), “I think this system might be too confident to drop items” (P5), “The robot hand released upon the object touching my hand, which is very likely to cause abrupt dropping” (P10), and “Sometimes the arm dropped the item a bit too fast” (P11). WeightThr exhibited two distinct failure modes: premature release of light objects and failure to release heavier ones. When participants applied small but non-negligible upward forces exceeding the object’s weight, the robot often released the object before a firm grasp was established. Conversely, when participants held heavier objects without pulling up-ward strongly, the robot failed to release altogether, lead-ing participants to request intervention and eventually give up. Participants’ feedback reflected both types of failures. For light objects, several noted premature releases: “When handing over toothbrush and pill box, I haven’t held objects well, but the robot started to drop them” (P2), “...while for some lighter objects it just released very quickly and hard for me to catch” (P3), and “The robot sometimes released the object early” (P12). For heavier objects, participants described difficulty retrieving them: “I have grabbed the object but the robot is still holding it” (P2), “Some objects (usually the ones that are bulky and heavy) cannot be taken from the robot arm even after several attempts”(P3). Because WeightThr fails due to both premature drops and incomplete handovers, participants found its behavior inconsistent: “The behavior for the next item is not always similar to the previous item.” (P6), “The robot produces less consistent behavior” (P7), and “The timing of the robot hand’s release is a bit unpredictable” (P10). In contrast, our method robustly detected firm grasps, re-sulting in significantly higher success rates. Most participants found our method reliable: “This method released the gripper in proper time” (P1), “I find it never dropped things early, it always waited until I can steadily hold the object, then released. It seems purposely let the object touch my hand and give me time to find a good pose to hold.” (P2), and “The robot performs better on checking whether I get the item” (P6). Nevertheless, some participants found our method over-cautious: “...but sometimes it takes too long to check” (P6). We conducted two standardized surveys: the Raw NASA Task Load Index (RTLX) and the System Usability Scale (SUS). RTLX scores range from 0 to 100, with lower values indicating lower perceived workload, while SUS scores range from 0 to 100, with higher values indicating greater usability. The survey results for all three methods are summarized in Table I. The scores differ by about 10 points on each metric (RTLX: 28.9–39.3; SUS: 56.5–67.9), suggesting comparable workload and usability across methods. Overall, our method achieved the highest success rate while maintaining com-petitive subjective ratings, demonstrating a strong balance between robustness and user satisfaction. VIII. C ONCLUSIONS AND DISCUSSIONS 
+
+We have presented an active sensing framework for robot-to-human object handovers, where the robot applies prob-ing motions and measures the resulting force responses to distinguish firm grasps from incidental touches. Central to our approach is a probabilistic piecewise-linear contact model that quantifies uncertainty, enabling us to both robustly detect firm grasp and decide informative probing actions. This active strategy improves robustness, achieving a 97.5% success rate—over 30% higher than passive baselines— across 12 participants and 30 diverse rigid objects. Our results demonstrate that probabilistic, active-sensing strategies substantially improve the robustness of physical human-robot interaction. Nevertheless, our approach is lim-ited to rigid objects and relies solely on force sensing. Additionally, the probing motions, while informative, may slightly prolong the handover process. Future directions include integrating multimodal cues such as vision or lan-guage, extending the framework to deformable objects, and developing adaptive release strategies that balance speed and robustness across different application contexts. APPENDIX 
+
+A. Estimating Human-Object Interaction Force 
+
+We model the gripper as a single rigid body with dynamics 
+
+Iee (X ) ˙V + Cee (X , V)V + gee (X ) = FFT + Fext ,
+
+where X ∈ SE (3) and V ∈ R6 are the pose and twist of the gripper, Iee is the inertia matrix, Cee is the Coriolis matrix, 
+
+gee is the gravity, FFT is the measured wrench applied to the gripper from the FT sensor’s sensing plate, and Fext is the external wrench applied to the gripper. We estimate the unknown external wrench Fext using a momentum residual observer [35]. Defining generalized momentum p = Iee V, the residual r at time t is given as 
+
+r(t) = K
+
+Z t
+
+> 0
+
+ −C⊤
+
+> ee
+
+V + gee − F FT − r(s) ds + p(t)
+
+
+
+.
+
+Since ˙p = C⊤
+
+> ee
+
+V + FFT + Fext − gee , the residual satisfies the first-order dynamics ˙r = K(Fext − r). With a positive-definite gain K, the residual r converges to Fext , from which we select the translational components as the human-object interaction force f .
+
+B. Recursive Bayesian Linear Regression 
+
+Given a model represented by ⟨m, S⟩ regressed from the dataset D, if an input-output pair ⟨u′, f ′⟩ is added to the dataset D, the posterior distribution m′ and S′ can be recursively updated as 
+
+m′ = S′  S−1m + β−1f ′ϕ (u′) ,
+
+(S′)−1 = S−1 + β−1ϕ (u′) ϕ (u′)⊤ . (18) This recursive update is equivalent to modifying the dataset 
+
+D′ = D ∪ {⟨ u′, f ′⟩} , and then perform the posterior update in (2) using D′. Similarly, if we remove the input-output pair ⟨u′, f ′⟩ from the dataset D, we can update the posterior distribution by changing + in (18) to −.REFERENCES [1] A. Koene, S. Endo, A. Remazeilles, M. Prada, and A. M. Wing, “Experimental testing of the CogLaboration prototype system for fluent human-robot object handover interactions,” in IEEE Int. Symp. on Robot and Human Interactive Communication , 2014. [2] L. Wagner, S. Jourdan, L. Mayer, C. M¨ uller, L. Bernhard, S. Kolb, F. Harb, A. Jell, M. Berlet, H. Feussner, et al. , “Robotic scrub nurse to anticipate surgical instruments based on real-time laparoscopic video analysis,” Communications Medicine , vol. 4, no. 1, p. 156, 2024. [3] J. Bohren, R. B. Rusu, E. Gil Jones, E. Marder-Eppstein, C. Pantofaru, M. Wise, L. M¨ osenlechner, W. Meeussen, and S. Holzer, “Towards autonomous robotic butlers: Lessons learned with the PR2,” in Proc. IEEE Int. Conf. on Robotics & Automation , 2011. [4] W. P. Chan, C. A. Parker, H. M. V. der Loos, and E. A. Croft, “A human-inspired object handover controller,” Int. J. Robotics Research ,vol. 32, no. 8, pp. 971–983, 2013. [5] J. R. Medina, F. Duvallet, M. Karnam, and A. Billard, “A human-inspired controller for fluid human-robot handovers,” in Proc. IEEE-RAS Int. Conf. on Humanoid Robots , 2016, pp. 324–331. [6] A. Kupcsik, D. Hsu, and W. S. Lee, “Learning dynamic robot-to-human object handover from human feedback,” in Proc. Int. Symp. on Robotics Research , 2018. [7] B. Calli, A. Singh, A. Walsman, S. Srinivasa, P. Abbeel, and A. M. Dollar, “The YCB object and model set: Towards common benchmarks for manipulation research,” in Proc. IEEE Int. Conf. on Robotics & Automation , 2015. [8] Y. S. Choi, T. Deyle, T. Chen, J. D. Glass, and C. C. Kemp, “A list of household objects for robotic retrieval prioritized by people with als,” in Proc. IEEE Int. Conf. on Rehabilitation Robotics , 2009. [9] V. Ortenzi, A. Cosgun, T. Pardi, W. P. Chan, E. Croft, and D. Kuli´ c, “Object handovers: A review for robotics,” IEEE Trans. on Robotics ,pp. 1–19, 2021. [10] K. Strabala, M. K. Lee, A. Dragan, J. Forlizzi, S. S. Srinivasa, M. Cak-mak, and V. Micelli, “Toward seamless human-robot handovers,” 
+
+Journal of Human-Robot Interaction , vol. 2, no. 1, p. 112–132, feb 2013. [11] T. Deyle, H. Nguyen, M. Reynolds, and C. Kemp, “RFID-guided robots for pervasive automation,” IEEE Pervasive Computing , vol. 9, no. 2, pp. 37–45, 2010. [12] A. G. Egu´ ıluz, I. Ra˜ n´ o, S. A. Coleman, and T. M. McGinnity, “Reliable object handover through tactile force sensing and effort control in the shadow robot hand,” in Proc. IEEE Int. Conf. on Robotics & Automation , 2017. [13] Z. Han and H. Yanco, “The effects of proactive release behaviors during human-robot handovers,” in Proc. ACM/IEEE Int. Conf. on Human-Robot Interaction , 2019. [14] K. Nagata, Y. Oosaki, M. Kakikura, and H. Tsukune, “Delivery by hand between human and robot based on fingertip force-torque information,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots & Systems , 1998. [15] W. He, J. Li, Z. Yan, and F. Chen, “Bidirectional human-robot bimanual handover of big planar object with vertical posture,” IEEE Trans. on Automatic Science and Engineering , vol. 19, no. 2, pp. 1180– 1191, 2022. [16] D. Ferrari, A. Pupa, and C. Secchi, “Compliant blind handover control for human-robot collaboration,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots & Systems , 2024. [17] S. Parastegari, E. Noohi, B. Abbasi, and M. ˇZefran, “A fail-safe object handover controller,” in Proc. IEEE Int. Conf. on Robotics & Automation , 2016. [18] E. C. Grigore, K. Eder, A. G. Pipe, C. Melhuish, and U. Leonards, “Joint action understanding improves robot-to-human object han-dover,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots & Systems ,2013. [19] P. Khanna, M. Bj¨ orkman, and C. Smith, “Human inspired grip-release technique for robot-human handovers,” in Proc. IEEE-RAS Int. Conf. on Humanoid Robots , 2022. [20] L. Love and W. Book, “Environment estimation for enhanced impedance control,” in Proc. IEEE Int. Conf. on Robotics & Automa-tion , 1995. [21] D. Erickson, M. Weber, and I. Sharf, “Contact stiffness and damping estimation for robotic systems,” Int. J. Robotics Research , vol. 22, no. 1, pp. 41–57, 2003. [22] N. Diolaiti, C. Melchiorri, and S. Stramigioli, “Contact impedance estimation for robotic systems,” IEEE Trans. on Robotics , vol. 21, no. 5, pp. 925–935, 2005. [23] A. Haddadi and K. Hashtrudi-Zaad, “A new method for online parameter estimation of hunt-crossley environment dynamic models,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots & Systems , 2008, pp. 981–986. [24] L. Rozo, S. Calinon, D. G. Caldwell, P. Jim´ enez, and C. Torras, “Learning physical collaborative robot behaviors from human demon-strations,” IEEE Trans. on Robotics , vol. 32, no. 3, pp. 513–527, 2016. [25] L. Roveda, A. A. Shahid, N. Iannacci, and D. Piga, “Sensorless optimal interaction control exploiting environment stiffness estimation,” IEEE Trans. on Control System Technology , vol. 30, no. 1, pp. 218–233, 2022. [26] K. Kronander and A. Billard, “Passive interaction control with dynam-ical systems,” IEEE Robotics & Automation Letters , vol. 1, no. 1, pp. 106–113, 2016. [27] C. M. Bishop and N. M. Nasrabadi, Pattern Recognition and Machine Learning , 2006. [28] K. M. Lynch and F. C. Park, Modern Robotics , 2017. [29] A. Ben-Tal, L. El Ghaoui, and A. Nemirovski, Robust Optimization ,2009. [30] S. Boyd, S. P. Boyd, and L. Vandenberghe, Convex Optimization , 2004. [31] S. Thrun, W. Burgard, and D. Fox, Probabilistic Robotics , 2005. [32] S. G. Hart, “NASA-task load index (NASA-TLX); 20 years later,” in Proceedings of the human factors and ergonomics society annual meeting , 2006. [33] J. Brooke et al. , “SUS-a quick and dirty usability scale,” Usability evaluation in industry , vol. 189, no. 194, pp. 4–7, 1996. [34] J. R. Landis and G. G. Koch, “The measurement of observer agreement for categorical data,” Biometrics , pp. 159–174, 1977. [35] A. de Luca and R. Mattone, “Sensorless robot collision detection and hybrid force/motion control,” in Proc. IEEE Int. Conf. on Robotics & Automation , 2005.
