@@ -6,80 +6,53 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-04
-- 运行时间：2026-06-04 21:02:07 UTC
+- 最新运行日期：2026-06-05
+- 运行时间：2026-06-05 21:03:28 UTC
 - 运行状态：成功
-- 本次总论文数：20
-- 精读区：10
-- 速读区：10
+- 本次总论文数：11
+- 精读区：6
+- 速读区：5
 
 ### 今日简报（AI）
-今日精选20篇机器人相关论文，其中精读10篇、速读10篇。最值得关注的是《OneVLA》提出的统一具身任务框架和《World Models for Robotic Manipulation》的操作世界模型综述。建议优先精读这两篇，再结合速读中的VE2VF和视频动作联合去噪工作拓展视角。
-- 详情：[/202606/04/README](/202606/04/README)
+今日推荐11篇论文，精读6篇，聚焦具身智能与机器人操作。最值得关注的是VLA统一框架（《OneVLA》9分）和行为表征诊断方法（《Beyond Task Success》9分）。建议优先精读《OneVLA》，快速把握具身任务统一建模方向。
+- 详情：[/202606/05/README](/202606/05/README)
 
 ### 精读区论文标签
-1. [OneVLA: A Unified Framework for Embodied Tasks](/202606/04/2606.01241v2-onevla-a-unified-framework-for-embodied-tasks)  
-   标签：评分：10.0/10、query:vla
-   evidence：统一VLA模型用于导航和操作
-2. [World Models for Robotic Manipulation: A Survey](/202606/04/2606.00113v1-world-models-for-robotic-manipulation-a-survey)  
+1. [Beyond Task Success: Behavioral and Representational Diagnostics for WAM and VLA](/202606/05/2606.01095v1-beyond-task-success-behavioral-and-representational-diagnostics-for-wam-and-vla)  
    标签：评分：9.0/10、query:vla
-   evidence：世界模型综述，涵盖VLA系统
-3. [Continuous Reasoning for Vision-Language-Action](/202606/04/2606.00229v1-continuous-reasoning-for-vision-language-action)  
+   evidence：比较世界-动作模型（WAM）和VLA模型的诊断框架
+2. [OneVLA: A Unified Framework for Embodied Tasks](/202606/05/2606.01241v2-onevla-a-unified-framework-for-embodied-tasks)  
    标签：评分：9.0/10、query:vla
-   evidence：提出VLA策略的连续推理介质
-4. [Beyond Task Success: Behavioral and Representational Diagnostics for WAM and VLA](/202606/04/2606.01095v1-beyond-task-success-behavioral-and-representational-diagnostics-for-wam-and-vla)  
+   evidence：统一VLA框架同时处理导航与操作
+3. [World-Language-Action Model for Unified World Modeling, Language Reasoning, and Action Synthesis](/202606/05/2606.05979v1-world-language-action-model-for-unified-world-modeling-language-reasoning-and-action-synthesis)  
    标签：评分：9.0/10、query:vla
-   evidence：用于比较WAM和VLA的诊断框架
-5. [FATE-VLA:Failue-aware test generation for vision-language-action models](/202606/04/2606.02307v1-fate-vlafailue-aware-test-generation-for-vision-language-action-models)  
+   evidence：世界-语言-动作模型统一世界建模、语言推理和动作合成
+4. [AffordanceVLA: A Vision-Language-Action Model Empowering Action Generation through Affordance-Aware Understanding](/202606/05/2606.06155v1-affordancevla-a-vision-language-action-model-empowering-action-generation-through-affordance-aware-understanding)  
    标签：评分：9.0/10、query:vla
-   evidence：VLA模型评估方法
-6. [SeeTraceAct: Visibility-Aware Latent Planning from Cross-Embodiment Demonstration Videos](/202606/04/2606.02745v1-seetraceact-visibility-aware-latent-planning-from-cross-embodiment-demonstration-videos)  
-   标签：评分：9.0/10、query:vla
-   evidence：单样本演示条件VLA结合可见性感知轨迹预测
-7. [GeoAlign: Beyond Semantics with State-Guided Spatial Alignment in VLA Models](/202606/04/2606.03240v1-geoalign-beyond-semantics-with-state-guided-spatial-alignment-in-vla-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：提出GeoAlign，一种具有状态引导空间对齐的VLA模型
-8. [PHASER: Phase-Aware and Semantic Experience Replay for Vision-Language-Action Models](/202606/04/2606.03598v2-phaser-phase-aware-and-semantic-experience-replay-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：面向VLA模型的相位感知经验回放
-9. [Revisiting Embodied Chain-of-Thought for Generalizable Robot Manipulation](/202606/04/2606.03784v2-revisiting-embodied-chain-of-thought-for-generalizable-robot-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：面向VLA模型的具身思维链大规模研究
-10. [HapTile: A Haptic-Informed Vision-Tactile-Language-Action Dataset for Contact-Rich Imitation Learning](/202606/04/2606.04825v1-haptile-a-haptic-informed-vision-tactile-language-action-dataset-for-contact-rich-imitation-learning)  
-   标签：评分：9.0/10、query:tf
-   evidence：包含触觉反馈的视觉-触觉-语言-动作数据集，用于接触丰富操作
+   evidence：提出AffordanceVLA，一种结合功能预测的VLA模型
+5. [RealDexUMI: A Wearable Universal Manipulation Interface for Dexterous Robot Learning](/202606/05/2606.06033v1-realdexumi-a-wearable-universal-manipulation-interface-for-dexterous-robot-learning)  
+   标签：评分：8.0/10、query:tf
+   evidence：集成触觉传感的可穿戴灵巧操作接口
+6. [Multi-Resolution Tactile Imitation Learning for Contact-Rich Robotic Manipulation](/202606/05/2606.06281v1-multi-resolution-tactile-imitation-learning-for-contact-rich-robotic-manipulation)  
+   标签：评分：8.0/10、query:tf
+   evidence：多分辨率触觉融合用于接触丰富操作
 
 ### 速读区论文标签
-1. [VE2VF: Vision-Enabled to Vision-Free Distillation via Real-world Reinforcement Learning for Robust Contact-Rich Manipulation](/202606/04/2605.29564v1-ve2vf-vision-enabled-to-vision-free-distillation-via-real-world-reinforcement-learning-for-robust-contact-rich-manipulation)  
-   标签：评分：8.0/10、query:tf
-   evidence：使用力矩传感的无视觉学生网络用于接触丰富操作
-2. [Unified Video-Action Joint Denoising for Dexterous Action and Data Generation](/202606/04/2606.03868v1-unified-video-action-joint-denoising-for-dexterous-action-and-data-generation)  
+1. [PACE: Phase-Aware Chunk Execution for Robot Policies with Action Chunking](/202606/05/2606.00537v1-pace-phase-aware-chunk-execution-for-robot-policies-with-action-chunking)  
    标签：评分：8.0/10、query:vla
-   evidence：用于灵巧手操作的统一视频-动作去噪模型
-3. [Does Visual Information Play a Decisive Role in Vision-Language-Action Model Driving Behavior?](/202606/04/2605.31041v1-does-visual-information-play-a-decisive-role-in-vision-language-action-model-driving-behavior)  
+   evidence：改进VLA和扩散策略的动作分块执行方法
+2. [A Conversational Framework for Human-Robot Collaborative Manipulation with Distributed Generative AI models](/202606/05/2606.06061v1-a-conversational-framework-for-human-robot-collaborative-manipulation-with-distributed-generative-ai-models)  
+   标签：评分：8.0/10、query:vla
+   evidence：基于VLM的对话式机器人操作框架
+3. [VE2VF: Vision-Enabled to Vision-Free Distillation via Real-world Reinforcement Learning for Robust Contact-Rich Manipulation](/202606/05/2605.29564v1-ve2vf-vision-enabled-to-vision-free-distillation-via-real-world-reinforcement-learning-for-robust-contact-rich-manipulation)  
    标签：评分：7.0/10、query:vla
-   evidence：研究VLA驾驶模型中的视觉依赖
-4. [Learning Multi-Modal Trajectory Policies for Data-Efficient Robotic Manipulation](/202606/04/2606.01047v1-learning-multi-modal-trajectory-policies-for-data-efficient-robotic-manipulation)  
+   evidence：通过师生蒸馏实现无视觉的接触操作
+4. [CLAW: Learning Continuous Latent Action World Models via Adversarial Latent Regularization](/202606/05/2606.04130v1-claw-learning-continuous-latent-action-world-models-via-adversarial-latent-regularization)  
    标签：评分：7.0/10、query:vla
-   evidence：用于数据高效操作的多模态轨迹策略
-5. [Expanding Spatial and Temporal Context for Robotic Imitation Learning With Scene Graphs](/202606/04/2606.01072v1-expanding-spatial-and-temporal-context-for-robotic-imitation-learning-with-scene-graphs)  
-   标签：评分：7.0/10、query:vla
-   evidence：场景图记忆用于模仿学习
-6. [PHASOR: Phase-Anchored Universal Action Representations for Humanoid Embodiments](/202606/04/2606.01851v2-phasor-phase-anchored-universal-action-representations-for-humanoid-embodiments)  
-   标签：评分：7.0/10、query:vla
-   evidence：面向人形本体的通用动作表示
-7. [RoboDream: Compositional World Models for Scalable Robot Data Synthesis](/202606/04/2606.02577v1-robodream-compositional-world-models-for-scalable-robot-data-synthesis)  
-   标签：评分：7.0/10、query:vla
-   evidence：用于机器人数据缩放的世界模型，支持基础模型训练
-8. [Threading Optimization for Vision-Language-Action Model Inference in Low-Cost Smart Agricultural Manipulation](/202606/04/2606.00966v1-threading-optimization-for-vision-language-action-model-inference-in-low-cost-smart-agricultural-manipulation)  
+   evidence：从视频中端到端学习潜在动作世界模型
+5. [Multi-Turn Multi-Agent Dialogue for Collaborative Reconstruction Improves VLM Performance on Spatial Reasoning, But Only Barely](/202606/05/2605.31387v1-multi-turn-multi-agent-dialogue-for-collaborative-reconstruction-improves-vlm-performance-on-spatial-reasoning-but-only-barely)  
    标签：评分：6.0/10、query:vla
-   evidence：针对农业操作的VLA推理线程优化
-9. [AFUN: Towards an Affordance Foundation Model for Functionality Understanding](/202606/04/2606.02551v1-afun-towards-an-affordance-foundation-model-for-functionality-understanding)  
-   标签：评分：6.0/10、query:vla
-   evidence：面向操作理解的供能基础模型
-10. [Grasp-Then-Plan with Failure Attribution: A Closed Two-Stage Framework for Precise and Generalizable Robotic Manipulation](/202606/04/2606.03385v1-grasp-then-plan-with-failure-attribution-a-closed-two-stage-framework-for-precise-and-generalizable-robotic-manipulation)  
-   标签：评分：6.0/10、query:vla
-   evidence：两阶段抓取-规划框架，含失败归因，用于机器人操作
+   evidence：多轮对话用于机器人协作中的VLM空间推理
 
 
 <div class="dpr-home-promo-card">
