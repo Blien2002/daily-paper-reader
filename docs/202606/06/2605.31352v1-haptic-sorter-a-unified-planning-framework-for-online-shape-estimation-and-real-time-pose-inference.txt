@@ -1,0 +1,459 @@
+Title: Haptic Sorter: A Unified Planning Framework for Online Shape Estimation and Real-Time Pose Inference
+
+URL Source: https://arxiv.org/pdf/2605.31352v1
+
+Published Time: Mon, 01 Jun 2026 01:39:23 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Haptic Sorter: A Unified Planning Framework for Online Shape Estimation and Real-Time Pose Inference 
+
+Zhuoyi Lu †, Lin Yang †, Sri Harsha Turlapati and Domenico Campolo ∗
+
+Abstract — Robotics manipulation usually assumes that the shape and pose of the object are known to the robot prior to motion planning. However, precise geometric information is not always available in practice, and pose inference suffers from sensor uncertainties and view occlusion. In this work, we propose a unified model-based geometric framework in-tegrating robotic haptic perception, modeling, and manipula-tion planning. Our novelties involve: i) Introducing Bayesian Optimization (BO) to guide the haptic exploration for object shape inference, where superellipses are used to approximate geometric boundary; ii) Adaptive formulation of manipulation potential encoding object geometry for quasi-static robot-object interaction; iii) Proposing an online Ordinary Differential Equation (ODE) for real-time pose inference based on model prediction and tactile feedback. We deploy our system on a 2D robotic sorting task, and vary object geometries to validate the robustness and generalizability of our framework in both simulation and a real-world multi-arm setup. 
+
+Index Terms — Haptic Exploration, Bayesian Optimization, Shape Inference, Quasi-Static Manipulation, Robotic Sorting; 
+
+I. INTRODUCTION In contact-rich manipulation, a refined knowledge of ob-ject geometry and pose relative to the robot is remarkably important. Many collision-inclusive planners start with the exact representation of the object (e.g., mesh) [1], or a model representation [2] (e.g., superellipses (SQ)) to characterize both the object and robot. Equally, this knowledge must remain valid during execution, where contact-induced slip and pose drift continuously alter the object state. However, acquiring such information could be difficult for traditional vision approaches in certain scenarios. A typical example is manipulating an object made of transparent or reflective materials, e.g., glass products as illustrated in Fig. 1. Further-more, the robot end-effector may occlude the camera view, limiting precise perception during the contact phase [3]. For many years, scholars have been using vision-based approaches to perceive object geometry. [4], [5] has de-veloped a novel predictive perception framework for shape estimation by multiple camera views. The framework takes advantage of Bayesian Inference, while selecting the next camera views with maximum view entropy. The complete shape information can therefore be fitted by Superquadric Recovery with collected point cloud data. However, vision-based methods usually fall short in detecting object surfaces with low reflectivity, and treat shape estimation as a one-shot    
+
+> †These authors contributed equally to this work All authors are with the School of Mechanical and Aerospace Engineer-ing, Nanyang Technological University (NTU), Singapore
+> ∗Corresponding author: d.campolo@ntu.edu.sg
+
+Fig. 1: (a) Illustration of a depth camera to capture the full geometry of a transparent glass beaker, resulting in failure of motion planner thus imprecise control command. (b) A successful motion planning trail with tactile feedback from touch. 
+
+pre-processing step loosely coupled to the downstream ma-nipulation model. Extensive research investigates the visuo-tactile sensors for 3D surface identification. The sensor can provide high-fidelity local information through tactile feedback [6]. Nevertheless, high-resolution data makes the framework computationally demanding. In parallel, haptics offers a complementary avenue to probe object pose and shape, like human who can locate and estimate object geometry and properties by leveraging the sense of touch [7]. Gaussian Process (GP) is gener-ally considered a favorable technique for robotic haptic exploration. It approximates object surfaces through sparse contact points, and the variance of GP naturally provides guidance by incorporating robotic travel costs [8], [9]. By formulating tactile inference as a SLAM problem, scholars can fuse tactile feedback into a global model characterized by Gaussian process implicit surfaces (GPIS), while real-time estimating object pose with Factor Graph Formulation [10], [11]. While these frameworks accumulate single-point contacts over time, we pursue a complementary strategy of simultaneous multi-contact measurements that provides instantaneous observability. Additionally, the choice of the GP covariance function is crucial, as it determines how GP smooths out outlier measurements for shapes with sharp edges. These factors accumulate with model uncertainties, 
+
+> arXiv:2605.31352v1 [cs.RO] 29 May 2026
+
+leading to noticeable aberrations in the recovered model. A recent work encodes symmetry into the GP covariance to improve this [12], at the cost of more expensive runtime eval-uation. More fundamentally, these approaches treat haptic estimation as an isolated perception problem: the recovered surface is represented by the full set of contact observations, making it expensive to embed into an online gradient-based manipulation model. To mitigate the limitations of previous methodologies, our work introduces an online closed-loop planning framework incorporating haptic exploration and manipulation planning in a single differentiable model. We employ a SQ-based object representation to naturally capture the property of symmetry. Its analytic form lets the recovered shape directly instantiate a differentiable manipulation potential, so that the same model both predicts contact forces and, via its gradient, drives an online pose update. Intuitively, we guide the robotic haptic exploration process by Bayesian Optimization (BO), which motivates the robot to explore the regions with the largest radius (e.g., corners) by maximizing the Expected Improvement (EI) as the acquisition function [13]. This fa-vors SQ recovery [14] by prioritizing the geometric features that most strongly constrain the fit, while preserving full differentiability of the recovered shape. This differentiability allows the recovered shape to be embedded into a potential-based manipulation framework. Building on the quasi-static formulation of [15], which splits variables into robot internal states z and controllable DoF 
+
+u along an implicitly defined equilibrium manifold ( Meq ). We extend this framework by defining a manipulation poten-tial W(z, u, ζ ) instantiated directly from the recovered SQ parameters. Given current states {z0, u0, ζ 0} and intended robot actions u1, the system evolution and interaction forces are propagated through an Adaptive ODE along Meq . In parallel, an online Haptic ODE uses the residual between sensed and model predicted forces as a feedback signal for online pose estimation. Together, the two ODEs close the loop on online pose estimation and manipulation planning. A 2D sorting task is validated because it concentrates the failure modes a model-based observer must handle: imperfect grasping, slip, and pose drift during contact. We implement the framework on a multi-arm setup where a pair of planar 2-DoF arms with F/T sensors provides two haptic mea-surements, while a 6-DoF manipulator executes the sorting trajectory under continuous correction from the Haptic ODE. Across exploration, modeling, and tracking, the same SQ parameterization serves as the shared representation. Our contributions are: 1) A BO-guided haptic exploration strategy that recovers superellipse parameters from sparse tactile contacts; 2) An adaptive manipulation potential formulation based on recovered superellipse geometry, modeling the quasi-static interaction between robots and objects; 3) A novel Haptic ODE that utilizes the residual be-tween modeled forces and tactile feedback for online pose estimation, enabling closed-loop correction under physical uncertainties. 
+
+> Fig. 2: Haptic Exploration with dual 2-DoF planar arms for shape and pose inference, starting with a weak prior pose from camera and held by a 6-DoF manipulator on a table.
+
+II. P ROBLEM FORMULATION 
+
+In this work, we investigate the problem of object 2D shape and pose inference through robotic haptic exploration by a pair of 2-DoF planar dual arms. As depicted in Fig. 2, the dual arms begin exploration given a weakly initialized pose from the camera, while a 6-DoF manipulator holds the object in place throughout exploration. 
+
+Object Pose : We define the object pose at the current timestamp t as ζ(t) = ( x(t), y (t), θ (t)) ∈ SE (2) .
+
+Object Shape : The object boundary is approximated by a superellipse, fully described by the parameter set S =
+
+{a1, a 2, ϵ }, where a1, a 2 are the semi-axes and ϵ is the shape exponent. 
+
+Contact : We define haptic measurements to be fi∗ =[fx(t), f y (t)] T ∈ R2 with each end-effector state zi =
+
+zx, z y
+
+T ∈ R2. Contact is always assumed whenever force is sensed at the end-effector, while each contact point c∗ can be computed via the wrench axis from the knowledge of f ∗ 
+
+> i
+
+,
+
+zi, and probe radius rp [16]. For simplicity, we make several assumptions :1) Quasi-static interaction simplifies the problem by fo-cusing on contact forces while neglecting inertia and Coriolis effects [2]. 2) The geometric shape is well-approximated by a single superellipse for a compact analytic form. 3) The rough scale and initial pose are given by a camera. The accumulated contact points {c∗} are subsequently fed into Superellipse Recovery [14], which regresses the shape parameters {a1, a 2, ϵ }. These parameters directly instantiate the manipulation potential and initiate robotic sorting. Building upon the haptic exploration phase, the robotic sorting task integrates real-time pose estimation with trajec-tory re-planning to accurately manipulate the object from an initial pose ζ0 = {x0, y 0, θ 0} to a desired target pose 
+
+ζgoal = {xg , y g , θ g }. As detailed in Algorithm 1, the dual planar arms operate under impedance control to compliantly guide the object, while the 6-DoF manipulator executes the primary trajectory using position control based on continuous updates from an asynchronous observer (Haptic ODE). To counteract inevitable physical disturbances (i.e., gripper mis-alignment, grasp slip, external disturbances) and coordinate discrepancies during manipulation, the system periodically updates the estimated object pose ˆζ and generates the sorting trajectories using Dynamical Movement Primitives (DMPs) to ensure smoothness [17]. 
+
+Algorithm 1 Sorting with Haptics: Trajectory Execution and Re-planning  
+
+> 1:
+
+procedure SORT WITH HAPTICS (ζgoal , ˆζ, z∗ = z0) 
+
+> 2:
+
+Init (HapticODE ()) ▷ ODE Initialization  
+
+> 3:
+
+while || ˆζ − ζgoal || Σ ≥ ζthresh do  
+
+> 4:
+
+DM P () ← ζgoal , ˆζ 
+
+> 5:
+
+Tend , u dual , u 6DOF ← Solve (DM P ())  
+
+> 6:
+
+while t < T end do  
+
+> 7:
+
+ImpeCtrl (udual (t)) ▷ Dual Arm  
+
+> 8:
+
+P osCtrl (u6DOF (t)) ▷ 6-DoF Arm  
+
+> 9:
+
+fsen ← ReadDualF orce ()  
+
+> 10:
+
+if HapticODE () .done then  
+
+> 11:
+
+ˆζ, z∗ ← HapticODE ()  
+
+> 12:
+
+AsySolve (HapticODE ()) ← ˆζ, z ∗, fsen  
+
+> 13:
+
+end if  
+
+> 14:
+
+end while  
+
+> 15:
+
+end while  
+
+> 16:
+
+openGripper () ▷ End Task Upon Convergence  
+
+> 17:
+
+end procedure 
+
+III. M ETHODOLOGY : B AYESIAN OPTIMIZATION ,SUPERELLIPSES AND PROXIES 
+
+A. Bayesian Optimization 
+
+In the robotic haptic exploration, we represent the object surface as a continuous mapping g : [0 , 2π) → R>0. We model this unknown surface as a Gaussian Process (GP), such that g(θ) ∼ GP (m(θ), k (θ, θ ′)) , where m(θ) is the mean function and k(θ, θ ′) denotes the covariance kernel. Given a set of discrete observations D = {(θi, r i)}i∈[1 ,n ],the observed radial distances are defined as ri = g(θi) + ϵ,where ϵ ∼ N (0 , σ 2
+
+> n
+
+) accounts for the Gaussian noise. To ensure the regressed shape is continuous while re-maining capable of capturing high-curvature features (e.g., vertices of a superellipse), we employ a Matérn kernel ( v =5/2) as the surrogate model [18]. Furthermore, to enforce a periodicity of 2π and ensure geometric closure, we apply a unit-circle mapping to the angular inputs. This transforms the domain of the mapping into: 
+
+F : (cos θ, sin θ) 7 → r, θ ∈ [0 , 2π) (1) For a test point θ∗, the GP yields a Bayesian poste-rior distribution F∗ ∼ GP ( ¯F∗, σ 2 
+
+> ∗
+
+), which characterizes the predictive radius and associated model uncertainty. The posterior mean and variance are computed as [19]: 
+
+¯r∗ = kT 
+
+> ∗
+
+(K + σ2noise I−1Y
+
+σ2 
+
+> ∗
+
+= k∗∗ − kT 
+
+> ∗
+
+(K + σ2noise I−1k∗
+
+(2) where K ∈ Rn×n, k∗ ∈ Rn×1 and k∗∗ ∈ R are the train-train, train-test, and test-test kernels, respectively.         
+
+> Fig. 3: A Conceptual Workflow of BO Algorithm: (a) Initial con-figuration; (b) System modeling of two hand touching a box. Here
+> Twb denotes the homogeneous transformation SE (2) from world frame to box frame; The blue circle indicates robot controls and red dots are proxies. (c) Block diagram of BO algorithm to guide robotic haptic exploration. Here u(T)denotes the discrete way-points generated via DMP and u(t)is the time-interpolated action.
+
+The exploration starts with a rough object pose ζ perceived from camera, aside from ground truth pose ¯ζ, as well as a weak circular shape prior (brown dotted circle) for GP. As shown in Fig.3(c), the BO algorithm aims at finding the angle segment that has the maximum radius: 
+
+max  
+
+> θi∈[0 ,2π]
+
+g(θ) (3) To balance exploitation and exploration during the robotic exploration, Expected Improvement (EI) is selected as the acquisition function. It has a closed form expression [20]: 
+
+EI n(θ) = ∆ n(θ)Φ 
+
+ ∆n(θ)
+
+σn(θ)
+
+
+
++ σn(θ)ϕ
+
+ ∆n(θ)
+
+σn(θ)
+
+
+
+(4) where ∆n(θ) := μn(θ) − r∗
+
+> n
+
+. is the expected difference in quality between the proposed point θ and the currently largest observed radius r∗
+
+> n
+
+. Here, ϕ(·) and Φ( ·) denote the Probability Density Function (PDF) and Cumulative Distri-bution Function (CDF) of the standard normal distribution, respectively, and σn(θ) represents the posterior predictive standard deviation at θ. The BO algorithm then evaluates the objective at the point with the largest expected improvement such that θn+1 = arg max θ EI n(θ).The algorithm evaluates the function by commanding the robot to move to the desired angle θn+1 , where its motion is governed by a sliding trajectory generated via DMP. In each BO iteration illustrated in Fig. 3(c), the robotic probe closest to the target angle θn+1 is commanded to slide along the object surface, in the direction perpendicular to the tactile force feedback toward θn+1 . For the start and end points of each DMP trajectory, we deploy a simple planning process: 
+
+u0 = zi, 0
+
+uT = zi, 0 + αsRˆfi
+
+(5) where ˆfi is the normalized force vector sensed by the robot, 
+
+R ∈ R2×2 is the orthogonal rotation matrix and αs scales how far the robotic probe slides. During the trajectory execution, a sequence of contact points is acquired to augment the training set. Consequently, the GP posterior is updated to refine the radius prediction 
+
+r∗ and associated uncertainty over the domain θ∗ ∈ [0 , 2π]
+
+with output mean and variance (Eq. 2), while the next angle segment is evaluated by maximizing Eq.4. The algorithm ter-minates when the maximum predictive variance falls below a predefined threshold σthresh , indicating its convergence. The string of contact points are subsequently fed into the Superellipse Recovery algorithm [14]. The recovered shape parameters {a1, a 2, ϵ } directly instantiate the manipulation potential W (z, u, ζ ).
+
+B. Quasi-static Modeling of the Mechanical System 
+
+Highlighted in [21], the mechanical robot-environment interaction under quasi-static assumption can be treated as a control problem with directly controlled variable U and non-directly controlled variable Z. The total configuration space can be defined as the product manifold Q = Z × U × ζ ⊂
+
+RM ×RK ×RO , where Z denotes the M -dimensional mani-fold of internal states, U stands for the K-dimensional space of controllable degrees of freedom (DoFs) and ζ indicates all the possible object pose configurations. The Manipulation Potential W (z(u), u, ζ ) of the system can be defined as a smooth field on the space W : Q = Z × U × ζ 7 → R. Since the system is always required to be in force equilibrium internally (i.e., only influenced by conservative forces like gravitational and spring energy), this poses a constraint on equilibrium state z∗:
+
+∂zW (z∗(u), u, ζ ) = 0 ∈ RM (6) A point is strictly stable when its Hessian is positive definite, i.e., ∂2
+
+> zz
+
+W |∗ ≻ 0. Assuming the Hessian ∂2
+
+> zz
+
+W ∈ RM ×M
+
+is of full rank when ∂zW (z∗(u), u, ζ ) = 0 , via the im-plicit function theorem [22]. Subsequently, an equilibrium manifold Meq can be defined as the smooth embedded sub-manifold within the ambient space Q = Z × U × ζ,subjected to the constraint (Eq. 6): 
+
+Meq := {(z, u, ζ ) ∈ Z × U × ζ|∂z W (z∗(u), u, ζ ) = 0 }
+
+(7) Under the quasi-static assumption, the total force acting on the robot should be zero, thus the total external force exerting on the robot should be equal to the control force. Intuitively, we can delineate properties regarding the robot-environment interaction, like the control force fctrl :
+
+fctrl = −∂uW (z∗(u), u, ζ ) (8) 
+
+C. Superellipses and Contact Modeling 
+
+Leveraging the superellipse parameterization derived from haptic exploration, we apply our quasi-static framework to model the system via a differentiable manipulation potential, with following key components: 
+
+1) Superellipses: Superellipses can be defined implicitly with an inside-outside function F (x, y ) [23]: 
+
+F (x, y ) = ( xa1
+
+) 2 
+
+> ϵ
+
++ ( ya2
+
+) 2 
+
+> ϵ
+
+− 1 (9) Here, ϵ as the exponent characterizes the shape of the superellipse, while a1, a 2 controls its size. For a point (x, y ) ∈ R2, whenever F (x, y ) > 0 the point is outside of the superellipse. If F (x, y ) = 0 , the point will be lying on the boundary of the superellipse and it is inside if F (x, y ) < 0. Upon on Eq.9, an angular parametrization of 
+
+γ can be applied to superellipses: 
+
+p(γ) = r(γ)
+
+cos γ
+
+sin γ
+
+
+
+, 0 ≤ γ ≤ 2π
+
+r(γ) = 1
+
+q
+
+( cos γa1 ) 2 
+
+> ϵ
+
++ ( sin γa2 ) 2
+
+> ϵ
+
+(10) 
+
+2) Contact Modeling: Define a contact point c(zi) on the geometric surface of robotic end-effector, there will be a corresponding proxy p(γ) ∈ R2 on the object surface denoting the closest point to the probe [24]. The problem can be formulated into a minimization problem: 
+
+arg min  
+
+> γ
+
+|| c(zi) − p(γ)|| , s.t. γ ∈ [0 , 2π] (11) To characterize the contact interaction between the robotic probe and the object, a spring with non-linear stiffness k(d)
+
+is attached between the contact points, where d = F (c(z)) 
+
+in the object frame. The non-linear stiffness is modeled as: 
+
+k(d) = kmin + 1 − tanh ( d/d 0)2 kmax (12) where d0, kmin , and kmax regulate the behavior of the non-linear spring, ensuring a smooth and continuous transition between contact and non-contact modes [25]. The variable 
+
+d is the signed distance computed from Eq.9. When d ≤
+
+0, the spring stiffness increases rapidly, modeling contact interactions. In contrast, the contact force is negligible when 
+
+d > 0. As we solve Eq. 11 iteratively, proxies will remain to trace the closest point on the object to their respective robot agents as shown in Fig.4. Fig. 4: (a) A detail sketch of two robotic probe moving toward a rectangular box. (b) System evolution after one timestamp, showing the iteration of robot state z and proxies p(γ).
+
+D. System Modeling with Manipulation Potential 
+
+As illustrated in Fig.4, two circular robot probes zi
+
+interact with the object ζ via the control input ui(t) =
+
+uix (t), u iy (t)T ∈ R2 in the 2D task frame. The impedance controller implements a virtual force fi ∈ R2 on the object through a constant diagonal stiffness matrix K ∈ R2×2, as determined by Eq.8. Furthermore, two proxies are introduced to track the contact points between the robotic probes and the object’s superellipsoid boundary pij (γi). Here, i and j repre-sent the indices for the object and the respective robot probe, ensuring each robot maintains a unique proxy. Consequently, we can formulate the manipulation potential W (z∗, u, ζ )
+
+with the configuration defined as z = [ z1, z2, p1, p2, ζ ]T :
+
+W (z∗(u), u, ζ ) = Wctrl + Wcontact 
+
+= X
+
+> i
+
+12 (ui(t) − zi(t)) ⊤Kc(ui(t) − zi(t)) + X
+
+> i
+
+X
+
+> j
+
+12 k(dij )∥cij (zi) − pij (γi)∥2
+
+(13) The manipulation potential is constituted by two main components: Wctrl addresses the spring potential energy for the impedance controller; Wcontact signifies the contact interaction between the manipulated object and the robotic probe due to proxies. 
+
+E. Adaptive ODE and Haptic ODE 
+
+To explore Meq , we adapt a fundamental yet important result from a book insertion case study on quasi-static ma-nipulation, which employs an adaptive Ordinary Differential Equation (ODE) approach [2]: 
+
+˙z = −(∂2
+
+> zz
+
+W )−1∂2
+
+> uz
+
+W ˙u − η(∂2
+
+> zz
+
+W )−1∂zW (14) Eq. 14 governs the evolution of the system via two com-ponents: the former one incorporates the linear relationship between the infinitesimal changes in z and u, while the sec-ond term provides a Newton-Raphson correction to prevent numerical drift from the equilibrium manifold. Inspired by [26], we introduce the Haptic ODE, designed to resolve the misalignment between predicted model forces and real-world tactile feedback. As illustrated in the closed-loop block diagram (Fig. 5), while the robot interacts with an object, the Adaptive ODE runs in parallel, predicting the expected contact forces fexp,i based on the current estimated world state ζ. When a discrepancy arises between the predicted force fexp,i and the sensed force fsen,i , the Haptic ODE utilizes this force residual as a feedback signal to update the estimated object pose ζ toward the ground truth 
+
+¯ζ. We define the rate of change of the pose estimate with respect to time as: 
+
+˙ζ =
+
+αT
+
+P2
+
+> i=1
+
+(fsen,i − fexp,i )T n∗ 
+
+> i
+
+· n∗
+
+> i
+
+αR
+
+P2
+
+> i=1
+
+(fsen,i × fexp,i )
+
+
+
+(15) where fsen,tot and fexp,tot represent the aggregate sensed and predicted forces, respectively. The vector n∗ 
+
+> i
+
+= ∇F (c∗   
+
+> ij )
+> ∥∇ F(c∗
+> ij )∥
+
+denotes the surface normal of the object’s superellipse rep-resentation at the predicted contact point c∗ 
+
+> ij
+
+, while the convergence rate is governed by gains αT and αR. The translational component of the ODE projects the force error onto the surface normals to correct positioning, while the rotational component minimizes the angular misalignment through the cross product. 
+
+> Fig. 5: A detailed block diagram demonstrating the concept of the online closed-loop system constituting of Haptic ODE and real world tactile feedback
+
+IV. E XPERIMENTAL VALIDATION 
+
+Setup : We carry out both the simulation and the real-world haptic exploration, as well as the sorting task on a smooth table with a multi-arm setup in Fig.6. In simulation, the underlying physics is approximated by iteratively solving the 
+
+Adaptive ODE . In the real world, HEBI X-Series actuators are used to construct the multi-arm setup, while the end-effectors of the planar dual arm are rigidly attached to ATI F/T sensors that measure contact forces. We utilize a ZED2 camera to provide a rough object pose for launching hap-tic exploration. Ground-truth is collected with PhaseSpace, tracking LED markers on the object. Our scope includes circular (180mm radius), as well as more challenging rect-angular (150mm*250mm) and elliptical (150mm*250mm) objects. All scripts are executed in MATLAB 2024b and we select ODE45 as our solver due to its numerical robustness. Fig. 6: Our real world multi-arm setup 
+
+A. Haptic Exploration 
+
+Evaluation Metric & Baseline : To evaluate the efficacy of the proposed haptic exploration, we compare our shape regression results against a vision-based baseline utilizing Superellipse Recovery from point cloud data [14]. Root Mean Square Error (RMSE) is adapted as our evaluation metric for length and width (i.e., RM SE L and RM SE D )of the regressed shape. We heuristically choose N = 48 
+
+to divide the robot’s observation space for our BO-guided haptic exploration algorithm. 
+
+> Fig. 7: Progression of BO-guided haptic exploration for a rectangu-lar object. We show representative frames: (a) Initial Configuration; (b) After exploring 1 corner; (c) After exploring 2 corners; (d) Algorithm terminates upon convergence.
+
+Results : The progression of the BO-guided haptic ex-ploration for a rectangular object is illustrated in Fig. 7. Starting from an initial configuration with only two contacts, the predictive variance (gray region) reflects high geometric uncertainty. As the training set is augmented with additional contact points (indicated by red dots), the EI acquisition function proactively directs the robot toward high-uncertainty regions, effectively balancing the exploration of unknown space with the exploitation of identified local features. Fig. 8 provides a representative visualization comparing our method and the depth-based approach by Liu et al. 
+
+[14]. To evaluate the efficiency of the sampling strategy, we introduce exploration coverage , formally defined as the ratio of the boundary arc length explored to the total perimeter of the ground-truth geometry. Our method successfully re- 
+
+> Fig. 8: Superquadrics Recovery: (left) Haptic exploration ( N=48 ); (right) Depth-Based Method [14]. The red dots are observa-tions and the blue shape represents the regressed superellipse.
+
+covers the superquadric geometry without requiring holistic surface exploration, a notable advantage over prior haptic approaches [8]–[11]. Furthermore, the proposed framework preserves critical geometric features, such as sharp edges, while demonstrating robustness to outliers.                              
+
+> TABLE I: Simulation and Real-World Results for Multi-Arm Haptic Exploration: Benchmark for Geometric Accuracy and Exploration Efficiency. All RMSE values are calculated in mm.
+> Shape Metric Point Clouds [14] Haptics (Ours) Sim. Real
+> Circular RM SE R15.86 0.39 1.98
+> Expl. Coverage N.A. 62.5% 64.6%
+> Rectangular
+> RM SE L21.51 0.45 3.79
+> RM SE D18.77 0.48 5.75
+> Expl. Coverage N.A. 72.9% 81.3%
+> Elliptical
+> RM SE L18.31 0.41 3.72
+> RM SE D13.49 0.43 4.91
+> Expl. Coverage N.A. 70.8% 77.1%
+
+The comparative analysis in Table I validates the geomet-ric accuracy and exploration efficiency of our framework across both simulated and physical environments. Under ideal simulation conditions, the BO-guided haptic explo-ration algorithm converges toward the true geometric dimen-sions of the objects, establishing a theoretical baseline. When deployed in the real world, the proposed framework achieves millimeter-level accuracy across all tested geometries. This outperforms the depth-based baseline [14], which exhibits errors extending into the centimeter range. The performance gap highlights the fundamental limitations of vision-based recovery in unstructured settings. Ambient lighting variations and surface reflectivity can inherently degrade point cloud quality and introduce sensor noise. Consequently, the recov-ery algorithm extrapolates holistic superquadric parameters from a degraded and partial observation, leading to estima-tion errors. In contrast, our haptic-based approach integrates local tactile measurements into a robust global estimate. Fig. 9: Representative results of pose estimation accuracy during the sorting task against motion capture, along with respective force profiles. The red dotted line is the Haptic ODE estimation while the blue solid line shows the ground truth from motion capture system. The unmeant spikes in motion capture recording are mainly due to occlusion of LED markers during the experiments. 
+
+B. Robotic Sorting 
+
+Setup : As shown in Fig.10, We carry out a sorting task immediately after the termination of haptic exploration and the computation of manipulation potential. The Haptic ODE first estimates an initial object pose ˆζ0 based on tactile feedback and runs in parallel to plan sorting trajectories toward the goal pose ζgoal .
+
+> Fig. 10: Sorting a Rectangular object: (a) Initial configuration; (b)-(c) Adaptive trajectory re-planning; (d) Task Completion.
+
+Results : Fig.11 visualizes the ground truth trajectory alongside the Haptic ODE estimations of (a) circular, (b) rectangular, and (c) elliptical objects. Due to the imperfect grasp and physical disturbances inherent in real-world inter-actions, the object inevitably deviates from the intended path. To counteract this, our online ODE provides asynchronous correction to the sorting trajectory. We evaluate the pose estimation accuracy of the proposed Haptic ODE framework by comparing the estimated tra-
+
+> Fig. 11: Sorting trajectories: (a) circular; (b) Rectangular; (c) Elliptical. The black, pink geometries represent the ground truth and estimation respectively, while the blue dots denote contacts.
+
+jectories against a motion capture system, which provides the absolute ground-truth object pose, ¯ζ. Fig. 9 presents a quantitative analysis of the object’s planar position ( x, y ) and orientation ( θ) over the duration of the manipulation task. The framework demonstrates robust translational tracking over all 10 trials per geometry. Specifically, the positional RMSE remains bounded below 30 mm, revealing the con-vergence of Haptic ODE for all tested geometries. For objects possessing distinct geometric features (i.e., rectangular and elliptical profiles), the orientational RMSE is maintained at approximately 5◦, indicating stable rotational inference. In contrast, since the superellipse representation of a perfect circle is rotationally invariant, the global orientation θ cannot be uniquely resolved from local geometric interactions alone. Lastly, the force profiles reveal the closed-loop correction mechanism of the Haptic ODE. When unmodeled physical perturbations (i.e., grasp slip) cause the object to deviate from its nominal path, the resulting contact forces naturally escalate. After active corrections, the sensed forces stabilize as the object approaches the target pose. Benchmark and Ablation Study: We conduct a compar-ative benchmark and an ablation study on a 2D multi-arm sorting task (Table II). The evaluation comprises three dis-tinct conditions: (1) our Haptic ODE with shape parameters regressed from haptic exploration; (2) our Haptic ODE with superellipse parameters regressed from the point cloud [14]; and (3) an ablation study without the Haptic ODE, relying entirely on a 6-DoF open-loop position controller. As shown in Table II, our framework (Haptic Expl. + Haptic ODE) exhibits a noticeable performance advantage, achieving high success rates across all object geometries. The average cycle time of the Haptic ODE solver is approx-imately 3 ms , ensuring a high observer frequency of about 300 Hz . The ablation study (w/o Haptic ODE) demonstrates the baseline difficulty of an open-loop controller, as it lacks the adaptability for physical uncertainties. Notably, the Hap-tic ODE with point-cloud derived parameters performs worse 
+
+than the open-loop ablation across all three geometries: biased shape parameters produce systematically wrong force predictions, and the closed-loop correction drives the pose estimate in incorrect directions. This counter-intuitive result quantifies the criticality of shape accuracy in our gradient-based observer, and motivates the tight coupling between haptic exploration and manipulation in our framework. 
+
+TABLE II: Manipulation Success Rate: 2D Sorting Task 
+
+With Haptic ODE w/o Haptic ODE Shape Profile Ours Point Cloud [14] 
+
+Circular 10/10 3/10 6/10 Rectangular 10/10 1/10 2/10 Elliptical 8/10 1/10 2/10 
+
+V. CONCLUSIONS We propose a unified framework in which a single SQ parameterization simultaneously supports haptic explo-ration, modeling, and an online haptic-driven pose observer. Through this shared differentiable representation, we enable a multi-arm robotic system to autonomously explore, model, and manipulate objects with unknown initial geometries and poses. Our BO-guided haptic exploration successfully recovers SQ parameters without exhaustive surface coverage, and we empirically demonstrate that local haptic feedback becomes sufficient to track object states. Our ablation re-veals that the Haptic ODE is highly sensitive to shape accuracy. This quantitatively validates the necessity of a unified perception-to-control pipeline rather than treating shape estimation as a decoupled preprocessing step. Our current scope is limited to convex objects approx-imable by a single SQ and to 2D interactions. Future work will extend to 3D manipulation to track non-convex objects. REFERENCES [1] K. Ren, G. Wang, A. S. Morgan, and K. Hang, “Collision-inclusive manipulation planning for occluded object grasping via compliant robot motions,” IEEE Robotics and Automation Letters , vol. 10, no. 9, pp. 9120–9127, 2025. [2] L. Yang, S. H. Turlapati, C. Lv, and D. Campolo, “Planning for quasi-static manipulation tasks via an intrinsic haptic metric: A book insertion case study,” IEEE Robotics and Automation Letters , 2025. [3] T. Schmidt, R. Newcombe, and D. Fox, “Dart: dense articulated real-time tracking with consumer depth cameras,” Autonomous Robots ,vol. 39, no. 3, pp. 239–258, 2015. [4] J. Wang, G. Liu, W. Ding, Y. Li, and W. Song, “From visual un-derstanding to 6d pose reconstruction: A cutting-edge review of deep learning-based object pose estimation,” Displays , vol. 89, p. 103069, 2025. [5] A. Dutta, E. Burdet, and M. Kaboli, “Predictive visuo-tactile inter-active perception framework for object properties inference,” IEEE Transactions on Robotics , vol. 41, pp. 1386–1403, 2025. [6] H.-J. Huang, M. A. Mirzaee, M. Kaess, and W. Yuan, “Gelslam: A real-time, high-fidelity, and robust 3d tactile slam system,” arXiv preprint arXiv:2508.15990 , 2025. [7] S. Luo, J. Bimbo, R. Dahiya, and H. Liu, “Robotic tactile perception of object properties: A review,” Mechatronics , vol. 48, pp. 54–67, 2017. [8] T. Matsubara and K. Shibata, “Active tactile exploration with uncer-tainty and travel cost for fast shape estimation of unknown objects,” 
+
+Robotics and Autonomous Systems , vol. 91, pp. 314–326, 2017. [9] S. Ottenhaus, L. Kaul, N. Vahrenkamp, and T. Asfour, “Active tactile exploration based on cost-aware information gain maximization,” In-ternational Journal of Humanoid Robotics , vol. 15, no. 01, p. 1850015, 2018. [10] K.-T. Yu, J. Leonard, and A. Rodriguez, “Shape and pose recovery from planar pushing,” in 2015 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pp. 1208–1215, IEEE, 2015. [11] S. Suresh, M. Bauza, K.-T. Yu, J. G. Mangelson, A. Rodriguez, and M. Kaess, “Tactile slam: Real-time inference of shape and pose from planar pushing,” in 2021 IEEE international conference on robotics and automation (ICRA) , pp. 11322–11328, IEEE, 2021. [12] A. A. Bonzini, L. Seminara, S. Macciò, A. Carfì, and L. Jamone, “Robotic haptic exploration of object shape with autonomous symme-try detection,” IEEE Transactions on Robotics , 2025. [13] H. Zhou, X. Ma, and M. B. Blaschko, “A corrected expected im-provement acquisition function under noisy observations,” in Asian Conference on Machine Learning , pp. 1747–1762, PMLR, 2024. [14] W. Liu, Y. Wu, S. Ruan, and G. S. Chirikjian, “Robust and accurate superquadric recovery: A probabilistic approach,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition ,pp. 2676–2685, 2022. [15] D. Campolo and F. Cardin, “A geometric framework for quasi-static manipulation of a network of elastically connected rigid bodies,” 
+
+Applied Mathematical Modelling , vol. 143, p. 116003, 2025. [16] S. H. Turlapati and D. Campolo, “Towards haptic-based dual-arm manipulation,” Sensors , vol. 23, no. 1, p. 376, 2022. [17] A. J. Ijspeert, J. Nakanishi, H. Hoffmann, P. Pastor, and S. Schaal, “Dynamical movement primitives: learning attractor models for motor behaviors,” Neural computation , vol. 25, no. 2, pp. 328–373, 2013. [18] Y.-F. Lim, C. K. Ng, U. Vaitesswar, and K. Hippalgaonkar, “Ex-trapolative bayesian optimization with gaussian process and neural network ensemble surrogate models,” Advanced Intelligent Systems ,vol. 3, no. 11, p. 2100101, 2021. [19] C. E. Rasmussen, “Gaussian processes in machine learning,” in 
+
+Summer school on machine learning , pp. 63–71, Springer, 2003. [20] R. Garnett, Bayesian optimization . Cambridge University Press, 2023. [21] D. Campolo and F. Cardin, “Quasi-static mechanical manipulation as an optimal process,” in 2023 62nd IEEE Conference on Decision and Control (CDC) , pp. 4753–4758, IEEE, 2023. [22] M. Spivak, Calculus on manifolds: a modern approach to classical theorems of advanced calculus . CRC press, 2018. [23] N. T. Gridgeman, “Lamé ovals,” The Mathematical Gazette , vol. 54, no. 387, pp. 31–37, 1970. [24] S. Kana, K.-P. Tee, and D. Campolo, “Human–robot co-manipulation during surface tooling: A general framework based on impedance con-trol, haptic rendering and discrete geometry,” Robotics and Computer-Integrated Manufacturing , vol. 67, p. 102033, 2021. [25] Q. Le Lidec, W. Jallet, L. Montaut, I. Laptev, C. Schmid, and J. Carpentier, “Contact models in robotics: a comparative analysis,” 
+
+IEEE Transactions on Robotics , vol. 40, pp. 3716–3733, 2024. [26] S. H. Turlapati, D. Accoto, and D. Campolo, “Haptic manipulation of 3d scans for geometric feature enhancement,” Sensors , vol. 21, no. 8, p. 2716, 2021.
