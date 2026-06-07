@@ -6,64 +6,70 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-06
-- 运行时间：2026-06-06 20:13:58 UTC
+- 最新运行日期：2026-06-07
+- 运行时间：2026-06-07 20:53:39 UTC
 - 运行状态：成功
-- 本次总论文数：14
-- 精读区：6
-- 速读区：8
+- 本次总论文数：16
+- 精读区：5
+- 速读区：11
 
 ### 今日简报（AI）
-今日共分析14篇论文，精读6篇速读8篇，重点聚焦World-Language-Action模型与Haptic Sorter。
-最值得精读的是满分论文《World-Language-Action Model》，其统一世界建模、语言推理与动作合成；以及9分的《Haptic Sorter》，提供在线形状估计与实时位姿推理的统一规划框架。
-建议优先阅读这两篇高分论文，它们代表了具身智能中多模态融合与实时感知的前沿方向。
-- 详情：[/202606/06/README](/202606/06/README)
+今日推荐16篇机器人学习论文，聚焦行为诊断、3D动作对齐及工具增强。
+最值得精读的是《Beyond Task Success》与《Dexterity-BEV》，分别提出WAM/VLA行为表征诊断和3D-动作对齐框架，均获9.0分。
+建议优先精读这两篇高分论文，并配合《World-Task Factorization》理解任务分解思路，以构建更通用的机器人策略。
+- 详情：[/202606/07/README](/202606/07/README)
 
 ### 精读区论文标签
-1. [World-Language-Action Model for Unified World Modeling, Language Reasoning, and Action Synthesis](/202606/06/2606.05979v1-world-language-action-model-for-unified-world-modeling-language-reasoning-and-action-synthesis)  
-   标签：评分：10.0/10、query:vla
-   evidence：统一世界-语言-动作模型桥接VLA和WAM
-2. [Haptic Sorter: A Unified Planning Framework for Online Shape Estimation and Real-Time Pose Inference](/202606/06/2605.31352v1-haptic-sorter-a-unified-planning-framework-for-online-shape-estimation-and-real-time-pose-inference)  
+1. [Beyond Task Success: Behavioral and Representational Diagnostics for WAM and VLA](/202606/07/2606.01095v1-beyond-task-success-behavioral-and-representational-diagnostics-for-wam-and-vla)  
+   标签：评分：9.0/10、query:vla
+   evidence：VLA和WAM模型的诊断框架
+2. [Dexterity-BEV: Aligning 3D World and Actions for Generalizable Robot Policies Learning](/202606/07/2606.02274v1-dexterity-bev-aligning-3d-world-and-actions-for-generalizable-robot-policies-learning)  
+   标签：评分：9.0/10、query:vla
+   evidence：通过3D对齐实现通用机器人操作策略
+3. [PointAction: 3D Points as Universal Action Representations for Robot Control](/202606/07/2606.03943v1-pointaction-3d-points-as-universal-action-representations-for-robot-control)  
+   标签：评分：9.0/10、query:vla
+   evidence：基于3D点的动作表示桥接视频预测与机器人控制
+4. [HapTile: A Haptic-Informed Vision-Tactile-Language-Action Dataset for Contact-Rich Imitation Learning](/202606/07/2606.04825v1-haptile-a-haptic-informed-vision-tactile-language-action-dataset-for-contact-rich-imitation-learning)  
    标签：评分：9.0/10、query:tf
-   evidence：集成触觉感知和操作规划进行形状估计
-3. [See Less, Specify More: Visual Evidence Budgets for Generalizable VLAs](/202606/06/2606.02735v1-see-less-specify-more-visual-evidence-budgets-for-generalizable-vlas)  
-   标签：评分：9.0/10、query:vla
-   evidence：通过视觉证据预算和精细化语言提升VLA泛化能力
-4. [Let It Be Simple: One-Step Action Generation for Vision-Language-Action Models](/202606/06/2606.05737v1-let-it-be-simple-one-step-action-generation-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：直接提出面向视觉-语言-动作模型的一步动作生成方法
-5. [PiL-World: A Chunk-Wise World Model for VLA Policy-in-the-Loop Evaluation](/202606/06/2606.05773v1-pil-world-a-chunk-wise-world-model-for-vla-policy-in-the-loop-evaluation)  
-   标签：评分：9.0/10、query:vla
-   evidence：用于闭环VLA评估的世界模型
-6. [Multi-Resolution Tactile Imitation Learning for Contact-Rich Robotic Manipulation](/202606/06/2606.06281v1-multi-resolution-tactile-imitation-learning-for-contact-rich-robotic-manipulation)  
+   evidence：整合触觉和力觉感知的VLA数据集
+5. [Multi-Resolution Tactile Imitation Learning for Contact-Rich Robotic Manipulation](/202606/07/2606.06281v1-multi-resolution-tactile-imitation-learning-for-contact-rich-robotic-manipulation)  
    标签：评分：9.0/10、query:tf
-   evidence：多分辨率触觉融合用于接触丰富操作
+   evidence：多分辨率触觉模仿学习用于接触密集操作
 
 ### 速读区论文标签
-1. [Beyond Task Success: Behavioral and Representational Diagnostics for WAM and VLA](/202606/06/2606.01095v1-beyond-task-success-behavioral-and-representational-diagnostics-for-wam-and-vla)  
-   标签：评分：8.0/10、query:vla
-   evidence：通过行为和表征诊断比较VLA与WAM范式
-2. [RealDexUMI: A Wearable Universal Manipulation Interface for Dexterous Robot Learning](/202606/06/2606.06033v1-realdexumi-a-wearable-universal-manipulation-interface-for-dexterous-robot-learning)  
-   标签：评分：8.0/10、query:tf
-   evidence：可穿戴通用操作接口，具有指尖触觉传感，用于灵巧机器人学习，整合触觉模态
-3. [Any-ttach: Quick End-effector Swapping Enables Manipulation Dexterity with Simplicity](/202606/06/2605.30569v1-any-ttach-quick-end-effector-swapping-enables-manipulation-dexterity-with-simplicity)  
+1. [Set-Supervised Diffusion Policy: Learning Action-Chunking Diffusion through Corrections](/202606/07/2606.01865v1-set-supervised-diffusion-policy-learning-action-chunking-diffusion-through-corrections)  
    标签：评分：7.0/10、query:vla
-   evidence：以工具为中心的操作框架，通过更换末端执行器实现灵巧性，与具身智能和机器人学习相关
-4. [PHASOR: Phase-Anchored Universal Action Representations for Humanoid Embodiments](/202606/06/2606.01851v2-phasor-phase-anchored-universal-action-representations-for-humanoid-embodiments)  
+   evidence：通过矫正数据改进机器人操作扩散策略
+2. [World-Task Factorization for Robot Learning](/202606/07/2606.02027v1-world-task-factorization-for-robot-learning)  
    标签：评分：7.0/10、query:vla
-   evidence：基于相位锚定的通用动作表示用于人形机器人，与机器人策略学习相关
-5. [Affordance2Action: Task-Conditioned Scene-level Affordance Grounding for Real-Time Manipulation](/202606/06/2606.04172v1-affordance2action-task-conditioned-scene-level-affordance-grounding-for-real-time-manipulation)  
+   evidence：机器人学习因子分解用于具身智能
+3. [ToolGate: Token-Efficient Pre-Call Control for Tool-Augmented Vision-Language Agents](/202606/07/2606.03054v1-toolgate-token-efficient-pre-call-control-for-tool-augmented-vision-language-agents)  
    标签：评分：7.0/10、query:vla
-   evidence：任务条件化的可操作性定位用于机器人操作
-6. [VASO: Formally Verifiable Self-Evolving Skills for Physical AI Agents](/202606/06/2606.05395v1-vaso-formally-verifiable-self-evolving-skills-for-physical-ai-agents)  
+   evidence：工具增强VLM Agent的预调用控制
+4. [Let the Dynamics Flow: Stable Flow Matching Dynamical Systems](/202606/07/2606.03834v1-let-the-dynamics-flow-stable-flow-matching-dynamical-systems)  
    标签：评分：7.0/10、query:vla
-   evidence：验证引导的LLM生成机器人技能合约自进化，将LLM与机器人动作空间整合
-7. [Object-Informed Model Predictive Path Integral Control for Non-Prehensile Robot Manipulation](/202606/06/2605.30778v1-object-informed-model-predictive-path-integral-control-for-non-prehensile-robot-manipulation)  
+   evidence：面向机器人操作模仿学习的稳定流匹配动力系统
+5. [OSCAR: Omni-Embodiment Action-Conditioned World Model for Robotics](/202606/07/2606.04463v2-oscar-omni-embodiment-action-conditioned-world-model-for-robotics)  
+   标签：评分：7.0/10、query:vla
+   evidence：跨具身的动作条件世界模型用于机器人策略评估
+6. [DexFuture: Hierarchical Future-State Visuomotor Targeting for Bimanual Dexterous Tool Use](/202606/07/2606.05699v1-dexfuture-hierarchical-future-state-visuomotor-targeting-for-bimanual-dexterous-tool-use)  
+   标签：评分：7.0/10、query:vla
+   evidence：双灵巧操作的层次化视觉运动目标预测
+7. [RealDexUMI: A Wearable Universal Manipulation Interface for Dexterous Robot Learning](/202606/07/2606.06033v1-realdexumi-a-wearable-universal-manipulation-interface-for-dexterous-robot-learning)  
+   标签：评分：7.0/10、query:vla
+   evidence：带触觉感知的灵巧操作可穿戴数据采集接口
+8. [Behavior Cloning of MPC for 3-DOF Robotic Manipulators](/202606/07/2606.00383v1-behavior-cloning-of-mpc-for-3-dof-robotic-manipulators)  
    标签：评分：6.0/10、query:vla
-   evidence：分层模型预测路径积分控制用于非抓取操作，与机器人操作和规划相关
-8. [Safe Embodied AI for Long-horizon Tasks: A Cross-layer Analysis of Robotic Manipulation](/202606/06/2606.05660v1-safe-embodied-ai-for-long-horizon-tasks-a-cross-layer-analysis-of-robotic-manipulation)  
+   evidence：机械臂操作中MPC的行为克隆近似
+9. [Preference-Calibrated Human-in-the-Loop Reinforcement Learning for Robotic Manipulation](/202606/07/2606.03949v1-preference-calibrated-human-in-the-loop-reinforcement-learning-for-robotic-manipulation)  
    标签：评分：6.0/10、query:vla
-   evidence：具身AI操作中的安全性
+   evidence：带偏好校准的人类在环强化学习用于机器人操控
+10. [Instant-Fold: In-Context Imitation Learning for Deformable Object Manipulation](/202606/07/2606.04269v1-instant-fold-in-context-imitation-learning-for-deformable-object-manipulation)  
+   标签：评分：6.0/10、query:vla
+   evidence：通过上下文模仿学习操作可变形物体
+11. [Inverse Manipulation through Symbolic Planning and Residual Operator Learning](/202606/07/2606.05248v1-inverse-manipulation-through-symbolic-planning-and-residual-operator-learning)  
+   标签：评分：6.0/10、query:vla
+   evidence：结合符号规划与残差学习的逆操控混合方法
 
 
 <div class="dpr-home-promo-card">

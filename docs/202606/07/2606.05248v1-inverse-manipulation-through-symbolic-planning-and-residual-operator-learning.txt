@@ -1,0 +1,191 @@
+Title: Inverse Manipulation through Symbolic Planning and Residual Operator Learning
+
+URL Source: https://arxiv.org/pdf/2606.05248v1
+
+Published Time: Fri, 05 Jun 2026 00:03:34 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# Inverse Manipulation through Symbolic Planning and Residual Operator Learning 
+
+## Yigit Yildirim 1, Giuseppe Rauso 2, Riccardo Caccavale 1, 2 , Alberto Finzi 1, 2  
+
+> 1
+
+CREATE Consortium, Italy 
+
+> 2
+
+Department of Electrical Engineering and Information Technologies, Universit` a di Napoli Federico II, Italy yigit.yildirim@consorziocreate.it, {giuseppe.rauso,riccardo.caccavale,alberto.finzi }@unina.it 
+
+Abstract 
+
+Inverting a robotic task requires more than reversing symbolic state transitions or rewinding motor trajectories. In robot ma-nipulation tasks, symbolic inverse plans often fail to fully re-store the effects of forward executions under continuous in-teraction dynamics. We present a hybrid framework for in-verse manipulation that derives inverse-skill objectives from STRIPS-like operators automatically extracted from demon-strations through soft geometric predicates. For each ex-tracted operator, we construct an inverse restoration objec-tive that preserves preconditions, restores delete effects, and negates add effects. A task planner first attempts to satisfy this objective using available action primitives. Unresolved sym-bolic predicates then induce a residual operator learning prob-lem solved through Reinforcement Learning (RL). We eval-uate the framework on the ManiSkill3 PushCube task. For a forward pushing skill, the symbolic inverse performs a coarse pick-and-place restoration, while a residual Soft Actor-Critic policy refines the cube pose to satisfy the remaining inverse predicates. Our results show that predicate-derived residual control can turn an approximate symbolic inverse into a phys-ically grounded inverse skill. 
+
+## Introduction 
+
+Human-robot collaboration and robotic assembly-disassembly lines share a common requirement: the ability to undo previously executed skills. However, undo-ing a task can go well beyond simply rewinding the forward skill’s motor trajectory, which is a viable option for only a subset of inversion problems (Eysenbach et al. 2018). A more generic definition of undoing is restoring the world to its pre-forward state. State restoration can be achieved in different ways. Con-sider a pick-and-place skill in which the robot picks an ob-ject from a position, carries it, and drops it at another loca-tion. The inverse of a pick-and-place skill is another pick-and-place skill, which can often be achieved through a sym-metric manipulation strategy. Nevertheless, inverting some other skills requires more than simply rewinding the execu-tion (Grinsztajn et al. 2021). For instance, a non-prehensile push cannot be inverted by retracting the manipulator to its original position, because the robot does not grasp the ob-ject, (Mason 2018). This is an inter-class inversion that re-quires restoring the world to its state before executing the forward skill. From this perspective, the difference between trajectory-level and task-level inversion is more pronounced. Task-level inversion is more challenging because it requires an additional planning process, along with physically feasi-ble continuous manipulation, to restore the world to its orig-inal state and undo the effects of forward execution. In this work, we propose a framework to address both in-class and inter-class inversion problems and report empirical results. Inspired by (Silver et al. 2022), we first extract the forward skill from demonstrations as a symbolic operator in the STRIPS formalism (Fikes and Nilsson 1971) using a predefined predicate repertoire. The symbolic difference between post and preconditions becomes the restoration ob-jective for the inverse task. Classical planning is then used together with scripted action primitives to generate an action sequence that restores the objective supported by the avail-able operator repertoire. Since the symbolic action space is limited, the system occasionally fails to successfully undo forward executions. In such cases, the system evaluates the state in which a portion of the restoration objective is sat-isfied. The rest constitutes the residual objective, which is learned by Reinforcement Learning (RL). Consequently, the inverse operator is obtained by applying the action sequence returned by the planner, followed by the residual policy learned by the RL. The RL phase attempts to recover the residual conditions while keeping the already satisfied ones. The approach is evaluated on a scripted scenario and a simulated benchmark, named ManiSkill3 (Tao et al. 2025). The preliminary results show that it can successfully plan and apply the inverse operator that requires contact-rich ma-nipulation of an object, achieving 90% success at a 1 cm tol-erance with a 1.4 mm mean precision; whereas the symbolic prefix alone leaves a 17 mm residual, and a pure trajectory-inverse baseline is inapplicable due to a non-prehensile for-ward characteristic. The contribution of this study is threefold: • We address skill inversion as a hybrid symbolic-continuous restoration problem by deriving inverse tar-gets from symbolic forward operators extracted from demonstrations. • We introduce a residual operator learning framework in which RL is activated only when symbolic planning can-not fully satisfy the inverse objective. • We derive RL rewards for residual operator learning from 
+
+> arXiv:2606.05248v1 [cs.RO] 3 Jun 2026
+
+the symbolic plan. 
+
+## Related Work 
+
+Skill inversion has been addressed in the literature through various approaches. From the symbolic planning perspec-tive, action reversibility has been extensively studied (Eiter, Erdem, and Faber 2007; Morak et al. 2020; Chrpa, Faber, and Morak 2021). In this work, we address the problem of reversing multi-step manipulation tasks executed by a robotic system, where incomplete reversibility is handled through residual operator learning. (Nair et al. 2020) uses self-supervision to learn time-reversal models from forward demonstrations to bootstrap forward policy learning. Similarly, (Edwards et al. 2018) proposes Forward-Backward RL to leverage imagined re-versal steps to accelerate the forward policy modeling. They rely on temporal reversion as a self-supervision signal. (Hoffman 1989; Tian et al. 2022; Widulle and Niggemann 2023) leverage physical or geometric coupling between as-sembly and disassembly. These are successful approaches, but their assumption of time reversal limits their applicabil-ity to low-level skill inversion. In contrast, we treat inverse skills as distinct symbolic operators with their own restora-tion objectives. We suggest that inverse skills can be derived from the effects of forward demonstrations without relying on temporal or physical reversal. To model symbolic operators directly from skill demon-strations, a detailed approach is presented in (Konidaris et al. 2018). (Cresswell et al. 2013) proposes another sys-tem, named Learning Object Centred Models, for gener-ating planning-domain models from demonstrations. Simi-larly, (Aineto et al. 2019) proposes FAMA, a novel system to learn STRIPS models from skill executions. These studies do not address skill inversion as a derived planning problem. Even with the appropriate modeling of the symbolic op-erators and suitable planning, the robot may still fail to fully undo a forward execution due to missing skills or precision requirements. Addressing the residual part requires translat-ing the unsatisfied symbolic restoration objectives into con-tinuous RL reward signals. Recent neurosymbolic studies (Icarte et al. 2022; Camacho et al. 2019; De Giacomo et al. 2020) compile task specifications into rewards. They derive the reward from the agent’s goal. We follow this thread but derive the reward from operator effects rather than task spec-ifications, with the inverse target carrying both the goal and the constraint set. 
+
+## Method 
+
+The proposed system, depicted in Figure 1, starts by creat-ing a scene graph, in which the state of each object and the robot is recorded as continuous values. It uses soft predi-cates to assess the scene graph in a continuous and differ-entiable manner. The predefined repertoire of predicates is grounded given the scene graph. The grounding of a predi-cate p returns a soft score, Vp(s) ∈ [0 , 1] . This value is com-puted as in Equation 1, using a sigmoid with a signed mar-gin mp(s) ∈ R, which measures how far the current state is from satisfying the predicate, and a predefined temperature. 
+
+Figure 1: The overview of the proposed system. Skill demonstrations are used to extract symbolic operators. After the inverse target for the operator is determined, the compo-nents of the reward are calculated. This reward is optimized using RL. 
+
+Vp(s) = σ
+
+ mp(s)
+
+Tp
+
+
+
+= 11 + exp( −mp(s)/T p) (1) An operator is defined as a tuple, o = ⟨P re, Add, Del ⟩,where P re , Add , and Del denote preconditions, add list, and delete list, respectively. Operator extraction describes the process of modeling these components based on the physical execution of robotic skills. In our model, this pro-cess can use one or more demonstrations to evaluate the ini-tial and final scenes of a skill, where more demonstrations increase its reliability. Given a list of initial and final scenes of a robotic skill, each predicate p is evaluated to obtain 
+
+Vp(s) values to denote corresponding start and end values. These scores are averaged across demonstrations for each predicate to determine if a predicate belongs to the P re set. Also, mean end scores are used to understand the delta be-tween the start and the end scenes, which, in turn, are used to decide if a predicate belongs to Add or Del sets. After the extraction process is completed, the symbolic operator is stored inside the system. Correspondingly, we define the inverse target as a restora-tion problem. The aim of the inverse operator to restore the world to the forward skill’s preconditions. Therefore, the inverse target is constructed as in Equation 2, where the preconditions P re should be satisfied for the world to en-able the applicability of the forward operator. The delete ef-fects Del must be restored, and the add effects Add must be negated ¬Add .
+
+I(o) = P re ∪ Del ∪ ¬ Add (2) Given the inverse target and a limited set of scripted action primitives, a simple BFS-based planner is employed to gen-erate a plan. Nevertheless, given the limited set of known actions, only some predicates in I(o) are restored by the generated plan; some inverse targets cannot be fully met. In such cases, the proposed system ends with a partial solution leading to a handoff state for residual skill learning. In other words, the symbolic plan is an executable se-quence of scripted action primitives πsym that, given the cur-rent state s0, returns a state sh (referred to as the handoff). Relative to sh, predicates already restored by symbolic plan-ning become fence conditions to preserve, while unresolved predicates define the active residual objective: • Fence set: F = p ∈ I (o) : Vp(sh) ≥ θ,• Active residual set: A = I(o) \ F .where θ ∈ [0 , 1] is a hyperparameter, and predicates in F
+
+can be restored by the symbolic plan, πsym , while predicates in A are left for RL. A handoff is valid if every predicate in a chosen subset C ⊆ I (o) satisfies a tolerance check: e.g., 
+
+|mp(sh)| < ϵ p. If the handoff is invalid, πsym is re-executed with a new seed. Therefore, the RL phase only sees valid handoffs. For each term (p, σ p, c p) ∈ I (o), where σp ∈ { +1 , −1}
+
+and cp respectively denotes the sign and scale of the predi-cate p, we define a signed normalized margin as in Equation 3. The function tanh provides bounded rewards so the value function does not diverge during exploration. 
+
+˜mp(s) = σp · tanh 
+
+ mp(s)
+
+cp
+
+
+
+∈ [−1, +1] (3) Subsequently, the residual reward is defined as in Equa-tion 4. It comprises two parts, as depicted in Figure 2, to stimulate the restoration of the predicates in A, while 
+
+min (0 , . ) is used for penalizing the violation of the fences in F.
+
+R(s) = X
+
+> p∈A
+
+˜mp(s)
+
+| {z }
+
+> active ,∈[−1,+1]
+
++ X
+
+> p∈F
+
+min  0, ˜mp(s)| {z }
+
+> fence (one-sided) ,∈[−1,0]
+
+(4) With the predicate-grounded reward and active/fence par-tition fixed once, the RL problem reduces to a standard con-tinuous control problem. Note that A and F sets are pop-ulated automatically at run time, eliminating the need for per-task reward engineering. Consequently, the inverse skill is obtained by the concatenation of πsym and πres .
+
+Implementation Details 
+
+The system uses Stable-Baselines3 (Raffin et al. 2021) im-plementation of the Soft Actor-Critic, an off-policy deep RL algorithm (Haarnoja et al. 2018). For the simulation tests, 12-dimensional, high-level observations are used, contain-ing a predicate-grounded feature vector. 4-dimensional, con-tinuous actions denote XYZ delta for the end effector and the 4 2 0 2 4                             
+
+> normalized margin x=σpmp(s)/c p
+> 1.0
+> 0.5
+> 0.0
+> 0.5
+> 1.0
+> reward contribution  violated satisfied
+> linear regime
+> (slope 1/c p)saturation →+ 1
+> saturation → − 1
+> Active residual: tanh( x)∈[−1,+ 1]
+> 42024
+> normalized margin x=σpmp(s)/c p
+> violated satisfied
+> silent zone
+> (no gradient)
+> penalize violations only
+> Fence: min(0 ,tanh( x)) ∈[−1,0]
+
+Figure 2: The reward for the residual RL. The contribution of the active predicates is computed by tanh() while the vio-lation of the satisfied predicates is penalized. gripper width, without per-task action restrictions. To pro-mote convergence and generalizability, a curriculum during SAC training is used to control the handoff perturbation in the schedule. 
+
+## Experiments and Results 
+
+We evaluate the system on the PushCube task of the Man-iSkill3 framework with a Franka Panda manipulator under pd-ee-delta-pos control. The forward skill, push(cube), is a scripted routine that moves a cube on the table in the +x dimension until it reaches the goal position. Given the pre-defined predicate repertoire, the system is provided with dif-ferent forward skill executions, and the forward operator is automatically extracted. For the PushCube task, we use the following predicates: 
+
+> AT POSE
+
+(o, p ) : m = τ − ∥ xo − p∥
+
+> GRIPPER OPEN
+
+() : m = w − wmin 
+
+> TCP NEAR
+
+(o) : m = δ − ∥ xtcp − xo∥
+
+where τ, w min , δ are predicate-specific thresholds. 
+
+Extracted forward operator. Given three demonstra-tions, the extracted operator for the forward PUSH skill in STRIPS form is as follows: PUSH (cube , src , goal ) = 
+
+− Pre: AT POSE (cube , src )∧
+
+TCP NEAR (cube ) ∧ GRIPPER OPEN () 
+
+− Add: AT POSE (cube , goal )
+
+− Del: AT POSE (cube , src )
+
+Derived inverse target. Applying the inverse target gen-eration, I(o) = Pre( o)∪Del( o)∪¬ Add( o) to PUSH returns four restoration predicates: 
+
+I(PUSH ) = {AT POSE (cube , src ), TCP NEAR (cube ),
+
+> GRIPPER OPEN
+
+() , ¬AT POSE (cube , goal )}.
+
+Using scripted PICK (cube ) and PLACE (src ) primi-tives, the planner executes and finds out that three out of four restoration predicates can be satisfied, leaving 
+
+> AT POSE
+
+(cube , src ) as the active residual for the RL. Method Distance (mm, mean ±std) Success @ 1 cm Symbolic prefix (no RL) 16.6 ± 6.6 10% Symbolic + random action 18.8 ± 17.2 50% 
+
+Symbolic + RL (ours) 1.4 ± 3.2 90% 
+
+Table 1: Results with 10 different seeds. We report in Table 1 the mean ± standard deviation (std) across 10 evaluation seeds with the ±2 cm handoff pertur-bation enabled. These results show that our method achieves very precise placement with a 90% success rate under the 1 cm threshold of the AT POSE (cube , src ) predicate, whereas random control occasionally reaches the target configuration by chance with the symbolic phase already placing the cube (a) (b)  
+
+> (c) (d)
+
+Figure 3: Screenshot from a single evaluation: (a) the cube sits at the initial position, (b) after the forward execution, (c) after the symbolic prefix, (d) after the RL policy is applied. within approximately 17 mm of the source. This coinciden-tal success is further supported by the high standard devi-ation value. Screenshots from a successful run are given in Figure 3. 
+
+Ablations 
+
+We report the success rate and failure modes in Table 2 across different RL reward settings to motivate our reward design. Using the regular tanh function for the fence predi-cates rewards the do-nothing behavior. Completely remov-ing tanh leads to unsaturation and makes the active term unbounded, resulting in large reward drifts that the SAC policy cannot recover from. Using one-sided tanh for the fences provided the necessary and sufficient penalty to en-courage exploration of a policy that satisfies the active pred-icate without violating the fences. Reward Success @ 1 cm Failure Mode Fences (with tanh) 10% Saturated fences reward the agent for staying still Unbounded margin (no tanh) 0% Value function explodes; cube ends >100 mm off 
+
+Ours (active+fences with min(0, tanh)) 90% -
+
+Table 2: Ablations with 10 different seeds. 
+
+## Conclusion 
+
+In this paper, we presented a hybrid system that integrates symbolic planning and deep RL to address the skill inver-sion problem. The system automatically extracts symbolic operators from forward skill demonstrations and generates the inverse target. After applying the inverse plan, the sys-tem assigns unsatisfied predicates to a residual RL loop us-ing a generic, predicate-based reward. The system is empir-ically validated on a single benchmark, and the results are reported. Specifically, the proposed system achieved a 90% success rate at 1 cm precision. The limited baseline compar-ison hints at this system’s promise. Therefore, results imply that an inverse skill can be solved as a planning problem fol-lowed by a residual RL problem with a derived reward. 
+
+Limitations and Future Work 
+
+The presented approach is currently being developed. There-fore, it has some limitations that we plan to address in the future. First, it relies on hand-designed predicates. Mar-gins and scales are specified and not learned from observa-tion. Predicates and related parameters can be learned from demonstrations using state-of-the-art approaches, such as (Athalye et al. 2026). Currently, the system relies on scripted low-level action primitives for execution. In particular, the pick-and-place primitive is task-specific. In future work, we plan to model primitives using learning-from-demonstration approaches, such as (Yildirim and Ugur 2024). In addition, the system is evaluated only on one task family. 
+
+## References 
+
+Aineto, D.; et al. 2019. Learning action models with mini-mal observability. Artificial Intelligence , 275: 104–137. Athalye, A.; Kumar, N.; Silver, T.; Liang, Y.; Wang, J.; Lozano-P´ erez, T.; and Kaelbling, L. P. 2026. From Pixels to Predicates: Learning Symbolic World Models via Pretrained VLMs. IEEE Robotics and Automation Letters .Camacho, A.; et al. 2019. LTL and beyond: Formal lan-guages for reward function specification in reinforcement learning. In IJCAI , volume 19, 6065–6073. Chrpa, L.; Faber, W.; and Morak, M. 2021. Universal and Uniform Action Reversibility. In Proc. KR , 651–654. Cresswell, S. N.; et al. 2013. Acquiring planning domain models using LOCM. The Knowledge Engineering Review ,28(2): 195–213. De Giacomo, G.; et al. 2020. Restraining bolts for reinforce-ment learning agents. In Proceedings of the AAAI Confer-ence on Artificial Intelligence , volume 34, 13659–13662. Edwards, A. D.; et al. 2018. Forward-backward reinforce-ment learning. arXiv preprint arXiv:1803.10227 .Eiter, T.; Erdem, E.; and Faber, W. 2007. On Reversing Ac-tions: Algorithms and Complexity. In Proceedings of IJCAI-07 , 336–341. Eysenbach, B.; et al. 2018. Leave no Trace: Learning to Reset for Safe and Autonomous Reinforcement Learning. In International Conference on Learning Representations .Fikes, R. E.; and Nilsson, N. J. 1971. STRIPS: A new ap-proach to the application of theorem proving to problem solving. Artificial intelligence , 2(3-4): 189–208. Grinsztajn, N.; et al. 2021. There is no turning back: A self-supervised approach for reversibility-aware reinforce-ment learning. Advances in Neural Information Processing Systems , 34: 1898–1911. Haarnoja, T.; et al. 2018. Soft actor-critic: Off-policy max-imum entropy deep reinforcement learning with a stochas-tic actor. In International conference on machine learning ,1861–1870. Pmlr. Hoffman, R. 1989. Automated assembly in a CSG domain. In Proceedings, 1989 International Conference on Robotics and Automation , 210–215. IEEE. Icarte, R. T.; et al. 2022. Reward machines: Exploiting re-ward function structure in reinforcement learning. Journal of Artificial Intelligence Research , 73: 173–208. Konidaris, G.; et al. 2018. From skills to symbols: Learning symbolic representations for abstract high-level planning. 
+
+Journal of Artificial Intelligence Research , 61: 215–289. Mason, M. T. 2018. Toward robotic manipulation. Annual Review of Control, Robotics, and Autonomous Systems , 1(1): 1–28. Morak, M.; Chrpa, L.; Faber, W.; and Fiˇ ser, D. 2020. On the Reversibility of Actions in Planning. In Proc. of KR-20 ,652–661. Nair, S.; et al. 2020. Trass: Time reversal as self-supervision. In 2020 IEEE International Conference on Robotics and Au-tomation (ICRA) , 115–121. IEEE. Raffin, A.; Hill, A.; Gleave, A.; Kanervisto, A.; Ernestus, M.; and Dormann, N. 2021. Stable-baselines3: Reliable re-inforcement learning implementations. Journal of machine learning research , 22(268): 1–8. Silver, T.; et al. 2022. Learning Neuro-Symbolic Skills for Bilevel Planning. In 6th Annual Conference on Robot Learn-ing .Tao, S.; et al. 2025. Maniskill3: Gpu parallelized robot sim-ulation and rendering for generalizable embodied ai. In 7th Robot Learning Workshop: Towards Robots with Human-Level Abilities .Tian, Y.; et al. 2022. Assemble them all: Physics-based planning for generalizable assembly by disassembly. ACM Transactions on Graphics (TOG) , 41(6): 1–11. Widulle, N.; and Niggemann, O. 2023. Using reverse rein-forcement learning for assembly tasks. In PRL Workshop Series - Bridging the Gap Between AI Planning and Rein-forcement Learning .Yildirim, Y.; and Ugur, E. 2024. Conditional neural expert processes for learning movement primitives from demon-stration. IEEE Robotics and Automation Letters , 9(12): 10732–10739.

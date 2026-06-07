@@ -1,0 +1,838 @@
+Title: World-Task Factorization for Robot Learning
+
+URL Source: https://arxiv.org/pdf/2606.02027v1
+
+Published Time: Tue, 02 Jun 2026 02:29:20 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# World–Task Factorization for Robot Learning 
+
+Eduardo Sebasti´ an 
+
+Department of Computer Science and Technology, University of Cambridge, United Kingdom 
+
+es2121@cam.ac.uk 
+
+Adrian Pfisterer 
+
+Robotics and Biology Laboratory, Technische Universit¨ at Berlin, Germany 
+
+adrian.pfisterer@tu-berlin.de 
+
+Vito Mengers 
+
+Robotics and Biology Laboratory, Technische Universit¨ at Berlin Science of Intelligence (SCIoI), Cluster of Excellence, Berlin, Germany 
+
+v.mengers@tu-berlin.de 
+
+Oliver Brock 
+
+Robotics and Biology Laboratory, Technische Universit¨ at Berlin Science of Intelligence (SCIoI), Cluster of Excellence, Berlin, Germany Robotics Institute Germany 
+
+oliver.brock@tu-berlin.de 
+
+Amanda Prorok 
+
+Department of Computer Science and Technology, University of Cambridge, United Kingdom 
+
+asp45@cam.ac.uk 
+
+Abstract: Robot learning must produce policies that generalize to new combi-nations of constraints, teammates, and environments. To achieve this, we must structurally factor the policy, which is a choice that ultimately dictates what gen-eralizes, what requires retraining, and what remains entangled. Existing methods span a wide spectrum, from expecting structure to emerge from data scaling, to hand-designing it via hierarchies, skill libraries or learned specializations. In this paper, we study what we argue is the simplest, most fundamental factorization in robotics: separating the world from the task. Specifically, we investigate the conditions under which this factorization is principled. World factors, such as kine-matics, sensing, and geometry of the environment, are properties of the embodied system and the environment; they exist independently of intent. Task factors, such as goal priorities, short-term trade-offs, and role choices, are defined by the task’s logic over what the world admits. We formalize this asymmetry through Bayesian model evidence: a world/task factorization aligns with the data-generating process, maintains high likelihood through an analytical world model, and reduces the Occam razor’s penalty on task parameters. We instantiate this factorization by pairing AICON, a differentiable graph of recursive estimators and interconnections that is itself compositional, operates without task-specific data, and propagates cost gradients to actuators, with a compact, learned policy that modulates gradient paths. Gradients serve as the interface between the two factors: they carry world structure through the graph and task structure through costs, enabling low-dimensional learn-ing while preserving structural generalization. We empirically study the world/task factorization across three problems that encompass heterogeneous robot dynam-ics, environment classes, task logic and sensorimotor modalities. Our framework outperforms end-to-end learned baselines and matches or exceeds analytical heuris-tics in all settings, generalizes zero-shot to out-of-distribution configurations, and transfers to real hardware without retraining. 
+
+Keywords: Compositionality, Reinforcement Learning, Learning from Demonstra-tions, Multi-robot systems, Manipulation 
+
+> arXiv:2606.02027v1 [cs.RO] 1 Jun 2026
+
+## 1 Introduction 
+
+A long-standing aspiration in robotics is that a policy trained once should remain useful as embod-iments, teammates, and task conditions vary. Realizing this means choosing how to structure the policy—committing to a factorization. The chosen factorization is consequential: it determines what generalizes “for free”, what requires retraining, and what remains entangled. Existing approaches span a broad spectrum. At one end, structure is expected to emerge from data scaling, with foundation-model and vision-language-action approaches as the prominent instantiation [ 1, 2]. At the other end, structure is built in through inductive biases matched to the domain, with evidence accumulating that this produces more reliable generalization [ 3 ]. This paper adds to that evidence by addressing a question we argue is more consequential than usually acknowledged: when structure is built in, what should be factored from what? Different families of methods commit to different factorizations: hierarchical methods factor along temporal scale, skill libraries along primitives, modular networks along discovered specializations [ 4,5, 6]. The premise of this paper is that, before any of these, robot policies admit a more fundamental factorization—the one between the constraints imposed by the world and those imposed by the task. We argue this is the simplest non-trivial factorization available in robotics, in the sense that it follows from an invariance that the data itself exhibits: world quantities—sensing geometry, contact, dynamics—characterize the embodied system and its environment and remain stable when the task changes; task quantities—which goal to pursue first, when to accept short-term cost, when to defer to a teammate—vary across episodes while world constraints are fixed. This invariance is what makes the world/task factorization non-arbitrary, and it is the conditional independence structure we will show is exploited for Bayesian model comparison. This insight articulates our contributions: 1. We argue that the world/task factorization, despite (or because of) its simplicity, is a principled basis for structurally generalizing robot policies, and should precede other choices. 2. Theoretically, we provide a Bayesian model-evidence argument showing that, under a stated premise about the data-generating process of embodied systems, this factorization maximizes marginal likelihood among tractable alternatives (Sec. 3). 3. Empirically, we instantiate the factorization as a hybrid framework pairing AICON [ 7]with a learned gradient modulator (Sec. 4), and show that gradients constitute a natural interface between world and task: the learned modulator yields sample-efficient training and near-optimal behavior in the task factor, while AICON’s graph structure contributes structural compositionality and out-of-distribution generalization in the world factor (Sec. 5). We test our framework on three diverse scenarios under distinct operational paradigms: heterogeneous multi-robot search (coordination), obstacle-aware bimanual handover (kinematics), and pressure-plate puzzles (temporal logic). Across all, the framework is sample-efficient, outperforms the purely learned and at least performs on par with the purely analytical baselines, generalizes zero-shot to larger teams, targets and unseen obstacles, and transfers directly to real hardware. 
+
+## 2 Related Work 
+
+The challenge of generalizable robot behavior sits at the intersection of two research problems: encoding the structure of the physical world into controllers, and learning the constraints of specific tasks from experience. The gap between them has motivated a range of hybrid and hierarchical approaches that impose some factorization on the policy. We review each in turn, with attention to what is factored from what and what that implies for generalization. 
+
+Encoding world structure for robust control. A family of geometric and control approaches builds physical constraints directly into the action generation process. Riemannian Motion Policies and Geometric Fabrics compose task-space accelerations under positive-definite metrics, producing reactive and physically consistent behavior [ 8, 9, 10 , 11 , 12 ]. Like classical potential field meth-ods [ 13 ], however, these approaches resolve conflicts between competing objectives myopically: 2they have no mechanism for non-myopic preference over world-consistent paths. Variants that learn the Riemannian metric from demonstrations or rewards [ 14 , 15 , 16 , 17 , 18 , 19 , 20 , 21 ] address some of this rigidity but encode task geometry in a single monolithic network, losing the structural compositionality of the underlying representation. AICON [ 7 ] differs in that its graph-based structure produces a dynamic manifold whose gradients evolve with the estimation process, making it adaptable without retraining and naturally composable: new regularities can be added as nodes and edges without modifying existing components. Our framework builds on these properties, adding a learned policy that resolves task constraints that world-structure encoding alone cannot. 
+
+Learning task constraints from experience. At the other end of the spectrum, deep reinforcement learning and imitation learning [ 22 , 23 , 24 ] learn task constraints with high-capacity networks directly from rewards or demonstrations. Vision-language-action models [ 1, 25 ] extend this to richer input modalities and broader task repertoires. The strength of these approaches is flexibility, while their limitation is that world structure must be rediscovered from data at a significant cost: it drives up sample complexity and produces policies that are often fragile under distribution shift. 
+
+Hybrid and hierarchical approaches. Several families of methods impose some factorization on the policy. Hierarchical RL factors along temporal scale [ 4, 26 ], skill libraries factor along primitives [ 6,1], and Mixture-of-Experts and modular networks factor along discovered specializations [ 27 , 28 ]. Bi-level optimization [ 29 , 30 , 31 ] factors along fast versus slow dynamics, though usually assuming time-scale separation [ 32 ] or recovering the structure only implicitly through end-to-end learning [ 33 ]. A closely related class adapts a robust controller with a high-level learned policy [ 34 , 35 , 36 , 37 ], which is structurally similar to our approach. The key difference is that these methods adapt whatever parameters the controller exposes, whereas our approach locates learning at the gradient interface the world/task factorization identifies, which is theoretically motivated (Sec. 3) and produces structural consequences not shared with those methods (Sec. 4). 
+
+Task and motion planning (TAMP), and world models. TAMP separates high-level task decisions from continuous motion feasibility [ 38 ], resembling our world/task factorization but serving a dif-ferent purpose: it uses models of the world to guide symbolic search by sampling plans, checking feasibility, and backtracking, whereas our framework uses world structure as a differentiable substrate for gradient propagation. The literature on world models [ 39 , 40 , 41 ] asks a related but distinct question: what to predict from observations and how to couple prediction with action generation. The factorization question we raise here is largely absent: learned world models encode a mixture of phys-ical regularities and task preferences, an entanglement identified as a “causal conditioning gap” [ 41 ]. 
+
+## 3 A Theoretical Bayesian Perspective on World/Task Factorization 
+
+We formulate the search for a policy as a model selection problem. A policy with parameters θ
+
+defines a model class M, and we seek the class that maximizes the Bayesian evidence among classes instantiating different factorizations of θ. This framing is appropriate because factorization is precisely what Bayesian model comparison penalizes or rewards: a factorization that aligns with the conditional independence structure of the data concentrates posterior mass efficiently; one that does not spreads prior mass over parameter combinations the data never realizes. 
+
+Bayesian model evidence and the Occam factor. Let a policy be a probabilistic model class M
+
+with parameters θ and prior P (θ | M ). Given data D, the evidence (marginal likelihood) of M is 
+
+P (D | M ) = 
+
+Z
+
+P (D | θ, M) P (θ | M ) dθ. (1) This quantity is the unbiased Bayesian criterion for comparing model classes [ 42 , 43 , 44 ]: it penalizes models that spread their prior mass over parameter regions the data does not constrain, without any manual complexity term. Under a Laplace approximation around the posterior mode θ⋆,
+
+P (D | M ) ≈ P (D | θ⋆, M) · (2 π)d/ 2 |Σθ |1/2
+
+Vθ
+
+, (2) 3where the first term is the best-fit likelihood and the second is the Occam factor, with Vθ the prior parameter volume, |Σθ |1/2 the posterior parameter volume, and d = dim( θ). A model class with the right inductive bias has small Vθ relative to its best-fit likelihood. 
+
+The world/task factorization maximizes Bayesian evidence. Computing (1) requires that the prior 
+
+P (θ | M ) admits a factorization the posterior can exploit. We call a factorization of θ = ( θA, θ B )
+
+tractable if the prior factors as 
+
+P (θA, θ B | M ) = P (θA | M ) · P (θB | θA, M) (3) in a way that each conditional factor admits a Laplace approximation around its posterior mode. Among tractable factorizations, the one that maximizes evidence is the one whose independence structure matches the data-generating process. A prior that imposes independences absent from the likelihood inflates posterior volume Σθ , depressing the Occam factor; one that ignores independences present in the likelihood spreads mass over parameter combinations the data does not realize, increas-ing Vθ and depressing the Occam factor again. Other candidate factorizations—hierarchical RL along temporal scale, skill libraries along primitives, MoE along discovered specializations, foundation models along web-scale tokenization—entangle world and task within each factor or lack a tractable closed-form prior, and so cannot exploit the conditional independence structure of robot data. The relevant question is therefore: which factorization of robot policy parameters aligns with the conditional independence structure of robot data? We argue that this is the world/task factorization. World parameters θworld —kinematics, sensing, geometry—govern the data-generating process re-gardless of which task is being executed; a robot arm’s joint limits do not change when its reward function does. Task parameters θtask —goal priorities, trade-offs, role assignments—vary across episodes while θworld is fixed. This invariance is the conditional independence the data itself exhibits. The world/task factorization is the prior factorization that matches it: 
+
+P (θworld , θ task | M w/t ) = P (θworld | M w/t ) · P (θtask | θworld , Mw/t ). (4) Among tractable candidates, three remain: two unfactored extremes— structure-only and end-to-end —and the factored world/task class. A structure-only model class encodes the world analytically and carries no learned task component; its prior volume is small (a large Occam factor), but it lacks the capacity to resolve trade-offs between conflicting goals or long-horizon preferences, so its best-fit likelihood is poor on tasks that demand non-myopic behavior. An end-to-end model class sits at the opposite: a single unstructured network with prior parameter volume Vθ ∼ | ΘNN |, exponentially larger than any structured prior, making the Occam factor small and hindering generalization even when the best-fit likelihood is high. The world/task model class factors these two apart: it pairs the analytic world model with a learned task component, keeping the Occam factor small while inheriting physical correctness from the world model, so the best-fit likelihood stays high. The log-evidence ratio of the world/task class over the end-to-end one is 
+
+log P (D | M w/t )
+
+P (D | M e2e ) ≈ log Ve2e 
+
+Vworld · Vtask 
+
++ ℓ⋆ 
+
+> w/t
+
+− ℓ⋆
+
+> e2e
+
+, (5) with ℓ⋆ 
+
+> •
+
+the maximum-likelihood log-score. If world parameters are invariant across tasks, encoding them analytically converts a large learned prior into a structured one with Vworld ∼ 1, bounding the evidence gap below by the ratio of prior volumes—a consequence we probe empirically in Sec. 5. 
+
+## 4 Instantiating the World/Task Factorization via Task Gradients 
+
+Having formalized the world/task factorization for robot learning, we now study its practical impli-cations. Consider a team of N heterogeneous robots solving a Decentralized Partially Observable Markov Decision Process. Each robot r has access only to a local observation otr , comprising sensor measurements ztr , local state estimates xtr , and messages from neighbors in a time-varying communication graph. The team aims to maximize a global objective J = E P ∞ 
+
+> t=0
+
+γtRt, where Rt
+
+aggregates task-defined cost functions. Under the world/task factorization, θworld encodes the physical structure of robots and environment and is unaffected by learning; θtask is what the policy learns. 4Estimation and control with AICON. We instantiate the world factor θworld using AICON (Active InterCONnect) [ 7 ], which represents the robot’s world model as a directed graph G = ( V, E).Each node i ∈ V is a Recursive Estimator (RE) maintaining a differentiable estimate xi ∈ Rni
+
+of a world quantity (object pose, contact mode, robot position). Each edge j ∈ E is an Active Interconnection (AI), an implicit differentiable function hj (xi1 , . . . , x iℓ ) = 0 encoding a regularity— kinematic chains, geometric constraints, sensor models—that holds whenever its incident estimates are consistent. New regularities can be added as nodes and edges without modifying existing components, making the graph itself compositional, and since each RE updates using only its incident AIs, execution is inherently decentralized and asynchronous across heterogeneous robots. Because the graph encodes only physical regularities whose structure is invariant across tasks, it satisfies the tractability condition of Sec. 3: θworld admits a structured prior with small volume Vworld , and the posterior over it can be evaluated independently of θtask . We write x = ( xi)i∈V for the joint estimate. A task is specified by p differentiable cost functions gk : R|x| → R. Each cost function can induce many gradient paths through the graph: a gradient path p ∈ P is a sequence of differentiable functions connecting a cost to an actuation signal a via the chain rule, 
+
+∇p
+
+> a
+
+gk = ∂g k
+
+∂x i1
+
+∂x i1
+
+∂x i2
+
+· · · ∂x iN −1
+
+∂x iN
+
+∂x iN
+
+∂a . (6) Different gradient paths reveal distinct subgoals: some reduce cost directly, others steer the system into more favorable estimation regimes. The base AICON action rule selects the steepest path, 
+
+at+1 = at − w · ∇ p⋆ 
+
+> a
+
+gk(xt), p⋆ = argmax p∈P ∇p
+
+> a
+
+gk(xt) , (7) which is myopic: it selects the steepest gradient without knowledge of which direction within the feasible solution space is task-optimal. Nullspace projections can make conflict resolution feasible for a broad class of simultaneous conflicts [ 45 ], but feasibility and directness are different problems—the learned modulator addresses the latter, enabling task-optimal trajectories rather than exploratory ones. 
+
+Gradients as the interface for the task factor. Given the factorization (4) , the task factor 
+
+P (θtask | θworld ) must be parameterized over some space. Each gradient path ∇p
+
+> a
+
+gk(x) is the chain-ruled product of a task quantity and a set of world quantities, as expressed in Eq. (6) . Gradients therefore simultaneously reflect world structure and task structure, making them a natural interface. By the KKT characterization of Pareto-stationarity [ 46 , 47 ], every direction that descends all active paths simultaneously is a convex combination P 
+
+> p
+
+κp∇p
+
+> a
+
+gk for κ ∈ ∆|P|− 1. However, when conflicts between paths cannot be resolved by any such combination—as when all gradients point into or away from a non-convex obstacle and the required direction lies in their nullspace—a Riemannian preconditioner Ξ ∈ S|a| 
+
+> ++
+
+provides access to those directions [ 45 , 8]. The full admissible family of task-conditioned descent laws is therefore 
+
+at+1 = at − Ξ X 
+
+> p∈P
+
+κp ∇p
+
+> a
+
+gk(xt), (κ, Ξ) ∈ ∆|P|− 1 × S|a|
+
+> ++
+
+. (8) Any smaller parameterization excludes admissible descent directions; any larger one introduces redundancy. Thus (8) is the maximum-evidence parameterization of the task factor in (5) , and (7) is recovered as the corner κ = ep⋆ , Ξ = I.
+
+Learning the modulator and consequences of the design. A small learned policy π(·; θtask ) maps each robot r’s local context ytr to (κtr , Ξtr ),
+
+π(ytr ; θtask ) = ( κtr , Ξtr ), κtr = softmax( zκ(ytr ; θtask )) , Ξtr = Exp( zΞ(ytr ; θtask )) , (9) with Exp the matrix exponential ensuring positive-definiteness. Training optimizes only θtask via PPO or cross-entropy on expert gradient-path selections; θworld is never updated. Architectural details are in Appendix B. This design has three consequences that follow directly from the factorization. First, learning is low-dimensional: policy outputs live on ∆|P|− 1 × S|a|
+
+> ++
+
+, independent of state dimensionality, explaining the sample-efficiency gap in Sec. 5. Second, compositionality is structural: adding a world regularity at deployment instantiates a new RE/AI pair and extends P without changing 
+
+θtask , so the policy generalizes zero-shot. Third, sim-to-real transfer reduces to swapping modules in 
+
+θworld ; the learned policy transfers untouched provided the gradient interface is preserved. 55 Results 
+
+Our evaluation is organized around five questions ( Q1 –Q5 ) that together probe the two lines of evidence developed in Secs. 3 and 4. Q1 and Q2 test the empirical prediction of the Bayesian argument: that locating learning at the gradient interface should yield sample efficiency gains over end-to-end baselines. Q3 and Q4 test the structural compositionality claim: that changes to the world factor at deployment should not require retraining the task factor. Q5 tests sim-to-real transfer as module swaps. We answer these questions with three collaborative tasks, each chosen to probe a qualitatively different relationship between world structure and task difficulty (Fig. 1a). 
+
+Task 1 – Search : A 2D bounded arena contains T static targets. The objective is for a quadrotor and a ground robot to locate and retrieve all targets as efficiently as possible. The quadrotor has a “downward-facing” sensor to maintain a discretized occupancy grid map of the environment. The ground robot is equipped with a LiDAR and is the only robot capable of reaching targets. The task is combinatorial, a partially observable TSP [ 48 ], but strong heuristics exist, letting us test whether learned gradient modulation recovers near-optimal behavior without hand-designed priorities. 
+
+Task 2 – Handover : Two Franka Emika Panda manipulators, mounted on opposite sides of a table, must collaborate to hand over an object while avoiding an obstacle placed between them. The task constraint creates a local minimum: the gradient for reaching the object directly opposes the gradient for avoiding the obstacle, and gradient descent alone cannot escape it. In this task, success depends on precise inter-agent coordination, timing, and the continuous dynamics of high-DOF manipulators, where small deviations in motion can prevent a stable grasp or transfer. This requires the learned policy to express task-specific, long-term preference over world-consistent paths. 
+
+Task 3 – Pressure Plate : A 2D arena is divided into two rooms by a central wall with a door. Two pressure plates are randomly placed, one in each room; the door opens only when a robot stands on either plate. A goal zone is located in the right room, and N ground robots equipped with LiDARs must all reach it, aided by a quadrotor that maintains an occupancy grid map. This task requires robots with identical capabilities to implicitly differentiate roles—some holding plates, others crossing— under partial observability. No myopic heuristic resolves the combinatorial interdependence of these roles, making this the hardest test of the task factor. 
+
+Baselines : For all tasks, we consider RL and LD as our method trained with rewards and demonstra-tions respectively. We also compare with non-modulated AICON , which uses the same graph of REs and AIs but only applies Eq. (7) . As purely learning-based methods we use MLP [ 49 ], RNN [ 50 ], 
+
+Mamba [51 ], and Transformer [ 52 ] as representative architectures spanning memoryless, recurrent, and attention-based approaches to partial observability. For the search task we additionally compare with Max-Grad , TSP planner , and TSP optimum ; for the pressure plate task with KNN . Policy, environment, and training details are in Appendices B, C, and D; AICON graphs are in Appendix E. 
+
+(Q1) Does our approach outperform purely learned and purely analytical baselines? Figure 1b reports performance across the three tasks, aggregated over 5 seeds and 100 episodes. Both variants of our method consistently outperform every end-to-end learned baseline, which collapse to near-zero in all tasks—confirming that confining learning to the low-dimensional space of gradient paths is far more effective than learning motor commands from scratch. The comparison against analytical baselines depends on how well the task is understood: in search, decades of TSP research yield heuristics (Max-Grad) already near the brute-force optimum, and all informed methods cluster together. We read this as a positive sanity check—when a near-optimal heuristic exists, our method recovers comparable performance with no hand-designed priorities. In handover and pressure plate, where no such heuristic exists, RL and LD dominate every baseline by a wide margin, supporting our central claim that the world/task factorization enables sample-efficient learning of complex policies. 
+
+(Q2) How do reward-based and demonstration-based supervision compare? Across all tasks, LD matches or outperforms RL in final cost using only 10 demonstrations per task (Fig. 1b–c): demonstrations provide a dense, targeted signal on which gradient paths to prioritize, whereas PPO must discover this from reward. Still, the RL variant converges with few environment interactions 6Search Handover Pressure Plate 
+
+(a) 
+
+(b) Max-Grad                
+
+> LD (ours)
+> RL (ours)
+> TSP planner MLP RNN
+> Mamba
+> Transformer
+> TSP optimum
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Task efficiency  0.78 0.76 0.74 0.78
+> 0.00 0.00 0.00 0.00
+> 0.88
+> RL (ours)
+> LD (ours)
+> MLP
+> RNN
+> Mamba
+> Transformer
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success rate (%)
+> 96 94
+> 0000
+> RL (ours)
+> LD (ours)
+> kNN
+> MLP
+> RNN
+> Mamba
+> Transformer
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Mean stage frac. reached  0.80
+> 0.46
+> 0.32 0.28
+> 0.20 0.15 0.20
+
+(c) 0 25 50 75 100 125 150 175 200                 
+
+> Iteration
+> −80
+> −40
+> 0
+> 20
+> Evaluation return
+> RL (ours)
+> MLP
+> RNN
+> Mamba
+> Transformer
+> 0500 1000 1500 2000 2500 3000 3500 4000
+> Iteration
+> 0
+> 100
+> 200
+> 300
+> 400
+> Evaluation return
+> RL (ours)
+> MLP
+> RNN
+> Mamba
+> Transformer
+> 025 50 75 100 125 150 175 200
+> Iteration
+> −25
+> 0
+> 25
+> 50
+> 75
+> 100
+> Evaluation return
+> RL (ours)
+> MLP
+> RNN
+> Mamba
+> Transformer
+
+(d) Training range              
+
+> 34567810
+> Number of targets
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Task efficiency
+> Max-Grad
+> LD (ours)
+> RL (ours)
+> TSP planner
+> Training range
+> 1234
+> Number of obstacles
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success rate (%)
+> RL (ours)
+> LD (ours)
+> 3456
+> Number of robots
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Mean stage frac. reached
+> Training range RL (ours)
+> LD (ours)
+
+(e) Training range       
+
+> 0246
+> Number of obstacles
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success rate (%)
+> RL (ours)
+> LD (ours)
+> Training Range
+> Robot pose
+> Obstacle
+> Object type
+> Object position
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success rate (%)
+> LD (ours)
+> RL (ours)
+> Training range
+> 0246
+> Number of obstacles
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> Mean stage frac. reached
+> RL (ours)
+> LD (ours)
+
+Figure 1: Task performance. (a) Experimental examples with real robots (time-colored trajectories for search and pressure plate, and a snapshot of the handover). (b) Performance vs. baselines over 5 seeds and 100 episodes (search: task efficiency as a fraction of remaining rollout steps when all targets are found; handover: success rate; pressure plate: mean stage fraction reached). (c) Training curves for our RL policy and learning baselines. (d) Zero-shot generalization beyond the training range (shaded): search vs. number of targets, handover vs. number of obstacles, and pressure plate vs. number of ground robots. (e) Zero-shot compositionality to out-of-distribution regimes: search vs. obstacles, handover vs. object types and poses, and pressure plate vs. obstacles .in every task (less than 100, 3000 and 75 respectively), despite partial observability, raw high-dimensional sensor inputs, and multi-robot interaction. 
+
+(Q3) Does our approach generalize with team size and task complexity? Generalization (Fig. 1d) in our framework operates through two complementary mechanisms: AICON’s graph absorbs new entities as RE/AI pairs, extending the gradient path set without modifying existing components; and the learned modulator is permutation-invariant over gradient paths, so its output dimensionality does not grow with team size or task complexity. In the search task, a single model trained with 2–6 targets transfers without retraining to up to 10 targets: performance degrades by only 5% at 10 targets in search, matching the trend of the brute-force TSP optimum. In the pressure plate task, stage fraction stays above 50% when transferring a model for 3–4 robots to up to 6, improving with more robots since larger teams create more opportunities for stage transitions. A model trained with 1 obstacle in the handover task similarly performs well with up to 4 obstacles. Performance degrades gracefully rather than catastrophically throughout. 
+
+(Q4) Do our policies compose zero-shot to out-of-distribution conditions? While Q3 tests scaling within known configuration types, Q4 tests transfer to qualitatively novel ones (Fig. 1e). In search 7and pressure plate, we insert static obstacles never present during training: each enters the AICON graph as a new RE/AI pair without altering the task factor, and both RL and LD retain high success with increasing obstacle density. In handover, we vary robot pose, obstacle size and shape, object type, and object pose one factor at a time: LD degrades gracefully while RL retains high success for the same reason—the world factor absorbs each new constraint as graph structure and the task factor can be reused verbatim. Together these results show that the factorization supports genuine out-of-distribution generalization, not just scaling. 
+
+(Q5) Do our policies transfer to real robots? We deploy all our policies on hardware with no retraining: because AICON isolates sensing and estimation behind the RE/AI abstraction, transfer reduces to swapping simulated sensor drivers in the world factor for their physical counterparts, while the learned modulator is used untouched. In search (Fig. 1), RL and LD each succeed in 8/8 deployments (100%), despite a real quadrotor subject to true flight dynamics and localization drift, sensor noise that alters the exploration pattern, a LiDAR of different range, and a variable number of targets across runs. In handover, the policy succeeds in 9/10 deployments (90%), robust even though the object’s shape and weight, the arms’ placement, orientation, and gripper morphology are all out of training distribution; the only failure occurs when the trajectory demands motion beyond the arm’s unmodelled actuator limits—a regime that is not physically realizable in any case. In pressure plate, under the same quadrotor and LiDAR changes and a variable number of ground robots (4 deployments per method), RL succeeds 4/4 (100%) and LD 3/4 (75%). The single LD failure is not a sim-to-real artifact: it is a failed stage transition when there are only two ground robots—which is out-of-distribution and a failure mode already visible in simulation (Fig. 1b). The error therefore lives in the learned task factor and is preserved across the reality gap rather than introduced by it, direct evidence that the world factor transfers cleanly and residual errors are attributable to task learning, not world modeling. Extended results are in Appendix F and the supplementary video. 
+
+## 6 Limitations 
+
+The central conceptual claim, that world and task parameters are asymmetrically independent, and that this independence is what makes the factorization productive, rests on a premise that holds clearly for kinematics, geometry, and sensor models, but becomes less sharp at the boundary. Consider grasp selection: the optimal grasp on a hammer depends jointly on the world properties of geometry and mass distribution and on what the robot intends to do with it: whether to drive a nail or pass it to a teammate. Neither side fully determines the answer. Constraints of this kind could in principle be modeled on either side, and the choice affects sample efficiency, generalization, and interpretability in ways we do not yet fully characterize. A principled methodology for deciding what belongs in each factor remains an open problem. The Bayesian argument in Sec. 3 is a theoretical motivation under stated assumptions, not a proof in full generality. Three assumptions are load-bearing: the Laplace approximation, the tractability condition on the prior, and the assumption that the world admits a complete analytical description so that Vworld ∼ 1. In particular, the last assumption might hold cleanly in our setting but not extend to domains where the world model must itself be partially learned from data, a case we leave to future work. Our empirical evaluation was deliberately biased toward tasks for which strong heuristics or expert policies are available, giving us a gold-standard reference against which to isolate the contribution of the learned modulation. This makes the factorization’s benefits interpretable but leaves open how the framework performs in less structured settings where an analytical AICON model, heuristics, reward functions, or demonstration data are not easily obtained. Extending the framework to such settings is the most important direction for future work. 
+
+## 7 Conclusions 
+
+The question posed in this paper is not whether to build structure into robot policies but which structure, and along which factorization. We argued that the world/task factorization should precede other structural choices, because it aligns with an invariance the data itself exhibits: world parameters remain stable across tasks while task parameters vary. We formalized this through a Bayesian 8model-evidence argument showing that this factorization maximizes marginal likelihood among tractable alternatives. We instantiated it by pairing AICON’s compositional, graph-based world model with a small learned policy modulating gradient paths—an interface spanning the full admissible family of task-conditioned descent laws. This design yields three consequences by construction: low-dimensional learning, structural compositionality inherited from AICON’s graph structure, and sim-to-real transfer as module swaps. Across three collaborative tasks probing qualitatively different relationships between world structure and task difficulty, both lines of evidence held: the framework was sample-efficient, generalized zero-shot to larger teams and unseen configurations, and transferred to real hardware without retraining. The broader claim is that when choosing how to structure a robot policy, the right question to ask first is whether the factorization respects the conditional independence structure of the problem—and that getting this right is what makes the resulting policy composable. 
+
+Acknowledgments 
+
+E. Sebasti ´an and A. Prorok gratefully acknowledge the support provided by a Leverhulme Trust Research Project Grant. A. Pfisterer, V. Mengers and O. Brock gratefully acknowledge funding by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany’s Excellence Strategy – EXC 2002/1 “Science of Intelligence” – project number 390523135, and by the German Federal Ministry of Research, Technology and Space (BMFTR) under the Robotics Institute Germany (RIG). 
+
+## References 
+
+[1] A. Brohan, N. Brown, J. Carbajal, Y. Chebotar, X. Chen, K. Choromanski, T. Ding, D. Driess, A. Dubey, C. Finn, et al. RT-2: Vision-language-action models transfer web knowledge to robotic control. In Conference on Robot Learning , 2023. [2] P. Intelligence, K. Black, N. Brown, J. Darpinian, K. Dhabalia, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, et al. π0.5: a vision-language-action model with open-world generalization. 
+
+arXiv preprint arXiv:2504.16054 , 2025. [3] P. W. Battaglia, J. B. Hamrick, V. Bapst, A. Sanchez-Gonzalez, V. Zambaldi, M. Malinowski, A. Tacchetti, D. Raposo, A. Santoro, R. Faulkner, et al. Relational inductive biases, deep learning, and graph networks. arXiv preprint arXiv:1806.01261 , 2018. [4] R. S. Sutton, D. Precup, and S. Singh. Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning. Artificial Intelligence , 112(1-2):181–211, 1999. [5] C. Devin, A. Gupta, T. Darrell, P. Abbeel, and S. Levine. Learning modular neural network policies for multi-task and multi-robot transfer. In IEEE International Conference on Robotics and Automation , pages 2169–2176, 2017. [6] A. Brohan, Y. Chebotar, C. Finn, K. Hausman, A. Herzog, D. Ho, J. Ibarz, A. Irpan, E. Jang, R. Julian, et al. Do as I can, not as I say: Grounding language in robotic affordances. In 
+
+Conference on Robot Learning , pages 287–318, 2023. [7] V. Mengers and O. Brock. No plan but everything under control: Robustly solving sequential tasks with dynamically composed gradient descent. In IEEE International Conference on Robotics and Automation , pages 90–96, 2025. [8] N. D. Ratliff, J. Issac, D. Kappler, S. Birchfield, and D. Fox. Riemannian motion policies. arXiv preprint arXiv:1801.02854 , 2018. [9] A. Li, C.-A. Cheng, M. A. Rana, M. Xie, K. Van Wyk, N. Ratliff, and B. Boots. RMP2: A structured composable policy class for robot learning. Robotics: Science and Systems , 2021. [10] M. Pantic, I. Meijer, R. B ¨ahnemann, N. Alatur, O. Andersson, C. Cadena, R. Siegwart, and L. Ott. Obstacle avoidance using raycasting and Riemannian motion policies at khz rates for mavs. In IEEE International Conference on Robotics and Automation , pages 1666–1672, 2023. 9[11] K. Van Wyk, M. Xie, A. Li, M. A. Rana, B. Babich, B. Peele, Q. Wan, I. Akinola, B. Sun-daralingam, D. Fox, et al. Geometric fabrics: Generalizing classical mechanics to capture the physics of behavior. IEEE Robotics and Automation Letters , 7(2):3202–3209, 2022. [12] T. Merva, S. Bakker, M. Spahn, D. Zhao, I. Virgala, and J. Alonso-Mora. Globally-guided geometric fabrics for reactive mobile manipulation in dynamic environments. IEEE Robotics and Automation Letters , 2025. [13] O. Khatib. Real-time obstacle avoidance for manipulators and mobile robots. The International Journal of Robotics Research , 5(1):90–98, 1986. [14] S. Calinon. Gaussians on Riemannian manifolds: Applications for robot learning and adaptive control. IEEE Robotics & Automation Magazine , 27(2):33–45, 2020. [15] M. A. Rana, A. Li, H. Ravichandar, M. Mukadam, S. Chernova, D. Fox, B. Boots, and N. Ratliff. Learning reactive motion policies in multiple task spaces from human demonstrations. In 
+
+Conference on Robot Learning , pages 1457–1468. PMLR, 2020. [16] S. Gruffaz and J. Sassen. Riemannian metric learning: Closer to you than you imagine. arXiv preprint arXiv:2503.05321 , 2025. [17] M. Braun, N. Jaquier, L. Rozo, and T. Asfour. Riemannian flow matching policy for robot motion learning. In IEEE/RSJ International Conference on Intelligent Robots and Systems ,pages 5144–5151, 2024. [18] H. Ding, N. Jaquier, J. Peters, and L. Rozo. Fast and robust visuomotor riemannian flow matching policy. IEEE Transactions on Robotics , pages 5327–5343, 2025. [19] G. Tennenholtz and S. Mannor. Uncertainty estimation using riemannian model dynamics for offline reinforcement learning. Advances in Neural Information Processing Systems , 35: 19008–19021, 2022. [20] Y. Wang, R. Sagawa, and Y. Yoshiyasu. A hierarchical robot learning framework for manipulator reactive motion generation via multi-agent reinforcement learning and riemannian motion policies. IEEE Access , 11:126979–126994, 2023. [21] N. Alhousani, M. Saveriano, I. Sevinc, T. Abdulkuddus, H. Kose, and F. J. Abu-Dakka. Ge-ometric reinforcement learning for robotic manipulation. IEEE Access , 11:111492–111505, 2023. [22] C. Tang, B. Abbatematteo, J. Hu, R. Chandra, R. Mart ´ın-Mart ´ın, and P. Stone. Deep rein-forcement learning for robotics: A survey of real-world successes. Annual Review of Control, Robotics, and Autonomous Systems , 8(1):153–188, 2025. [23] D. Hoeller, N. Rudin, D. Sako, and M. Hutter. ANYmal parkour: Learning agile navigation for quadrupedal robots. Science Robotics , 9(88):eadi7566, 2024. [24] T. Lin, Y. Zhang, Q. Li, H. Qi, B. Yi, S. Levine, and J. Malik. Learning visuotactile skills with two multifingered hands. In IEEE International Conference on Robotics and Automation , pages 5637–5643, 2025. [25] M. J. Kim, K. Pertsch, S. Karamcheti, T. Xiao, A. Balakrishna, S. Nair, R. Rafailov, E. Foster, G. Lam, P. Sanketi, et al. OpenVLA: An open-source vision-language-action model. In 
+
+Conference on Robot Learning , 2024. [26] P.-L. Bacon, J. Harb, and D. Precup. The option-critic architecture. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 31, 2017. 10 [27] N. Shazeer, A. Mirhoseini, K. Maziarz, A. Davis, Q. V. Le, G. E. Hinton, and J. Dean. Outra-geously large neural networks: The sparsely-gated mixture-of-experts layer. In International Conference on Learning Representations , 2017. [28] J. Andreas, M. Rohrbach, T. Darrell, and D. Klein. Neural module networks. In IEEE Conference on Computer Vision and Pattern Recognition , pages 39–48, 2016. [29] S. Dempe. Bilevel optimization: theory, algorithms, applications and a bibliography. In Bilevel optimization: advances and next challenges , pages 581–672. Springer, 2020. [30] R. Liu, J. Gao, J. Zhang, D. Meng, and Z. Lin. Investigating bi-level optimization for learning and vision from a unified perspective: A survey and beyond. IEEE Transactions on Pattern Analysis and Machine Intelligence , 44(12):10045–10067, 2021. [31] Z. Hu, D. Shishika, X. Xiao, and X. Wang. Bi-cl: A reinforcement learning framework for robots coordination through bi-level optimization. In IEEE/RSJ International Conference on Intelligent Robots and Systems , pages 581–586, 2024. [32] S. Das, D. Chiu, Z. Huang, L. Lindemann, and G. S. Sukhatme. Latent activation editing: Inference-time refinement of learned policies for safer multirobot navigation. arXiv preprint arXiv:2509.20623 , 2025. [33] T. Schmied, M. Hofmarcher, F. Paischer, R. Pascanu, and S. Hochreiter. Learning to modulate pre-trained models in RL. Advances in Neural Information Processing Systems , 36:38231– 38265, 2023. [34] N. O. Lambert, D. S. Drew, J. Yaconelli, S. Levine, R. Calandra, and K. S. Pister. Low-level control of a quadrotor with deep model-based reinforcement learning. IEEE Robotics and Automation Letters , 4(4):4224–4230, 2019. [35] I. Carlucho, M. De Paula, and G. G. Acosta. An adaptive deep reinforcement learning approach for MIMO PID control of mobile robots. ISA Transactions , 102:280–294, 2020. [36] L. Yang, B. Werner, M. de Sa, and A. D. Ames. CBF-RL: Safety filtering reinforcement learning in training with control barrier functions. arXiv preprint arXiv:2510.14959 , 2025. [37] D. Zhang, A. Loquercio, J. Tang, T.-H. Wang, J. Malik, and M. W. Mueller. A learning-based quadcopter controller with extreme adaptation. IEEE Transactions on Robotics , 41:3948–3964, 2025. [38] C. R. Garrett, R. Chitnis, R. Holladay, B. Kim, T. Silver, L. P. Kaelbling, and T. Lozano-P ´erez. Integrated task and motion planning. Annual review of control, robotics, and autonomous systems , 4(1):265–293, 2021. [39] P. Wu, A. Escontrela, D. Hafner, P. Abbeel, and K. Goldberg. Daydreamer: World models for physical robot learning. In Conference on robot learning , pages 2226–2240. PMLR, 2023. [40] Y. LeCun et al. A path towards autonomous machine intelligence version 0.9. 2, 2022-06-27. 
+
+Open Review , 62(1):1–62, 2022. [41] B. Hou, G. Li, J. Jia, T. An, X. Guo, S. Leng, H. Geng, Y. Ze, T. Harada, P. Torr, et al. World model for robot learning: A comprehensive survey. arXiv preprint arXiv:2605.00080 , 2026. [42] D. J. MacKay. Bayesian interpolation. Neural Computation , 4(3):415–447, 1992. [43] D. J. MacKay. Information theory, inference, and learning algorithms . Cambridge University Press, 2003. [44] C. M. Bishop. Pattern recognition and machine learning . Springer, 2006. 11 [45] V. Mengers and O. Brock. Riding the shifting potential: When reactive control suffices for multi-goal behavior. arXiv preprint arXiv:2605.27314 , 2026. [46] J.-A. D ´esid ´eri. Multiple-gradient descent algorithm (MGDA) for multiobjective optimization. 
+
+Comptes Rendus Math´ ematique , 350(5–6):313–318, 2012. [47] J. Fliege and B. F. Svaiter. Steepest descent methods for multicriteria optimization. Mathematical Methods of Operations Research , 51(3):479–494, 2000. [48] D. L. Applegate, R. E. Bixby, V. Chv ´atal, and W. J. Cook. The traveling salesman problem: a computational study. In The traveling salesman problem . Princeton university press, 2011. [49] D. E. Rumelhart, G. E. Hinton, and R. J. Williams. Learning representations by back-propagating errors. Nature , 323(6088):533–536, 1986. [50] J. L. Elman. Finding structure in time. Cognitive Science , 14(2):179–211, 1990. [51] A. Gu and T. Dao. Mamba: Linear-time sequence modeling with selective state spaces. arXiv preprint arXiv:2312.00752 , 2024. [52] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł . Kaiser, and I. Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems ,volume 30, 2017. [53] M. Bettini, R. Kortvelesy, J. Blumenkamp, and A. Prorok. VMAS: A vectorized multi-agent simulator for collective robot learning. In International Symposium on Distributed Autonomous Robotic Systems , pages 42–56. Springer, 2022. [54] A. Bou, M. Bettini, S. Dittert, V. Kumar, S. Sodhani, X. Yang, G. De Fabritiis, and V. Moens. TorchRL: A data-driven decision-making library for PyTorch. In International Conference on Learning Representations , volume 2024, pages 1778–1811, 2024. 12 A AICON’s background 
+
+AICON (Active InterCONnect) [ 7] is the framework we use to instantiate the world factor θworld .Beyond serving as the world side of the factorization, AICON has three properties that make it particularly well-suited for this role. First, its graph structure is compositional by construction: new world regularities can be added as nodes and edges without modifying existing components, which is what enables the zero-shot generalization demonstrated in Section 5. Second, it operates without task-specific data: the graph encodes known physical regularities directly, so θworld admits a structured prior with small volume Vworld and can be evaluated independently of θtask , satisfying the tractability condition of Section 3. Third, its decentralized structure requires no global clock or centralized computation, admitting asynchronous execution across heterogeneous robots. This appendix provides technical background on its construction, complementing the description in Section 4. Formally, an Active Interconnection (AI) j establishes a relationship between a set of estimates 
+
+{x1, . . . , xlj }, represented as an implicit differentiable function hj (•):
+
+hj (xt
+
+> 1
+
+, xt
+
+> 2
+
+, . . . , xtl ) = 0. (10) Equation (10) encodes a world regularity that must evaluate 0 if all the estimates are accurate. However, during the estimation process, hj (•) is usually a non-zero value. For readability, we will denote this residual as htj . The residual plays a dual role: it provides an informative prior for the connected REs and, through its derivatives, contributes the gradient signal that drives action selection. Because hj is evaluated on the current beliefs of the REs—whose uncertainties evolve with incoming observations—the information exchanged between nodes adapts over time. This is the sense in which the interconnections are active , in contrast with the static constraints used by classical potential-field methods [ 13 ]. Because each AI is defined only over its incident estimators, new regularities can be added to the graph without modifying existing ones. A Recursive Estimator (RE) recursively computes its state estimate xti based on its previous estimate 
+
+xi(t − 1) and a set of mi informative priors {ht
+
+> 1
+
+, ht
+
+> 2
+
+, . . . , htmi } provided by its AIs: 
+
+xti = f (xt−1 
+
+> i
+
+, ht
+
+> 1
+
+, ht
+
+> 2
+
+, . . . , htmi ), (11) where f (•) is a differentiable function representing probabilistic inference, typically instantiated as a Kalman Filter or one of its non-linear variants. This recursive structure allows each estimator to maintain a belief state while accounting for sensory and process noise, and to recover quantities that are not directly observable by exploiting the regularities propagated by the AIs. Because each RE is updated using only the residuals of its incident AIs, estimation is inherently local and can proceed asynchronously across the graph. Each cost function gk(xt) depends on a subset of the M estimates of the graph, with 
+
+x = {x1, . . . , xM }. The gradient of the cost is propagated back through the interconnections— via the chain rule across the differentiable functions hj and f —to determine the required change in actuation signals a, denoted ∇p
+
+> a
+
+gk(xt). Action selection then follows Eq. (7) : at each time step, AICON selects the gradient path of steepest descent among the set P of available paths. The union of these paths implicitly defines a world-grounded yet task-specific manifold on the estimated state, which is the object that our learned policy subsequently modulates. A distinctive property of the construction above is that the resulting optimization landscape is dynamic :as the beliefs of the REs evolve, so do the residuals hj and their derivatives, producing a time-varying potential field that continuously adapts to the current estimated state of the world. This contrasts with static energy-based formulations and with learned Riemannian metrics, which encode the geometry of the task once and for all. The time-varying landscape is the mechanism by which behaviors such as interactive perception, error recovery, and reactive re-targeting emerge without explicit planning: whenever the state of the world changes, the gradient paths reshape accordingly, and the steepest-descent rule of Eq. (7) produces the corresponding behavior. The graph structure of AICON does not require a global clock, a centralized computer, nor a single action-selection process. Each RE only needs access to the residuals of its incident AIs, and each 13 gradient path is defined locally by differentiating along the subset of the graph that connects a cost to an actuation signal. As a consequence, AICON admits decentralized execution across heterogeneous robots and asynchronous updates driven by the availability of sensor measurements. 
+
+## B Policy details 
+
+B.1 2D Search and Pressure Plate Tasks 
+
+The policy Π( ytr , θ task ) maps each robot’s local observation and the available AICON gradient paths to two outputs: (i) a discrete gradient-path selector Ξtr that chooses which goal gradient the robot should follow, and (ii) a scalar gain κtr that modulates the magnitude of the selected gradient. The architecture is designed to be permutation-invariant with respect to both the number of robots and the number of gradient paths, so that a single trained model generalizes to team sizes and graph topologies not seen during training. At every time step each robot r receives a feature vector composed of five blocks: 1. Robot identifier . A normalized index id r = (2 r + 1) /(2 N ) that provides a unique, order-agnostic label in (0 , 1) . The identifiers are randomly permuted at the start of every episode so that the policy cannot memorize a fixed mapping between identifiers and roles; instead it must learn to coordinate based on positions. 2. Proprioceptive state . The robot’s own position (x, y ) and velocity (vx, v y ).3. Shared context . Global task state visible to all robots. In pressure plate, it encompasses the positions and status of both pressure plates, the door position and open/closed flag, and the goal position. In the cooperative-search task the shared context instead contains the ground-robot position, the occupancy and target grids (flattened), and a sensor-noise scalar. 4. Teammate state . Positions and velocities of the neighboring robots. 5. AICON gradient features . For each of the P gradient paths (goals) in the AICON graph the first two components of the Jacobian ∇p
+
+> a
+
+gk are included, providing the direction of steepest cost decrease for each candidate sub-goal. The policy processes the stacked robot features through a Transformer encoder followed by two task-specific heads: • Robot branch. A two-hidden-layer MLP ( din → 64 → 64 , ReLU) encodes each robot’s feature vector independently. • Context branch. A separate MLP ( 11 → 128 → 64 , ReLU) encodes the shared context into a 64-dim vector that is broadcast to every robot slot. • Fusion. The robot and context embeddings are concatenated (128-dim) and projected to a hidden dimension dh = 128 via a linear layer. • Self-attention. A single TransformerEncoderLayer (4 heads, feed-forward dim 256, no dropout) with a key-padding mask over inactive robot slots. This layer allows robots to exchange information about each other’s embeddings, enabling coordination. • Gradient-path selector Ξr (actor head). A two-layer MLP ( 128 → 64 → T , Tanh hidden) produces per-robot logits over the T targets. Actions are sampled from a 
+
+OneHotCategorical distribution during training and selected greedily at evaluation. • Gain head κr . A two-layer MLP ( 128 → 64 → 2, Tanh hidden) outputs two scalars: a location and a raw scale parameter. The scale is passed through a softplus activation to ensure positivity. The final gain applied to the selected gradient path is κr = κbase + ∆ κr ,where κbase is a task-dependent constant and ∆κr is the prediction of the gain head. For the search task, where strong heuristics exist from the TSP literature, we also compare with Max-Grad (selects the target whose AICON gradient has the largest magnitude), and TSP planner and 14 TSP optimum (TSP brute force methods, the former only considers the targets currently observed and the latter all of them from the start). For the pressure plate task, we compare with KNN 
+
+(k-nearest-neighbors classifier). 
+
+B.2 Handover Task 
+
+The handover task uses the same principle as the 2-D tasks—a learned selector chooses among AICON gradient paths—but the action space is adapted to bimanual manipulation. We use a shared policy for both arms. At every time step each arm receives a feature vector composed of four blocks: 1. Robot identifier . A scalar index id ∈ { 0, 1} providing a unique identifier for each robot, respectively. 2. AICON graph state . Local and teammate end-effector pose estimates, object and obstacle pose estimates and distances w.r.t. end-effectors poses, grasp likelihoods, and in-reach likelihoods. 3. AICON gradient features . Per-candidate gradient features and their null spaces for the paths exposed by the handover graph. 4. Validity mask . A binary mask that suppresses unavailable candidate directions before action selection. The graph exposes seven candidate directions per arm: three real AICON gradient paths and four nullspace directions derived from the current steepest gradient. The joint selector receives the two arm-wise inputs and outputs an action in {1, . . . , 7}2; the selected directions are converted into Cartesian end-effector displacement commands by the handover controller. The handover selectors use small MLP architectures: • RL selector . The two arm-wise feature vectors are flattened into a joint observation and passed through a two-hidden-layer MLP with width 64. The actor outputs two categorical distributions, one per arm, over the seven candidate directions. During training, one direction is sampled for each arm; at evaluation, the most likely direction is selected. • LD selector . The supervised selector scores the seven candidate directions for one arm at a time using a compact two-hidden-layer MLP with width 32. Invalid candidates are masked before the softmax, and the same selector is applied independently to both arms. Handover-specific training details are given in Appendix D. 
+
+## C Environment details 
+
+Search and pressure plate tasks are implemented in VMAS [ 53 ], a vectorized 2-D multi-agent simulator built on PyTorch. The AICON graph for each task is constructed using batched Extended Kalman Filters (EKFs) as recursive estimators and differentiable cost functions as goals. 
+
+C.1 Multi-robot heterogeneous search 
+
+A 2-D bounded arena of size [−1, 1] 2 contains M static targets (default M = 5 ) placed at random positions with a minimum inter-entity separation of 0.2 m. The team consists of one ground robot and one quadrotor. Fig. 2 shows an example of the simulation environment used to train the search task. 
+
+Agents. The ground robot (sphere, radius 0.1 m) is the only agent capable of physically collecting targets; it is equipped with a LiDAR sensor (12 rays, range 0.3 m) that returns per-ray distances and target-ID vectors. The quadrotor (sphere, radius 0.05 m) is a non-colliding holonomic agent that maintains a downward-facing occupancy grid of size G×G (default G = 10 ), discovering target locations when they fall within its sensing radius Rquadrotor = 0 .5 m. 15 Figure 2: Example of the simulation environment for search. The ground robot is represented as a blue triangle, with LiDAR rays in black ended in a small green circle. The quadrotor is shown as a blue triangle surrounded by a blue circle that represents the observation radius. The targets are represented as green circles. The map shows a grid cell of the grid map estimate of the quadrotor, where gray means that the cell is unexplored, green means that the quadrotor found a target, and red means unoccupied. 
+
+Observations. The quadrotor observes its own position and velocity, the ground robot’s position, and the current occupancy and target grids flattened to vectors of size G2. It also receives a scalar indicating the sensor noise level. The ground robot observes its own position and velocity along with the LiDAR distance and target-ID readings. 
+
+Reward. The team receives a collective reward of +10 for each target found by the ground robot and a bonus of +100 when all targets are cleared. A time penalty of −0.1 is applied at each step to encourage efficiency. An optional potential-based distance-shaping term rewards reduction in the shortest-path distance to unvisited targets, computed via brute-force TSP over the currently discovered set. 
+
+Termination. The episode ends when all M targets are collected or the maximum number of steps is reached. 
+
+C.2 Collaborative handover with obstacles 
+
+The task is implemented in robosuite using two single-arm Franka Emika Panda manipulators mounted in an opposed configuration around a table. A graspable hammer object is initialized in the workspace of the first robot (the “giver”), while the second robot (the “receiver”) starts on the opposite side. A static box obstacle is placed between the arms, so that the direct path from the giver to the receiver conflicts with obstacle avoidance. The global objective is for the receiver to securely grasp the object. Episodes run for at most 500 control steps at 20 Hz. Both arms use operational-space Cartesian position control with 3-D end-effector displacement commands and a binary gripper command. The training distribution uses a hammer object sampled on the table within x ∈ [−0.1, 0.1] m and 
+
+y ∈ [−0.05 , 0.05] m. The trained policies use one active box obstacle during training and in the in-distribution reference condition; its position and length are randomized around a nominal box between the two robots. 16 Figure 3: Example of the simulation environment for handover. 
+
+Agents. Both robots are controlled through Cartesian displacement commands applied to the end-effector positions. The AICON graph tracks end-effector poses, gripper activations, object pose, grasp likelihoods, reach likelihoods, and distances to the obstacle. The robosuite simulator executes the corresponding operational-space control command for each arm. 
+
+Observations. The AICON graph receives end-effector pose measurements from robosuite pro-prioception, object-pose measurements, axis-aligned obstacle bounding boxes, and gripper force magnitudes. The learned selector does not observe raw images. Its inputs are the graph states and candidate gradient features described in Appendix B. 
+
+Reward. The RL selector uses a shaped reward with the following components: • Giver progress: reward for reaching, grasping, and lifting the object. • Transfer progress: after lift-off, reward for moving the object to the transfer region and bringing the receiver to its grasp point. • Completion bonus: terminal bonus when the receiver successfully grasps the object. • Obstacle penalty: proximity and contact penalties for both arms. 
+
+Termination. The episode ends in success when the receiver grasps the object, or in failure when the 500-step limit is reached. 
+
+C.3 Multi-robot pressure plate game 
+
+The arena is a 2-D bounded space of size [−2, 2] 2 divided into a left and right room by a central wall with a door gap. Two pressure plates are randomly placed, one in each room. The door opens only when a ground robot stands on either pressure plate. A goal zone (sphere, radius 0.3 m) is located in the right room. The mission is complete when all ground robots reach the goal. Fig. 4 shows an example of the simulation environment used to train the pressure plate task. 
+
+Agents. N ground robots (spheres, radius 0.1 m, holonomic dynamics) are equipped with LiDAR sensors (12 rays, range 0.6 m) that return distance measurements and a target-ID vector identifying pressure plates from walls. One quadrotor (sphere, radius 0.05 m, non-colliding) maintains a G×G
+
+occupancy grid ( G = 10 ) covering the full arena. 17 Figure 4: Example of the simulation environment for pressure plate. Ground robots are represented as a red triangles, with LiDAR rays in black ended in a small green circle. The quadrotor is shown as a blue triangle surrounded by a blue circle that represents the observation radius. The pressure plates are represented as green circles that turn red if they are being pressured by a ground robot. The goal is represented as a yellow circle. The map shows a grid cell of the grid map estimate of the quadrotor, where gray means that the cell is unexplored, green means that the quadrotor found a pressure plate, and red means unoccupied. The door is orange, but it does not appear in this example because one of the ground robots is pressuring the plate on the right. 
+
+Observations. The quadrotor observes its own position and velocity, the positions of all ground robots, the door, the goal, and a local occupancy grid that indicates the location of pressure plates within its sensing radius Rquadrotor = 1 .0 m. Each ground robot observes its own state, the positions of the door and goal, and LiDAR readings. Unlike the search task, the LiDAR target-ID vector allows robots to distinguish pressure plates from walls and other obstacles. 
+
+AICON graph. The graph contains four goal cost functions per ground robot, each defining a gradient path toward one of the four targets: left plate, right plate, door, and goal. Each cost function takes the form 
+
+gk(xrel , Σrel ) =  |∥ xrel ∥ − dtarget | + 12 ∥xrel ∥2 + 0 .01 tr(Σ rel ) · ⊮avail , (12) where xrel ∈ R2 is the EKF estimate of the robot-to-target relative position, dtarget = 0 is the desired distance, Σrel is the associated covariance, and ⊮avail gates inactive targets. The ∥xrel ∥ term provides a constant-magnitude unit-direction gradient, while the 12 ∥xrel ∥2 term adds a distance-proportional push that improves robustness when the EKF Jacobian chain is noisy. The door target is pinned to a position slightly past the door gap (offset 0.05 m into the right room) so that the gradient pulls robots 
+
+through the opening rather than stopping at it. 
+
+Reward. The task uses a reward function with the following components: • Time penalty: −0.01 per step (shared). • Goal reaching: +10 per robot that newly reaches the goal (shared). • Completion bonus: +20 when all robots are simultaneously at the goal (shared). • Plate holding: +0 .5 per step for each robot actively pressing a plate at the appropriate stage of the task (shared, gated by the internal stage machine; see below). • Expert bonus (LD only): +0 .3 per step per robot whose gradient-path selection matches the expert’s assignment; 0 otherwise (asymmetric, per-robot). 18 Internal stage machine. The reward function maintains an internal task stage that tracks progress and gates the plate-holding reward: • Stage 0: One robot presses the left plate while others navigate through the door. Transition to Stage 1 occurs when the left plate is pressed and all other robots have crossed to the right side. • Stage 1: The right plate must be activated so the left-plate robot can cross. Transition to Stage 2 occurs when the right plate has been pressed and the left-plate robot has crossed. • Stage 2: All robots navigate to the goal. 
+
+Termination. The episode terminates when all robots are simultaneously within the goal zone (radius 0.45 m, accounting for robot radius and a small margin) or when the maximum number of steps is reached. 
+
+## D Training details 
+
+D.1 RL: Reinforcement learning for search and pressure-plate tasks 
+
+We train our RL policy using Proximal Policy Optimization (PPO) with per-robot advantages in the style of Multi-Agent PPO (MAPPO). All experiments use TorchRL [54] for environment wrapping, data collection, and replay-buffer management. 
+
+Hyperparameters. Table 1 summarizes the training hyperparameters shared across tasks. Table 1: PPO hyperparameters. 
+
+Parameter Value 
+
+Learning rate (policy) 3 × 10 −4
+
+Learning rate (critic) 9 × 10 −4
+
+Discount factor γ 0.99 GAE parameter λ 0.95 PPO clip ratio ϵ 0.2 Entropy coefficient 10 −3
+
+Critic loss coefficient 0.5 Epochs per batch 5Minibatch size 400 Frames per batch 6400 Max episode steps 400 Gradient norm clip 1.0 AICON gain κ 100 Expert bonus (LD) 0.3 
+
+Per-robot advantages (MAPPO-style). Although the critic produces a single centralized value V (s), we compute per-robot advantages. The reward tensor has shape [B, N max ] (one scalar per robot per step), and GAE is computed independently along each robot dimension using the shared value baseline expanded to match: 
+
+Atr = 
+
+> T−t−1
+
+X
+
+> ℓ=0
+
+(γλ )ℓδt+ℓr , δtr = Rtr + γV (st+1 )(1 − dt) − V (st), (13) where Rtr is robot r’s reward at time t and dt is the shared done flag. The value target for the critic is the mean return across robots: ˆV t = 1
+
+> N
+
+P 
+
+> r
+
+(Atr + V (st)) .19 Per-robot PPO ratio. Each robot’s log-probability is stored independently during rollout collection. During the PPO update, each robot gets its own importance-sampling ratio: 
+
+ρr = πθtask (atr | st)
+
+πθtask ,old (atr | st) , (14) and the clipped surrogate loss is computed per robot and summed: 
+
+Lpolicy = − 1
+
+B
+
+X
+
+> b
+
+X
+
+> r
+
+min 
+
+
+
+ρr Ar , clip (ρr , 1−ϵ, 1+ ϵ) Ar
+
+
+
+. (15) This gives each robot its own credit-assignment signal rather than sharing a single ratio across the team. Advantages are normalized (zero-mean, unit-variance) across the batch with masking for inactive robot slots. 
+
+Robot/Target count variation. During training, each batch contains environments with different numbers of ground robots (pressure plate, N ∈ { 2, 3, 4}) or targets (search, T ∈ { 2, 3, 4, 5}). This exposes the policy to varying team sizes and encourages learning count-invariant coordination strategies. 
+
+AICON warmup. At the start of each episode, 5 “warmup” steps are executed with zero ground-robot gains and a high drone gain ( κquadrotor = 50 ), allowing the EKF estimates to converge before the policy takes control. Episode counters are reset after warmup so that stage-success detection is not contaminated. 
+
+D.2 RL: Reinforcement learning for the handover 
+
+The handover RL policy is trained separately as a joint selector over the two robot arms. Unlike the 2-D tasks, it is not trained with the TorchRL/MAPPO pipeline, does not use per-robot advantages, and does not learn a scalar gain head. Instead, PPO receives the flattened two-arm selector observation, outputs one categorical gradient-candidate choice per arm, and estimates a single value for the joint handover state. The selected candidates are then smoothed and scaled by a fixed Cartesian controller. Table 2 lists the handover-specific settings. The pipeline is implemented in Stable-Baselines3. Table 2: Handover-specific PPO settings. 
+
+Parameter Value 
+
+Parallel environments 8Environment steps 5 × 10 6
+
+Learning rate 3 × 10 −4
+
+Discount factor γ 0.99 GAE parameter λ 0.95 PPO clip ratio ϵ 0.2 Entropy coefficient 0.005 Critic loss coefficient 0.5 Epochs per batch 5Minibatch size 400 Gradient norm clip 1.0 
+
+End-to-end handover baselines. The MLP, RNN, Mamba, and Transformer baselines for handover are trained as direct-action PPO policies on flattened robosuite observations. Their observation contains the object state and both robots’ proprioceptive states, and their action is the full Cartesian displacement and gripper command for both arms. All baseline are trained using the same reward function and termination conditions as our RL and LD selectors. 
+
+Handover evaluation conditions. In-distribution evaluation uses the same one-obstacle, hammer-object distribution as training. OOD evaluation varies one factor at a time, as summarized in Table 3. No OOD condition retrains the learned selector or the AICON graph. 20 Table 3: Handover evaluation conditions. 
+
+Condition Variation 
+
+In distribution One box obstacle, hammer object Robot yaw Per-reset yaw perturbation in [−0.5, 0.5] rad per robot Obstacle Obstacle position shifted outside the training support, or larger obstacle footprint Object pose Object pickup position shifted outside the training support along x or y
+
+Object type Cylinder, hollow cylinder, or ratcheting wrench Number of obstacles Aactivates one to four obstacles: the reference obstacle, then side obstacles on the right and left of the workspace, and finally an overhead obstacle. For all obstacles position and size are randomized. 
+
+D.3 LD: Learning from demonstrations 
+
+Our LD policy replaces the reward-based PPO signal with a supervised expert-bonus that provides a dense, per-robot teaching signal at every step. 
+
+Expert oracles for search and pressure-plate tasks. An analytical expert assigns each robot to one of the P gradient paths based on the current state. For the pressure-plate task, the expert considers robot positions relative to the door (left/right side), distances to each plate, and whether the door is currently open. The assignment logic is: • All robots on the right side: all assigned to Goal. • Mixed (some left, some right): the closest right-side robot is assigned to PlateR; remaining right-side robots to Goal. If the door is closed, the closest left-side robot is assigned to PlateL (to open the door); if the door is open, left-side robots are assigned to Door (to cross). • All robots on the left side: if the door is closed, the closest robot to PlateL is assigned to PlateL, others to Door; if the door is open, all assigned to Door. For the search scenario, the expert follows the target selected by a brute-force TSP solver. 
+
+Demonstrations for handover task. For handover, expert demonstrations are generated by a scripted state machine rather than by a symbolic target-assignment oracle. The giver is commanded to approach and grasp the object, then moves to a sampled handover point beside the obstacle while the receiver approaches the same region. Near the transfer point, both arms are commanded to reduce the distance between the object and the receiver’s end-effector. Demonstration actions are converted into soft labels by finding the non-negative mixture of candidate gradient directions that best reconstructs the demonstrated Cartesian direction. The supervised selector is trained with cross-entropy on those labels. 
+
+Supervised baselines. For comparison, we also train standalone supervised selectors on expert demonstration data collected offline (described in Section 5). Each (robot, timestep ) pair becomes one sample with input features (global context + per-target derivative features) and a label (expert’s target assignment). All learned models are trained with cross-entropy loss, class-frequency weighting, Adam ( lr = 10 −3), cosine-annealing schedule, and an 80/20 episode-level train/validation split over 50 epochs. 
+
+## E AICON graphs 
+
+Each graph contains five kinds of nodes: 21 Sensors (yellow). Compute noisy measurements of world quantities from raw simulator observa-tions. 
+
+Recursive estimators (blue). Maintain a recursive belief (mean + covariance) over a single world quantity. Their posteriors are the inputs to actions and goals. 
+
+Active interconnections (green). Differentiable couplings that route quantities and cost gradients between estimators, sensors, and actions. They are the edges along which the world model propagates. 
+
+Actions (red). Emit a low-level command. Their gradient flow back through the graph is what the learned task policy modulates. 
+
+Specified goals (pink). Scalar cost functions over estimator means whose gradients are injected into the graph. 
+
+E.1 Cooperative search 
+
+The AICON graph used for the RL, LD and AICON policies of Section 5 is represented in Fig. 5. The specific implementation of each of the modules is the following: 
+
+E.1.1 Sensors: Drone Position Sensor. Noisy absolute position of the drone. 
+
+Drone Grid Sensor. Which occupancy cells the drone perceives this step (within drone obs range ). 
+
+Ground Robot LiDAR. Per-ray distance-to-obstacle measurements from each ground robot. 
+
+E.1.2 Estimators: Drone Pos Estimator. Recursive estimate of the drone’s absolute position. 
+
+Drone Rel Cell Estimator. The grid cell currently occupied by the drone (function of its position estimate). 
+
+Occupancy Map Estimator. Global belief over the explored/unexplored occupancy grid, updated from drone observations. 
+
+Drone Target Estimator. Drone-side estimate of each target’s absolute position from accumulated grid observations. 
+
+Ground Robot Target Estimator (Relative). Per-robot estimate of each target’s position in the robot’s local frame. 
+
+E.1.3 Active interconnections: Drone Action Connection / Drone State Connection. Propagate the drone’s velocity action and resulting state into the world graph. 
+
+Drone Position Connection. Binds drone-position sensor measurements to the drone position esti-mator. 
+
+Drone Grid Connection / Drone Grid Estimate Connection. Feed raw grid observations and the maintained occupancy estimate between the drone sensor and the occupancy map estimator. 
+
+Drone Target Position Connection Couples occupancy-map evidence to each drone-side target estimate. 
+
+Cross Robot Target Estimate Connection Bridges each drone-side target estimate with the cor-responding ground robot’s relative target estimate. This is the channel through which cooperation is realized: information observed by the drone reaches each robot’s local frame as a gradient. 
+
+Ground Robot Abs2Rel Connection Differentiable change of frame, world → robot-local. 22 Drone Position Sensor      
+
+> Drone Grid Sensor
+> Drone Action
+> Drone Position Connection
+> Drone Grid Connection
+> Drone Target Position Connection (×T)
+> Drone Action & State Connection
+> Cross-Robot Target Estimate Connection (×T)
+> Ground Robot Target & Action Connection (×T)
+> Drone Pos Estimator
+> Drone Rel Cell Estimator
+> Occupancy Map Estimator
+> Drone Target Estimator (×T)
+> Ground Robot Target Estimator Rel. (×T)
+> Ground Robot Action
+> Minimize Map Uncertainty Goal
+> Target Goal
+
+Figure 5: AICON graph for the cooperative search task, used by the RL, LD and AICON policies. 
+
+Ground Robot Target Position Connection Routes the robot-local target estimate to the robot’s action. 
+
+Ground Robot Action Connection Binds the ground robot velocity action into the world graph. 
+
+E.1.4 Goals: Minimize Map Uncertainty Goal. − P 
+
+> i
+
+pi log pi over occupancy-map cells. Its gradient drives the drone toward unexplored regions. 
+
+Fixed Distance To Target Goal. ∥ˆti − xr ∥ − d∗ for each target; its gradient pushes the ground robot to a fixed approach distance from each target. 
+
+E.2 Bimanual handover 
+
+The handover graph is built around the two end-effector displacement actions and two gripper actions. It estimates the object pose, each end-effector pose, the distance from each end-effector to the object, whether each gripper has grasped the object, whether the object is in reach of each arm, and the distance from each end-effector to the active obstacle AABBs. These estimates define the candidate gradient paths used by the RL and LD policies. 
+
+E.2.1 Sensors: End-Effector Pose Sensor. Measures the Cartesian end-effector position of each arm from robosuite proprioception. 
+
+Object Pose Sensor. Measures the 3-D object position used by the object-pose estimator. 
+
+Obstacle AABB Sensor. Publishes the center and half-size of each active obstacle box, padded to a maximum of four boxes. 
+
+E.2.2 Estimators: End-Effector Pose Estimator. EKF estimate of each arm’s 3-D end-effector position, updated from direct proprioception and the previous displacement action. 23 Object Pose Estimator. Shared EKF estimate of the object position, updated from direct object-pose measurements and switching couplings to either end-effector when a grasp is likely. 
+
+End-Effector–Object Distance Estimator. Per-arm estimate of distance to the object grasp point. 
+
+Object Grasped Likelihood Estimator. Per-arm scalar likelihood that the object is grasped, driven by distance-to-object, gripper activation, and force evidence. 
+
+Object In-Reach Likelihood Estimator. Per-arm reach likelihood from the end-effector–object distance. 
+
+End-Effector–Obstacle Distance Estimator. Per-arm smoothed distance to the nearest obstacle AABB, computed by Gaussian-weighted samples around the end-effector. 
+
+Obstacle Proximity Likelihood Estimator. Per-arm scalar likelihood that the end-effector is near the obstacle, used to gate action-gradient flow near obstacles. 
+
+E.2.3 Active interconnections: Forward Kinematics / End-Effector Displacement Connection. Couples the Cartesian displace-ment action to the end-effector pose estimator and gates the action-gradient path by object reach and obstacle proximity. 
+
+Direct Measurement Connection. Binds measured end-effector position to the corresponding end-effector pose estimator. 
+
+Object Direct Measurement Connection. Binds measured object position to the shared object pose estimator. 
+
+End-Effector–Object Distance Connection. Computes the distance from each end-effector to the corresponding object grasp point. 
+
+Object Grasped Connection. Updates grasp likelihood and routes gripper gradients when the grip-per is close enough to close on the object. 
+
+End-Effector–Object Coupling Connection. Couples the object estimate to a gripper pose when that gripper is likely to hold the object. 
+
+Obstacle Distance and Proximity Connections. Compute smoothed distances to all active AABBs and convert them into a proximity likelihood for action gating. 
+
+E.2.4 Goals: GoalGraspedObject. Active on the receiver; minimizes 1 − pgrasp so the receiver closes on the transferred object. 
+
+GoalAvoidObstacle. Active for both arms; penalizes small end-effector–obstacle distances. 
+
+E.3 Pressure plate 
+
+The pressure plate graph instantiates the compositionality claim directly: it reuses the cooperative search modules unchanged—drone self-localization, occupancy mapping, cross-robot target esti-mation, and Abs2Rel framing—and extends the graph with task-specific components for the plates, door, and final goal. No existing component is modified; the new regularities are simply added as additional nodes and edges, consistent with the structural compositionality described in Section 4. The AICON graph used for the RL, LD and AICON policies of Section 5 is represented in Fig. 7. The additional task-specific components for the plates, door, and final goal are: 
+
+E.3.1 Task-specific sensors: Drone Sensor. Composite drone-side sensor that exposes plate-, door- and goal-cell observations alongside drone position and the occupancy grid. 24 EE Pose Sensor (×2) 
+
+> EE Displ. Action (×2)
+> Obstacle AABB Sensor
+> Object Pose Sensor
+> Gripper Action (×2)
+> Direct Measurement (×2)
+> Forward Kinematics (×2)
+> Obstacle Distance Connection (×2)
+> Object Direct Measurement
+> Object Grasped Connection (×2)
+> EE Pose Estimator (×2)
+> EE–Object Distance (×2)
+> Object Pose Estimator
+> EE–Object Distance Estimator (×2)
+> Obstacle Proximity Connection (×2)
+> EE–Obstacle Distance Estimator (×2)
+> EE–Object Coupling (×2)
+> In-Reach Connection (×2)
+> Obstacle Proximity Likelihood (×2)Object Grasped Likelihood (×2)
+> Object In-Reach Likelihood (×2)
+> Goal Avoid Obstacle (×2)
+> Receiver Goal Grasped Object
+
+Figure 6: AICON graph for the bimanual handover task, used by the RL, LD and AICON policies. Per-arm components are aggregated with ×2.
+
+E.3.2 Task-specific estimators: Goal Estimator. Absolute position of the final goal cell. 
+
+Door Estimator. Absolute position of the door that opens when both plates are pressed. 
+
+Ground Robot Plate Estimator (Relative). Each robot’s local-frame estimate of its assigned pres-sure plate. 
+
+Goal Estimator (Relative). Per-robot relative-frame estimate of the goal cell. 
+
+E.3.3 Task-specific interconnections: Door / Goal Measurement Connection. Feed drone-side observations of the door and goal to their respective estimators. 
+
+Door / Goal Abs2Rel Connection. Change of frame for door and goal estimates from world frame to each ground robot’s local frame. 
+
+Drone Door Connection / Drone Goal Connection. Bind the drone-side door- and goal-observation channels into the Drone Sensor and corresponding estimators. 
+
+E.3.4 Goals: Target Goal. Fixed-distance to plate cost for the ground robot assigned to each pressure plate. 
+
+Plate Goal. Plate-specific approach goal (active while the plate is still unpressed). 
+
+Door Goal. Approach the door once the plates have been pressed and the door has opened. 
+
+Minimize Map Uncertainty Goal. Same exploration prior as in cooperative search; remains active throughout the task so the drone keeps charting the map. 
+
+## F Further experimental results 
+
+This appendix presents the real-robot deployments summarized in Q5 . In all panels the quadrotor and ground-robot trajectories are overlaid on the arena and colored by time, so that coordination and re-targeting are visible directly. The learned task factor is identical to simulation; only the sensor 25 Drone Sensor (composite)        
+
+> Drone Action
+> Drone Position Connection
+> Drone Grid Connection
+> Drone Target Position Connection (×N)
+> Drone Action & State Connection
+> Cross-Robot Target Estimate Connection (×N)
+> Ground Robot Target & Action Connection (×N)
+> Drone Pos Estimator
+> Drone Rel Cell Estimator
+> Occupancy Map Estimator
+> Drone Target Estimator (×N)
+> Ground Robot Target Estimator Rel. (×N)
+> Ground Robot Action (×N)
+> Door Measurement Connection ( ×2)
+> Door Abs2Rel Connection ( ×2)
+> Goal Measurement Connection ( ×2)
+> Goal Abs2Rel Connection ( ×2)
+> Plate Measurement Connection ( ×4)
+> Plate Abs2Rel Connection ( ×4)
+> Door Estimator (×2)
+> Door Estimator Relative ( ×2)
+> Goal Estimator (×2)
+> Goal Estimator Relative ( ×2)
+> Plate Estimator (×4)
+> Plate Estimator Relative ( ×4)
+> Minimize Map Uncertainty Goal
+> Door Goal Target Goal Plate Goal
+
+Figure 7: AICON graph for the pressure plate task, used by the RL, LD and AICON policies. drivers in the world factor modeled with AICON are swapped for their physical counterparts, and no policy is retrained. 
+
+Search (Figs. 9-10) . We ran 8 deployments of the RL policy (Fig. 9) and 8 of the LD policy (Fig. 10), each with a real quadrotor under true flight dynamics and localization drift, observation noise that reshapes the exploration pattern, a LiDAR of different range than in simulation, and a variable number of targets. Both policies achieve a 100% success rate (8/8 each): every target is located by the quadrotor’s evolving occupancy map and retrieved by the ground robot. The trajectories show the same reactive re-targeting observed in simulation—the ground robot’s goal shifts as new targets enter the map. 
+
+Handover. Both bimanual policy RL and LD succeed in 9/10 real deployments (90%). The real setup uses two live Franka Panda arms; simulated end-effector, object, and obstacle are replaced by calibrated robot-state and scene measurements, and commands are sent as Cartesian pose targets with binary gripper commands. Success holds even though the object’s shape and weight and the arms’ placement and orientation are out of distribution. Figure 8 illustrates a representative example of a successful real-world handover. The only failure arises when the commanded motion exceeds the arm’s unmodeled actuator limits, a physically unrealizable regime. Details about OOD and scaling experiments are listed in Table 3. 
+
+Pressure plate (Figs. 11–12) . We ran 4 deployments of RL (Fig. 11) and 4 of LD (Fig. 12), under the same quadrotor and LiDAR changes and a variable number of ground robots. RL succeeds in 4/4 (100%) and LD in 3/4 (75%). The single LD failure is a failed transition between task stages—the same behavior seen in simulation (Fig. 1b)—and is not caused by the reality gap; the world estimates 26 Figure 8: Successful handover in the real-world experiments. remain accurate throughout. Besides, this happens in a setting with only two ground robots, which is out of the training distribution. Successful runs show robots implicitly differentiating roles, holding plates and crossing in sequence to open the door and reach the goal. 27 Figure 9: Real-robot search deployments, RL policy (8/8 success). Trajectories colored by time. 28 Figure 10: Real-robot search deployments, LD policy (8/8 success). 
+
+Figure 11: Real-robot pressure-plate deployments, RL policy (4/4 success). 29 Figure 12: Real-robot pressure-plate deployments, LD policy (3/4 success, failed one on the top right panel); the failed run shows a stalled stage transition, matching the simulation failure mode (Fig. 1b). 30
