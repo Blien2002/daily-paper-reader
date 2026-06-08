@@ -6,70 +6,59 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-07
-- 运行时间：2026-06-07 20:53:39 UTC
+- 最新运行日期：2026-06-08
+- 运行时间：2026-06-08 21:43:01 UTC
 - 运行状态：成功
-- 本次总论文数：16
-- 精读区：5
-- 速读区：11
+- 本次总论文数：13
+- 精读区：6
+- 速读区：7
 
 ### 今日简报（AI）
-今日推荐16篇机器人学习论文，聚焦行为诊断、3D动作对齐及工具增强。
-最值得精读的是《Beyond Task Success》与《Dexterity-BEV》，分别提出WAM/VLA行为表征诊断和3D-动作对齐框架，均获9.0分。
-建议优先精读这两篇高分论文，并配合《World-Task Factorization》理解任务分解思路，以构建更通用的机器人策略。
-- 详情：[/202606/07/README](/202606/07/README)
+今日精读6篇、速读7篇，重点聚焦视觉-语言-动作模型与体素动作热图两大方向。最值得精读《LARA》的潜在动作表示对齐方法和《ActionMap》的体素热图策略。建议关注动作表示与视觉观测的对齐技术，以提升实体操控的泛化能力。
+- 详情：[/202606/08/README](/202606/08/README)
 
 ### 精读区论文标签
-1. [Beyond Task Success: Behavioral and Representational Diagnostics for WAM and VLA](/202606/07/2606.01095v1-beyond-task-success-behavioral-and-representational-diagnostics-for-wam-and-vla)  
+1. [LARA: Latent Action Representation Alignment for Vision-Language-Action Models](/202606/08/2606.07100v1-lara-latent-action-representation-alignment-for-vision-language-action-models)  
+   标签：评分：10.0/10、query:vla
+   evidence：潜动作表示对齐用于视觉-语言-动作模型
+2. [ActionMap: Robot Policy Learning via Voxel Action Heatmap](/202606/08/2606.06904v1-actionmap-robot-policy-learning-via-voxel-action-heatmap)  
    标签：评分：9.0/10、query:vla
-   evidence：VLA和WAM模型的诊断框架
-2. [Dexterity-BEV: Aligning 3D World and Actions for Generalizable Robot Policies Learning](/202606/07/2606.02274v1-dexterity-bev-aligning-3d-world-and-actions-for-generalizable-robot-policies-learning)  
+   evidence：用体素动作热图改进VLA动作解码器
+3. [Coarse-to-Control: Action-Token Planning for Vision-Language-Action Models](/202606/08/2606.07107v1-coarse-to-control-action-token-planning-for-vision-language-action-models)  
    标签：评分：9.0/10、query:vla
-   evidence：通过3D对齐实现通用机器人操作策略
-3. [PointAction: 3D Points as Universal Action Representations for Robot Control](/202606/07/2606.03943v1-pointaction-3d-points-as-universal-action-representations-for-robot-control)  
+   evidence：在VLA模型内进行动作令牌规划以应对长期任务
+4. [Robotic Policy Adaptation via Weight-Space Meta-Learning](/202606/08/2606.07217v1-robotic-policy-adaptation-via-weight-space-meta-learning)  
    标签：评分：9.0/10、query:vla
-   evidence：基于3D点的动作表示桥接视频预测与机器人控制
-4. [HapTile: A Haptic-Informed Vision-Tactile-Language-Action Dataset for Contact-Rich Imitation Learning](/202606/07/2606.04825v1-haptile-a-haptic-informed-vision-tactile-language-action-dataset-for-contact-rich-imitation-learning)  
-   标签：评分：9.0/10、query:tf
-   evidence：整合触觉和力觉感知的VLA数据集
-5. [Multi-Resolution Tactile Imitation Learning for Contact-Rich Robotic Manipulation](/202606/07/2606.06281v1-multi-resolution-tactile-imitation-learning-for-contact-rich-robotic-manipulation)  
-   标签：评分：9.0/10、query:tf
-   evidence：多分辨率触觉模仿学习用于接触密集操作
+   evidence：提出WIZARD框架，通过权重空间元学习为冻结VLA策略生成任务特定LoRA参数
+5. [RhinoVLA Technical Report](/202606/08/2606.07383v1-rhinovla-technical-report)  
+   标签：评分：9.0/10、query:vla
+   evidence：面向边缘部署的VLA模型
+6. [Multi-Resolution Tactile Imitation Learning for Contact-Rich Robotic Manipulation](/202606/08/2606.06281v1-multi-resolution-tactile-imitation-learning-for-contact-rich-robotic-manipulation)  
+   标签：评分：8.0/10、query:tf
+   evidence：多分辨率触觉模仿学习用于接触丰富操作
 
 ### 速读区论文标签
-1. [Set-Supervised Diffusion Policy: Learning Action-Chunking Diffusion through Corrections](/202606/07/2606.01865v1-set-supervised-diffusion-policy-learning-action-chunking-diffusion-through-corrections)  
+1. [AxisGuide: Grounding Robot Action Coordinate System in RGB Observations for Robust Visuomotor Manipulation](/202606/08/2606.06761v1-axisguide-grounding-robot-action-coordinate-system-in-rgb-observations-for-robust-visuomotor-manipulation)  
+   标签：评分：8.0/10、query:vla
+   evidence：在RGB图像中定位动作坐标系以实现鲁棒视觉运动操作
+2. [RealDexUMI: A Wearable Universal Manipulation Interface for Dexterous Robot Learning](/202606/08/2606.06033v1-realdexumi-a-wearable-universal-manipulation-interface-for-dexterous-robot-learning)  
+   标签：评分：7.0/10、query:tf
+   evidence：集成指尖触觉感知的可穿戴灵巧操作接口
+3. [CAPE: Contrastive Action-conditioned Parallel Encoding for Embodied Planning](/202606/08/2606.07304v1-cape-contrastive-action-conditioned-parallel-encoding-for-embodied-planning)  
    标签：评分：7.0/10、query:vla
-   evidence：通过矫正数据改进机器人操作扩散策略
-2. [World-Task Factorization for Robot Learning](/202606/07/2606.02027v1-world-task-factorization-for-robot-learning)  
-   标签：评分：7.0/10、query:vla
-   evidence：机器人学习因子分解用于具身智能
-3. [ToolGate: Token-Efficient Pre-Call Control for Tool-Augmented Vision-Language Agents](/202606/07/2606.03054v1-toolgate-token-efficient-pre-call-control-for-tool-augmented-vision-language-agents)  
-   标签：评分：7.0/10、query:vla
-   evidence：工具增强VLM Agent的预调用控制
-4. [Let the Dynamics Flow: Stable Flow Matching Dynamical Systems](/202606/07/2606.03834v1-let-the-dynamics-flow-stable-flow-matching-dynamical-systems)  
-   标签：评分：7.0/10、query:vla
-   evidence：面向机器人操作模仿学习的稳定流匹配动力系统
-5. [OSCAR: Omni-Embodiment Action-Conditioned World Model for Robotics](/202606/07/2606.04463v2-oscar-omni-embodiment-action-conditioned-world-model-for-robotics)  
-   标签：评分：7.0/10、query:vla
-   evidence：跨具身的动作条件世界模型用于机器人策略评估
-6. [DexFuture: Hierarchical Future-State Visuomotor Targeting for Bimanual Dexterous Tool Use](/202606/07/2606.05699v1-dexfuture-hierarchical-future-state-visuomotor-targeting-for-bimanual-dexterous-tool-use)  
-   标签：评分：7.0/10、query:vla
-   evidence：双灵巧操作的层次化视觉运动目标预测
-7. [RealDexUMI: A Wearable Universal Manipulation Interface for Dexterous Robot Learning](/202606/07/2606.06033v1-realdexumi-a-wearable-universal-manipulation-interface-for-dexterous-robot-learning)  
-   标签：评分：7.0/10、query:vla
-   evidence：带触觉感知的灵巧操作可穿戴数据采集接口
-8. [Behavior Cloning of MPC for 3-DOF Robotic Manipulators](/202606/07/2606.00383v1-behavior-cloning-of-mpc-for-3-dof-robotic-manipulators)  
+   evidence：提出CAPE框架，通过对比动作条件并行编码学习视觉动力学用于具身规划
+4. [Expanding Spatial and Temporal Context for Robotic Imitation Learning With Scene Graphs](/202606/08/2606.01072v2-expanding-spatial-and-temporal-context-for-robotic-imitation-learning-with-scene-graphs)  
    标签：评分：6.0/10、query:vla
-   evidence：机械臂操作中MPC的行为克隆近似
-9. [Preference-Calibrated Human-in-the-Loop Reinforcement Learning for Robotic Manipulation](/202606/07/2606.03949v1-preference-calibrated-human-in-the-loop-reinforcement-learning-for-robotic-manipulation)  
+   evidence：提出用场景图作为显式记忆机制，扩展模仿学习中的时空上下文
+5. [Task Editing for Generalizable 3D Visuomotor Policy Learning](/202606/08/2606.07012v1-task-editing-for-generalizable-3d-visuomotor-policy-learning)  
    标签：评分：6.0/10、query:vla
-   evidence：带偏好校准的人类在环强化学习用于机器人操控
-10. [Instant-Fold: In-Context Imitation Learning for Deformable Object Manipulation](/202606/07/2606.04269v1-instant-fold-in-context-imitation-learning-for-deformable-object-manipulation)  
+   evidence：任务编辑用于泛化的3D视觉运动操作策略
+6. [The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective](/202606/08/2606.07017v1-the-sim-to-real-gap-of-foundation-model-agents-a-unified-mdp-perspective)  
    标签：评分：6.0/10、query:vla
-   evidence：通过上下文模仿学习操作可变形物体
-11. [Inverse Manipulation through Symbolic Planning and Residual Operator Learning](/202606/07/2606.05248v1-inverse-manipulation-through-symbolic-planning-and-residual-operator-learning)  
+   evidence：分析具身AI中基础模型智能体的仿真到现实差距
+7. [Spline Policy: A Structured Representation for Robot Policies](/202606/08/2606.07386v1-spline-policy-a-structured-representation-for-robot-policies)  
    标签：评分：6.0/10、query:vla
-   evidence：结合符号规划与残差学习的逆操控混合方法
+   evidence：机器人操作策略的结构化表示
 
 
 <div class="dpr-home-promo-card">

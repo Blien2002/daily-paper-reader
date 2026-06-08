@@ -1,0 +1,250 @@
+Title: The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective
+
+URL Source: https://arxiv.org/pdf/2606.07017v1
+
+Published Time: Mon, 08 Jun 2026 00:36:24 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective 
+
+# Xiaoou Liu ∗, Tiejin Chen ∗, Weibo Li, Xiyang Hu, Hua Wei 
+
+{xiaoouli,tiejin,weiboli,xiyanghu,hua.wei}@asu.edu Arizona State University Tempe, Arizona, USA 
+
+## Abstract 
+
+Foundation model agents are increasingly deployed for real-world decision-making, but suffer from the sim-to-real gap. While robotics and classical control have mature frameworks to address this gap, the foundation model community is treating agent robustness as an entirely novel phenomenon. Our paper proposes formalizing the foundation model agent evaluation and training gap as a classical sim-to-real problem structured entirely around the four elements of a Markov Decision Process, including Observation, Action, Tran-sition, and Reward. In this paper, we set a comprehensive research agenda that translates classical discrepancies into the foundation model domain and advocates for adopting established solutions like domain randomization. We provide concrete examples, such as a multilingual tool calling to demonstrate how severe observation space gaps lead to operationally invalid actions despite correct se-mantic intent. Ultimately, this agenda aims to drive a paradigm shift, yielding a unified vocabulary and standardized stress test bench-marks to foster a new generation of highly trustworthy agents for reliable real-world applications. 
+
+## Keywords 
+
+Sim-to-real, Reinforcement Learning, LLM Agents, MDP 
+
+ACM Reference Format: 
+
+Xiaoou Liu ∗, Tiejin Chen ∗, Weibo Li, Xiyang Hu, Hua Wei. 2026. The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective. In 
+
+Proceedings of Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD ’26). ACM, New York, NY, USA, 7 pages. https://doi.org/XXXXXXX.XXXXXXX 
+
+## 1 Introduction 
+
+With the exploration of foundation models [ 20 , 43 , 45 ], founda-tion model (FM) agents and reinforcement learning (RL) policies are increasingly deployed for real-world decision-making, span-ning tool-augmented assistants [ 30 ], robotic control [ 29 ], and au-tonomous systems [ 54 ]. While training typically occurs on clean, curated benchmarks where data is abundant, and failures are safe, deployment exposes policies to distribution shifts, noisy inputs, unpredictable execution constraints, and stochastic transitions.  
+
+> Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.
+> KDD ’26, Washington, DC, USA
+> ©2026 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN 978-1-4503-XXXX-X/2018/06 https://doi.org/XXXXXXX.XXXXXXX
+
+Consequently, performance on the leaderboard does not equate to real-world deployment reliability [ 15 ]. This simulation-to-reality (sim-to-real) gap is extensively studied in robotics and classical control, which boast mature frameworks to address such discrep-ancies [ 13 , 22 ]. However, as FMs become the backbone of agent systems, the community is currently reinventing the wheel by treat-ing agent robustness as an entirely novel phenomenon rather than a known deployment gap [ 58 , 59 ]. We should correct this isolated perspective and start to solve the sim-to-real gap in FM agents now 
+
+because FM policies are rapidly moving from safe simulators into unpredictable production environments where ignoring established sim-to-real frameworks leaves critical vulnerabilities unmeasured and causes severe real-world failures. In this paper, our big and bold idea is to formalize the FM agent evaluation and training gap as a classical sim-to-real problem struc-tured entirely around the four elements of a Markov Decision Process, including Observation, Action, Transition, and Reward . Recent evalu-ations, such as tool-use perturbation benchmarks and studies on multilingual tool calling, are inadvertently rediscovering these ex-act gaps [ 44 , 52 ], but they completely lack a unifying language. We advocate that the agent community should adopt the same family of classical solutions, including domain randomization [ 5, 53 ] and grounded action transformation [ 14 , 22 , 26 , 32 ]. Establishing this unified formulation is critical at this moment to prevent fragmented research efforts and to accurately measure deployment readiness. To push the frontier and offer a bold approach to this sim-to-real gap, we operationalize the classical Markov Decision Process view across the subsequent sections of this paper. In detail, we build upon recent surveys of simulation to reality methods in reinforcement learning [ 15 , 56 ] that organize techniques by the four elements of the Markov Decision Process (MDP), including observation ( O), action ( A), transition ( T ), and reward ( R). We review these four gaps in traditional reinforcement learning in Section 2, including their typical causes and classical mitigation techniques, and then dedicate Section 3 to translating these classical discrepancies into the FM domain. Within this section, we provide concrete examples for each component and propose how benchmarking paradigms can be designed to systematically expose these vulnerabilities. To demonstrate that such gaps genuinely exist in practice, we incorpo-rate recent studies on multilingual tool calling [ 37 ] which highlight a severe observation space gap where models correctly understand user intent and select the appropriate tool, yet produce parameter values in the user language that violate strict execution level con-ventions, leading to operationally invalid tool calls. Finally, Section 4 outlines concrete research directions to harden agents against these gaps.        
+
+> arXiv:2606.07017v1 [cs.AI] 5 Jun 2026 KDD ’26, August 3–7, 2026, Washington, DC, USA Authors et al. English-only queries,
+> clean input Curated tool set, no
+> distractors Deterministic
+> execution, no failures Binary accuracy
+> (correct / wrong) - Simulated MDP Multilingual, typos,
+> paraphrases Vast tool set, similar
+> names, latency Timeouts, retries,
+> partial failures Cost, latency, user
+> satisfaction - Real MDP Observation Gap
+> Perception shifts like multilingual input Action Gap
+> Execution issues like API latency and granularity Transition Gap
+> Unexpected environment responses (timeouts). Environment
+> (Tool APIs / System: )FM Agent
+> (Policy: )Reward( )Observation( )Action ( )Transition( )Reward Gap
+> Real-world objectives like cost and latency Noisy, unpredictable,
+> production environment Clean benchmarks, curated data,
+> idealized execution
+
+The Sim-to-Real Gap Tool Choice 
+
+> API/Execution e.g. e.g. Environment Dynamics
+> State Update Task Success Score User Prompts/Tool Schemas
+> Execuation Feedback
+
+Figure 1: Landscape view of sim-to-real transfer for foundation model agent systems under the MDP decomposition. A policy 𝜋 
+
+trained in the simulated MDP M𝑠 (left) is deployed without modification in the real MDP M𝑟 (right). Performance degradation arises from discrepancies in four channels—observation, action, transition, and reward—represented as a central “gap wall.” Each channel corresponds to distinct real-world shifts (e.g., multilingual observation mismatch, action-space distractors, stochastic tool execution, cost-aware reward signals) and can be stress-tested via controlled perturbations. The same decomposition aligns directly with classical sim-to-real remedies, enabling unified benchmarking and training across O, A, R, T .
+
+If all of our ideas succeed, the outcome would look like a funda-mental paradigm shift where the field shares a unified vocabulary for vulnerabilities and universally adopts standardized stress test bench-marks . This collective shift will directly yield a new generation of highly trustworthy agents that intrinsically maintain performance despite severe multilingual inputs and transition perturbations and cost-aware reward constraints. Researchers building foundation models will gain a structured methodology for robustness testing while practitioners deploying autonomous systems will acquire a reliable blueprint for safe production environments. These specific groups and their deployment challenges represent the core focus of the KDD community. Therefore, this agenda directly advances KDD thematic topics by establishing a rigorous foundation for Trustworthy and Responsible Data Science and shaping Modern AI for reliable real world Applications. 
+
+## 2 Problem Formulation and Classical Solutions 
+
+RL is commonly formulated as a discounted Markov decision pro-cess (MDP) [ 18 ] M = (S , A, T , R, 𝛾 ), where S is the state space, 
+
+A is the action space, T ( 𝑠 𝑡 +1 | 𝑠 𝑡 , 𝑎 𝑡 ) is the transition dynamics, 
+
+R is the reward function, and 𝛾 ∈ [ 0, 1) is the discount factor. The objective is to learn a policy 𝜋 that maximizes the expected dis-counted return. In sim-to-real settings, the policy is trained in a simulated MDP M𝑠 and deployed in a real-world MDP M𝑟 . Follow-ing prior work [ 15 ], the sim-to-real gap of policy 𝜋 can be defined as 
+
+𝐺 (𝜋 ) := 𝜓 𝑠 (𝜋 ) − 𝜓 𝑟 (𝜋 ), where 𝜓 𝑠 (·) and 𝜓 𝑟 (·) denote the same eval-uation metric computed in simulation and in the real environment, respectively. From an MDP perspective, the source of 𝐺 (𝜋 ) can be attributed to discrepancies in the core elements of the process: observation, action, transition, and reward. 
+
+• Observation gap. In sim-to-real RL, the agent’s perceived ob-servation in simulation often differs from that in the real world, i.e., 𝑜 𝑠 𝑡 ≠ 𝑜 𝑟 𝑡 , which can induce a systematic performance drop after deployment. There are two common sources of the observation gap. (1) Perception completeness : simulators may provide ideal or fully-observed signals (e.g., 𝑜 𝑠 𝑡 = 𝑠 𝑠 𝑡 ), whereas real observations are partial, noisy, delayed, or subject to occlusion. (2) Representation mismatch : differences in sensor modalities, resolution, calibration, and encoding create a distribution shift in the observation space, even when the underlying task dynamics are similar. Techniques to mitigate the observation gap include the following. (1) Domain Randomization randomizes visual and sensing parameters in sim-ulation to encourage invariance and improve out-of-distribution generalization [ 48 ]. (2) Domain Adaptation aligns simulated and real observation feature distributions, for example via adversarial objectives [ 7 ] or embedding alignment [ 40 ], to reduce cross-domain discrepancy. (3) Sensor Fusion combines complementary modalities to reduce reliance on any single biased channel, thereby improving robustness under real-world sensing imperfections. The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective KDD ’26, August 3–7, 2026, Washington, DC, USA 
+
+• Action gap. In sim-to-real RL, actions that are valid and effective in simulation may not translate faithfully to the real world. There are three common sources of the action gap: (1) Action granularity :simulators often use discretized or simplified action spaces and assume near-perfect execution, while real control is continuous, fine-grained, and constrained by low-level actuation limits; (2) Exe-cution uncertainty : real actuation is stochastic and imperfect, where intended actions can be perturbed or experience unexpected scal-ing in magnitude [ 5 , 53 ]; (3) System delay : real actuators and APIs introduce latency and jitter, so the effective action may be applied at 𝑡 + 𝛿 rather than immediately as assumed in simulation. Tech-niques to mitigate the action gap include the following. (1) Action Shielding projects or filters proposed actions to ensure feasibility and safety before execution. (2) Delay-aware Control explicitly mod-els latency (e.g., constant- or random-delay MDP variants) and trains policies robust to delayed actuation. (3) Robustification to Actuation Uncertainty uses action perturbations/noise injection or robust RL objectives, improving stability under perturbed actions and action-scale shifts [34, 47]. 
+
+• Transition gap. Sim-to-real transfer often suffers from transition gaps , where the next-state dynamics in simulation diverge from those in the real environment [ 22 , 32 ]. Such gaps arise from inaccu-rate or incomplete modeling of real dynamics. Techniques to miti-gate the transition gap include the following. (1) Transition-level Do-main Randomization perturbs dynamics parameters to train policies robust to model error [ 38 , 49 ]. (2) Grounding Methods [16 , 17 , 22 , 26 ]learn a transformation to map simulated transitions to real transi-tions [ 14 , 26 ]. (3) Distributionally Robust Learning optimizes policies to perform well under unknown-but-bounded transition shifts [ 46 ]. 
+
+• Reward gap. In sim-to-real RL, the reward specified in simulation may not faithfully reflect the real-world objective due to incom-plete task modeling or cascading effects of observation, action, and transition mismatches [ 31 ]. For example, delayed or mis-executed actions can alter realized outcomes and therefore change the reward received [ 28 ]. Techniques to mitigate the reward gap include the following. (1) Reward shaping provides denser and more informa-tive feedback while preserving the optimal policy under suitable conditions, as in potential-based shaping [4]. Reward shaping can also incorporate structured priors such as automaton-guided shap-ing to better handle sparse objectives [ 50 ]. (2) Reward augmentation 
+
+uses limited real-environment data to refine or supplement return signals, for instance by matching sim–real trajectory distributions or by augmenting returns for return-conditioned learning. This improves transferred policy performance under data scarcity [21]. 
+
+## 3 Gaps on FM-Controlled Agents and Benchmarking Paradigm 
+
+In Section 2, we introduced sim-to-real gaps across O,A,T ,R. In this section, we further analyze how these gaps manifest in FM-controlled agents, with Table 1 mapping traditional sim-to-real gap sources in RL and robotics to their analogues in FM agent settings. Moreover, benchmarking sim-to-real robustness for FM agents can draw on classical mitigation strategies from RL. 
+
+## 3.1 Observation: Randomization and Shift 
+
+FM agents possess an observation space consisting of processed textual inputs. These inputs include user queries along with tool schemas and environment feedback [ 24 , 30 ]. An observation gap emerges when the structured inputs found in simulated training benchmarks diverge from the noisy observations encountered dur-ing real-world deployment. In practice, this gap manifests through everyday user typos and massive irrelevant context distractors [ 36 ]as well as two deeper structural challenges, namely multilingual misalignment [ 37 ] and multi-modal noise. Multilingual misalign-ment describes the discrepancy where an agent fails when agents meet non-standard language beyond English. Furthermore multi-modal noise represents the critical shift from clean text observations to complex environments such as imperfect speech transcriptions or noisy optical character recognition outputs that corrupt the underlying semantic meaning [8, 55]. A rigorous benchmarking paradigm should systematically ex-pose these observation vulnerabilities through controlled random-ization and distribution shift methodologies. Evaluators should inject noise into the text observations while keeping the underly-ing correct action unchanged. This process involves introducing minor typographical errors and query paraphrasing that mimic real-world user interactions. Furthermore distribution shift protocols must evaluate policies against entirely novel environments, such as replacing standard English instructions with diverse multilin-gual user inputs or previously unseen tool structures [ 27 ], without altering the core functional task. 
+
+## 3.2 Action: Randomization and Distractors 
+
+For FM agents, the action space translates directly to the repertoire of accessible tools or application programming interfaces. An ac-tion gap manifests when the perfectly distinct tool sets of training environments are replaced by the overlapping and noisy functional landscapes of real deployment environments [25]. To show this specific vulnerability, evaluators should systemati-cally expand and confuse the available action space to force complex disambiguation. This process involves injecting distractor tools that share the exact name as the ground truth tool but contain empty or incorrect parameter descriptions. Evaluators can additionally introduce redundant and highly similar tools to clutter the selec-tion pool. Perturbing the presented action set in this manner tests whether an agent relies excessively on surface cues like tool names rather than demonstrating deep semantic understanding. 
+
+## 3.3 Transition: Realism and Robustness 
+
+The transition function for FM agents corresponds to the environ-ment response following a tool execution. A transition gap emerges because agents trained under idealized assumptions expect immedi-ate and perfect success while real deployment environments present stochastic dynamics with transient timeouts or partial application programming interface failures [57]. To expose this inherent vulnerability, researchers should subject agents to modified execution dynamics that systematically vary transition fidelity to mimic actual production environments. An effective evaluation methodology should inject configurable per-turbations, such as varying timeout rates and unpredictable retry KDD ’26, August 3–7, 2026, Washington, DC, USA Authors et al. 
+
+Table 1: Connecting traditional sim-to-real gap in RL to their analogues in FM agent, organized by the four MDP elements.     
+
+> MDP gap Traditional Sim-to-real Foundation Model Agents
+> Observation Representation mismatch [48]; Observation distribution shift [7, 40]; Perception incompleteness [6];
+> Observation perturbations : typos, query/tool/param paraphrase [44].
+> Distribution shift : multilingual user input, language–execution mismatch (param. value language mismatch) [37]. Multi-modal extension [55]. Action Action granularity [1, 2]; System delay [3, 19]; Execution uncertainty [47].
+> Action space shift : overlapping and noisy functional landscapes.
+> Action perturbations : injecting same-name distractor tools (with empty/incorrect parameters) and redundant similar tools to force complex disambiguation [44]. Transition Dynamics parameter mismatch [42]; Systematic dynamics bias [14, 22]; Bounded transition shift [46]
+> Transition realism : Transient timeouts and partial API failures / incomplete JSON payloads [57].
+> Transition perturbations : modifying execution dynamics via configurable timeout rates and unpredictable retry patterns to mandate autonomous recovery sequences. Reward reward signal deficiency [21, 31] Reward realism : Latency and financial cost rather than overfitting to binary accuracy [28].
+> Reward perturbations : Redundant tools, misleading tool names, and hidden usage fees.
+
+patterns, alongside incomplete data payloads like partial JSON re-sponses. For instance, forcing an initial tool call to return a transient error mandates that the agent interprets the failure correctly and autonomously initiates a recovery sequence. Exposing models to these realistic transition conditions reveals whether policies inher-ently possess grounded behavior analogous to robust targets [ 9]and whether they can plan under uncertainty [12, 35]. 
+
+## 3.4 Reward: Realism and Metadata 
+
+A critical vulnerability of FM-controlled agents arises because agents typically overfit to accuracy and ignore underlying opera-tional constraints such as latency [ 28 ]. The reward gap emerges when the simulated environment fails to capture these true op-erational costs of real-world deployment. Furthermore, empirical observations from recent tool-use perturbation frameworks demon-strate that reward conditions consistently induce the most severe performance degradation [51]. To systematically benchmark, evaluators should construct sce-narios where redundant tools are deliberately provided so the agent is explicitly forced to evaluate cost and latency metadata to select the optimal path. Beyond simple redundancy, benchmarking proto-cols should incorporate misleading tool names and hidden usage fees to rigorously test if the model blindly optimizes for surface-level functional relevance instead of the true underlying utility. This approach effectively shifts the evaluation metric from basic semantic alignment to holistic operational efficiency, ensuring that policies learn to maximize actual deployment goals. 
+
+## 3.5 A Canonical Example: Observation Gap 
+
+Action, transition, and reward gaps are covered above and in Table 1. Here we zoom in on one observation -gap setting: the language– execution boundary . Standard tool-calling benchmarks [ 10 , 41 ] as-sume predominantly English user queries and language-consistent execution (e.g., parameter values that match API conventions). In reality, users may issue queries in many languages while tool in-terfaces (e.g., function names, parameter identifiers, or expected value formats) remain language-invariant (e.g., English-only). Mul-tilingual tool-calling studies [ 37 ] show that models often produce 
+
+semantically correct tool calls—correct intent, correct tool selection— yet operationally invalid ones, because parameter values are copied 
+
+Table 2: Comparison of error rates for each model’s agents across different languages. The results show a significant in-crease in error rates for non-English languages, highlighting the parameter value language mismatch. 
+
+Model English Chinese Hindi Igbo DeepSeek V3.2 [33] 0.100 0.495 0.400 0.180 GPT-5 [45] 0.135 0.285 0.255 0.200 Llama 3.1-70B [20] 0.140 0.475 0.375 0.310 Qwen3-Next-80B [43] 0.055 0.465 0.360 0.320 Granite 4.0-H-Small [39] 0.040 0.405 0.245 0.190 from the user’s language (e.g., Chinese or Hindi) and violate execution-level conventions. For example, [ 37 ] shows that the error rate in-creases from 13.5% to 28.5% and from 5.5% to 46.5% when transfer-ring the instruction from English to Chinese using GPT5 [ 45 ] and Qwen-Next-80B [ 43 ] as shown in Table 2. This failure mode is called 
+
+parameter value language mismatch : the observation (user query in language L) leads the model to fill parameters with values in L, but the execution environment expects values in a fixed convention (e.g., English). The gap is thus in the observation space —what the agent observes (multilingual natural language) is drawn from a different distribution than what was emphasized in training (often English-centric benchmarks), and the mapping from observation to action (parameter values) must satisfy execution constraints that are not fully reflected in the training distribution. 
+
+## 4 Research Directions 
+
+The MDP formulation above maps naturally to a set of open research directions, organized by the four components of the agent loop (Figure 2). We outline concrete opportunities for each component and close with cross-cutting challenges. 
+
+• Observation ( O): Alignment across languages and modali-ties. The observation gap manifests most acutely in multilingual and multi-modal settings. Multilingual alignment requires training or decoding procedures that enforce parameter-value conventions across languages, so that a date format or unit convention in one lan-guage maps correctly to the same API argument as its counterpart in another. Recent multilingual agent benchmarks [ 23 ] reveal that non-English prompts cause disproportionate performance drops, yet few methods explicitly target the language-execution mismatch The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective KDD ’26, August 3–7, 2026, Washington, DC, USA O
+
+> b
+> s
+> e
+> r
+> v
+> a
+> t
+> i
+> o
+> n
+> (
+> 𝓞
+> )
+> A
+> c
+> t
+> i
+> o
+> n
+> (
+> 𝓐
+> )
+> (
+> 𝓣
+> )
+> T
+> r
+> a
+> n
+> s
+> i
+> t
+> i
+> o
+> n
+> (
+> 𝓡
+> )
+> R
+> e
+> w
+> a
+> r
+> d
+
+𝓜𝓓𝓟    
+
+> Multilingual
+> Alignment
+> Error Decomposition
+> Multi -modal
+> Extension
+> Data Augmentation
+> Delay -aware Policy
+> Distractor
+> Benchmarks
+> Action Shielding
+> Learned Dynamics
+> GAT -style Mappin g
+> Realism Benchmarks
+> Multi -objective
+> Optimization
+> Curriculum
+> Randomization
+> Retry -aware Training
+
+Figure 2: Overview of research directions organized around the MDP loop. Each MDP component is Observation ( O), Ac-tion ( A), Transition ( T ), and Reward ( R). 
+
+at the system level. Multi-modal extension broadens observations from text to vision, audio, and mixed-modality inputs, where sim-to-real benchmarks for vision-language agents and FM-controlled robots remain largely absent. Data augmentation, such as synthe-sizing paraphrases, noisy OCR outputs, or culturally varied tool descriptions, can improve robustness without additional real-world data. Error decomposition protocols that separate semantic misun-derstanding from execution-level formatting errors are essential for diagnosing which part of the observation pipeline fails. 
+
+• Action ( A): Safe and delay-tolerant execution. Real-world tool calls face latency, ambiguity, and risk, none of which are captured by clean-benchmark evaluation. Delay-aware policies must learn to act under variable and sometimes unpredictable tool-response times, a challenge studied extensively in real-time RL for robotics but largely unexplored for FM agents. Action shielding offers a complementary safety layer: recent work such as ShieldA-gent [ 11 ] demonstrates that guardrail agents can intercept unsafe or invalid tool calls before execution through formal verification; adapting such mechanisms to the sim-to-real setting, where the simulated action space may not fully cover real API constraints, is a natural next step. Distractor benchmarks that inject irrelevant or ad-versarial tool options into the action space test whether agents can resist spurious choices, an analog of the distractor objects studied in robotic manipulation. 
+
+• Transition ( T ): Bridging simulated and real tool call. The transition function is where sim-to-real mismatch is often most se-vere: simulated tool calls return clean, deterministic outputs, while real APIs produce timeouts, partial failures, rate-limit errors, and non-deterministic orderings. GAT-style mapping, which adapts grounded action transformation from multi-agent settings to tool-use agents, can learn a correction function that maps simulated tool outcomes to realistic feedback distributions. Realism bench-marks should systematically vary transition fidelity by injecting configurable perturbations such as timeout rates, retry patterns, and partial JSON responses, so that robustness can be measured per perturbation type. Learned dynamics models, including LLM-based or neural surrogates that predict real-world transition distributions from simulation experience, could enable planning under transition uncertainty without costly real-world rollouts. 
+
+• Reward ( R): Robust training under distributional shift. Stan-dard RL objectives for tool-use agents overfit to clean reward sig-nals; when deployed, noisy or delayed rewards cause the largest per-formance drops. Curriculum randomization, which progressively increases the severity of O/A/T /R perturbations during training, has proven effective in robotics sim-to-real transfer and can be directly ported to agent training loops by ramping up API noise or timeout frequency over the course of training. Retry-aware train-ing objectives that explicitly reward recovery behavior, such as successfully completing a task after an initial tool failure, encour-age agents to develop robust fallback strategies rather than failing silently. Multi-objective optimization that jointly maximizes clean-task performance and stress robustness addresses the well-known tension between average-case accuracy and worst-case reliability, ensuring that hardening against perturbations does not degrade nominal performance. 
+
+Cross-cutting challenges. Several questions span all four MDP components. It remains unknown how sim-to-real robustness scales with model size and pretraining diversity, or whether larger mod-els naturally close O/A/T /R gaps without targeted intervention. Shared perturbation libraries, public leaderboards reporting per-gap and combined robustness scores, and reproducibility practices such as fixed seeds, perturbation schedules, and version-controlled tool schemas are needed to reduce community fragmentation. Joint protocols that reflect real-world correlations among gap types, for example, noisy observations co-occurring with delayed transitions, and that balance coverage across languages and tool ecosystems against evaluation cost, represent the most important open bench-marking challenge. 
+
+## 5 Conclusion 
+
+Foundation model agents are rapidly transitioning from curated, failure-safe benchmarks to real-world deployments where inputs, tools, and environments are noisy and shifting. We argue that many of the resulting reliability failures are not fundamentally new but mirror the traditional sim-to-real gap studied in reinforcement learning. Therefore, we propose a unifying MDP-based framework that is structured around observation, action, transition, and re-ward to formalize FM agent robustness and evaluation. We hope this Blue Sky formulation catalyzes a paradigm shift in how the field diagnoses vulnerabilities, designs benchmarks, and ultimately builds reliable, real-world AI systems aligned with KDD’s goals in responsible data science and modern, dependable applications. 
+
+## Acknowledgments 
+
+The work was partially supported by NSF awards #2442477 and #2550203. We thank the Amazon Research Awards, Cisco Faculty Research Awards, and Toyota Faculty Research Awards. The views and conclusions in this paper are those of the authors and should not be interpreted as representing any funding agencies. KDD ’26, August 3–7, 2026, Washington, DC, USA Authors et al. 
+
+## References 
+
+[1] Ammar N Abbas, Shakra Mehak, Georgios C Chasparis, John D Kelleher, Michael Guilfoyle, Maria Chiara Leva, and Aswin K Ramasubramanian. 2024. Safety-driven deep reinforcement learning framework for cobots: A sim2real approach. In 2024 10th International Conference on Control, Decision and Information Tech-nologies (CoDIT) . IEEE, 2917–2923. [2] Mohammed Alshiekh, Roderick Bloem, Rüdiger Ehlers, Bettina Könighofer, Scott Niekum, and Ufuk Topcu. 2018. Safe reinforcement learning via shielding. In 
+
+Proceedings of the AAAI conference on artificial intelligence , Vol. 32. [3] Rika Antonova, Silvia Cruciani, Christian Smith, and Danica Kragic. 2017. Rein-forcement learning for pivoting task. arXiv preprint arXiv:1703.00472 (2017). [4] Babak Badnava, Mona Esmaeili, Nasser Mozayani, and Payman Zarkesh-Ha. 2023. A new potential-based reward shaping for reinforcement learning agent. In 
+
+2023 IEEE 13th Annual Computing and Communication Workshop and Conference (CCWC) . IEEE, 01–06. [5] Marc G Bellemare, Georg Ostrovski, Arthur Guez, Philip Thomas, and Rémi Munos. 2016. Increasing the action gap: New operators for reinforcement learning. In Proceedings of the AAAI conference on artificial intelligence , Vol. 30. [6] Steven Bohez, Tim Verbelen, Elias De Coninck, Bert Vankeirsbilck, Pieter Simoens, and Bart Dhoedt. 2017. Sensor fusion for robot control through deep reinforce-ment learning. In 2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . Ieee, 2365–2370. [7] Konstantinos Bousmalis, Nathan Silberman, David Dohan, Dumitru Erhan, and Dilip Krishnan. 2017. Unsupervised pixel-level domain adaptation with generative adversarial networks. In Proceedings of the IEEE conference on computer vision and pattern recognition . 3722–3731. [8] Tiejin Chen, Pingzhi Li, Kaixiong Zhou, Tianlong Chen, and Hua Wei. 2025. Vision Language Model Helps Private Information De-Identification in Vision Data. In Findings of the Association for Computational Linguistics: ACL 2025 . 4558– 4572. [9] Tiejin Chen, Xiaoou Liu, Vishnu Nandam, Kuan-Ru Liou, and Hua Wei. 2026. Conformal Feedback Alignment: Quantifying Answer-Level Reliability for Robust LLM Alignment. arXiv preprint arXiv:2601.17329 (2026). [10] Zehui Chen, Weihua Du, Wenwei Zhang, Kuikun Liu, Jiangning Liu, Miao Zheng, Jingming Zhuo, Songyang Zhang, Dahua Lin, Kai Chen, et al . 2024. T-eval: Evaluating the tool utilization capability of large language models step by step. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . 9510–9529. [11] Zhaorun Chen, Mintong Kang, and Bo Li. 2025. Shieldagent: Shielding agents via verifiable safety policy reasoning. arXiv preprint arXiv:2503.22738 (2025). [12] Longchao Da, Tiejin Chen, Lu Cheng, and Hua Wei. 2024. Llm uncertainty quantification through directional entailment graph and claim level response augmentation. arXiv preprint arXiv:2407.00994 (2024). [13] Longchao Da, Minquan Gao, Hao Mei, and Hua Wei. 2024. Prompt to transfer: Sim-to-real transfer for traffic signal control with prompt learning. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 38. 82–90. [14] Longchao Da, Hao Mei, Romir Sharma, and Hua Wei. 2023. Uncertainty-aware grounded action transformation towards sim-to-real transfer for traffic signal control. In 2023 62nd IEEE Conference on Decision and Control (CDC) . IEEE, 1124– 1129. [15] Longchao Da, Justin Turnau, Thirulogasankar Pranav Kutralingam, Alvaro Ve-lasquez, Paulo Shakarian, and Hua Wei. 2025. A survey of sim-to-real methods in rl: Progress, prospects and challenges with foundation models. arXiv preprint arXiv:2502.13187 (2025). [16] Siddharth Desai, Ishan Durugkar, Haresh Karnan, Garrett Warnell, Josiah Hanna, and Peter Stone. 2020. An imitation from observation approach to transfer learning with dynamics mismatch. Advances in Neural Information Processing Systems 33 (2020), 3917–3929. [17] Siddharth Desai, Haresh Karnan, Josiah P Hanna, Garrett Warnell, and Peter Stone. 2020. Stochastic grounded action transformation for robot learning in simulation. In 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 6106–6111. [18] Eugene A Feinberg and Adam Shwartz. 2012. Handbook of Markov decision processes: methods and applications . Vol. 40. Springer Science & Business Media. [19] Vlad Firoiu, Tina Ju, and Josh Tenenbaum. 2018. At human speed: Deep rein-forcement learning with action delay. arXiv preprint arXiv:1810.07286 (2018). [20] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al . 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 
+
+(2024). [21] Yihong Guo, Yixuan Wang, Yuanyuan Shi, Pan Xu, and Anqi Liu. 2024. Off-dynamics reinforcement learning via domain adaptation and reward augmented imitation. Advances in Neural Information Processing Systems 37 (2024), 136326– 136360. [22] Josiah Hanna and Peter Stone. 2017. Grounded action transformation for ro-bot learning in simulation. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 31. [23] Omer Hofman, Jonathan Brokman, Oren Rachmil, Shamik Bose, Vikas Pahuja, Toshiya Shimizu, Trisha Starostina, Kelly Marchisio, Seraphina Goldfarb-Tarrant, and Roman Vainshtein. 2025. MAPS: A Multilingual Benchmark for Global Agent Performance and Security. arXiv preprint arXiv:2505.15935 (2025). [24] Xu Huang, Weiwen Liu, Xiaolong Chen, Xingmei Wang, Hao Wang, Defu Lian, Yasheng Wang, Ruiming Tang, and Enhong Chen. 2024. Understanding the planning of llm agents: A survey. arXiv preprint arXiv:2402.02716 (2024). [25] Dongfu Jiang, Yi Lu, Zhuofeng Li, Zhiheng Lyu, Ping Nie, Haozhe Wang, Alex Su, Hui Chen, Kai Zou, Chao Du, et al . 2025. Verltool: Towards holistic agentic reinforcement learning with tool use. arXiv preprint arXiv:2509.01055 (2025). [26] Haresh Karnan, Siddharth Desai, Josiah P Hanna, Garrett Warnell, and Peter Stone. 2020. Reinforced grounded action transformation for sim-to-real transfer. In 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) .IEEE, 4397–4402. [27] Doyoung Kim, Zhiwei Ren, Jie Hao, Zhongkai Sun, Lichao Wang, Xiyao Ma, Zack Ye, Xu Han, Jun Yin, Heng Ji, et al . 2026. Beyond Perfect APIs: A Comprehensive Evaluation of LLM Agents Under Real-World API Complexity. arXiv preprint arXiv:2601.00268 (2026). [28] Jiin Kim, Byeongjun Shin, Jinha Chung, and Minsoo Rhu. 2026. The cost of dynamic reasoning: Demystifying ai agents and test-time scaling from an ai infrastructure perspective. In 2026 IEEE International Symposium on High Perfor-mance Computer Architecture (HPCA) . IEEE, 1–16. [29] Yeseung Kim, Dohyun Kim, Jieun Choi, Jisang Park, Nayoung Oh, and Daehyung Park. 2024. A survey on integration of large language models with intelligent robots. Intelligent Service Robotics 17, 5 (2024), 1091–1107. [30] Guohao Li, Hasan Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem. 2023. Camel: Communicative agents for" mind" exploration of large language model society. Advances in neural information processing systems 36 (2023), 51991–52008. [31] Jianxiong Li, Xiao Hu, Haoran Xu, Jingjing Liu, Xianyuan Zhan, Qing-Shan Jia, and Ya-Qin Zhang. 2023. Mind the gap: Offline policy optimization for imperfect rewards. arXiv preprint arXiv:2302.01667 (2023). [32] Zhilin Lin and Shiliang Sun. 2025. Revealing the Challenges of Sim-to-Real Transfer in Model-Based Reinforcement Learning via Latent Space Modeling. 
+
+arXiv preprint arXiv:2506.12735 (2025). [33] Aixin Liu, Aoxue Mei, Bangcai Lin, Bing Xue, Bingxuan Wang, Bingzheng Xu, Bochao Wu, Bowei Zhang, Chaofan Lin, Chen Dong, et al . 2025. Deepseek-v3. 2: Pushing the frontier of open large language models. arXiv preprint arXiv:2512.02556 (2025). [34] Qianmei Liu, Yufei Kuang, and Jie Wang. 2024. Robust deep reinforcement learn-ing with adaptive adversarial perturbations in action space. In 2024 International Joint Conference on Neural Networks (IJCNN) . IEEE, 1–8. [35] Xiaoou Liu, Tiejin Chen, Longchao Da, Chacha Chen, Zhen Lin, and Hua Wei. 2025. Uncertainty quantification and confidence calibration in large language models: A survey. In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2 . 6107–6117. [36] Yihong Liu, Raoyuan Zhao, Lena Altinger, Hinrich Schütze, and Michael A Hed-derich. 2025. Evaluating Robustness of Large Language Models Against Multilin-gual Typographical Errors. arXiv preprint arXiv:2510.09536 (2025). [37] Zheng Luo, T Pranav Kutralingam, Ogochukwu N Okoani, Wanpeng Xu, Hua Wei, and Xiyang Hu. 2026. Lost in Execution: On the Multilingual Robustness of Tool Calling in Large Language Models. arXiv preprint arXiv:2601.05366 (2026). [38] Bhairav Mehta, Manfred Diaz, Florian Golemo, Christopher J Pal, and Liam Paull. 2020. Active domain randomization. In Conference on Robot Learning . PMLR, 1162–1176. [39] Mayank Mishra, Matt Stallone, Gaoyuan Zhang, Yikang Shen, Aditya Prasad, Adriana Meza Soria, Michele Merler, Parameswaran Selvam, Saptha Surendran, Shivdeep Singh, et al . 2024. Granite code models: A family of open foundation models for code intelligence. arXiv preprint arXiv:2405.04324 (2024). [40] Youngbin Park, Sang Hyoung Lee, and Il Hong Suh. 2021. Sim-to-real visual grasping via state representation learning based on combining pixel-level and feature-level domain adaptation. In 2021 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 6300–6307. [41] Shishir G Patil, Huanzhi Mao, Fanjia Yan, Charlie Cheng-Jie Ji, Vishnu Suresh, Ion Stoica, and Joseph E Gonzalez. 2025. The berkeley function calling leaderboard (bfcl): From tool use to agentic evaluation of large language models. In Forty-second International Conference on Machine Learning .[42] Xue Bin Peng, Marcin Andrychowicz, Wojciech Zaremba, and Pieter Abbeel. 2018. Sim-to-real transfer of robotic control with dynamics randomization. In 2018 IEEE international conference on robotics and automation (ICRA) . IEEE, 3803–3810. [43] QwenTeam. 2025. Qwen3-Next: Towards Ultimate Training & Inference Effi-ciency . https://qwen.ai/blog?id=4074cca80393150c248e508aa62983f9cb7d27cd& from=research.latest-advancements-list [44] Ella Rabinovich and Ateret Anaby Tavor. 2025. On the robustness of agentic function calling. In Proceedings of the 5th Workshop on Trustworthy NLP (TrustNLP 2025) . 298–304. [45] Aaditya Singh, Adam Fry, Adam Perelman, Adam Tart, Adi Ganesh, Ahmed El-Kishky, Aidan McLaughlin, Aiden Low, AJ Ostrow, Akhila Ananthram, et al .The Sim-to-Real Gap of Foundation Model Agents: A Unified MDP Perspective KDD ’26, August 3–7, 2026, Washington, DC, USA 
+
+2025. Openai gpt-5 system card. arXiv preprint arXiv:2601.03267 (2025). [46] Elena Smirnova, Elvis Dohmatob, and Jérémie Mary. 2019. Distributionally robust reinforcement learning. arXiv preprint arXiv:1902.08708 (2019). [47] Kai Liang Tan, Yasaman Esfandiari, Xian Yeow Lee, Soumik Sarkar, et al . 2020. Robustifying reinforcement learning agents via action space adversarial training. In 2020 American control conference (ACC) . IEEE, 3959–3964. [48] Josh Tobin, Rachel Fong, Alex Ray, Jonas Schneider, Wojciech Zaremba, and Pieter Abbeel. 2017. Domain randomization for transferring deep neural networks from simulation to the real world. In 2017 IEEE/RSJ international conference on intelligent robots and systems (IROS) . IEEE, 23–30. [49] Eugene Valassakis, Zihan Ding, and Edward Johns. 2020. Crossing the gap: A deep dive into zero-shot sim-to-real transfer for dynamics. In 2020 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 5372– 5379. [50] Alvaro Velasquez, Brett Bissey, Lior Barak, Andre Beckus, Ismail Alkhouri, Daniel Melcer, and George Atia. 2021. Dynamic automaton-guided reward shaping for monte carlo tree search. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 35. 12015–12023. [51] Sri Vatsa Vuddanti, Aarav Shah, Satwik Kumar Chittiprolu, Tony Song, Sunishchal Dev, Kevin Zhu, and Maheep Chaudhary. 2025. PALADIN: Self-Correcting Lan-guage Model Agents to Cure Tool-Failure Cases. arXiv preprint arXiv:2509.25238 
+
+(2025). [52] Ruipeng Wang, Yuxin Chen, Yukai Wang, Chang Wu, Junfeng Fang, Xiaodong Cai, Qi Gu, Hui Su, An Zhang, Xiang Wang, et al . 2026. AgentNoiseBench: Benchmarking Robustness of Tool-Using LLM Agents Under Noisy Condition. 
+
+arXiv preprint arXiv:2602.11348 (2026). [53] Harley Wiltzer, Marc Bellemare, David Meger, Patrick Shafto, and Yash Jhaveri. 2024. Action gaps and advantages in continuous-time distributional reinforce-ment learning. Advances in Neural Information Processing Systems 37 (2024), 47815–47848. [54] Huaiyuan Yao, Wanpeng Xu, Justin Turnau, Nadia Kellam, and Hua Wei. 2025. Instructional agents: Llm agents on automated course material generation for teaching faculties. arXiv preprint arXiv:2508.19611 (2025). [55] Albert Yu, Adeline Foote, Raymond Mooney, and Roberto Martín-Martín. 2024. Natural language can help bridge the sim2real gap. arXiv preprint arXiv:2405.10020 
+
+(2024). [56] Wenshuai Zhao, Jorge Peña Queralta, and Tomi Westerlund. 2020. Sim-to-real transfer in deep reinforcement learning for robotics: a survey. In 2020 IEEE symposium series on computational intelligence (SSCI) . IEEE, 737–744. [57] Jingwen Zhou, Jieshan Chen, Qinghua Lu, Dehai Zhao, and Liming Zhu. 2025. Shielda: Structured handling of exceptions in llm-driven agentic workflows. arXiv preprint arXiv:2508.07935 (2025). [58] Xiaolin Zhou, Aojie Yuan, Zheng Luo, Zipeng Ling, Xixiao Pan, Yicheng Gao, Haiyue Zhang, Jiate Li, Shuli Jiang, Prince Zizhuang Wang, et al . 2026. When Simulation Lies: A Sim-to-Real Benchmark and Domain-Randomized RL Recipe for Tool-Use Agents. arXiv preprint arXiv:2605.11928 (2026). [59] Kunlun Zhu, Zijia Liu, Bingxuan Li, Muxin Tian, Yingxuan Yang, Jiaxun Zhang, Pengrui Han, Qipeng Xie, Fuyang Cui, Weijia Zhang, et al . 2025. Where llm agents fail and how they can learn from failures. arXiv preprint arXiv:2509.25370 
+
+(2025).
