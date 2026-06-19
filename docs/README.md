@@ -6,71 +6,71 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-18
-- 运行时间：2026-06-18 21:48:46 UTC
+- 最新运行日期：2026-06-19
+- 运行时间：2026-06-19 20:45:17 UTC
 - 运行状态：成功
 - 本次总论文数：17
-- 精读区：6
-- 速读区：11
+- 精读区：7
+- 速读区：10
 
 ### 今日简报（AI）
-今天共推荐17篇机器人论文，精读6篇，重点揭示了触觉反馈与视觉-语言-动作（VLA）模型融合（TacCoRL，9.0分）以及大模型对齐解锁机器人操作基础模型规模扩展（Qwen-RobotManip，9.0分）两大前沿方向。最值得关注这两篇高评分论文，分别从触觉仿真集成和任务对齐角度推动具身智能进步。建议优先精读这两篇，并速读世界动作建模（RepWAM）与触觉策略个性化（TacStyle）等关联工作以拓展视野。
-- 详情：[/202606/18/README](/202606/18/README)
+今日聚焦机器人世界模型与触觉策略前沿，精读两篇高分论文：RepWAM提出视觉-动作分词器实现世界行动建模，TacStyle利用结构化行为表示个性化触觉策略。最值得关注的方向是世界模型的语言条件视频生成与VLA模型的高效微调（仅需少数层）。建议读者优先精读这两篇9.0分论文，并留意Qwen-RobotWorld在统一具身世界建模中的潜力。
+- 详情：[/202606/19/README](/202606/19/README)
 
 ### 精读区论文标签
-1. [TacCoRL: Integrating Tactile Feedback into VLA via Simulation](/202606/18/2606.11743v1-taccorl-integrating-tactile-feedback-into-vla-via-simulation)  
+1. [RepWAM: World Action Modeling with Representation Visual-Action Tokenizers](/202606/19/2606.13674v2-repwam-world-action-modeling-with-representation-visual-action-tokenizers)  
+   标签：评分：9.0/10、query:vla
+   evidence：提出了基于表示视觉-动作分词器的世界动作模型RepWAM
+2. [TacStyle: Personalizing Tactile Robot Policies using Structured Behavior Representations](/202606/19/2606.14862v1-tacstyle-personalizing-tactile-robot-policies-using-structured-behavior-representations)  
    标签：评分：9.0/10、query:tf
-   evidence：通过协同训练和强化学习将触觉反馈注入VLA策略
-2. [Qwen-RobotManip Technical Report: Alignment Unlocks Scale for Robotic Manipulation Foundation Models](/202606/18/2606.17846v2-qwen-robotmanip-technical-report-alignment-unlocks-scale-for-robotic-manipulation-foundation-models)  
+   evidence：使用结构化行为表示个性化触觉机器人策略，整合力与触觉模态
+3. [Inference-time Policy Steering via Vision and Touch](/202606/19/2606.14981v1-inference-time-policy-steering-via-vision-and-touch)  
+   标签：评分：9.0/10、query:tf
+   evidence：提出ViTaL框架，结合视觉与触觉进行推理时策略引导，应对接触丰富操作
+4. [A Bilateral Teleoperation Framework for Dexterous Manipulation](/202606/19/2606.15434v1-a-bilateral-teleoperation-framework-for-dexterous-manipulation)  
+   标签：评分：9.0/10、query:tf
+   evidence：遥操作中的多尺度触觉反馈
+5. [EquiVLA: A General Framework for Rotationally Equivariant Vision-Language-Action Models](/202606/19/2606.19784v1-equivla-a-general-framework-for-rotationally-equivariant-vision-language-action-models)  
    标签：评分：9.0/10、query:vla
-   evidence：面向机器人操作的VLA基础模型
-3. [Object-Centric Residual RL for Zero-Shot Sim-to-Real VLA Enhancement](/202606/18/2606.18953v1-object-centric-residual-rl-for-zero-shot-sim-to-real-vla-enhancement)  
+   evidence：提出旋转等变VLA模型
+6. [EventVLA: Event-Driven Visual Evidence Memory for Long-Horizon Vision-Language-Action Policies](/202606/19/2606.20092v1-eventvla-event-driven-visual-evidence-memory-for-long-horizon-vision-language-action-policies)  
    标签：评分：9.0/10、query:vla
-   evidence：基于物体中心的残差RL增强VLA鲁棒性
-4. [Motion-Focused Latent Action Enables Cross-Embodiment VLA Training from Human EgoVideos](/202606/18/2606.18955v1-motion-focused-latent-action-enables-cross-embodiment-vla-training-from-human-egovideos)  
+   evidence：用于长时程VLA的稀疏视觉证据记忆
+7. [Co-VLA: Coordination-Aware Structured Action Modeling for Dual-Arm Vision-Language-Action Systems](/202606/19/2606.20285v1-co-vla-coordination-aware-structured-action-modeling-for-dual-arm-vision-language-action-systems)  
    标签：评分：9.0/10、query:vla
-   evidence：利用潜在动作框架从人类视频训练VLA模型
-5. [Invertible Neural Network Adapter for One-Step Flow Matching in Robot Manipulation](/202606/18/2606.19194v1-invertible-neural-network-adapter-for-one-step-flow-matching-in-robot-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：结合视觉、语言和本体感觉输入生成机器人动作
-6. [Does VLA Even Know the Basics? Measuring Commonsense and World Knowledge Retention in Vision-Language-Action Models](/202606/18/2606.19297v1-does-vla-even-know-the-basics-measuring-commonsense-and-world-knowledge-retention-in-vision-language-action-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：评估VLA模型中的常识知识保留
+   evidence：针对双臂的具有结构化动作先验的新型VLA模型
 
 ### 速读区论文标签
-1. [RepWAM: World Action Modeling with Representation Visual-Action Tokenizers](/202606/18/2606.13674v2-repwam-world-action-modeling-with-representation-visual-action-tokenizers)  
+1. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/19/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
    标签：评分：8.0/10、query:vla
-   evidence：基于表征视觉-动作分词器的世界动作建模
-2. [TacStyle: Personalizing Tactile Robot Policies using Structured Behavior Representations](/202606/18/2606.14862v1-tacstyle-personalizing-tactile-robot-policies-using-structured-behavior-representations)  
-   标签：评分：8.0/10、query:tf
-   evidence：利用力和触觉反馈个性化机器人策略
-3. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/18/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
+   evidence：语言条件视频世界模型，用于具身智能
+2. [Finetuning Vision-Language-Action Models Requires Fewer Layers Than You Think](/202606/19/2606.20246v1-finetuning-vision-language-action-models-requires-fewer-layers-than-you-think)  
    标签：评分：8.0/10、query:vla
-   evidence：语言条件世界模型用于具身智能，以语言为统一动作接口
-4. [Guava: An Effective and Universal Harness for Embodied Manipulation](/202606/18/2606.18363v1-guava-an-effective-and-universal-harness-for-embodied-manipulation)  
-   标签：评分：8.0/10、query:vla
-   evidence：将LLM与机器人动作空间集成的框架
-5. [$μ_0$: A Scalable 3D Interaction-Trace World Model](/202606/18/2606.13769v2-0-a-scalable-3d-interaction-trace-world-model)  
+   evidence：分析VLA模型层级冗余并提出免训练压缩
+3. [$μ_0$: A Scalable 3D Interaction-Trace World Model](/202606/19/2606.13769v2-0-a-scalable-3d-interaction-trace-world-model)  
    标签：评分：7.0/10、query:vla
-   evidence：无动作标签的可扩展机器人学习世界模型
-6. [VLALeaks: Membership Inference Attacks against Vision-Language-Action Models](/202606/18/2606.15165v1-vlaleaks-membership-inference-attacks-against-vision-language-action-models)  
+   evidence：提出基于3D交互轨迹的可扩展世界模型，与具身智能世界动作模型相关
+4. [Mem-World: Memory-Augmented Action-Conditioned World Models for Persistent Robot Manipulation](/202606/19/2606.18960v1-mem-world-memory-augmented-action-conditioned-world-models-for-persistent-robot-manipulation)  
    标签：评分：7.0/10、query:vla
-   evidence：针对VLA模型的成员推理攻击
-7. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/18/2606.17030v1-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
+   evidence：记忆增强的世界模型用于持久机器人操作
+5. [Mem-World: Memory-Augmented Action-Conditioned World Models for Persistent Robot Manipulation](/202606/19/2606.18960v2-mem-world-memory-augmented-action-conditioned-world-models-for-persistent-robot-manipulation)  
    标签：评分：7.0/10、query:vla
-   evidence：统一具身世界模型与语言条件视频生成
-8. [Benchmarking Action Spaces in Reinforcement Learning for Vision-based Robotic Manipulation](/202606/18/2606.18594v1-benchmarking-action-spaces-in-reinforcement-learning-for-vision-based-robotic-manipulation)  
+   evidence：用于持久操作的动作条件世界模型
+6. [Zero-Shot Long-Horizon Dexterous Manipulation via Multi-View 3D-Grounded VLM Reasoning](/202606/19/2606.19340v1-zero-shot-long-horizon-dexterous-manipulation-via-multi-view-3d-grounded-vlm-reasoning)  
    标签：评分：7.0/10、query:vla
-   evidence：基准测试基于视觉的操作任务的RL动作空间
-9. [Rethinking Implicit Spatial Representation in Visuomotor Policy Learning](/202606/18/2606.15232v1-rethinking-implicit-spatial-representation-in-visuomotor-policy-learning)  
+   evidence：通过多视图3D接地VLM推理实现零样本灵巧操作
+7. [One-to-Two Acting: A Novel Framework for Single-arm Agent Action Expansion to Dual Arms](/202606/19/2606.19897v1-one-to-two-acting-a-novel-framework-for-single-arm-agent-action-expansion-to-dual-arms)  
+   标签：评分：7.0/10、query:vla
+   evidence：使用多模态大语言模型协调动作
+8. [A Scalable Embodied Intelligence Platform for Seamless Real-to-Sim-to-Real Transfer of Household Mobile Manipulation Tasks](/202606/19/2606.18646v1-a-scalable-embodied-intelligence-platform-for-seamless-real-to-sim-to-real-transfer-of-household-mobile-manipulation-tasks)  
    标签：评分：6.0/10、query:vla
-   evidence：重新审视视觉运动策略中的空间表示用于机器人操作
-10. [Learning New Tasks via Reusable Skills: Skill-Compositional Experts for Embodied Continual Learning](/202606/18/2606.15685v1-learning-new-tasks-via-reusable-skills-skill-compositional-experts-for-embodied-continual-learning)  
+   evidence：可扩展的实到仿到实迁移具身智能平台
+9. [ReSiReg: Towards Spatially Consistent Semantics in Language-Conditioned Robotic Tasks](/202606/19/2606.19088v1-resireg-towards-spatially-consistent-semantics-in-language-conditioned-robotic-tasks)  
    标签：评分：6.0/10、query:vla
-   evidence：具身持续学习框架，通过技能组合实现机器人操作
-11. [Decoupled Object-Centric Video Understanding for Generating Robotic Manipulation Commands](/202606/18/2606.16470v1-decoupled-object-centric-video-understanding-for-generating-robotic-manipulation-commands)  
+   evidence：空间一致性的VLM嵌入重建用于语言条件机器人任务
+10. [Frequency-Aware Flow Matching for Continuous and Consistent Robotic Action Generation](/202606/19/2606.20135v1-frequency-aware-flow-matching-for-continuous-and-consistent-robotic-action-generation)  
    标签：评分：6.0/10、query:vla
-   evidence：从视频生成复杂操作指令
+   evidence：频率感知流匹配用于连续机器人动作生成
 
 
 <div class="dpr-home-promo-card">

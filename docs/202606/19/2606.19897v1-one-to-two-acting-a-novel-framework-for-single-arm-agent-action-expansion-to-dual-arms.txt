@@ -1,0 +1,425 @@
+Title: One-to-Two Acting: A Novel Framework for Single-arm Agent Action Expansion to Dual Arms
+
+URL Source: https://arxiv.org/pdf/2606.19897v1
+
+Published Time: Fri, 19 Jun 2026 00:34:35 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# One-to-Two Acting: A Novel Framework for Single-arm Agent Action Expansion to Dual Arms 
+
+Youbin Yao 1,∗, Nieqin Cao 2,∗, Mingyan Li 1, Yan Ding 3, Fuqiang Gu 1, and Chao Chen 1,†
+
+> 1
+
+Chongqing University, Chongqing, China 2Xi’an Jiaotong-Liverpool University, Suzhou, China 3Lumos Roboticss 
+
+cschaochen@cqu.edu.cn 
+
+Abstract —Dual-arm manipulation can improve throughput via parallel execution, but collecting bimanual demonstrations for training is costly and difficult. We present ExS2D (Extending Single-Arm Agent Actions to Dual Arms), a hierarchical action expansion framework that enables dual-arm manipulation from single-arm supervision. ExS2D first generates structured sub-tasks according to textual instructions while explicitly capturing their temporal precedence. Then, ExS2D grounds each subtask into executable actions via subtask-guided action mapping in observation. Finally, precedence-aware action allocation and synchronized planning are then performed by an Multimodal Large Language Model (MLLM) driven coordinator so as to select collision-free dual-arm executions. Simulation experiments demonstrate that ExS2D reduces the average execution steps by 54 .4% , while maintaining a comparable success rate to a single-arm baseline. Real-robot experiments on four tasks further demonstrate the ExS2D’s reliability in terms of dual-arm execution under few-shot single-arm samples, while using zero bimanual demonstrations. 
+
+Index Terms —Embodied Intelligence, Perception for Grasping and Manipulation, Learning from Demonstration 
+
+I. I NTRODUCTION 
+
+Dual-arm manipulators can substantially improve through-put and versatility for tabletop rearrangement [1] by enabling parallel execution and bimanual coordination [2], [3]. How-ever, scaling dual-arm policies remains difficult in practice because collecting high-quality bimanual datasets is costly and many approaches require additional domain engineering or strong assumptions to coordinate two arms reliably [4]–[6]. Worse still, existing dual-arm manipulation policies [5], [7] rely heavily on predefined rigid strategies, lacking flexibility to adapt to real-time changes [8] (e.g., arm malfunctions or task irregularities). In contrast, single-arm agents have matured with abundant single-arm samples supervision, offering low-level actions primitives that are readily reusable. A natural question is whether we can upgrade a capable single-arm agent to dual-arm execution without relying on bi-manual datasets. Many existing methods trained with abundant single-arm data, such as CLIPort [9], while the current single-arm agents are fundamentally designed for sequential single-action generation [2], [10], [11]. This limitation results in efficiency issues when handling rearrangement tasks that can be performed simultaneously by multiple manipulators [12], [13]. The primary reason for such inefficiency is that existing  
+
+> ∗Equal contribution †Corresponding author
+
+single-arm agents do not account for inter-action dependency, spatial relationship, and synchronized coordination between arms. To systematically extend such single-arm oepration to dual-arm execution, we must address three key challenges: (i) Subtask structuring: Long-horizon instructions are un-derspecified, making it difficult to derive a complete and temporally consistent subtask set; (ii) Action grounding: 
+
+Mapping each subtask to precise action primitives requires reliable object grounding under ambiguity; (iii) Dual-arm coordination: Allocating multiple actions across two arms must satisfy precedence constraints while avoiding collisions. In this work, we present ExS2D (Extending Single-arm agent actions to Dual arms), a hierarchical framework that turns single-arm supervision into coordinated dual-arm exe-cution. ExS2D first uses an VL-SubGen (Vision-Language Subtask Generator) to generate a structured subtask sequence. It then grounds each subtask into executable action primitives via SA-Map (Subtask-Guided Action Mapping), which com-bines Vision Language Model (VLM) driven localization and object mask with CLIPort to suppress irrelevant regions and refine action affordances. Finally, a P-DCoord (Precedence-aware Dual-arm Coordinator) reasons over the subtask set, ranks candidate actions with a lightweight motion-cost heuris-tic, and verifies feasibility with synchronized dual-arm motion planning and collision checking before execution. We evaluate ExS2D on both language-conditioned task sim-ulation and real dual-arm experiments with Elephant manipu-lators. In summary, our main contributions are concluded as follows: 1) Hierarchical dual-arm framework. We propose a hierarchical dual-arm framework that decomposes tasks into structured subtasks and explicitly reasons about precedence dependencies for coordinated execution. 2) Efficient and reliable execution. P-DCoord performs precedence-aware, motion-cost-minimizing dual-arm pairing, together with SA-Map ’s mask-guided feasibility checks for robust grounding. 3) Zero bimanual data collection: All dual-arm results in experiments are obtained using no bimanual demonstrations for training. ExS2D reduces average simulation execution steps by 54.4% with comparable success rates. II. RELATED WORK 
+
+A. Single-Arm Manipulation 
+
+Recent work has shown that single-arm manipulation poli-cies can generate executable action sequences by leveraging 
+
+> arXiv:2606.19897v1 [cs.RO] 18 Jun 2026
+
+the commonsense reasoning and contextual understanding of Large Language Mode (LLM)s [14]–[17]. High-level language planning has been combined with reinforcement learning and motion planning to bridge abstract instructions and low-level control [18], while multimodal prompting further improves generalization across manipulation tasks [2]. These approaches demonstrate the versatility and scalability of single-arm agents. However, single-arm policies inherently suffer from effi-ciency limitations in tasks requiring parallel execution, as actions are restricted to sequential operation. Although meth-ods such as LLM+P [15] and CoPAL [10] extend single-arm planning to dual-arm settings, the resulting plans re-main insufficient for simultaneous multi-object manipulation. Moreover, single-arm agents typically rely on pre-trained manipulation skills obtained via imitation learning or base skill priors [19], and systems such as CyberDemo [20] further enhance dexterous control through simulated demonstrations and data augmentation. Given that single-arm agents already possess these transferable skills, directly extending them to dual-arm execution avoids costly dual-arm data collection. 
+
+B. Dual-Arm Manipulation 
+
+Most dual-arm manipulation policies rely on imitation learning with predefined bimanual datasets, whose collection is expensive and challenging. Teleoperation interfaces such as 3D spacemouse [21], VR controllers [22], and haptic devices [23] enable data acquisition but suffer from high cost, latency, or limited usability. Leader–follower systems, includ-ing ALOHA [5] and GELLO [24], provide more intuitive and low-cost alternatives but are largely restricted to static setups, while Mobile ALOHA [25] and exoskeleton-based systems [7] improve environmental coverage at the cost of increased hardware complexity and data-collection effort. Recent LLM-driven approaches, such as Two-Step [26] and LLM+MAP [6], generate partial-order PDDL plans from language and scene descriptions to enable parallel execution, yet lack the fine-grained control needed for precision-critical manipulation. RoCo [27] reduces planning latency via learned motion-cost estimation but remains limited by coarse heuris-tics in tightly constrained workspaces. These methods rely on explicit environment representations or domain-specific descriptions, limiting end-to-end, perception-driven dual-arm manipulation and motivating ExS2D. III. PROBLEM STATEMENT Given a visual observation O, the environment description E
+
+and task instruction L, where O = {o1, . . . , o T } denotes a set of RGB observations. Our goal is to learn a hierarchical dual-arm manipulation policy capable of decomposing the task into structured subtasks, grounding each subtask into executable actions, and allocating these actions to two manipulators in a temporally consistent and collision-free manner. The system first predicts a sequence of subtasks St =
+
+{si}Nt 
+
+> i=1
+
+← πsubtask (ot, e t, l t), where each si denotes an atomic subtask that cannot be further decomposed (e.g., ‘pick the red block into the red bowl”). Let D be the completed set and 
+
+St = { i | Pre( i) ⊆ D } . For each selected subtask si ∈ S t,an action policy πact (ot, s i, l t) → ai = ( T pk i , T pl i ) grounds the subtask into pick–place end-effector poses, which serve as the action primitives, consistent with the scene geometry. We denote the dual-arm allocation policy as πalloc : ai →
+
+arm j , j ∈ { 1, 2}, which assigns each ai to one of the two manipulators. Since the predicted subtask sequence St is often linearized without encoding parallelism, it can over-constrain execution and limit bimanual concurrency. We organize it into a set of levels {L1, . . . , L K } such that 
+
+St =
+
+> K
+
+[
+
+> k=1
+
+Lk, Lk ⊆ S t, Lk ∩ Lk′ = ∅ for k̸ = k′,
+
+where the ready set Lk = { i | si ∈ S t, Pre( i) ⊆ D } , which consists of all indices whose subtasks have all predecessors already completed. Every subtask si ∈ Lk has all its pre-decessors in the preceding levels, i.e., Pre( i) ⊆ S 
+
+> m<k
+
+Lm.Subtasks within the same level Lk can be allocated freely to either arm and executed in parallel, whereas subtasks in later levels only enter once all required predecessors have been finished. The scheduler then seeks the allocation policy that minimizes the motion effort of both arms while satisfying precedence and collision constraints: 
+
+πalloc = arg min 
+
+> πalloc
+
+X
+
+> i∈Lt
+
+Cost( τ (πalloc )) 
+
+s.t. ∀si ∈ Lt, τ (·) ∈ C path ,
+
+(1) where τ (·) denotes the joint trajectory executed by arm j , and 
+
+Cpath is the set of collision-free trajectories. The overall objective is to learn the hierarchical policy 
+
+Π = {πsubtask , π act , π alloc }, (2) which minimizes the cumulative execution cost across the task while respecting the subtask and exploiting dual-arm parallelism whenever feasible. IV. THE E XS2D FRAMEWORK Here, we introduce ExS2D , a framework that enables ex-plicit subtask decomposition and executable action allocation from human instructions in RGB-D observation. Figure 1 shows an overview of the framework, highlighting its key modules and processes. 
+
+A. Vision-Language Subtask Generation 
+
+To learn the πsubtask , ExS2D employs an Multimodal Large Language Model (MLLM) that takes the visual observation ot,environment description et, and task instruction lt as input and produces a structured subtask sequence ˆSt = {ˆs1, . . . , ˆsNt }.This sequence serves as the high-level plan for downstream action grounding and arm allocation. Effective subtask gen-eration requires the model to build precise visual grounding and understand how actions transform the scene. However, generic VLM captioning often omits geometric cues and fine-grained spatial details crucial for manipulation. To strengthen Observation                                                              
+
+> “Gather all the roll and
+> cookware together”
+> Human Instruction
+> Instruction Attention
+> Probability
+> Map
+> Observation
+> Attention Instruction
+> OmProbability
+> Map
+> OWL
+> ViT SAM
+> Cropped Oc
+> “yellow
+> roll”
+> Text Query
+> Prompt
+> Mask
+> v
+> Multi -modal LLM
+> (a) Vsion -Language Subtask Generation
+> (VL -SubGen )
+> Perceptual Groundin gTask Demonstration
+> Tokenizer Vision Encoder Projector
+> <obs desc ><task inst >Please
+> give all stepwise instructions
+> to do .
+> Give abrief description
+> of the given observation .
+> {𝑜 ,𝑒 ,𝑙 }{𝑜 ,𝑒 }
+> <Heuristic Allocation Prompt> :
+> Call the Heuristic_Allocation () and
+> return Sorted_Allocs_List
+> St
+> <Precedence Reasoning Prompt> :
+> Given 𝒐 ,𝒆 .Return the Lk,all
+> subtasks must with completed
+> predecessors …
+> （c)Precedence -aware Dual -arm Coordinator
+> (P -DCoord )
+> (c) P-DCoord (a) VL -SubGen (b) SA -MAP
+> Pick Prob
+> Place Prob
+> (b)Subtask -Guided Action Mapping
+> (SA -Map)
+> Experiment Setup
+> RealSense
+> D455
+> Elephant
+> Manipulators
+> Tpk i+1
+> Tpk i
+> predicted bounding
+> Box[ cx.cy.w,h ]
+> Subtask set:
+> put the blue roll in the sieve.
+> pick sieve in the left pan.
+> put the yellow roll in the sieve.
+> pick the right pan on the left pan.
+> L2L1
+> St
+> e1
+> e2
+> a1
+> a2
+> L2L1
+> SA -Map
+> Step = 1 Step = 2 Step = 3
+> Step = 4 Step = 5 Step = 6
+> Lt
+> L1
+> L2
+
+Fintune            
+
+> Thinking ……
+> Combine 𝒐 and 𝒆 .Must put the rolls
+> then put pan tog ether …
+> Multi -modal LLM
+
+Fig. 1: Framework overview. ExS2D executes hierarchical dual-arm manipulation in three steps: (i) VL-SubGen generates structured St from observations and instructions (Section IV-A); (ii) SA-Map grounds each subtask into action primitives using OWL-ViT and SAM to produce action maps (Section IV-B); (iii) P-DCoord enforces precedence and motion constraints to form {Lk} and select feasible action pairs (Section IV-C). Top: System pipeline. Bottom: Core modules and experiment setup. multimodal alignment, we train the MLLM using two com-plementary caption-based supervision signals, enabling its visual representations to integrate seamlessly with the LLM’s reasoning space and supporting reliable task decomposition. As shown in Figure 1a, the first supervision signal focuses on static spatial understanding. Given a single observation 
+
+ot, the model is trained to generate an informative scene description et that captures objects, attributes, and spatial relations. This encourages the MLLM to internalize scene structure and object layout, providing the perceptual foun-dation needed for subtask reasoning. Formally, the model predicts each token ˆet,k based on previous tokens and visual features W (f = V (ot)) , where V (·) is a frozen vision encoder and W is a projection into the language space: 
+
+ˆet,k = MLLM tuned ({et, 1, . . . , e t,k −1} | [W (f = V (ot))]) .
+
+The corresponding perception loss is: 
+
+Lperc =
+
+KX
+
+k=1 
+
+CELoss(ˆ et,k , e t,k ). (3) The second supervision signal targets dynamic action un-derstanding. We provide demonstration sequences o1: T and supervise the model to infer the induced subtask sequence St,such as identifying which object was moved and how the scene changed. This enables the MLLM to capture temporal depen-dencies and action semantics purely from visual differences. That is, given the task-included multimodal input (ot, e t, l t),the predicted subtask tokens ˆsi are generated autoregressively: 
+
+ˆsi = MLLM tuned ({s1, . . . , s i−1} | [ot, e t, l t]) .
+
+The task decomposition loss is defined as: 
+
+Ltask =
+
+NX
+
+n=1 
+
+CELoss(ˆ si, s i). (4) The total loss L combines the two terms by weight factor λ:
+
+L = λLperc + Ltask . (5) This joint training enables the MLLM to integrate spatial grounding with action-level reasoning, yielding reliable sub-task plans for downstream robotic execution. 
+
+B. Subtask Guided Action Mapping 
+
+The ExS2D implements the action policy πact , which grounds each predicted subtask si into an executable ac-tion ai = (T pk i , T pl i ) consistent with the scene geometry. To achieve this grounding, the module combines a subtask-conditioned vision–language signal with CLIPort. Specifically, given a cropped observation and a textual query, a VLM predicts an object-level bounding box, which is further refined into a segmentation mask via SAM. This mask is then used to guide CLIPort’s attention, producing spatially focused prob-ability maps that highlight task-relevant regions for pick and place, as illustrated in Figure 1b. To train the CLIPort-based action generator πact , we use oracle actions as supervision. Each training sample provides the visual observation ot, the grounded subtask si, and the task instruction lt. The model predicts an action ˆat, which is supervised with an ℓ2 loss: 
+
+Lact = X
+
+t
+
+∥at − ˆat∥2. (6) After training, CLIPort computes the ith pick–place pair action ai from the ot, lt and si:
+
+T pk i = arg max 
+
+(u,v ) Qpick (( u, v ) | ot, l t, s i), (7) 
+
+T pl i = arg max 
+
+∆τ Qplace (∆ τ | ot, T pk i , l t, s i), (8) where Qpick and Qplace are CLIPort’s learned spatial Q-maps, (u, v ) corresponds to a 3D location in the orthographic TABLE I: Performance Comparison of Methods Across Tasks. 
+
+Method Stacking of Blocks in Zone (a) Placement of Blocks in Bowls (b) Finding Horizontal Symmetry Letters (c) Assembling of Kits (d) Macro-Average SR ↑ Step ↓ SR ↑ Step ↓ SR ↑ Step ↓ SR ↑ Step ↓ SR ↑ Step ↓
+
+CLIPort 87.82 7.25 91.25 7.23 80.01 7.01 95.21 7.80 88.57 6.27 
+
+LLM+MAP 43.49 4.12 87.58 3.21 71.25 3.82 78.55 2.58 70.22 3.43 
+
+RoCo 48.02 4.01 88.57 3.25 73.74 3.41 84.78 2.48 73.78 3.29 
+
+ExS2D 85.28 3.11 92.01 3.12 78.89 2.87 93.25 2.35 87.36 2.86 
+
+heightmap ot, and ∆τ ∈ SE (2) denotes a candidate placement transformation. To refine grounding for additional objects referenced in the subtask, we apply a mask-guided visual refinement step. A localized crop Oc around (T pk i , T pl i ) is queried with VLM to obtain a bounding box, which is further processed by SAM to produce a fine-grained object mask. Applying this mask yields a refined observation om, which selectively preserves the geometry of the queried object while suppressing irrelevant scene content. CLIPort is then reapplied on the masked observation to infer the next pick–place action: 
+
+T pk i+1 = arg max  
+
+> (u,v )
+
+Qpick (( u, v ) | om, l t, s i+1 ), (9) 
+
+T pl i+1 = arg max  
+
+> ∆τ
+
+Qplace (∆ τ | om, T pk i+1 , l t, s i+1 ). (10) This mask-guided refinement couples semantic grounding with the spatial precision of CLIPort, enabling πact to robustly localize multiple objects and produce actions for ubtasks. 
+
+C. Precedence-aware Dual-Arm Coordinator 
+
+To realize the allocation policy πalloc , we employ an MLLM-driven allocator, P-DCoord , that reasons over precedence constraints in the predicted St and partitions it into a sequence of {Lk}, with Lk containing all subtasks whose predecessors have been completed as shown in Figure 1c. This precedence inference is conditioned on the e and o, enabling the allo-cator to reason about subtask executability under the current environment. Within a given Lt, subtasks have no temporal constraints and can therefore be executed in parallel at the current step. Each subtask si ∈ Lt is grounded into a concrete action ai by the SA-Map .Since the number of subtasks within a single ready set is typically small, we adopt a greedy-based allocation strategy to assign the resulting actions to the two manipulators. For a sequence of grounded action ai, the coordinator enumerates candidate arm assignments and estimates their execution cost based on the current end-effector poses ek of arm k. The heuristic cost consists of a movement cost ∥ek −T pk i ∥2, which measures the effector to reach the pick pose, and a transfer cost ∥T pk i −T pl i ∥2, which captures the cost from pick to place. These terms together provide a approximation of the execution cost for allocating action ai to arm k. Based on the heuristic cost estimation, P-DCoord narrows the allocation space to a small set of promising dual-arm assignments. For each candidate πalloc , a synchronized RRT* planner generates dual-arm trajectories τ (πalloc ), which are discretized and checked for arm–arm and arm–environment collisions. If all candidates are infeasible, the system falls back to asynchronous execution and replans the allocation after resetting the arm. (e) 
+
+> “pack all the blue and green in
+> the brown box”
+> (g)
+> “Gather all the roll and
+> cookware together”
+> (f)
+> “Place the roll into the bowl
+> and cover it with the lid”
+> (h)
+> “Fold the towel in half”
+> "Stack blocks of the same size
+> on zones of the same color."
+> (a)
+> " Place vertically symmetric
+> letters into the right zone."
+> (c)
+> "Insert each shape into
+> matched hole."
+> (d)
+> “Pack blocks in the
+> matched bowls.”
+> (b)
+> Real -World Simulation
+
+Fig. 2: Language-Conditioned Manipulation Tasks and Setup. We evaluated on four dual-arm simulation tasks (a–d) and four real-world tasks (e–h) on the Elephant manipulator. V. EXPERIMENTS 
+
+A. Experiments Setup 
+
+Task and Environment. We evaluate ExS2D on four language-conditioned simulation tasks from the Raven Bench [9] and four real-world dual-arm tasks, as shwon in Fig 2. Real-world experiments are conducted on two Elephant Pro 630 robots with parallel grippers, using a top-down RealSense D455 camera with downsampled 640 ×480 images. 
+
+Implementation detail. VL-SubGen fine-tunes Qwen2.5-VL-7B with LoRA on the visual and cross-modal projection layers as well as the attention components. In SA-Map , CLIPort [9] is trained for action mapping, while OWL-ViT [28] is adopted as the VLM and a lightweight SAM [29] is used during action generation to produce masks for refined target selection. For the P-DCoord phase, we employ a pretrained Qwen3-VL as an external reasoner to perform online inference over task precedence and candidate action pairs. 
+
+Evaluation Metrics and Baselines. We report Success rate (SR) (0-100, with partial credit for incomplete completion) and Step , the number of dual arms execution iterations; for failed executions, steps are computed using single-arm plans for fair comparison. We additionally report Token Accuracy 
+
+to evaluate the correctness of the generated subtask sequences, and Cost defined as the sum of Euclidean distances between each action target and the current end-effector position. For baselines, we group methods by planning strategy, End-to-End: CLIPort [9], and MLLM-based Planners: PAR [14], 
+
+LLM+MAP [6], and RoCo [27]. 2 3 4 5 6 7 8
+
+> 40
+> 50
+> 60
+> 70
+> 80
+> 90
+> Token Accuracy （%）
+
+The length of subtask sequence 
+
+> VL-SubGen
+> — w/o
+> Lperc
+> — w/o
+> Ltask
+
+Fig. 3: Token accuracy versus subtask sequence length. TABLE II: Ablation Studies 
+
+Component SR ↑ Cost ↓
+
+SA-Map - w/o Mask 70.21 –- w Fixed Mask 78.21 –P-DCoord - w/o Precedence Reasoning 63.09 2.24 - w Fixed Allocation 80.21 3.58 
+
+Full Model Our Method 87.36 2.02 
+
+- w oracle 92.57 -
+
+B. Quantitative Results 
+
+Table I summarizes results on four tasks. Compared to the single-arm baseline CLIPort, ExS2D reduces the average steps by 54.4% with only a 1.22% drop in success rate, demon-strating an efficiency–accuracy trade-off. Against dual-arm planners, ExS2D attains higher success with fewer steps. On task (a) with strong temporal dependencies, precedence-aware allocation yields a clear gain over LLM+MAP and RoCo. Overall, ExS2D balances efficiency and success through joint action generation and subtask dependency reasoning. 
+
+C. Ablation Study 
+
+We conduct ablation experiments to quantify the contribu-tion of each module in ExS2D .
+
+Reasoning robustness of VL-SubGen. As the subtask se-quence length increases in Figure 3, token accuracy consis-tently decreases for all variants. Importantly, the full VL-SubGen remains the most robust across lengths, while re-moving Lperc leads to a larger degradation, and removing Ltask 
+
+results in the steepest drop. This verifies that both Lperc and 
+
+Ltask are necessary to maintain stable reasoning for task. 
+
+Effect of SA-Map masking. As shown in Table II, removing the mask guidance (w/o Mask) causes a clear 17 .15% SR decrease, indicating that the action grounding becomes less reliable without suppressing irrelevant regions. Using a fixed mask (w/ Fixed Mask) partially recovers the performance to 
+
+78 .21% SR, underscoring the importance of adaptive semantic masking for robust grounding. 
+
+Effect of P-DCoord allocation. Without Precedence Reason-ing reduces SR to 63 .09% and raises cost to 2.24 , confirming the importance of dependency-aware coordination. Fixed arm order (w Fixed Allocation) improves SR to 80 .21% but in-creases 1.56 cost, implying that static assignment can complete tasks but sacrifices efficiency due to reduced parallelism. Qwen2VL-2B Qwen2VL-7B Qwen2.5VL-3B Qwen2.5VL-7B 
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Token Accuracy (%)
+> Model Scale
+
+(a) Task a Task b Task c Task d Task e Task f Task g Task h  
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> 120
+> 140
+> 160
+> Time Cost (s)
+> Task
+> Motion
+> P-DCoord
+> VL-SubGen
+
+(b) 
+
+Fig. 4: (a) Token accuracy for different Model scales. (b) Time cost inference over tasks. TABLE III: Real-world task results. 
+
+Task Single-arm Samples (Train/Test) Bimanual Samples SR ↑
+
+e 30 (97) / 5 (21) 0 70 .33 
+
+f 50 (165) / 5 (18) 0 66 .67 
+
+g 40 (114) / 6 (22) 0 42 .24 
+
+h 35 (102) / 8 (24) 0 61 .78 
+
+Overall, our method achieves the best trade-off, and the or-acle setting further boosts SR to 92 .57% , indicating additional headroom mainly comes from improving upstream predictions. 
+
+D. Further Analysis 
+
+Figure 4 reports both model capability and inference effi-ciency. In Figure 4(a), token accuracy increases with model scale; Qwen2.5VL consistently outperforms Qwen2VL, with Qwen2.5VL-7B performing best. In Figure 4(b), inference time is decomposed into Motion, VL-SubGen, and P-DCoord; Motion dominates while the other two add minor but non-negligible overhead, suggesting improved performance. 
+
+E. Real-Robot Experiments 
+
+Table III summarizes the real-robot results on four tasks e–h. 
+
+ExS2D achieves competitive success rates with 60 .51% under few-shot training. Notably, tasks g and h involve temporal dependencies among subtasks (e.g., “place the roll into the bowl” must precede “cover the lid”, and towel folding re-quires corner folds simultaneously). Moreover, task h requires bimanual coordination during folding, yet our framework accomplishes it using only few-shot single-arm demonstrations (image–action pairs), without any bimanual demonstrations or dual-arm datasets. Fig. 5 visualizes representative pick/place affordance predictions conditioned on subtasks, illustrating that ExS2D localizes task-relevant regions and generates exe-cutable actions even with limited data. VI. C ONCLUSION AND LIMITATIONS 
+
+We present ExS2D , a hierarchical dual-arm manipulation framework that decomposes a task into structured subtasks, grounds each subtask into executable pick–place actions, and allocates actions to two arms under precedence and collision constraints. While VL-SubGen produces structured subtasks and SA-Map grounds them into executable actions, the reason-ing over temporal dependencies and execution order is handled “Pack all the blocks                
+
+> in the brown box”
+> “Fold the towel in half” “Gather all the roll and
+> cookware together”
+> “Place the roll into the
+> bowl and cover the lid” Instruction
+> Pic kPlace
+> Action
+> Affordance
+> Pick Plac e
+> Action
+> Affordance
+> “Pack the green blocks in
+> the brown box”
+> “put the blue roll
+> in the sieve ”
+> “cover the lid ”“pinch left corner fold ”
+> Subtask
+> “Pack the green blocks
+> in the brown box”
+> “put the yellow roll
+> in the sieve ”
+> “put the brown roll
+> in the frying pan ”
+> “pinch right corner fold ”Subtask
+
+Fig. 5: The affordance predictions for each real-world task. by P-DCoord , which evaluates candidate action pairs under explicit precedence and motion-planning constraints. Exten-sive simulation and real-robot results demonstrate that ExS2D 
+
+improves execution efficiency while maintaining competitive success, and ablations verify the importance of semantic masking, and precedence reasoning for robustness. Despite these gains, the current system adopts an open-loop execution paradigm based on end-effector abstractions and mainly supports planar pick–place actions, without closed-loop feedback for fine-grained bimanual interaction. Con-sequently, improvements in dexterous manipulation remain limited. Future work will explore closed-loop control with richer dexterous skills and extend to multi-arm scenarios. ACKNOWLEDGMENTS 
+
+This work was supported by the National Natural Science Foundation of China under Grants 62322601 and 62572084, and the Fundamental Research Funds for the Central Univer-sities (No.2024IAIS-QN017, 2025CDJZDGF001). REFERENCES [1] Simon et al., “Reinforcement learning-based scheduling of a job-shop process with distributedly controlled robotic manipulators for transport operations,” IFAC-PapersOnLine , vol. 55, no. 2, pp. 156–162, 2022. [2] Yunfan Jiang, Agrim Gupta, Zichen Zhang, et al., “VIMA: Robot Manipulation with Multimodal Prompts,” in International Conference on Machine Learning, ICML , 2023, vol. 202, pp. 14975–15022. [3] Ziniu Wu, Tianyu Wang, Chuyue Guan, Zhongjie Jia, et al., “Fast-UMI: A Scalable and Hardware-Independent Universal Manipulation Interface,” arXiv e-prints , pp. arXiv–2409, 2024. [4] Junjie Wen, Zhu, et al., “TinyVLA: Toward Fast, Data-Efficient Vision-Language-Action Models for Robotic Manipulation,” IEEE Robotics and Automation Letters (RAL) , vol. 10, no. 4, pp. 3988–3995, 2025. [5] Tony Z. Zhao, Vikash Kumar, Sergey Levine, and Chelsea Finn, “Learn-ing Fine-Grained Bimanual Manipulation with Low-Cost Hardware,” in 
+
+Proceedings of Robotics: Science and Systems (RSS) , 2023. [6] Kun Chu, Xufeng Zhao, Cornelius Weber, and Stefan Wermter, “LLM+MAP: Bimanual Robot Task Planning using Large Language Models and Planning Domain Definition Language,” ArXiv , vol. abs/2503.17309, 2025. [7] Purushottam et al., “Dynamic Mobile Manipulation via Whole-body Bilateral Teleoperation of a Wheeled Humanoid,” IEEE Robotics and Automation Letters (RAL) , vol. 9, no. 2, pp. 1214–1221, 2024. [8] Taowen Wang, Cheng Han, James Liang, Wenhao Yang, Dongfang Liu, Luna Xinyu Zhang, Qifan Wang, Jiebo Luo, and Ruixiang Tang, “Exploring the Adversarial Vulnerabilities of Vision-Language-Action Models in Robotics,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2025, pp. 6948–6958. [9] Mohit Shridhar, Lucas Manuelli, et al., “CLIPort: What and Where Path-ways for Robotic Manipulation,” in Proceedings of the 5th Conference on Robot Learning, CoRL . 2022, vol. 164, pp. 894–906, PMLR. [10] Frank Joublin, Antonello Ceravola, Pavel Smirnov, et al., “CoPAL: Corrective Planning of Robot Actions with Large Language Models,” in 2024 IEEE International Conference on Robotics and Automation, ICRA . May 2024, pp. 8664—-8670, IEEE. [11] Heng Su, Mengying Xie, Nieqing Cao, et al., “OVA-Fields: Weakly Su-pervised Open-vocabulary Affordance Fields for Robot Operational Part Detection,” in Proceedings of the IEEE/CVF International Conference on Computer Vision, ICCV , 2025, pp. 6385–6395. [12] Wenhao Li, Shishun Zhang, Sisi Dai, Hui Huang, Ruizhen Hu, Xiaohong Chen, and Kai Xu, “Synchronized Dual-arm Rearrangement via Coop-erative mTSP,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , 2024, pp. 9242–9248. [13] Shishun Zhang, Qijin She, et al., “Learning Dual-arm Object Rearrange-ment for Cartesian Robots,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , 2024, pp. 7440–7446. [14] Shengqiang Zhang, Philipp Wicke, L¨ utfi Kerem Senel, Luis F. C. Figueredo, Abdeldjallil Naceri, Sami Haddadin, Barbara Plank, and Hinrich Sch¨ utze, “LoHoRavens: A Long-Horizon Language-Conditioned Benchmark for Robotic Tabletop Manipulation,” ArXiv ,vol. abs/2310.12020, 2023. [15] Bo Liu, Yuqian Jiang, Xiaohan Zhang, et al., “LLM+P: Empowering Large Language Models with Optimal Planning proficiency,” arXiv preprint arXiv:2304.11477 , 2023. [16] Yuyang Tu, Yunlong Wang, Hui Zhang, et al., “Language-Embedded 6D Pose Estimation for Tool Manipulation,” IEEE Robotics and Automation Letters (RAL) , vol. 10, no. 9, pp. 8618–8625, 2025. [17] Kui Yang, Nieqing Cao, et al., “BestMan: A Modular Mobile Manipula-tor Platform for Embodied AI with Unified Simulation-hardware APIs,” 
+
+Frontiers of Computer Science , vol. 19, no. 9, pp. 199361, 2025. [18] Changyu Liu, Yiyang Liu, Taowen Wang, et al., “On-the-Fly VLA Adaptation via Test-Time Reinforcement Learning,” arXiv preprint arXiv:2601.06748 , 2026. [19] Hongkuan Zhou et al., “Language-Conditioned Imitation Learning With Base Skill Priors Under Unstructured Data,” IEEE Robotics and Automation Letters (RAL) , vol. 9, no. 11, pp. 9805–9812, 2024. [20] Jun Wang et al., “CyberDemo: Augmenting Simulated Human Demon-stration for Real-World Dexterous Manipulation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2024, pp. 17952–17963. [21] Cheng Chi, Siyuan Feng, Yilun Du, Zhenjia Xu, Eric Cousineau, Benjamin Burchfiel, and Shuran Song, “Diffusion Policy: Visuomotor Policy Learning via Action Diffusion,” in Proceedings of Robotics: Science and Systems (RSS) , 2023. [22] Eric Jang, Irpan, et al., “BC-Z: Zero-Shot Task Generalization with Robotic Imitation Learning,” in Proceedings of the 5th Conference on Robot Learning . 08–11 Nov 2022, vol. 164 of Proceedings of Machine Learning Research (PMLR) , pp. 991–1002, PMLR. [23] Kenneth Shaw, Shikhar Bahl, and Deepak Pathak, “VideoDex: Learning Dexterity from Internet Videos,” in Proceedings of The 6th Conference on Robot Learning . 14–18 Dec 2023, vol. 205 of Proceedings of Machine Learning Research (PMLR) , pp. 654–665, PMLR. [24] Philipp Wu, Yide Shentu, Zhongke Yi, et al., “GELLO: A General, Low-Cost, and Intuitive Teleoperation Framework for Robot Manipulators,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2024, pp. 12156–12163. [25] Zipeng Fu, Tony Z. Zhao, and Chelsea Finn, “Mobile ALOHA: Learning Bimanual Mobile Manipulation with Low-Cost Whole-Body Teleoperation,” in Conference on Robot Learning (CoRL) , 2024. [26] David Bai, Ishika Singh, David Traum, and Jesse Thomason, “Twostep: Multi-agent Task Planning using Classical Planners and Large Language Models,” arXiv preprint arXiv:2403.17246 , 2024. [27] Mandi et al., “RoCo: Dialectic Multi-Robot Collaboration with Large Language Models,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , 2024, pp. 286–299. [28] Georg Heigold, Matthias Minderer, Gritsenko, et al., “Video OWL-ViT: Temporally-consistent Open-world Localization in Video,” in 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , October 2023, pp. 13802–13811. [29] Alexander Kirillov, Eric Mintun, Nikhila Ravi, et al., “Segment Anything,” in Proceedings of the IEEE/CVF international conference on computer vision (ICCV) , 2023, pp. 4015–4026.
