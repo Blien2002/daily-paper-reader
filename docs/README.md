@@ -6,71 +6,53 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-19
-- 运行时间：2026-06-19 20:45:17 UTC
+- 最新运行日期：2026-06-20
+- 运行时间：2026-06-20 21:34:30 UTC
 - 运行状态：成功
-- 本次总论文数：17
-- 精读区：7
-- 速读区：10
+- 本次总论文数：11
+- 精读区：6
+- 速读区：5
 
 ### 今日简报（AI）
-今日聚焦机器人世界模型与触觉策略前沿，精读两篇高分论文：RepWAM提出视觉-动作分词器实现世界行动建模，TacStyle利用结构化行为表示个性化触觉策略。最值得关注的方向是世界模型的语言条件视频生成与VLA模型的高效微调（仅需少数层）。建议读者优先精读这两篇9.0分论文，并留意Qwen-RobotWorld在统一具身世界建模中的潜力。
-- 详情：[/202606/19/README](/202606/19/README)
+今日精读6篇，聚焦视觉触觉引导的策略推理与语言条件视频生成的具身世界模型，速读关注机器人触觉策略个性化与数据清洗。最值得看《Inference-time Policy Steering via Vision and Touch》与《Qwen-RobotWorld Technical Report》，分别揭示了多模态推理时调控与统一具身建模的新范式。建议优先精读这两篇9分论文，再速读《TacStyle》了解触觉策略个性化，形成感知-控制闭环理解。
+- 详情：[/202606/20/README](/202606/20/README)
 
 ### 精读区论文标签
-1. [RepWAM: World Action Modeling with Representation Visual-Action Tokenizers](/202606/19/2606.13674v2-repwam-world-action-modeling-with-representation-visual-action-tokenizers)  
-   标签：评分：9.0/10、query:vla
-   evidence：提出了基于表示视觉-动作分词器的世界动作模型RepWAM
-2. [TacStyle: Personalizing Tactile Robot Policies using Structured Behavior Representations](/202606/19/2606.14862v1-tacstyle-personalizing-tactile-robot-policies-using-structured-behavior-representations)  
+1. [Inference-time Policy Steering via Vision and Touch](/202606/20/2606.14981v1-inference-time-policy-steering-via-vision-and-touch)  
    标签：评分：9.0/10、query:tf
-   evidence：使用结构化行为表示个性化触觉机器人策略，整合力与触觉模态
-3. [Inference-time Policy Steering via Vision and Touch](/202606/19/2606.14981v1-inference-time-policy-steering-via-vision-and-touch)  
-   标签：评分：9.0/10、query:tf
-   evidence：提出ViTaL框架，结合视觉与触觉进行推理时策略引导，应对接触丰富操作
-4. [A Bilateral Teleoperation Framework for Dexterous Manipulation](/202606/19/2606.15434v1-a-bilateral-teleoperation-framework-for-dexterous-manipulation)  
-   标签：评分：9.0/10、query:tf
-   evidence：遥操作中的多尺度触觉反馈
-5. [EquiVLA: A General Framework for Rotationally Equivariant Vision-Language-Action Models](/202606/19/2606.19784v1-equivla-a-general-framework-for-rotationally-equivariant-vision-language-action-models)  
+   evidence：视觉-触觉推理时策略引导框架，用于接触丰富的操作任务
+2. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/20/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
    标签：评分：9.0/10、query:vla
-   evidence：提出旋转等变VLA模型
-6. [EventVLA: Event-Driven Visual Evidence Memory for Long-Horizon Vision-Language-Action Policies](/202606/19/2606.20092v1-eventvla-event-driven-visual-evidence-memory-for-long-horizon-vision-language-action-policies)  
+   evidence：语言条件视频世界模型用于具身智能
+3. [ACE-Ego-0: Unifying Egocentric Human and Robotic Data for VLA Pretraining](/202606/20/2606.17200v1-ace-ego-0-unifying-egocentric-human-and-robotic-data-for-vla-pretraining)  
    标签：评分：9.0/10、query:vla
-   evidence：用于长时程VLA的稀疏视觉证据记忆
-7. [Co-VLA: Coordination-Aware Structured Action Modeling for Dual-Arm Vision-Language-Action Systems](/202606/19/2606.20285v1-co-vla-coordination-aware-structured-action-modeling-for-dual-arm-vision-language-action-systems)  
+   evidence：统一人类与机器人数据用于VLA预训练
+4. [MuseVLA: An Adaptive Multimodal Sensing Vision-Language-Action Model for Robotic Manipulation](/202606/20/2606.17598v1-musevla-an-adaptive-multimodal-sensing-vision-language-action-model-for-robotic-manipulation)  
    标签：评分：9.0/10、query:vla
-   evidence：针对双臂的具有结构化动作先验的新型VLA模型
+   evidence：自适应多模态感知的VLA机器人操作模型
+5. [Zero-Shot Long-Horizon Dexterous Manipulation via Multi-View 3D-Grounded VLM Reasoning](/202606/20/2606.19340v1-zero-shot-long-horizon-dexterous-manipulation-via-multi-view-3d-grounded-vlm-reasoning)  
+   标签：评分：9.0/10、query:vla
+   evidence：利用多视图3D接地VLM推理实现零样本长周期灵巧操作
+6. [MemoryWAM: Efficient World Action Modeling with Persistent Memory](/202606/20/2606.20562v1-memorywam-efficient-world-action-modeling-with-persistent-memory)  
+   标签：评分：9.0/10、query:vla
+   evidence：带持久记忆的世界动作模型用于机器人操作
 
 ### 速读区论文标签
-1. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/19/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
+1. [TacStyle: Personalizing Tactile Robot Policies using Structured Behavior Representations](/202606/20/2606.14862v1-tacstyle-personalizing-tactile-robot-policies-using-structured-behavior-representations)  
+   标签：评分：8.0/10、query:tf
+   evidence：触觉机器人策略个性化
+2. [ATHENA: Accelerated Multi-Task Heterogeneous Influence Functions for Robot Data Curation](/202606/20/2606.16208v1-athena-accelerated-multi-task-heterogeneous-influence-functions-for-robot-data-curation)  
    标签：评分：8.0/10、query:vla
-   evidence：语言条件视频世界模型，用于具身智能
-2. [Finetuning Vision-Language-Action Models Requires Fewer Layers Than You Think](/202606/19/2606.20246v1-finetuning-vision-language-action-models-requires-fewer-layers-than-you-think)  
-   标签：评分：8.0/10、query:vla
-   evidence：分析VLA模型层级冗余并提出免训练压缩
-3. [$μ_0$: A Scalable 3D Interaction-Trace World Model](/202606/19/2606.13769v2-0-a-scalable-3d-interaction-trace-world-model)  
+   evidence：面向VLA数据筛选的影响函数框架
+3. [A Bilateral Teleoperation Framework for Dexterous Manipulation](/202606/20/2606.15434v1-a-bilateral-teleoperation-framework-for-dexterous-manipulation)  
+   标签：评分：7.0/10、query:tf
+   evidence：双边遥操作与力觉反馈
+4. [Perfect Demo Makes Poor Teacher: Learning Robust Alignment from Critical Motion Segments](/202606/20/2606.15587v1-perfect-demo-makes-poor-teacher-learning-robust-alignment-from-critical-motion-segments)  
    标签：评分：7.0/10、query:vla
-   evidence：提出基于3D交互轨迹的可扩展世界模型，与具身智能世界动作模型相关
-4. [Mem-World: Memory-Augmented Action-Conditioned World Models for Persistent Robot Manipulation](/202606/19/2606.18960v1-mem-world-memory-augmented-action-conditioned-world-models-for-persistent-robot-manipulation)  
-   标签：评分：7.0/10、query:vla
-   evidence：记忆增强的世界模型用于持久机器人操作
-5. [Mem-World: Memory-Augmented Action-Conditioned World Models for Persistent Robot Manipulation](/202606/19/2606.18960v2-mem-world-memory-augmented-action-conditioned-world-models-for-persistent-robot-manipulation)  
-   标签：评分：7.0/10、query:vla
-   evidence：用于持久操作的动作条件世界模型
-6. [Zero-Shot Long-Horizon Dexterous Manipulation via Multi-View 3D-Grounded VLM Reasoning](/202606/19/2606.19340v1-zero-shot-long-horizon-dexterous-manipulation-via-multi-view-3d-grounded-vlm-reasoning)  
-   标签：评分：7.0/10、query:vla
-   evidence：通过多视图3D接地VLM推理实现零样本灵巧操作
-7. [One-to-Two Acting: A Novel Framework for Single-arm Agent Action Expansion to Dual Arms](/202606/19/2606.19897v1-one-to-two-acting-a-novel-framework-for-single-arm-agent-action-expansion-to-dual-arms)  
-   标签：评分：7.0/10、query:vla
-   evidence：使用多模态大语言模型协调动作
-8. [A Scalable Embodied Intelligence Platform for Seamless Real-to-Sim-to-Real Transfer of Household Mobile Manipulation Tasks](/202606/19/2606.18646v1-a-scalable-embodied-intelligence-platform-for-seamless-real-to-sim-to-real-transfer-of-household-mobile-manipulation-tasks)  
+   evidence：聚焦关键运动片段的复杂操作端到端学习
+5. [Mem-World: Memory-Augmented Action-Conditioned World Models for Persistent Robot Manipulation](/202606/20/2606.18960v1-mem-world-memory-augmented-action-conditioned-world-models-for-persistent-robot-manipulation)  
    标签：评分：6.0/10、query:vla
-   evidence：可扩展的实到仿到实迁移具身智能平台
-9. [ReSiReg: Towards Spatially Consistent Semantics in Language-Conditioned Robotic Tasks](/202606/19/2606.19088v1-resireg-towards-spatially-consistent-semantics-in-language-conditioned-robotic-tasks)  
-   标签：评分：6.0/10、query:vla
-   evidence：空间一致性的VLM嵌入重建用于语言条件机器人任务
-10. [Frequency-Aware Flow Matching for Continuous and Consistent Robotic Action Generation](/202606/19/2606.20135v1-frequency-aware-flow-matching-for-continuous-and-consistent-robotic-action-generation)  
-   标签：评分：6.0/10、query:vla
-   evidence：频率感知流匹配用于连续机器人动作生成
+   evidence：记忆增强的动作条件世界模型，用于持久机器人操作
 
 
 <div class="dpr-home-promo-card">
