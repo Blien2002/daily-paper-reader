@@ -6,53 +6,56 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-20
-- 运行时间：2026-06-20 21:34:30 UTC
+- 最新运行日期：2026-06-21
+- 运行时间：2026-06-21 21:09:59 UTC
 - 运行状态：成功
-- 本次总论文数：11
+- 本次总论文数：12
 - 精读区：6
-- 速读区：5
+- 速读区：6
 
 ### 今日简报（AI）
-今日精读6篇，聚焦视觉触觉引导的策略推理与语言条件视频生成的具身世界模型，速读关注机器人触觉策略个性化与数据清洗。最值得看《Inference-time Policy Steering via Vision and Touch》与《Qwen-RobotWorld Technical Report》，分别揭示了多模态推理时调控与统一具身建模的新范式。建议优先精读这两篇9分论文，再速读《TacStyle》了解触觉策略个性化，形成感知-控制闭环理解。
-- 详情：[/202606/20/README](/202606/20/README)
+今日收录12篇文章，精读6篇，重点聚焦触觉灵巧操作与具身智能。最值得关注的是满分论文《T-Rex》的触觉反应灵巧操作，以及《Learned Image Compression for VLA》的高效视觉压缩思路。建议优先精读这两篇，深入理解触觉感知与VLA系统优化的最新进展。
+- 详情：[/202606/21/README](/202606/21/README)
 
 ### 精读区论文标签
-1. [Inference-time Policy Steering via Vision and Touch](/202606/20/2606.14981v1-inference-time-policy-steering-via-vision-and-touch)  
-   标签：评分：9.0/10、query:tf
-   evidence：视觉-触觉推理时策略引导框架，用于接触丰富的操作任务
-2. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/20/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
+1. [T-Rex: Tactile-Reactive Dexterous Manipulation](/202606/21/2606.17055v1-t-rex-tactile-reactive-dexterous-manipulation)  
+   标签：评分：10.0/10、query:tf
+   evidence：将触觉模态集成到VLA模型的触觉反应式灵巧操作
+2. [Learned Image Compression for Vision-Language-Action Models](/202606/21/2606.16253v1-learned-image-compression-for-vision-language-action-models)  
    标签：评分：9.0/10、query:vla
-   evidence：语言条件视频世界模型用于具身智能
-3. [ACE-Ego-0: Unifying Egocentric Human and Robotic Data for VLA Pretraining](/202606/20/2606.17200v1-ace-ego-0-unifying-egocentric-human-and-robotic-data-for-vla-pretraining)  
+   evidence：面向VLA模型的学习型图像压缩
+3. [ROVE: Unlocking Human Interventions for Humanoid Manipulation via Reinforcement Learning](/202606/21/2606.17011v1-rove-unlocking-human-interventions-for-humanoid-manipulation-via-reinforcement-learning)  
    标签：评分：9.0/10、query:vla
-   evidence：统一人类与机器人数据用于VLA预训练
-4. [MuseVLA: An Adaptive Multimodal Sensing Vision-Language-Action Model for Robotic Manipulation](/202606/20/2606.17598v1-musevla-an-adaptive-multimodal-sensing-vision-language-action-model-for-robotic-manipulation)  
+   evidence：使用强化学习通过人类干预对类人VLA模型进行后训练
+4. [DREAM-Chunk: Reactive Action Chunking with Latent World Model](/202606/21/2606.18589v1-dream-chunk-reactive-action-chunking-with-latent-world-model)  
    标签：评分：9.0/10、query:vla
-   evidence：自适应多模态感知的VLA机器人操作模型
-5. [Zero-Shot Long-Horizon Dexterous Manipulation via Multi-View 3D-Grounded VLM Reasoning](/202606/20/2606.19340v1-zero-shot-long-horizon-dexterous-manipulation-via-multi-view-3d-grounded-vlm-reasoning)  
-   标签：评分：9.0/10、query:vla
-   evidence：利用多视图3D接地VLM推理实现零样本长周期灵巧操作
-6. [MemoryWAM: Efficient World Action Modeling with Persistent Memory](/202606/20/2606.20562v1-memorywam-efficient-world-action-modeling-with-persistent-memory)  
-   标签：评分：9.0/10、query:vla
-   evidence：带持久记忆的世界动作模型用于机器人操作
+   evidence：基于潜在世界模型的反应式动作分块方法
+5. [SC3-Eval: Evaluating Robot Foundation Models via Self-Consistent Video Generation](/202606/21/2606.18610v1-sc3-eval-evaluating-robot-foundation-models-via-self-consistent-video-generation)  
+   标签：评分：8.0/10、query:vla
+   evidence：通过视频生成评估机器人基础模型
+6. [MemoryWAM: Efficient World Action Modeling with Persistent Memory](/202606/21/2606.20562v1-memorywam-efficient-world-action-modeling-with-persistent-memory)  
+   标签：评分：8.0/10、query:vla
+   evidence：世界动作模型作为操作基础模型
 
 ### 速读区论文标签
-1. [TacStyle: Personalizing Tactile Robot Policies using Structured Behavior Representations](/202606/20/2606.14862v1-tacstyle-personalizing-tactile-robot-policies-using-structured-behavior-representations)  
-   标签：评分：8.0/10、query:tf
-   evidence：触觉机器人策略个性化
-2. [ATHENA: Accelerated Multi-Task Heterogeneous Influence Functions for Robot Data Curation](/202606/20/2606.16208v1-athena-accelerated-multi-task-heterogeneous-influence-functions-for-robot-data-curation)  
-   标签：评分：8.0/10、query:vla
-   evidence：面向VLA数据筛选的影响函数框架
-3. [A Bilateral Teleoperation Framework for Dexterous Manipulation](/202606/20/2606.15434v1-a-bilateral-teleoperation-framework-for-dexterous-manipulation)  
+1. [A Bilateral Teleoperation Framework for Dexterous Manipulation](/202606/21/2606.15434v1-a-bilateral-teleoperation-framework-for-dexterous-manipulation)  
    标签：评分：7.0/10、query:tf
-   evidence：双边遥操作与力觉反馈
-4. [Perfect Demo Makes Poor Teacher: Learning Robust Alignment from Critical Motion Segments](/202606/20/2606.15587v1-perfect-demo-makes-poor-teacher-learning-robust-alignment-from-critical-motion-segments)  
+   evidence：双边遥操作与多尺度触觉反馈
+2. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/21/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
    标签：评分：7.0/10、query:vla
-   evidence：聚焦关键运动片段的复杂操作端到端学习
-5. [Mem-World: Memory-Augmented Action-Conditioned World Models for Persistent Robot Manipulation](/202606/20/2606.18960v1-mem-world-memory-augmented-action-conditioned-world-models-for-persistent-robot-manipulation)  
+   evidence：面向具身智能的语言条件视频世界模型
+3. [VL2Spike: Spike-driven Distillation from VLMs for Low-Power Visual Perception in Embodied AI](/202606/21/2606.15898v1-vl2spike-spike-driven-distillation-from-vlms-for-low-power-visual-perception-in-embodied-ai)  
    标签：评分：6.0/10、query:vla
-   evidence：记忆增强的动作条件世界模型，用于持久机器人操作
+   evidence：从VLM进行脉冲驱动蒸馏用于具身AI低功耗视觉感知
+4. [ERQA-Plus: A Diagnostic Benchmark for Reasoning in Embodied AI](/202606/21/2606.17639v1-erqa-plus-a-diagnostic-benchmark-for-reasoning-in-embodied-ai)  
+   标签：评分：6.0/10、query:vla
+   evidence：具身AI推理诊断基准
+5. [ERQA-Plus: A Diagnostic Benchmark for Reasoning in Embodied AI](/202606/21/2606.17639v2-erqa-plus-a-diagnostic-benchmark-for-reasoning-in-embodied-ai)  
+   标签：评分：6.0/10、query:vla
+   evidence：具身AI推理诊断基准
+6. [Temporal Self-Imitation Learning](/202606/21/2606.19752v1-temporal-self-imitation-learning)  
+   标签：评分：6.0/10、query:vla
+   evidence：面向高效机器人操作的时间自模仿学习
 
 
 <div class="dpr-home-promo-card">
