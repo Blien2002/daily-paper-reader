@@ -1,0 +1,305 @@
+Title: GeoTLM: Geometry-aware Tactile-Language Models for Contact Motion Orientation Reasoning of Dynamic Objects
+
+URL Source: https://arxiv.org/pdf/2606.15909v1
+
+Published Time: Tue, 16 Jun 2026 01:43:22 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+> JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 1
+
+# GeoTLM: Geometry-aware Tactile-Language Models for Contact Motion Orientation Reasoning of Dynamic Objects 
+
+Qiutian Li, Zinan Liu, and Lin Wang † Member, IEEE 
+
+Abstract —Modern tactile-language models (TLMs) have shown potential for robot learning tasks, such as material and texture recognition. However, for contact-rich scenarios, these TLMs struggle to understand the physical properties of dynamic objects, such as rotation and sliding directions. For instance, our prelimi-nary experiments reveal that popular TLMs, such as Sparsh and AnyTouch2, exhibit weak performance on basic rotation direction reasoning from GelSight Mini tactile data. This surprising gap inspires us to explore a novel research question: Can we inject physically grounded geometric priors into TLMs to enable reliable contact orientation reasoning of dynamic object properties? To this end, we propose GeoTLM, a novel geometric representation-guided TLM for the perception of dynamic contact events. Our key idea is to preserve and structure tactile shear-field geometry before language-level reasoning, rather than forcing low-resolution tactile tokens into fragile closed-form physics operators . To achieve this, we propose a lightweight (only 14k parameters) yet novel Differentiable Geometric Represen-tation (DGR). Specifically, DGR learns a contact-mask-guided representation in the shear field and aggregates it through an antisymmetric seven-region pooling design, motivated by the physical intuition that rotational contact produces antisymmetric deformation patterns. We conduct experiments on two represen-tative tasks: rotation direction and sliding direction reasoning. Extensive experiments show that GeoTLM improves novel-object rotation accuracy by +14.6% and real-sensor sliding accuracy by +16.2% over the same backbone without the geometric encoder. Obviously, GeoTLM benefits from preserving raw geometric shear structures for language-level recombination. Overall, our work paves a new way for physically grounded tactile-language reasoning, with strong potential for dynamic object understand-ing and contact-rich robotic manipulation. 
+
+Index Terms —Tactile-Language Models, Geometric Prior, Physics-informed Learning, Vision-based Tactile Sensor 
+
+I. I NTRODUCTION 
+
+Modern tactile-language models (TLMs) [1]–[3] hold strong potential for robotic manipulation by bridging contact-rich tac-tile perception with semantic reasoning. In real-world manip-ulation, robots must continuously interpret dynamic physical events from tactile signals in real time. Tightening a bottle cap requires identifying rotation direction at each step, peg insertion demands early detection of incipient slip, and safe grasping relies on estimating contact force before the object is crushed. These requirements go beyond static texture or contact recognition, calling for models that can understand evolving physical properties such as rotation direction, sliding direction, and applied force. TLMs have recently emerged as  
+
+> †Corresponding author. Qiutian Li, Zinan Liu and Lin Wang are with the School of EEE, Nanyang Technological University (NTU), Singapore (email: qiutian001@e.ntu.edu.sg; zinan001@e.ntu.edu.sg; linwang@ntu.edu.sg).
+
+a promising interface for this goal, as their language heads can connect tactile perception with downstream task reasoning, tool use, and human instructions [1], [4]. Despite this promise, current TLMs remain surprisingly limited in contact-rich dynamic reasoning. The dominant recipe in tactile perception is to pretrain a large encoder on hundreds of thousands to millions of tactile frames and then either probe the representation or attach a language head [5], [6]. This paradigm performs well under standard distribution evaluation. However, our preliminary experiments (see Tab. I) expose a striking weakness on a deceptively simple physical reasoning task. Classifying a single GelSight Mini contact [7] as clockwise or counterclockwise rotation, large tactile and vision backbones probed under a frozen protocol stay close to chance ( ∼ 50% ), even though the same backbones perform well on in-distribution recognition. The signal needed to separate the two rotation directions is present in the contact, but the pretrained representation does not expose it in a form a classifier can read. We interpret this gap as a failure of inductive bias rather than capacity: an 87 M-parameter tactile encoder and larger vision backbones alike miss a geometric signal that a compact, structured model can exploit. Rotational contact between an elastomer pad and a rigid object produces a characteristic antisymmetric shear pattern, and the cue for chirality lies in this local geometric structure. Generic V-JEPA and con-trastive pretraining objectives are not designed to preserve such antisymmetric shear at the patch-grid resolution used by downstream tokens. Therefore, adding more frames or more parameters does not necessarily recover physical information that has already been compressed away. This observation motivates our central research question: 
+
+Can physically grounded geometric priors be injected into TLMs to enable reliable perception of dynamic object proper-ties? However, addressing this question is non-trivial for sev-eral reasons. First , dynamic tactile properties are encoded in subtle geometric deformation, where rotation and sliding cues arise from local shear and contact-flow patterns rather than static texture. These cues can be easily suppressed when tactile frames are compressed into generic patch tokens without explicit geometric preservation [5]. Second , directly imposing handcrafted physical operators such as curl, divergence, or strain is not enough either, as such operators can be task-specific and brittle across diverse contact patterns and sensor resolutions. Collectively, these factors suggest that reliable TLMs should not merely scale generic encoders or append fixed physical descriptors, but should preserve geometric contact structures in a form that downstream reasoning can  
+
+> arXiv:2606.15909v1 [cs.RO] 14 Jun 2026 JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 2
+
+flexibly interpret and recombine. To this end, we introduce GeoTLM , a geometric representation-guided tactile-language model for dynamic contact event perception. Our key idea is to preserve tac-tile shear-field geometry before downstream reasoning, rather than forcing low-resolution tactile tokens into fragile closed-form physical operators. GeoTLM achieves this through a lightweight Differentiable Geometric Representation (DGR) module (Sec. III) with only 14 K trainable parameters, which learns contact-mask-guided shear representations from frozen tactile patch tokens and aggregates them via antisymmetric seven-region pooling. This design is motivated by the physical intuition that rotational contact produces opposite-sign defor-mation patterns across spatial regions. In summary, our main contributions are: ( I) We present, to the best of our knowledge, the first geometry-aware TLM paradigm GeoTLM for dynamic contact event perception, establishing a new direction for physically grounded tactile-language reasoning in contact-rich robotic manipulation. ( II )We reveal a critical gap in current tactile-language models: while large tactile encoders perform well under in-distribution evaluation, they fail on basic dynamic contact reasoning, indicating that the bottleneck lies in geometric inductive bias rather than model capacity. ( III ) We design a lightweight 
+
+Differentiable Geometric Representation (DGR) module with only 14k trainable parameters, which preserves tactile shear-field geometry through contact-mask-guided shear pro-jection and antisymmetric seven-region pooling, and show that it substantially improves novel-object generalization on real tactile sensors. II. R ELATED WORK 
+
+Tactile foundation models and tactile-language mod-els. Self-supervised pretraining on large tactile corpora has produced general-purpose encoders for vision-based touch. Sparsh [5] trains a V-JEPA objective on roughly 460 K tactile frames, UniTouch [8] binds touch to vision and language embeddings, and AnyTouch [9] together with AnyTouch 2 [6] unify static and dynamic representations across optical tactile sensors. A related line aligns touch with language through paired captions or contrastive pretraining [10]–[12]. Built on top of such encoders, tactile-language models attach a language head for higher-level reasoning: Octopi [1], [13] reasons over physical object properties, STOLA [3] targets open-ended tactile commonsense, and VTV-LLM [2] extends video understanding to visuotactile streams. On the control side, TactileVLA [4], OmniVTLA [14], and reactive poli-cies [15] couple touch to action. These systems commonly use generic tactile perception tokens from pretrained encoders, and the contact-specific geometry that distinguishes one motion from another is never made explicit. Our work investigates whether a compact structured module can recover such geom-etry. Whether a representation contains a particular piece of information and whether a simple readout can access it are distinct questions. Linear probing was introduced precisely to separate the two: a linear classifier on frozen features measures what the representation exposes without the confound of a trainable backbone [16], and it has since become the standard protocol for evaluating self-supervised encoders, including in touch [5]. A parallel literature shows that high-capacity models often succeed for the wrong reasons, latching onto superficial correlations rather than the intended signal [17], [18], and that constraining a model toward the right explanatory structure can correct this [19]. Our diagnostic sits in this tradition. We probe several strong tactile and vision backbones on rotation direction and find them near chance, which indicates that the discriminative cue, though physically present in the contact, is not linearly accessible from the pretrained features. The gap is one of inductive bias rather than capacity. 
+
+Geometric inductive bias. A long line of work argues that encoding the symmetries of a problem directly into the model improves both data efficiency and generalization. Group-equivariant networks build invariance and equivariance to transformation groups into the architecture [20], and the broader geometric deep learning view recasts many successful models as instances of structuring computation around the symmetries of the domain [21]. Rotation orientation is a natu-ral target for this perspective: clockwise and counterclockwise contact motions are related by reflection, so a representation whose pooling is antisymmetric under that reflection couples directly to the distinction, whereas a symmetric pool cancels it. Rather than imposing a fixed equivariant operator, our encoder builds the antisymmetric structure into the pooling while leaving the underlying shear features learnable, which we find transfers better than hand-specified differential operators. 
+
+Dynamic contact signals. The temporal evolution of shear and surface deformation carries information about contact events well beyond static texture. Early GelSight work mea-sured shear and detected slip directly from marker displace-ments [22]. Learned features have been used for slip predic-tion and grasp stabilization [23], event cameras enable fast incipient-slip detection [24], and recent visuotactile systems estimate in-hand rotation rate from incipient-slip cues [25]. NormalFlow [26], whose dataset we use, recovers full six-degree-of-freedom contact pose by registering surface normals across frames, and demonstrates that fine contact motion is recoverable from a GelSight image when the geometry is modelled explicitly. Force estimation from optical tactile images makes the same point for a different quantity [27], [28]. These methods typically recover one quantity at a time, often with sensor-specific calibration or task-tuned pipelines. We instead read motion direction from a frozen general-purpose encoder through a compact geometric module. 
+
+Spatial reasoning and tactile localization. In the visual domain, SpatialVLM [29] argues that spatial ability in vision-language models is more a matter of training data than architecture, and benchmarks such as 3DSRBench [30] and Spatial457 [31] probe object-centric 3D spatial reasoning in large multimodal models. These operate over RGB and depth, whose statistics differ sharply from an elastomer de-formation image, and they do not address the tactile setting we study. Closer to manipulation, spatially anchored tactile awareness [32] grounds tactile features in robot coordinates for dexterous control, through policy learning rather than encoder design. A separate body of work localizes a sensor on a known JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 3CLS Token 
+
+> c
+> Token  interface
+
+“Orientation ”Classification 
+
+Head 
+
+geo CLS  ⊕
+
+Differentiable Geometric Representation 
+
+Tactile Image Pair 
+
+> 224
+
+× 224 
+
+× 3
+
+> It1
+
+tn
+
+tn+ 1          
+
+> Shear Field
+> upper lower left right
+> global upper -lower left -right
+> {sx, s y}→14 -d feature vector
+> Antisymmetric 7-region pool
+> Lift Wo
+> (14 →768 )
+
+Δs 
+
+ഥ𝒎   
+
+> Patch Features
+> F
+> Shear Proj.
+> Shear Features
+> s
+> Tactile -Language
+> Model
+
+Tactile 
+
+Encoder 
+
+> (Eq. 4)
+> …
+> (Eq. 2)
+
+Geometric Token 
+
+g (Eq. 8)
+
+> (Eq. 5)
+
+⊕ Additive Fusion   
+
+> Trainable
+> Frozen
+> Mass -weighted Region Pooling
+> Projection
+
+… 
+
+> Contact Mask
+
+𝑚 𝑏 ,𝑡 ,𝑖 ,𝑗 
+
+Fig. 1: Overview of the proposed GeoTLM framework with the key design of Differentiable Geometric Representation module. object model [33]–[36], recovering where the contact is. III. M ETHODOLOGY 
+
+A. Overview and Problem Definition 
+
+Our goal is to recover the direction of contact motion from a short tactile clip, using a frozen tactile representation backbone without fine-tuning it. The difficulty is that strong tactile foundation features, while rich, do not expose motion direction in a form a linear classifier can read off, and they degrade sharply when transferred from simulated to real sensors. We address this with a small differentiable model, DGR (Differentiable Geometric Representation), that reads the patch-token stream of the frozen backbone and produces a single feature vector summarizing the directional structure of the contact deformation. This vector is added to the backbone’s global token, and a linear probe is trained on the sum. The backbone stays frozen throughout; only DGR and the linear head are trained, which keeps the added parameter count to roughly 14 K. Figure 1 shows the overall structure. The encoder is built around one observation. Rotation direction is an antisymmetric property of the contact field: a clockwise twist and its counter-clockwise mirror produce shear deformations of opposite sign across symmetric regions of the sensor. A pooling operator that is itself antisymmetric along spatial axes therefore couples directly to chirality, whereas a symmetric global pool averages the signal away. DGR makes this structure explicit while leaving the actual shear features to be learned, rather than imposing a fixed analytic operator; in our ablations the learned formulation is what makes the encoder transfer, and hand-specified differential operators degrade it. 
+
+B. Shear Field and Temporal Difference 
+
+Given a tactile clip X ∈ RB×T ×3×H×W with T =4 frames at H=W =224 , the frozen AnyTouch 2 ViT-B/16 [6] applies a temporal-tube patch embedding of size two, which collapses the four input frames into T ′=2 time-bins on a 14 × 14 patch grid. A single forward pass returns the token sequence. We take the global token c ∈ R768 for the later fusion, discard the five sensor-type tokens, and keep the 392 patch tokens as the input to DGR:          
+
+> F= reshape( F;B, T ′=2 ,14 ,14 ,768) ∈RB×2×14 ×14 ×768 ,(1)
+
+so each entry Fb,t,i,j ∈ R768 is the feature of patch (i, j ) in the time-bin t ∈ { 0, 1}. Both c and F come from the same frozen backbone and the same forward pass, and the backbone does not receive any gradient. A linear head Ws ∈ R768 ×2 projects each patch feature to a two-channel shear signal, in the spirit of the in-plane components of a planar deformation field:        
+
+> s=FWs+bs∈RB×2×14 ×14 ×2.(2)
+
+We do not constrain Ws to compute any particular differential operator, and it is learned end-to-end through the classification loss. This is a deliberate choice. Imposing closed-form oper-ators such as curl or divergence as fixed features degrades transfer, for reasons we analyze in Section IV-D. Leaving the projection learnable lets the linear head recombine the raw shear statistics into whatever signal is discriminative for the task at hand. Motion direction lives in the change of the shear field be-tween frames, since a static contact does not carry directional information. We take the difference between the two time-bins,            
+
+> ∆s=s:,1,:,:,:−s:,0,:,:,:∈RB×14 ×14 ×2,∆s= (∆ sx,∆sy),(3)
+
+where ∆sx and ∆sy are the two per-patch components. 
+
+C. Contact Mask 
+
+Not every patch carries genuine contact; many encode background gel deformation or imaging artifacts, and on a real sensor these regions are noisy. A second linear head JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 4
+
+Wm ∈ R768 ×1 predicts a soft contact confidence per patch through a sigmoid, averaged over the two time-bins:                
+
+> mb,t,i,j =σ Fb,t,i,j Wm+bm
+> ,
+> ¯mb,i,j =1
+> T′
+> T′−1X
+> t=0
+> mb,t,i,j ,¯m∈RB×14 ×14 .(4)
+
+The mask is used as a spatial weighting in the pooling step below, not as a hard gate that zeros out patches. 
+
+D. Antisymmetric Region Pooling 
+
+The differential shear field is summarized over seven spatial regions, each pooled with the contact mask as a normal-ized weight. For a scalar field f ∈ RB×14 ×14 , with f ∈{∆sx, ∆sy }, and a region R ⊆ { 0, . . . , 13 }2, we define the mass-normalized regional mean          
+
+> Pool R(f) =
+> P
+> (i,j )∈Rfij ¯mij
+> P
+> (i,j )∈R¯mij +ε ,ε= 10 −6.(5)
+
+Normalizing by the regional contact mass, rather than multi-plying f by ¯m, means the pooled value reports the average shear over the patches that are actually in contact, independent of how large the contact region is. The seven regions are            
+
+> R={U,Lo ,U−Lo ,Le ,Ri ,Le −Ri ,G},(6)
+
+with upper U and lower Lo halves split at the row midline (rows 0:7 and 7:14 ), left Le and right Ri halves split at the column midline, and G the full grid. The two differenced regions are the antisymmetric terms:               
+
+> PU−Lo (f) = PU(f)−PLo (f),PLe −Ri (f) = PLe (f)−PRi (f),(7)
+
+where P denotes the pooling operator. They change sign when the contact motion is mirrored, which is precisely the behaviour of rotation chirality: a clockwise and a counter-clockwise twist produce opposite-signed shear across each half-plane pair. The remaining symmetric regions retain the magnitude information that sliding direction relies on, so the same pool serves both tasks. 
+
+E. Geometric Feature and Fusion 
+
+Concatenating the seven pooled values over the two shear components gives a 14 -dimensional descriptor, which a linear head Wo ∈ R14 ×768 lifts to the backbone hidden width:           
+
+> r= Conc
+> h
+> {PR(∆ sx)}R∈R ,{PR(∆ sy)}R∈R
+> i
+> ,g=Wor+bo.(8)
+
+The geometric feature g is fused with the frozen global token by addition, and a single linear layer maps the result to the class logits: z = c + g, ˆy = Wcls z + bcls , (9) 
+
+with Wcls ∈ R768 ×C and C ∈ { 2, 4} for rotation and sliding. Additive fusion keeps the probe input at the backbone width and lets the geometric feature act as a learned correction to the global representation rather than a separate channel. The three projections together, Ws (1,538 ), Wm (769 ), and 
+
+Wo (11 ,520 ), contribute 13 ,827 trainable parameters, with the linear head this is the entire trainable budget on top of the frozen backbone. The module is implemented as the Differentiable Physics Encoder class. In the configuration used here its differential operators are disabled, so it runs as the purely geometric encoder described above. IV. E XPERIMENTS 
+
+We evaluate GeoTLM on two tactile motion-recognition tasks, rotation and sliding, across a simulated source domain and a real-sensor target domain. Our experiments are designed to answer three questions. First, does the geometric encoder improve discrimination of contact motion over strong tactile representation backbones under a controlled probing protocol? Second, does any such improvement survive the shift to a previously unseen physical sensor, and does it generalize to object instances held out from training? Third, which parts of the encoder are responsible for the gain, and does their relative importance change between clean simulation and noisy real data? We address these in turn after describing the setup. 
+
+A. Experimental Setup 
+
+Datasets. We use two datasets. ToucHD-Sim is the simulated subset of the AnyTouch 2 release [6], a pool of 113 objects rendered under an optical tactile sensor model, which we split by motion type into a two-class rotation task ( 2,034 
+
+trials) and a four-class sliding task ( 4,014 trials, labelled left / right / up / down). TactileTracking is the real contact dataset released with NormalFlow [26], recorded on a physical GelSight Mini over 12 everyday objects, with image statistics, gel deformation, and calibration that differ from the simulated source. Following the pairwise formulation of the source, each TactileTracking sample is a frame pair (Ia, I b) with a motion label. Rotation has 4,088 pairs and sliding 6,400 pairs. 
+
+Evaluation protocols. On ToucHD-Sim we use five-fold object-disjoint cross-validation, so no object is shared between training and evaluation within a fold. On TactileTracking we report two protocols. Within-distribution is five-fold object-disjoint cross-validation, which we read as a fitting measure rather than a generalization claim. The novel-object protocol is leave-one-object-out (LOOO): each of the twelve objects is held out in turn as the sole evaluation object while the other eleven are used for training, so every object is tested once on a model that has never seen it. LOOO is the strict test of instance-level generalization and is our primary evidence. 
+
+Implementation details. To isolate the representation from the classifier, all learning-based methods are evaluated identically: the encoder is frozen as a feature extractor, features are standardized per fold with statistics fit on the training partition alone, and a single linear layer is trained on top as the probe. For our method the standardization is applied to the frozen AnyTouch2 tokens before they enter DGR, since the geometric representation is recomputed per input. We train with AdamW (learning rate 10 −3 for the head, 3 × 10 −4 for DGR), weight decay 0.01 , batch size 32 , for 30 epochs, keeping the best-validation checkpoint. The seed is 42 offset by the fold index. We compare against six backbones probed under this protocol: Sparsh [5], InternViT-300M [37], T3 [38], AnyTouch [9], UniT [39], and AnyTouch2, which is our backbone stripped of the geometric encoder and serves as the controlled ablation. UniT is a caveated lower bound, as its markered pretraining is mismatched with our markerless data. For rotation we also include Curl + LR, a logistic-regression classifier on handcrafted shear-curl features, as a classical reference. We JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 5
+
+TABLE I: Two-class rotation accuracy (clockwise / counter-clockwise) across simulated, real, and novel-object settings. ‡ UniT uses markered pretraining, mismatched with our markerless data. 
+
+ToucHD-Sim [6] TactileTracking [26] TactileTracking [26] (novel-object) Method Overall CW CCW Overall CW CCW Overall CW CCW 
+
+Curl + LR 0.890 ± 0.237 0.876 0.904 0.742 ± 0.072 0.719 0.765 – – –Sparsh V-JEPA [5] 0.710 ± 0.017 0.731 0.690 0.566 ± 0.033 0.516 0.615 0.531 ± 0.038 0.510 0.544 
+
+InternViT-300M [37] 0.823 ± 0.023 0.825 0.822 0.552 ± 0.045 0.473 0.613 0.536 ± 0.037 0.486 0.581 
+
+T3 [38] 0.769 ± 0.043 0.749 0.789 0.563 ± 0.018 0.497 0.627 0.535 ± 0.043 0.533 0.524 
+
+AnyTouch (v1) [9] 0.733 ± 0.027 0.723 0.743 0.550 ± 0.057 0.614 0.488 0.513 ± 0.062 0.554 0.483 
+
+UniT ‡ [39] 0.685 ± 0.035 0.658 0.711 0.550 ± 0.042 0.516 0.581 0.515 ± 0.044 0.534 0.506 
+
+AnyTouch 2 [6] 0.876 ± 0.017 0.872 0.879 0.547 ± 0.024 0.538 0.548 0.513 ± 0.033 0.440 0.599 
+
+GeoTLM (ours) 0.952 ± 0.016 0.953 0.951 0.864 ± 0.067 0.856 0.873 0.659 ± 0.083 0.692 0.627 
+
+report mean and standard deviation of overall accuracy over folds, with per-class recall. 
+
+B. Rotation Tasks 
+
+Table I reports rotation accuracy across the three settings. On the simulated source, GeoTLM reaches 0.952 overall against 0.876 for the same backbone without the geometric encoder, and the prior backbones trail further behind. The simulated numbers are high across the board because the rendered contact images are clean, and they should be read as an upper reference rather than the operating point of interest. The real-sensor results are where the encoders separate. Under within-distribution cross-validation GeoTLM reaches 
+
+0.864 , but we caution against reading this as a generalization figure: because the standardization and linear head are fit per fold and the validation objects partly recur across folds, this number reflects how well the representation fits this distribution, not how it transfers to a new instance. The table footnote makes this distinction explicit. The novel-object protocol is the decisive comparison. Un-der leave-one-object-out evaluation, where each test object is unseen during training, GeoTLM attains 0.659 ± 0.083 
+
+overall, against 0.513 ± 0.034 for the same backbone without DGR and 0.536 for the strongest prior encoder (InternViT). This is an improvement of +14 .6 percentage points over the DGR-ablated baseline and +12 .3 points over the best prior representation. The gap is not driven by a few easy objects: DGR improves over the controlled baseline on all twelve held-out objects, with the smallest margin on the geometrically symmetric corner object ( +0 .037 ) and the two methods closest, though still separated, on the rotationally near-symmetric ball. Figure 2 shows the per-object breakdown. The per-class structure explains why the ablated baseline fails. Without the geometric encoder the probe collapses toward a single rotation direction on most held-out objects, leaving its balanced accuracy near the 0.50 chance level even when its raw accuracy is slightly above it. GeoTLM keeps the two directions balanced ( 0.69 /0.63 clockwise / counter-clockwise on the novel-object split), which indicates it supplies a chirality signal the frozen backbone does not expose on its own. A classifier given only the backbone features cannot recover this distinction across object instances. The antisymmetric region statistics computed by DGR make it available. Figure 3 shows representative held-out cases. 
+
+Fig. 2: Per-object accuracy on the novel-object (leave-one-object-out) rotation task, comparing GeoTLM with Any-Touch 2 without the geometric encoder. Qualitative novel -object results: GeoTLM vs. AnyTouch2           
+
+> Ground truth: Clockwise
+> GeoTLM (ours): Clockwise
+> AnyTouch2 : Counter -clockwise
+> Ground truth: Counter -clockwise
+> GeoTLM (ours): Counter -clockwise
+> AnyTouch2 : Clockwise
+> Ground truth: Clockwise
+> GeoTLM (ours): Clockwise
+> AnyTouch 2: Counter -clockwise
+> Ground truth: Counter -clockwise
+> GeoTLM (ours): Counter -clockwise
+> AnyTouch 2: Clockwise
+> avocado hammer wrench cylinder
+> 𝑡 0𝑡 1
+> 𝑡 0𝑡 1
+> 𝑡 0𝑡 1
+> 𝑡 0𝑡 1
+
+Fig. 3: Qualitative novel-object rotation results comparing GeoTLM with the DGR-ablated backbone. The two frames are temporally adjacent, making the rotation direction difficult to identify visually 
+
+C. Sliding Tasks 
+
+Table II reports the four-class sliding task, where the chance level is 0.25 . On the simulated source GeoTLM again leads, at 0.989 against 0.967 for the ablated backbone. On the real GelSight Mini data the geometric encoder lifts overall accuracy from 0.363 to 0.525 , a gain of +16 .2 points, while every prior backbone remains close to the 0.34 –0.38 band. The per-class recalls show that the prior backbones primarily exhibit class collapse rather than uniformly distributed errors. Their accuracy concentrates on the vertical directions and the JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 6
+
+TABLE II: Four-class sliding direction accuracy (left / right / up / down; chance = 0 .25 ) across simulated, real, and novel-object settings. ‡ UniT uses markered pretraining, mismatched with our markerless data.                                                                                                                                                                      
+
+> ToucHD-Sim [6] TactileTracking [26] TactileTracking [26] (novel-object) Method Overall LRUDOverall LRUDOverall LRUD
+> Sparsh V-JEPA [5] 0.710 ±0.036 0.715 0.729 0.686 0.709 0.384 ±0.046 0.381 0.131 0.534 0.333 0.365 ±0.037 0.376 0.202 0.480 0.348
+> InternViT-300M [37] 0.907 ±0.034 0.919 0.875 0.929 0.904 0.338 ±0.016 0.495 0.207 0.313 0.335 0.291 ±0.058 0.403 0.234 0.281 0.251
+> T3 [38] 0.857 ±0.023 0.844 0.880 0.849 0.857 0.383 ±0.033 0.350 0.229 0.520 0.347 0.325 ±0.048 0.342 0.226 0.374 0.321
+> AnyTouch (v1) [9] 0.809 ±0.006 0.806 0.816 0.794 0.823 0.334 ±0.039 0.303 0.103 0.568 0.219 0.286 ±0.036 0.285 0.204 0.367 0.251
+> UniT ‡[39] 0.691 ±0.028 0.666 0.672 0.729 0.697 0.346 ±0.013 0.380 0.262 0.377 0.331 0.317 ±0.026 0.360 0.256 0.347 0.245
+> AnyTouch 2 [6] 0.967 ±0.014 0.957 0.960 0.975 0.974 0.363 ±0.048 0.313 0.192 0.614 0.256 0.328 ±0.036 0.298 0.197 0.438 0.307
+> GeoTLM (ours) 0.989 ±0.008 0.991 0.985 0.988 0.990 0.525 ±0.088 0.500 0.316 0.631 0.577 0.396 ±0.051 0.347 0.302 0.458 0.431
+
+TABLE III: Ablation of the two DGR components (region pool, contact mask) on two-class rotation. 
+
+ToucHD-Sim [6] TactileTracking [26] Variant Region Mask Overall CW CCW Overall CW CCW 
+
+AnyTouch 2 [6] ✗ ✗ 0.876 ± 0.017 0.872 0.879 0.547 ± 0.024 0.538 0.548 
+
+DGR − contact mask ✓ ✗ 0.946 ± 0.014 0.939 0.952 0.768 ± 0.064 0.772 0.765 
+
+DGR − region pool ✗ ✓ 0.918 ± 0.010 0.923 0.912 0.781 ± 0.096 0.783 0.781 
+
+GeoTLM (ours) ✓ ✓ 0.952 ± 0.016 0.953 0.951 0.864 ± 0.067 0.856 0.873 
+
+horizontal directions are largely suppressed. GeoTLM recovers a more even distribution and is strongest on the up and down classes ( 0.63 /0.58 ), with the rightward class the hardest for every method. We also report a novel-object sliding column in Table II. This setting remains challenging since sliding direction is only weakly recoverable from GelSight contact image and the margins between methods are narrow. Still, GeoTLM attains the highest novel-object accuracy ( 0.396 ), ahead of the strongest baseline Sparsh ( 0.365 ), which we have read as a step forward on a hard problem. 
+
+D. Ablation and Analysis 
+
+DGR combines two mechanisms on top of the frozen backbone features: a seven-region antisymmetric pool over the shear field, and a contact mask that weights each region by its contact mass. Table III removes each in turn on the two-class rotation task, on both the simulated source and the real-sensor cross-validation split. The endpoints coincide with the corresponding rows of the main rotation table, confirming that the ablation and main comparison share one protocol. The two domains show different ablation patterns, and the contrast is itself informative. On clean simulation the region pool carries almost the entire effect: adding it alone raises accuracy from 0.876 to 0.946 , while the contact mask adds little once the region pool is present (its marginal contribution is +0 .006 ). The full encoder improves over the ablated backbone by +0 .076 here. On the real-sensor data the picture changes. The total improvement is +0 .317 , roughly four times larger than in simulation, and the two components are now both necessary and complementary: the region pool contributes +0 .083 at the margin, the contact mask +0 .096 ,and the mask alone ( 0.781 ) is no weaker than the region pool alone ( 0.768 ). The reading we draw is that the contact mask becomes important under real-sensor noise. In simulation the non-contact regions of the gel are clean and carry no spurious signal, so down-weighting them changes little. On a physical sensor the non-contact regions are noisy, and suppressing them TABLE IV: Effect of input frame count versus the DGR module on ToucHD-Sim rotation. 
+
+Variant (ToucHD-Sim rotation) Overall 
+
+AnyTouch 2, 2-frame 0.822 ± 0.022 
+
+AnyTouch 2, 4-frame 0.876 ± 0.017 
+
+GeoTLM (ours), 2-frame 0.902 ± 0.025 
+
+GeoTLM (ours) , 4-frame 0.952 ± 0.016 
+
+is what allows the region statistics to remain discriminative. The component that appears redundant on clean data is the one that protects the representation on real data. The frame-count ablation, which controls for the number of input frames rather than for the encoder, is reported in Table IV. It shows that at an equal two-frame input on the same backbone the geometric encoder still accounts for the majority of the gain. V. C ONCLUSION 
+
+We presented GeoTLM, a compact differentiable geomet-ric encoder that recovers contact-motion direction from a frozen tactile backbone. DGR projects patch tokens to alearned shear field, differences it across frames, and pools it over antisymmetric, contact-mass-weighted regions whose sign structure mirrors the chirality of in-plane rotation. With the backbone fixed and only about 14k trained parameters, it turns representations a linear probe cannot read into ones that support reliable rotation and sliding discrimination. On a physical GelSight Mini and objects unseen during training, DGR improves novel-object rotation by 14 .6 points over the same backbone without it and by 12 .3 points over the strongest prior representation, winning on all twelve held-out objects. The gain is substantially larger on real data than in simulation, highlighting the practical value of the geometric prior under sensor noise and domain shift. Several directions remain open. The current encoder targets planar rotation and sliding, and extending the antisymmetric pooling to richer JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 7
+
+contact dynamics such as three-dimensional twist or multi-contact events is a natural next step. Finally, coupling DGR with a language head for closed-loop manipulation, where motion-direction perception feeds task-level reasoning, is a promising path toward contact-rich robotic control. REFERENCES [1] S. Yu, K. Lin, A. Xiao, J. Duan, and H. Soh, “Octopi: Object property reasoning with large tactile-language models,” arXiv preprint arXiv:2405.02794 , 2024. 1, 2 [2] Y. Xie, M. Li, S. Li, X. Li, G. Chen, F. Ma, F. Yu, and W. Ding, “Universal visuo-tactile video understanding for embodied interaction,” 
+
+Advances in Neural Information Processing Systems , vol. 38, pp. 127 864–127 883, 2026. 1, 2 [3] N. Cheng, J. Xu, J. Chen, B. Fang, and W. Han, “Stola: Self-adaptive touch-language framework for tactile commonsense reasoning in open-ended scenarios,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 40, no. 22, 2026, pp. 18 198–18 206. 1, 2 [4] J. Huang, S. Wang, F. Lin, Y. Hu, C. Wen, and Y. Gao, “Tactile-vla: unlocking vision-language-action model’s physical knowledge for tactile generalization,” arXiv preprint arXiv:2507.09160 , 2025. 1, 2 [5] C. Higuera, A. Sharma, C. K. Bodduluri, T. Fan, P. Lancaster, M. Kalakr-ishnan, M. Kaess, B. Boots, M. Lambeta, T. Wu et al. , “Sparsh: Self-supervised touch representations for vision-based tactile sensing,” arXiv preprint arXiv:2410.24090 , 2024. 1, 2, 4, 5, 6 [6] R. Feng, Y. Zhou, S. Mei, D. Zhou, P. Wang, S. Cui, B. Fang, G. Yao, and D. Hu, “Anytouch 2: General optical tactile representation learning for dynamic tactile perception,” arXiv preprint arXiv:2602.09617 , 2026. 1, 2, 3, 4, 5, 6 [7] W. Yuan, S. Dong, and E. H. Adelson, “Gelsight: High-resolution robot tactile sensors for estimating geometry and force,” Sensors , vol. 17, no. 12, p. 2762, 2017. 1 [8] F. Yang, C. Feng, Z. Chen, H. Park, D. Wang, Y. Dou, Z. Zeng, X. Chen, R. Gangopadhyay, A. Owens et al. , “Binding touch to everything: Learning unified multimodal tactile representations,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2024, pp. 26 340–26 353. 2 [9] R. Feng, J. Hu, W. Xia, T. Gao, A. Shen, Y. Sun, B. Fang, and D. Hu, “Anytouch: Learning unified static-dynamic representation across multiple visuo-tactile sensors,” arXiv preprint arXiv:2502.12191 , 2025. 2, 4, 5, 6 [10] L. Fu, G. Datta, H. Huang, W. C.-H. Panitch, J. Drake, J. Ortiz, M. Mukadam, M. Lambeta, R. Calandra, and K. Goldberg, “A touch, vision, and language dataset for multimodal alignment,” arXiv preprint arXiv:2402.13232 , 2024. 2 [11] W. Ma, X. Cao, Y. Zhang, C. Zhang, S. Yang, P. Hao, B. Fang, Y. Cai, S. Cui, and S. Wang, “Cltp: Contrastive language-tactile pre-training for 3d contact geometry understanding,” Biomimetic Intelligence and Robotics , p. 100324, 2026. 2 [12] W. Ma, C. Zhang, Y. Cai, G. Yao, S. Cui, and S. Wang, “Fg-cltp: Fine-grained contrastive language tactile pretraining for robotic manipula-tion,” arXiv preprint arXiv:2603.10871 , 2026. 2 [13] S. Yu, K. Lin, and H. Soh, “Demonstrating the octopi-1.5 visual-tactile-language model,” arXiv preprint arXiv:2507.09985 , 2025. 2 [14] Z. Cheng, Y. Zhang, W. Zhang, H. Li, K. Wang, L. Song, and H. Zhang, “Omnivtla: Vision-tactile-language-action model with semantic-aligned tactile sensing,” arXiv preprint arXiv:2508.08706 , 2025. 2 [15] H. Xue, J. Ren, W. Chen, G. Zhang, Y. Fang, G. Gu, H. Xu, and C. Lu, “Reactive diffusion policy: Slow-fast visual-tactile policy learning for contact-rich manipulation,” arXiv preprint arXiv:2503.02881 , 2025. 2 [16] G. Alain and Y. Bengio, “Understanding intermediate layers using linear classifier probes,” arXiv preprint arXiv:1610.01644 , 2016. 2 [17] R. Geirhos, J.-H. Jacobsen, C. Michaelis, R. Zemel, W. Brendel, M. Bethge, and F. A. Wichmann, “Shortcut learning in deep neural networks,” Nature Machine Intelligence , vol. 2, no. 11, pp. 665–673, 2020. 2 [18] R. T. McCoy, E. Pavlick, and T. Linzen, “Right for the wrong reasons: Diagnosing syntactic heuristics in natural language inference,” in Pro-ceedings of the 57th annual meeting of the association for computational linguistics , 2019, pp. 3428–3448. 2 [19] A. S. Ross, M. C. Hughes, and F. Doshi-Velez, “Right for the right rea-sons: Training differentiable models by constraining their explanations,” 
+
+arXiv preprint arXiv:1703.03717 , 2017. 2 [20] T. Cohen and M. Welling, “Group equivariant convolutional networks,” in International conference on machine learning . PMLR, 2016, pp. 2990–2999. 2 [21] M. M. Bronstein, J. Bruna, T. Cohen, and P. Veliˇ ckovi´ c, “Geometric deep learning: Grids, groups, graphs, geodesics, and gauges,” arXiv preprint arXiv:2104.13478 , 2021. 2 [22] W. Yuan, R. Li, M. A. Srinivasan, and E. H. Adelson, “Measurement of shear and slip with a gelsight tactile sensor,” in 2015 IEEE international conference on robotics and automation (ICRA) . IEEE, 2015, pp. 304– 311. 2 [23] F. Veiga, H. Van Hoof, J. Peters, and T. Hermans, “Stabilizing novel objects by learning to predict tactile slip,” in 2015 IEEE/RSJ Interna-tional Conference on Intelligent Robots and Systems (IROS) . IEEE, 2015, pp. 5065–5072. 2 [24] A. Rigi, F. Baghaei Naeini, D. Makris, and Y. Zweiri, “A novel event-based incipient slip detection using dynamic active-pixel vision sensor (davis),” Sensors , vol. 18, no. 2, p. 333, 2018. 2 [25] M. Li, Y. H. Zhou, T. Li, and Y. Jiang, “Incipient slip-based rotation measurement via visuotactile sensing during in-hand object pivoting,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2024, pp. 17 132–17 138. 2 [26] H.-J. Huang, M. Kaess, and W. Yuan, “Normalflow: Fast, robust, and accurate contact-based object 6dof pose tracking with vision-based tactile sensors,” IEEE Robotics and Automation Letters , vol. 10, no. 1, pp. 452–459, 2024. 2, 4, 5, 6 [27] A.-H. Shahidzadeh, G. M. Caddeo, K. Alapati, L. Natale, C. Ferm¨ uler, and Y. Aloimonos, “Feelanyforce: Estimating contact force feedback from tactile sensation for vision-based tactile sensors,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 251–257. 2 [28] E. Helmut, L. Dziarski, N. Funk, B. Belousov, and J. Peters, “Learning force distribution estimation for the gelsight mini optical tactile sensor based on finite element analysis,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2025, pp. 8553–8560. 2 [29] B. Chen, Z. Xu, S. Kirmani, B. Ichter, D. Sadigh, L. Guibas, and F. Xia, “Spatialvlm: Endowing vision-language models with spatial reasoning capabilities,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 14 455–14 465. 2 [30] W. Ma, H. Chen, G. Zhang, Y.-C. Chou, J. Chen, C. de Melo, and A. Yuille, “3dsrbench: A comprehensive 3d spatial reasoning bench-mark,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2025, pp. 6924–6934. 2 [31] X. Wang, W. Ma, T. Zhang, C. M. de Melo, J. Chen, and A. Yuille, “Spatial457: A diagnostic benchmark for 6d spatial reasoning of large mutimodal models,” in Proceedings of the Computer Vision and Pattern Recognition Conference , 2025, pp. 24 669–24 679. 2 [32] J. Huang, Y. Ye, Y. Gong, X. Zhu, Y. Gao, and K. Zhang, “Spatially anchored tactile awareness for robust dexterous manipulation,” arXiv preprint arXiv:2510.14647 , 2025. 2 [33] M. Bauza, A. Bronars, and A. Rodriguez, “Tac2pose: Tactile object pose estimation from the first touch,” The International Journal of Robotics Research , vol. 42, no. 13, pp. 1185–1209, 2023. 3 [34] S. Suresh, Z. Si, S. Anderson, M. Kaess, and M. Mukadam, “Midas-touch: Monte-carlo inference over distributions across sliding touch,” in 
+
+Conference on Robot Learning . PMLR, 2023, pp. 319–331. 3 [35] Z. Zhang, B. Zhang, F. Zhang, and H. Yin, “Tacloc: Global tactile localization on objects from a registration perspective,” arXiv preprint arXiv:2603.10565 , 2026. 3 [36] S. Suresh, H. Qi, T. Wu, T. Fan, L. Pineda, M. Lambeta, J. Malik, M. Kalakrishnan, R. Calandra, M. Kaess et al. , “Neuralfeels with neural fields: Visuotactile perception for in-hand manipulation,” Science Robotics , vol. 9, no. 96, p. eadl0628, 2024. 3 [37] Z. Chen, J. Wu, W. Wang, W. Su, G. Chen, S. Xing, M. Zhong, Q. Zhang, X. Zhu, L. Lu et al. , “Internvl: Scaling up vision foundation models and aligning for generic visual-linguistic tasks,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2024, pp. 24 185–24 198. 4, 5, 6 [38] J. Zhao, Y. Ma, L. Wang, and E. H. Adelson, “Transferable tactile transformers for representation learning across diverse sensors and tasks,” arXiv preprint arXiv:2406.13640 , 2024. 4, 5, 6 [39] Z. Xu, R. Uppuluri, X. Zhang, C. Fitch, P. G. Crandall, W. Shou, D. Wang, and Y. She, “Unit: Data efficient tactile representation with generalization to unseen objects,” IEEE Robotics and Automation Let-ters , 2025. 4, 5, 6

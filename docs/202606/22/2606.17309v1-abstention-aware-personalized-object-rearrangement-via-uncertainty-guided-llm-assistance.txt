@@ -1,0 +1,332 @@
+Title: Abstention-Aware Personalized Object Rearrangement via Uncertainty-Guided LLM Assistance
+
+URL Source: https://arxiv.org/pdf/2606.17309v1
+
+Published Time: Wed, 17 Jun 2026 00:15:26 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Abstention-Aware Personalized Object Rearrangement via Uncertainty-Guided LLM Assistance 
+
+Sam Collin 1∗ and Ali Ayub 1
+
+Abstract — Robotic assistance in household environments re-quires not only predicting where objects should be placed, but also reasoning about when objects should not be placed at all. Existing approaches to personalized object rearrangement primarily focus on placement decisions under the assumption of clean observations and complete actionability, limiting their applicability in realistic, cluttered, and partially erroneous settings. In this paper, we introduce APOLLO, a hybrid frame-work for abstention-aware personalized object rearrangement that combines a lightweight, personalized embedding model (PEM) with selective large language model (LLM) assistance. PEM is trained for each user–environment pair using a small number of demonstrations, operates entirely on CPU, and produces uncertainty estimates, which are used to selectively invoke LLM-based reasoning only for ambiguous decisions, balancing efficiency, privacy, and reasoning capability. To evaluate this formulation beyond existing benchmarks, we introduce APOR, a synthetic, LLM-generated dataset that cap-tures room-level, multi-furniture environments, diverse organi-zational profiles, explicit abstention behavior, and noisy partial scene context. Extensive experiments on both PARSEC and APOR provide initial evidence that APOLLO improves over prior LLM-based baselines in controlled benchmark settings while substantially reducing LLM usage. Code is available at https://github.com/PaInt-Lab/APOLLO. 
+
+I. I NTRODUCTION 
+
+Coming home to a messy environment is a familiar ex-perience and can be frustrating (e.g. a mug left on the worktop, a vacuum cleaner left lying around). However, what appear as clutter may seem perfectly normal from another perspective. For a robot, tidying up a space is not a simple pick-and-place task but an ongoing process of understanding the environment and the user to restore it to a desired state [1]. Following Batra et al. [2], we view rearrangement as the process of transforming an environment to reach a target state through appropriate object placements. What makes the situation so difficult here is not only the combinatorial nature of the scene, but above all, that the ‘right’ arrangement is inherently user-specific. The rules or habits of a household are not written down; they develop over time, potentially through conflicts between users and the environment. While certain general patterns may be found among some users, it is common to find individual habits or quirks that defy common sense. For example, a user may follow a strategy based on visibility, because an object that is 
+
+> This research was undertaken, in part, thanks to funding from the Natural Sciences and Engineering Research Council of Canada (NSERC), Concordia University, and computing resources from the Digital Research Alliance of Canada.
+> 1Concordia University, Montreal, Quebec H3G 1M8, Canada
+
+∗sam.collin@mail.concordia.ca, ali.ayub@concordia.ca   
+
+> Fig. 1. Overview. Given an environment, the robot must first observe and determine if any objects in the environment must be correctly placed, and then fix them based on user preferences. Given a new object, the robot first needs to decide if it should be placed in the environment, and then determine the appropriate surface to place the object based on user preferences.
+
+not visible to them is likely to be forgotten, or another user may organize their belongings emotionally, leaving the things they love on display and hiding the rest. These preferences become increasingly difficult for the robot to understand as environments become more complex (multiple pieces of furniture, more potential surfaces, cluttered partial states). Previous studies have approached the task of personal-ized rearrangement from several different angles. Traditional methods are based on generic common sense [3] derived from large datasets and often require offline training, which prevents user-specific adaptation by over-generalizing [4], [5]. In personalized rearrangement, several methods use either prior context or in-scene context alone. However, relying only on prior context may differ from the actual state of the environment [6], [7], and context-only methods may struggle with sparsely populated scenes [8], [9]. While some works combine the two signals [10], they either assume the in-scene context is entirely reliable [10] or require additional interactions to clarify preferences and manage constraints [11], which might not be feasible in real-world environments. Furthermore, these methods often rely heavily on LLMs/VLMs to improve few-shot preference inference but raise concerns about latency, security, and cost [11], [10], [12]. Finally, prior work also assumes that all the objects available to the robot must be placed on a given furniture 
+
+> arXiv:2606.17309v1 [cs.RO] 15 Jun 2026
+
+item, which is likely unrealistic, and the robot might need to abstain from placing objects in the wrong place. To address these limitations, we present Abstention-aware Personalized Object Rearrangement with uncertainty-guided LLM assistance (APOLLO), a hybrid framework that uses a lightweight model for learning personalized embeddings (PEM) to model user object placement preferences, and is assisted by an LLM when PEM outputs are uncertain. The model can learn from limited data, run on a CPU, tolerate noisy partial context, and can abstain from placing objects in the environment when appropriate. We also intro-duce Abstention-aware Personalized Object Rearrangement (APOR), a synthetic, LLM-generated benchmark designed to study complex multi-furniture environments and diverse organizational profiles in a controlled setting. It also embeds two complementary subtasks: placement , i.e., deciding where to place an object, and abstention , i.e., deciding when not to place an object to respect user preferences. Extensive evaluations on a standard object placement benchmark, PARSEC [10], and APOR, provide initial evidence that our method improves over prior LLM-based state-of-the-art methods for a fraction of the cost. Our results further suggest that existing models are not designed to capture abstention and struggle as environmental complexity increases, and when partially arranged scenes contain errors. II. R ELATED WORK 
+
+Household rearrangement has been studied under a range of task formulations, from goal-driven scene restoration to commonsense tidying and personalized organization. Early rearrangement work formulates the task as reaching a spec-ified target state under physical and semantic constraints, often in embodied simulation, where success is defined by whether objects are moved to predefined goal locations [2], [13]. Related tidying benchmarks relax the requirement for explicit targets and instead ask agents to identify misplaced objects and restore order using commonsense notions of organization [14]. While these settings differ in how the de-sired arrangement is specified, they largely focus on deciding 
+
+where objects should be placed, assuming that all candidate objects belong in the environment and that the desired final arrangement is well defined. A more closely related line of work studies personal-ized rearrangement, where object placement depends on user-specific preferences inferred from prior interactions or demonstrations. Earlier approaches model such prefer-ences through collaborative filtering or latent representa-tions learned offline and then reused at inference time [5]. Extending this direction to partial observations, ConSOR predicts placements from in-scene contextual cues in par-tially arranged scenes [9]. More recent systems incorporate LLMs to improve generalization from sparse demonstrations and partial scene context: PARSEC formalizes personalized rearrangement from demonstrations and partial context [10]; TidyBot uses LLM-based reasoning for personalized robotic assistance [7]; and APRICOT combines prior preference information with scene context while handling ambiguity through user queries and constraints [11]. Despite strong performance, these methods generally focus on predicting a placement destination for each object, rather than deciding whether an object should be placed at all. In addition, methods that rely on cloud-hosted LLM inference can raise practical concerns regarding latency, cost, and privacy in real-world deployments [7], [11]. A separate but conceptually related direction studies ab-stention or selective computation, where a system decides whether to act immediately or defer additional reasoning or computation [15]. However, this notion of abstention differs from the setting considered in our work: here, abstention is an object-level rearrangement outcome , corresponding to the decision that an object should remain unplaced because it is irrelevant to the user’s intended organization of the en-vironment. Moreover, prior rearrangement methods typically assume that the observed environment is otherwise correctly arranged, whereas real household scenes may already contain placement errors. In contrast, our work introduces a new dataset and a personalized rearrangement framework that op-erates under limited compute, considers incorrectly arranged scenes, and selectively defers uncertain decisions to an LLM while abstaining from placing irrelevant objects. III. P ROBLEM FORMULATION 
+
+We formalize the object rearrangement task as an extension of the formulation in previous work [10], adding multiple furniture items and an explicit abstention outcome. We index each setting by a user–environment pair (u, e ), where u
+
+denotes the user and e the environment. We assume that each environment e consists of a set of surfaces S (on multiple furniture items) on which objects from a closed vocabulary 
+
+x ∈ O can be placed to form a specific arrangement, defined as an object-surface pair: A = {(x, s )}. For each evaluation instance, the target arrangement is denoted as the ground truth A∗
+
+> G
+
+. Unlike previous work, the target arrangements in our benchmark have objects that are deliberately left unplaced. Therefore, we consider a modified set of possi-ble surfaces S+ = S ∪ { UNPLACED }. The role of the 
+
+UNPLACED surface is to measure abstention by allowing the model to explicitly refrain from placing an object due to a learned preference. We denote by X the set of objects present in a target scene A∗
+
+> G
+
+, with X ⊆ O .At inference time, the agent must propose a transformation that enables a specific goal state A∗ 
+
+> G
+
+to be obtained from an arrangement in a partial state AP . The partial arrangement 
+
+AP is formed by moving a subset of objects XU ⊆ X 
+
+from the goal arrangement to the UNPLACED surface. In some evaluation settings, AP may also contain deliberately corrupted in-scene placements to test sensitivity to noisy partial context. The number of objects moved from X to 
+
+XU varies between instances, satisfying 1 ≤ |X U | ≤ |X | .The agent can then plan and act on this set of “actionable” objects, by deciding on a placement or leaving the object unplaced to propose a predicted set AG comparable to A∗
+
+> G
+
+.To guide its prediction and best match the user’s pref-erences, the agent can rely on two different types of sig-Fig. 2. Examples of object arrangements in different rooms in APOR for three user profiles. (Left) Cluttercore focuses on dense, layered placement, maximizing visible objects and aesthetic richness. (Middle) Low Reach places objects within reachable low and mid-level surfaces. (Right) Taxonomic 
+
+> groups objects strictly by category, regardless of context or use.
+
+nals. The prior-scene context, called user history Hu,e =A1 
+
+> H
+
+, A 2 
+
+> H
+
+, ..., A NH , provides the model with examples of scenes where user u has placed other pools of objects within the same environment e. For additional information, the agent can also rely on the placement of objects already in the partially arranged scene AP at the time of prediction, the 
+
+in-scene context XP ⊆ X , ranging from 0 (empty partial) up to |X | − 1. This provides an additional signal about the user and the configuration in which they wish to organise their space. These two signals are highly complementary, as conflicting preferences inferred from history can be resolved by elements already present. IV. D ATASET 
+
+We introduce Abstention-aware Personalized Object Rear-rangment (APOR) , a synthetic benchmark for personalized object rearrangement. Our goal is to study two axes that have not been addressed in previous datasets: (i) atypical user preferences (non-standard but consistent organizational logic), and (ii) more complex environments (room-level, noisy partial context, objects that must not be placed). As large amounts of this specific type of data are difficult to collect, we generated APOR with an LLM-assisted pipeline and lightweight constraints (validation and retries). These constraints enforce structural validity of the generated scenes, but do not constitute human validation of the underlying preferences. The pipeline is modular and can be extended with new profiles, environments, and object pools. Table I summarizes the resulting benchmark and evaluation split. 
+
+Environments : We have targeted five types of house-hold environments: kitchen, bathroom, living room, bed-room, and office. Each environment contains 3-6 pieces of furniture sampled from a catalog of 21 different items. There are up to three variations per furniture type, totaling 60 different pieces, which increase structural diversity. Each piece is defined by a description and a list of available surfaces. All attributes have been deliberately kept neutral to avoid introducing any functional bias (e.g. no ”vegetable drawer”). To ensure consistency, we ensure that certain items of furniture are present in the different types of room (e.g., a shower or bathtub in the bathroom). We also assign a per-environment [0 , 1] score based on the structural complexity of the furniture present in the scene.                                                                     
+
+> TABLE I
+> APOR DATASET SUMMARY .TOP :GLOBAL STATISTICS . B OTTOM :
+> EVALUATION PROFILES WITH THE NUMBER OF clean SCENARIOS
+> (EXCLUDING ERROR MODES )AND GROUND TRUTH (GT) ABSTENTION RATE (FRACTION OF ACTIONABLE OBJECTS LABELED UNPLACED ).
+> Global statistics
+> Profiles 10 Room Types 5Users per profile 3Users Total 30 Furniture Total 60 Furniture per env 3–6 Environments 150 Arrangements per (u, e )6Arrangements Total 900 Env. complexity score [0 ,1]
+> Object Vocabulary 581 Objects per arrangement Up to 20 Scenarios (w/out errs) 3792 Overall GT-unplaced ratio 0.17 Scenarios (w/ errs) 1992 Total Scenarios 5784
+> Profiles Profile #Scen. unp ratio Profile #Scen. unp ratio
+> Room 345 0.41 Thematic 391 0.27 Frequency 418 0.19 Ladybug 420 0.21 Exclusionist 228 0.72 LowReach 400 0.25 Cluttercore 450 0.03 HighReach 399 0.25 Taxonomic 356 0.35 Efficient 385 0.30
+
+Pool of objects : APOR contains a collection of 581 pickable objects originating from two sources: 62 from AI2-THOR (iTHOR scenes) [16] and 519 LLM-generated objects, added to cover the specific needs of each profile. Objects are defined by their unique name and descriptive attributes (e.g., color, room hints, and associated profiles). For each scene, approximately half of the object pool is room-relevant according to catalog room hints, and the rest are sampled from the full catalog, with at most two instances of the same canonical object and a maximum of 20 objects per arrangement. 
+
+User Profiles : Profiles are archetypes that describe coherent but potentially non-standard organizational strate-gies. In this paper, our evaluation is based on the 10 profiles listed in Table I. Inspiration for these profiles comes from previous crowdsourcing [10] and behavioral studies [17], [18] and are further refined into self-consistent, LLM-generated descriptions (traits and organizing princi-ples). Fig 2 shows examples of object arrangements gen-erated in APOR for three different user profiles. Other profiles introduced in the benchmarks are context-driven (Room), theme-based (thematic), usage-driven (Frequency), repetitive, pattern-based (Ladybug), selective (Exclusionist), reach-constrained (LowReach), density-driven (Cluttercore), height-driven (HighReach), category-driven (Taxonomic), and efficiency-driven (Efficient) organizational profiles. 
+
+Data Generation : In the base dataset, we generated the layouts using a locally hosted LLM (Gemma-27B [19]), chosen to keep generation local and reproducible. The model is tasked to embody one of the profiles and to produce object-to-surface placements in the current environment. This choice is motivated by previous research exploring LLMs as simulators of human-like behavior [20], [21], but APOR should not be interpreted as validated human preference data. To preserve continuity within the room between ar-rangements of the same (u, e ) couple, we provide up to three previous arrangements as context. In total, there are 
+
+10 preference archetypes, each represented by 3 synthetic users (30 total). For each of these users, we generated 5
+
+room-level environments (one per room-type) and sampled 
+
+6 arrangements per environment. This represents a total of 
+
+150 environments and 900 (u, e, X ) scenes. 
+
+Controlled Abstention : To ensure control over the number of objects originally left unplaced by the model, which varies greatly depending on the profile, we have added a post-processing step. For each arrangement, and at random, only 40% of the objects unplaced by the model are retained. This transformation preserves the same number of users and arrangements, while reducing the number of unplaced objects for a more balanced overall abstention rate ( 0.17 ). As a result, the abstention distribution in APOR is partially design-controlled rather than fully emergent from the LLM-generated profiles. V. M ETHODOLOGY 
+
+Fig 3 provides an overview of the APOLLO framework, which relies primarily on a lightweight scorer to make rapid object-level decisions and queries the LLM when uncertain about its decisions. 
+
+A. PEM: Personalized Embedding Model 
+
+The Personalized Embedding Model (PEM), is a CPU-only embedding-based model that naturally captures co-occurrence patterns. It is trained from scratch for each 
+
+(u, e ) couple using only the user-history Hu,e (no cross-user pretraining). Similar to prior work for personalization using personal embeddings [22], [23], PEM learns personalized embeddings for objects and surfaces. Given an actionable object x ∈ XU , the model predicts a candidate surface 
+
+s ∈ S + and outputs a confidence signal used later for LLM assistance. 
+
+Inputs: For each new scene, the model receives the following inputs: (i) observed full arrangements from the same ( u,e) couple. (ii) the partial scene AP which contains object-surface pairs that are already placed in the scene (the partial scene might have some errors). (iii) the list of actionable objects, i.e., objects on the {UNPLACED } surface that require an action from the model. 
+
+Training Instances: We generate supervised training instances from H(u,e ) by constructing partial scenes through object removals. For each demonstration AiH ∈ H (u,e ), we first extract the set of placed object-surface pairs {(x, s )}.We then generate up to Cmax synthetic partial scenes from that demonstration, where this cap is used to avoid imbalance across arrangements. For each synthetic par-tial scene, we sample the number of removed objects as 
+
+r ∼ U{ 1, . . . , min( rmax , |X iH |)}, and reassign them to 
+
+UNPLACED }, while leaving all remaining placed objects unchanged. Each resulting partial scene is encoded as a context-by-surface structure (ctx-by-surface) representation of length |S +|. Each entry stores the indices of objects currently present on that surface in the partial scene. From this encoding, we generate training instances of the form 
+
+(obj idx , ctx by surface , target surface idx ).
+
+This representation allows the model to learn an object’s target surface conditioned on the current scene state. 
+
+Representations: PEM learns object and surface em-beddings of dimension d. We denote Eo(x) ∈ Rd as the embedding of object x and Es(s) ∈ Rd as the embedding of surface s. Each surface also has a key vector K(s) ∈ Rd
+
+used to gate the global context to make it surface-dependent, a learned surface bias bs ∈ R and a learned token e∅ ∈ Rd to represent empty surfaces. All parameters learned for a given 
+
+(u, e ) are: 
+
+θ = {Eo, E s, K, b, e ∅}
+
+Local and global context encoding: PEM encodes the partial scene at two complementary scales. First, it builds a surface-level summary cs to capture local grouping cues (what is already placed together on a given surface). Second, it builds a compact scene-level summary g to capture broader organization patterns. Let Cs be the set of objects present on surface s in the partial context. The surface-level context is the average of their object embeddings: 
+
+cs =
+
+( 1
+
+> |Cs|
+
+P 
+
+> x∈Cs
+
+Eo(x) if |Cs| > 00 otherwise ∈ Rd
+
+When forming the global scene summary, we want the empty surfaces to still contribute information (”surface cur-rently unused”) rather than being indistinguishable from missing data. The resulting scene-level summary is then computed as the average of these per-surface context vectors (cs for non-empty surfaces, e∅ for empty ones): 
+
+g = 1
+
+|S+|
+
+X
+
+> s∈S+
+
+(cs + 1[|Cs| = 0] · e∅) ∈ Rd
+
+A single global context applied uniformly to all surfaces is restrictive. We therefore assign each surface a learned key vector K(s) and compute a surface-dependent gate as: 
+
+αs = σ K(s)⊤g ∈ (0 , 1) .
+
+The sigmoid maps the compatibility between the surface and the global context to a weight in (0 , 1) , making the influence of g surface-dependent: it lets the model emphasize global Fig. 3. Overview of the APOLLO framework. PEM is trained per (u, e ) from observed demonstrations via permuted training instances, then scores candidate surfaces for each actionable object in a partial scene to produce per-object probabilities and confidence (margin). APOLLO keeps confident local decisions and routes only ambiguous objects to an LLM, merging both outputs into the final predicted arrangement sent to the robot for manipulation. 
+
+context when a surface needs disambiguation, and down-weight it when local grouping cues are already sufficient. Finally, we denote vs as the surface representation used for scoring, obtained by combining the surface embedding with the local context and the gated global context contribution: 
+
+vs = Es(s) + cs + αsg ∈ Rd
+
+Scoring and training: Given an actionable object x ∈XU , we compute logits over all candidates surfaces: 
+
+score (x, s ) = Eo(x)⊤vs + bs, s ∈ S+.
+
+A softmax is applied to obtain pθ (s | x) and we train with cross-entropy loss against the target surface. Parameters θ
+
+are optimized using Adam for a fixed number of epochs. 
+
+Inference: At test time, we construct the surface rep-resentation vs from the objects already placed in the partial scene AP , calculate the probability distribution pθ (s | x) for each of the actionable objects, and predict: 
+
+ˆsP EM (x) = arg max 
+
+> s∈S+
+
+pθ (s | x)
+
+B. LLM-assisted inference 
+
+PEM is designed to capture user- and environment-specific placement patterns, but it may benefit from the reasoning capabilities of LLMs when prediction uncertainty is high. To decide when to request assistance, we use a simple un-certainty signal derived from PEM’s own output distribution. Specifically, we define the margin m(x) = p1(x) − p2(x),where p1(x) and p2(x) are the top-1 and top-2 probabilities predicted by PEM for object x. A small margin indicates that multiple surfaces are nearly tied, suggesting uncertainty. For a given threshold τ , we query the LLM for object x if 
+
+m(x) < τ :
+
+ˆsAP OLLO (x) = 
+
+arg max s∈S + pP EM (s | x) if m(x) ≥ τ
+
+ˆsLLM (x) otherwise 
+
+The final prediction ˆAG is obtained by merging all per-object decisions ˆs(x) with the objects already placed in AP .VI. E XPERIMENTS 
+
+We compare our method against previous baselines on PAR-SEC [7], [10], [11] and our APOR benchmark (Sec IV) in a controlled benchmark settings to evaluate the model’s ability to deal with unaddressed challenges in prior work. 
+
+Benchmarks and evaluation protocol 
+
+PARSEC is a placement-only benchmark that evaluates object-to-surface placement without abstention [10]. Its eval-uation phase comprises 3,507 scenarios representing 72 users in 15 different single-furniture environments, reported over the NovelEnvCat split. In PARSEC, each (u, e ) provides six arrangements; iteratively, one is selected as the target A∗ 
+
+> G
+
+and the remaining five form the history Hu,e . The actionable set 
+
+XU is constructed using all possible partial sizes. 
+
+APOR: We evaluate on the APOR benchmark presented in Section IV, using the reduced40 variant. As in PARSEC, each (u, e ) provides six arrangements with one selected as the target A∗ 
+
+> G
+
+and the other five used for history Hu,e .The difference lies in how we construct evaluation scenarios from each target arrangement. Instead of enumerating all possible partial sizes, we sample a small set of modes when feasible: empty where the partial scene is empty ( AP = ∅), 
+
+missing1 where exactly one object is moved from the goal to UNPLACED , and placed k correct with k ∈ { 5, 10 , 15 },where k objects remain correctly placed in AP and the remaining actionable objects are moved to UNPLACED .We additionally create placed k err e modes with (k, e ) ∈{(5 , 1) , (10 , 2) , (15 , 3) }, where e of the k in-scene objects are deliberately placed on incorrect surfaces to simulate noisy in-scene context. Importantly, the goal A∗ 
+
+> G
+
+is unchanged, and we do not score these injected errors directly; they only affect the model through the (possibly corrupted) input context, and we report their effect separately in Table VI. Baselines 
+
+We compare APOLLO against LLM-based baselines from prior work, including ContextSortLM (CSLM) [10], Tidy-Bot [7] and APRICOT [11] on the PARSEC dataset. Fol-lowing the PARSEC setup, TidyBot-Random is a variant that randomly samples a demonstration from the history Hu,e 
+
+to comply with TidyBot’s single-example rule induction, and APRICOT-NI for Non-Interactive constructs a single textual preference description from Hu,e without interactive questioning. For APOR experiments, we compare against CSLM only. For fairness, CSLM is evaluated with an action space that includes {UNPLACED }. For both PARSEC and APOR experiments, we also report PEM-only as an ablation of APOLLO, isolating the contribution of selective LLM assistance. 
+
+Implementation details 
+
+APOLLO (PEM + CSLM assistance): We run APOLLO as a two-stage pipeline in which PEM outputs per-object placement probabilities (and the margin m(x) = p1(x) −
+
+p2(x)), and the LLM assistant uses the same prompt structure as CSLM. We use embedding dimension d = 32 and train PEM for E = 60 epochs (batch size B = 16 , lr = 0 .01 ,weight decay λ = 0 .001 ). Training instances are generated from demonstrations by sampling up to Cmax = 8 synthetic partial scenes per observed arrangement, removing up to 
+
+rmax = 6 objects (moved to UNPLACED ). By design, PEM runs entirely on CPU; all PEM experiments were run on an Apple M4 Pro. At inference time, APOLLO uses the LLM for an object x when m(x) < τ . Thresholds were chosen from an offline sweep over fixed PEM and CSLM predictions: τ = 0 .15 on PARSEC and τ = 0 .05 on APOR. We report PEM and APOLLO results over five PEM seeds (42–46), with CSLM predictions fixed. Runtime estimates use PEM forward prediction time, full CSLM reasoning time, and the observed fraction of objects routed by APOLLO. 
+
+LLM-Based Models: On PARSEC, we reuse the orig-inal predictions obtained under the evaluation protocol (OpenAI API; GPT-4 model) to ensure strict compara-bility with reported baselines. For APOR, all CSLM-based calls, including APOLLO’s LLM fallback, use the same locally hosted Llama-3.3-70B-Instruct setup [24]: 2×H100 GPUs, bfloat16 precision, automatic device map-ping, max new tokens=2048, temperature 1/top-p 1 for sum-mary and placement prompts, and temperature 0/top-p 1 for rule extraction. 
+
+Runtime estimation: We report PEM forward prediction time and CSLM full prompt-based reasoning time per eval-uated case. For APOLLO, effective runtime is estimated as 
+
+tAPOLLO = tPEM + ρobj tCSLM , where ρobj is the fraction of actionable objects routed to the LLM. 
+
+Metrics 
+
+To measure the models’ performance on the two subtasks: placement and abstention, we calculate the placement accu-racy pa in three variants: (i) pa mix , computed by comparing the predicted arrangement AG to the goal A∗ 
+
+> G
+
+over the full                              
+
+> TABLE II PERFORMANCE ON NOVEL ENVIRONMENT CATEGORIES ON UNIFORM
+> (U) 1-D, 2-D, AND NON -UNIFORM ENVIRONMENTS ,ALONG WITH THE AVERAGE ,IN THE PARSEC DATASET .
+> Model NovelEnvCategory
+> U-1D U-2D Non-Uniform Average
+> APOLLO 0.56 0.57 0.67 0.61
+> PEM 0.56 0.54 0.65 0.59 CSLM 0.54 0.57 0.65 0.59 APRICOT-NI 0.50 0.50 0.56 0.53 TidyBot-Random 0.46 0.40 0.46 0.44
+
+action space (including UNPLACED ); (ii) pa place , computed on the subset of actionable objects whose ground-truth sur-face is not UNPLACED (“where to place”); and (iii) pa abs ,computed on the subset of actionable objects whose ground-truth is UNPLACED (“when not to place”). All metrics are computed per scene and averaged uniformly (macro). When aggregating across profiles, we report the unweighted mean of profile scores so that each profile contributes equally. VII. R ESULTS 
+
+A. Results on PARSEC 
+
+Table II reports results on PARSEC, novel environment categories. APOLLO achieves the best average placement accuracy ( 0.61 ), improving over CSLM by +0.02 (0.61 vs. 0.59), APRICOT-NI by +0.08 (0.61 vs. 0.53), and TidyBot-Random by +0.17 (0.61 vs. 0.44). The improvement is modest but stable across categories: APOLLO matches the best score on U-1D (0.56), matches CSLM on U-2D (0.57), and improves on Non-Uniform by +0.02 (0.67 vs. 0.65). APOLLO uses the LLM for only a subset of decisions (routes 23.15% of objects across 61.76% of scenes), yielding this accuracy improvement while reducing LLM usage; we also complement these results with runtime measurements (PEM: 0.102 s/scene on CPU; CSLM: 8.401 s/scene). As an ablation, PEM alone reaches 0.59 , matching CSLM on average (0.59) while remaining competitive across cate-gories (U-1D: 0.56 vs. 0.54, Non-Uniform: 0.65 vs. 0.65), and conceding some performance on U-2D (0.54 vs. 0.57). This highlights that a learned personalized embedding model can recover much of the placement performance with-out LLM assistance, thus being the main contributor to APOLLO’s performance. 
+
+B. Results on APOR 
+
+Table III compares APOLLO against CSLM and the PEM ablation on APOR. Overall, APOLLO achieves the highest mixed accuracy ( pa mix = 0 .39 ) by selectively leveraging the LLM when PEM is uncertain, while preserving PEM’s strength on abstention ( pa abs = 0 .47 ). In contrast, CSLM attains the strongest placement on average ( pa place = 0 .30 )but struggles to abstain ( pa abs = 0 .22 ), yielding a weaker overall pa mix = 0 .25 . PEM exhibits the opposite behavior: it is highly reliable at abstention ( pa abs = 0 .56 ) but weaker on pure placement ( pa place = 0 .17 ), resulting in pa mix = 0 .38 .TABLE III                                                                                               
+
+> APOR RESULTS BY USER PROFILE .FOR EACH USER PROFILE ,WE REPORT SCENE -LEVEL MACRO PLACEMENT ACCURACY FOR ALL MODELS . E ACH CELL REPORTS pa mix ,EXCEPT THE LAST COLUMN ,WHICH REPORTS THE UNWEIGHTED AVERAGE ACROSS PROFILES AS THE TRIPLET
+> pa mix |pa place |pa abs .
+> Model Profile Average
+> Room Frequency Exclusionist Cluttercore Taxonomic Efficient Thematic Ladybug LowReach HighReach pa mix |pa place |pa abs
+> CSLM 0.25 0.25 0.26 0.20 0.25 0.27 0.31 0.26 0.22 0.27 0.25 |0.30 |0.22 PEM 0.53 0.24 0.77 0.26 0.44 0.39 0.32 0.25 0.31 0.30 0.38 |0.17 |0.56
+> APOLLO 0.47 0.29 0.77 0.28 0.41 0.38 0.35 0.30 0.29 0.33 0.39 |0.25 |0.47 TABLE IV
+> RUNTIME EFFICIENCY .INFERENCE TIME COMPARISON OF APOLLO
+> WITH BASELINES ON THE PARSEC AND APOR DATASETS .Model PARSEC APOR Speedup CSLM 4.850 20.273 1.0 ×/ 1.0 ×
+> PEM 0.00017 0.00061 28.5k ×/ 33.2k ×
+> APOLLO 1.12 11.56 4.3 ×/ 1.8 ×
+
+This asymmetry motivates the routing approach: APOLLO recovers part of CSLM’s placement advantage while keeping a substantial abstention capability. At the profile level, the same pattern is visible. When abstention is dominant (e.g., Exclusionist), PEM already matches the best mixed score ( pa mix = 0 .77 ), and APOLLO does not gain from escalation because the LLM provides little additional value for these instances. Conversely, profiles with moderate abstention rates benefit more from rout-ing: APOLLO improves PEM’s placement without collaps-ing abstention, increasing pa mix on Frequency and La-dybug ( +0 .05 each) and HighReach ( +0 .03 ). Importantly, APOLLO also exceeds CSLM on placement in some profiles (e.g., Frequency and Ladybug), suggesting that escalation can act as a complementary mechanism rather than a fallback. Overall, Table III provides proof-of-concept evidence that personalized rearrangement benefits from reasoning about both where to place and when not to place , with PEM and LLM-based reasoning exposing complementary strengths under the APOR benchmark. 
+
+Runtime and routing efficiency.: Beyond accuracy, APOLLO is motivated by reducing dependence on expensive LLM inference. Table IV reports runtime per evaluated case and the corresponding speedup relative to full CSLM reasoning. PEM inference is several orders of magnitude faster than CSLM, and APOLLO translates this into an effective runtime reduction of about 4.3 × on PARSEC and 1.8 × on APOR. The smaller APOR speedup reflects its higher routing rate, with 57.0% of actionable objects routed to the LLM compared with 23.1% on PARSEC. 
+
+APOR: Environments complexity: Table V monitors how performance evolves on APOR as environments become more realistic, by grouping the (u, e ) environments into terciles of geometric complexity. The main takeaway is that increasing complexity consistently hurts all methods, sug-                                                         
+
+> TABLE V
+> APOR RESULTS BY ENVIRONMENT COMPLEXITY .ENVIRONMENTS ARE GROUPED INTO TERCILES (L OW /M ID /H IGH )BY THE GEOMETRIC COMPLEXITY SCORE . E ACH CELL REPORTS THE TRIPLET
+> pa mix |pa place |pa abs .
+> Model Low Mid High
+> CSLM 0.28 |0.32 |0.25 0.24 |0.29 |0.21 0.22 |0.27 |0.16 PEM 0.39 |0.18 |0.62 0.37 |0.17 |0.59 0.34 |0.15 |0.57
+> APOLLO 0.41 |0.27 |0.51 0.39 |0.24 |0.52 0.33 |0.24 |0.38
+
+gesting that room-level environments increase the difficulty of personalized rearrangement. At the same time, each ap-proach largely retains its core strength across terciles: CSLM remains strongest on placement ( pa place : 0 .32 → 0.29 →
+
+0.27 ), while PEM remains strongest on abstention ( pa abs :0.62 → 0.59 → 0.57 ). Notably, CSLM’s abstention degrades more sharply than PEM’s placement ( pa abs : 0 .25 → 0.21 →
+
+0.16 vs. pa place : 0.18 → 0.17 → 0.15 ), reinforcing that abstention is a distinct challenge. APOLLO preserves the strengths of both models in the Low and Mid terciles (pa mix = 0 .41 and 0.39 ), but its abstention drops markedly in the High tercile ( pa abs : 0 .52 → 0.38 ), indicating that the most complex environments remain challenging even with LLM assistance. 
+
+APOR: Corrupted partial scenes: Table VI isolates the impact of injecting errors in the in-scene context for partial scenes with k ∈ {5, 10 } observed objects. Overall, the effect on pa mix is modest, but it is consistently non-zero, supporting the motivation that assuming a perfectly reliable partial observation can slightly bias conclusions. For PEM, performance is essentially stable under noise ( −0.003 at 
+
+k=5 , −0.001 at k=10 ), suggesting that its context scoring is relatively robust to small perturbations. APOLLO inherits this robustness but still degrades mildly when the routed decision relies on a potentially corrupted context ( −0.003 at 
+
+k=5 , −0.005 at k=10 ). In contrast, CSLM shows the largest drop at k=10 (−0.014 ), while the slight improvement at k=5 
+
+(+0 .003 ) likely reflects variance rather than a systematic benefit from noise. Taken together, these results indicate that APOLLO (and PEM) remain relatively stable when there are already partially arranged environments. Additionally, the context noise does not dominate performance for our model, but it can selectively affect LLM-based methods that rely TABLE VI 
+
+APOR RESULTS UNDER CORRUPTED PARTIAL SCENES . WE COMPARE 
+
+pa mix BETWEEN CLEAN PARTIAL SCENES (correct ) AND NOISY PARTIAL SCENES (errors ) FOR k ∈ { 5, 10 } PLACED -OBJECT MODES (1 ERROR FOR 
+
+k=5 , 2 ERRORS FOR k=10 ). 
+
+Model k=5 (1 error) k=10 (2 errors) correct errors correct errors 
+
+CSLM 0.251 0.254 0.243 0.229 PEM 0.296 0.293 0.370 0.369 
+
+APOLLO 0.327 0.324 0.359 0.354 
+
+heavily on in-scene evidence, especially as the partial scene becomes denser. Overall, these results demonstrate that by using LLMs as assistance models with personalized embeddings, rather than zero-shot semantic reasoners (e.g., CSLM), APOLLO can learn personalized object placement preferences for simpler and complex settings across a variety of users. VIII. C ONCLUSION 
+
+In this paper, we address abstention-aware personalized ob-ject rearrangement and introduce APOLLO, a hybrid frame-work that combines a lightweight personalized embedding model with LLM assistance. APOLLO uses the local model for confident decisions and selectively invokes LLM reason-ing for lower-confidence cases, reducing LLM usage while preserving complementary placement and abstention behav-ior. We also introduce APOR, a synthetic LLM-generated benchmark for studying room-level, multi-furniture envi-ronments, diverse organizational profiles, explicit abstention behavior, and noisy partial context. Experiments on PARSEC and APOR provide proof-of-concept evidence that separating 
+
+where to place from when not to place is useful for per-sonalized rearrangement, and that local personalized models and LLM-based reasoning can play complementary roles. However, APOR remains synthetic and is not a substitute for validation with real users or deployed robots. Future work will evaluate this framework in HRI studies with human participants and extend it to multi-user environments and long-term adaptation as user preferences evolve over time [25]. REFERENCES [1] A. Ayub, C. L. Nehaniv, and K. Dautenhahn, “Interactive Continual Learning Architecture for Long-Term Personalization of Home Service Robots,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2024, pp. 11 289–11 296. [2] D. Batra et al. , “Rearrangement: A challenge for embodied ai,” 2020. [3] G. Sarch, Z. R. Wu, M. Jiang, Y. Feng, C. Lu, Y. Choi, A. Farhadi, and A. Kembhavi, “Tidee: Tidying up novel rooms using visuo-semantic commonsense priors,” in Computer Vision – ECCV 2022 , ser. Lecture Notes in Computer Science, vol. 13699. Springer, 2022, pp. 230–247. [4] N. Abdo, C. Stachniss, L. Spinello, and W. Burgard, “Robot, organize my shelves! Tidying up objects by predicting user preferences,” in 
+
+2015 IEEE International Conference on Robotics and Automation (ICRA) . Seattle, WA, USA: IEEE, May 2015, pp. 1557–1564. [5] I. Kapelyukh and E. Johns, “My house, my rules: Learning tidying preferences with graph neural networks,” in Proceedings of the 5th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 164. PMLR, 08–11 Nov 2022, pp. 740–749. [6] B. A. Newman, P. Gupta, K. Kitani, Y. Bisk, H. Admoni, and C. Paxton, “Degustabot: Zero-shot visual preference estimation for personalized multi-object rearrangement,” 2024. [7] J. Wu, R. Antonova, A. Kan, M. Lepert, A. Zeng, S. Song, J. Bohg, S. Rusinkiewicz, and T. Funkhouser, “Tidybot: Personalized robot assistance with large language models,” Autonomous Robots , 2023. [8] R. Ramrakhya, A. Kembhavi, D. Batra, Z. Kira, K.-H. Zeng, and L. Weihs, “Seeing the unseen: Visual common sense for semantic placement,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2024, pp. 16 273–16 283. [9] K. Ramachandruni, M. Zuo, and S. Chernova, “Consor: A context-aware semantic object rearrangement framework for partially arranged scenes,” in 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2023, pp. 82–89. [10] K. Ramachandruni and S. Chernova, “Personalized robotic object rearrangement from scene context,” in 2025 34th IEEE International Conference on Robot and Human Interactive Communication (RO-MAN) , 2025, pp. 259–266. [11] H. Wang et al. , “APRICOT: Active preference learning and constraint-aware task planning with LLMs,” in Conference on Robot Learning ,2024. [12] D. Han et al. , “LLM-personalize: Aligning LLM planners with human preferences via reinforced self-training for housekeeping robots,” in 
+
+Proceedings of the 31st International Conference on Computational Linguistics , 2025, pp. 1465–1474. [13] A. Goyal, A. Mousavian, C. Paxton, Y.-W. Chao, B. Okorn, J. Deng, and D. Fox, “Ifor: Iterative flow minimization for robotic object rear-rangement,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2022, pp. 14 787–14 797. [14] X. Sun, R. Zhang, K. Pang, B. Miao, Y. Tan, Z. Yang, M. Li, and J. Chen, “Robotidy : A 3d gaussian splatting household tidying benchmark for embodied navigation and action,” 2025. [15] R. A. Izzo, G. Bardaro, and M. Matteucci, “Act, think or abstain: Complexity-aware adaptive inference for vision-language-action mod-els,” 2026. [16] E. Kolve et al. , “AI2-THOR: An Interactive 3D Environment for Visual AI,” Aug. 2022, arXiv:1712.05474 [cs]. [17] R. Rowe, S. Singhal, D. Yi, T. Bhattacharjee, and S. S. Srinivasa, “Desk organization: Effect of multimodal inputs on spatial relational learning,” in 2019 28th IEEE International Conference on Robot and Human Interactive Communication (RO-MAN) , 2019, pp. 1–8. [18] D. Mirman, J.-F. Landrigan, and A. E. Britt, “Taxonomic and thematic semantic systems,” Psychological Bulletin , vol. 143, no. 5, pp. 499– 520, 2017. [19] G. Team, A. Kamath et al. , “Gemma 3 Technical Report,” Mar. 2025, arXiv:2503.19786 [cs]. [20] B. Zhang and H. Soh, “Large language models as zero-shot human models for human-robot interaction,” in 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2023, pp. 7961– 7968. [21] J. S. Park, J. O’Brien, C. J. Cai, M. R. Morris, P. Liang, and M. S. Bernstein, “Generative agents: Interactive simulacra of human behavior,” in Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology , ser. UIST ’23. New York, NY, USA: Association for Computing Machinery, 2023. [22] R. Paleja, A. Silva, L. Chen, and M. Gombolay, “Interpretable and per-sonalized apprenticeship scheduling: Learning interpretable scheduling policies from heterogeneous user demonstrations,” in Advances in Neural Information Processing Systems , vol. 33. Curran Associates, Inc., 2020, pp. 6417–6428. [23] M. L. Schrum, E. Hedlund-Botti, N. Moorman, and M. C. Gombolay, “Mind meld: Personalized meta-learning for robot-centric imitation learning,” in 2022 17th ACM/IEEE International Conference on Human-Robot Interaction (HRI) , 2022, pp. 157–165. [24] A. Grattafiori, A. Dubey et al. , “The Llama 3 Herd of Models,” Nov. 2024, arXiv:2407.21783 [cs]. [25] A. Ayub et al. , “A human-centered view of continual learning: Un-derstanding interactions, teaching patterns, and perceptions of human users toward a continual learning robot in repeated interactions,” ACM Transactions on Human-Robot Interaction , vol. 13, no. 4, pp. 1–39, 2024.

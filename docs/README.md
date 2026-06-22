@@ -6,56 +6,53 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-21
-- 运行时间：2026-06-21 21:09:59 UTC
+- 最新运行日期：2026-06-22
+- 运行时间：2026-06-22 22:05:23 UTC
 - 运行状态：成功
-- 本次总论文数：12
-- 精读区：6
+- 本次总论文数：11
+- 精读区：5
 - 速读区：6
 
 ### 今日简报（AI）
-今日收录12篇文章，精读6篇，重点聚焦触觉灵巧操作与具身智能。最值得关注的是满分论文《T-Rex》的触觉反应灵巧操作，以及《Learned Image Compression for VLA》的高效视觉压缩思路。建议优先精读这两篇，深入理解触觉感知与VLA系统优化的最新进展。
-- 详情：[/202606/21/README](/202606/21/README)
+今日触觉灵巧操作与具身推理研究成焦点，精读两篇高分论文聚焦触觉反应操作及全手触觉基准。最推荐《T-Rex》（9.0）与《HT-Bench》（9.0），分别提出新颖的触觉反应操控框架和完整手部触觉表示学习基准。普通读者可关注触觉与视觉融合方向，后续尝试将触觉信号与链式推理结合以提升机器人复杂任务表现。
+- 详情：[/202606/22/README](/202606/22/README)
 
 ### 精读区论文标签
-1. [T-Rex: Tactile-Reactive Dexterous Manipulation](/202606/21/2606.17055v1-t-rex-tactile-reactive-dexterous-manipulation)  
-   标签：评分：10.0/10、query:tf
-   evidence：将触觉模态集成到VLA模型的触觉反应式灵巧操作
-2. [Learned Image Compression for Vision-Language-Action Models](/202606/21/2606.16253v1-learned-image-compression-for-vision-language-action-models)  
+1. [T-Rex: Tactile-Reactive Dexterous Manipulation](/202606/22/2606.17055v1-t-rex-tactile-reactive-dexterous-manipulation)  
+   标签：评分：9.0/10、query:tf
+   evidence：触觉反应灵巧操作与大规模触觉数据集
+2. [HT-Bench: Benchmarking and Learning Dexterous Full-Hand Tactile Representations with Egocentric Vision](/202606/22/2606.19161v1-ht-bench-benchmarking-and-learning-dexterous-full-hand-tactile-representations-with-egocentric-vision)  
+   标签：评分：9.0/10、query:tf
+   evidence：基于自我中心视觉的灵巧全手触觉表征基准
+3. [Tri-Info: Generalizable, Interpretable Failure Prediction for VLA Models via Information Theory](/202606/22/2606.19998v1-tri-info-generalizable-interpretable-failure-prediction-for-vla-models-via-information-theory)  
    标签：评分：9.0/10、query:vla
-   evidence：面向VLA模型的学习型图像压缩
-3. [ROVE: Unlocking Human Interventions for Humanoid Manipulation via Reinforcement Learning](/202606/21/2606.17011v1-rove-unlocking-human-interventions-for-humanoid-manipulation-via-reinforcement-learning)  
-   标签：评分：9.0/10、query:vla
-   evidence：使用强化学习通过人类干预对类人VLA模型进行后训练
-4. [DREAM-Chunk: Reactive Action Chunking with Latent World Model](/202606/21/2606.18589v1-dream-chunk-reactive-action-chunking-with-latent-world-model)  
-   标签：评分：9.0/10、query:vla
-   evidence：基于潜在世界模型的反应式动作分块方法
-5. [SC3-Eval: Evaluating Robot Foundation Models via Self-Consistent Video Generation](/202606/21/2606.18610v1-sc3-eval-evaluating-robot-foundation-models-via-self-consistent-video-generation)  
+   evidence：使用信息论对VLA模型进行失败预测
+4. [GeoTLM: Geometry-aware Tactile-Language Models for Contact Motion Orientation Reasoning of Dynamic Objects](/202606/22/2606.15909v1-geotlm-geometry-aware-tactile-language-models-for-contact-motion-orientation-reasoning-of-dynamic-objects)  
+   标签：评分：8.0/10、query:tf
+   evidence：几何感知触觉语言模型用于接触方向推理
+5. [Pose6DAug: Physically Plausible Multi-view Object Swapping for Robot Data Augmentation](/202606/22/2606.20118v1-pose6daug-physically-plausible-multi-view-object-swapping-for-robot-data-augmentation)  
    标签：评分：8.0/10、query:vla
-   evidence：通过视频生成评估机器人基础模型
-6. [MemoryWAM: Efficient World Action Modeling with Persistent Memory](/202606/21/2606.20562v1-memorywam-efficient-world-action-modeling-with-persistent-memory)  
-   标签：评分：8.0/10、query:vla
-   evidence：世界动作模型作为操作基础模型
+   evidence：用于VLA策略处理分布外物体的数据增强
 
 ### 速读区论文标签
-1. [A Bilateral Teleoperation Framework for Dexterous Manipulation](/202606/21/2606.15434v1-a-bilateral-teleoperation-framework-for-dexterous-manipulation)  
-   标签：评分：7.0/10、query:tf
-   evidence：双边遥操作与多尺度触觉反馈
-2. [Qwen-RobotWorld Technical Report: Unifying Embodied World Modeling through Language-Conditioned Video Generation](/202606/21/2606.17030v3-qwen-robotworld-technical-report-unifying-embodied-world-modeling-through-language-conditioned-video-generation)  
+1. [RoboPIN: Grounded Embodied Reasoning via Pinned Chain-of-Thought](/202606/22/2606.15753v1-robopin-grounded-embodied-reasoning-via-pinned-chain-of-thought)  
    标签：评分：7.0/10、query:vla
-   evidence：面向具身智能的语言条件视频世界模型
-3. [VL2Spike: Spike-driven Distillation from VLMs for Low-Power Visual Perception in Embodied AI](/202606/21/2606.15898v1-vl2spike-spike-driven-distillation-from-vlms-for-low-power-visual-perception-in-embodied-ai)  
+   evidence：通过视觉锚定和思维链连接语言与动作的具身推理
+2. [Scaling Short-Term Memory of Visuomotor Policies for Long-Horizon Tasks](/202606/22/2606.16178v1-scaling-short-term-memory-of-visuomotor-policies-for-long-horizon-tasks)  
+   标签：评分：7.0/10、query:vla
+   evidence：基于Transformer的视觉运动策略短期记忆架构
+3. [Contrastive Action-Image Pre-training for Visuomotor Control](/202606/22/2606.17256v1-contrastive-action-image-pre-training-for-visuomotor-control)  
+   标签：评分：7.0/10、query:vla
+   evidence：基于人手姿态代理的对比动作-图像预训练
+4. [PAIWorld: A 3D-Consistent World Foundation Model for Robotic Manipulation](/202606/22/2606.18375v1-paiworld-a-3d-consistent-world-foundation-model-for-robotic-manipulation)  
+   标签：评分：7.0/10、query:vla
+   evidence：面向操作的三维一致世界基础模型
+5. [PO-PDDL: Learning Symbolic POMDPs from Visual Demonstrations for Robot Planning Under Uncertainty](/202606/22/2606.15654v1-po-pddl-learning-symbolic-pomdps-from-visual-demonstrations-for-robot-planning-under-uncertainty)  
    标签：评分：6.0/10、query:vla
-   evidence：从VLM进行脉冲驱动蒸馏用于具身AI低功耗视觉感知
-4. [ERQA-Plus: A Diagnostic Benchmark for Reasoning in Embodied AI](/202606/21/2606.17639v1-erqa-plus-a-diagnostic-benchmark-for-reasoning-in-embodied-ai)  
+   evidence：将大语言模型与PDDL结合用于机器人规划
+6. [Abstention-Aware Personalized Object Rearrangement via Uncertainty-Guided LLM Assistance](/202606/22/2606.17309v1-abstention-aware-personalized-object-rearrangement-via-uncertainty-guided-llm-assistance)  
    标签：评分：6.0/10、query:vla
-   evidence：具身AI推理诊断基准
-5. [ERQA-Plus: A Diagnostic Benchmark for Reasoning in Embodied AI](/202606/21/2606.17639v2-erqa-plus-a-diagnostic-benchmark-for-reasoning-in-embodied-ai)  
-   标签：评分：6.0/10、query:vla
-   evidence：具身AI推理诊断基准
-6. [Temporal Self-Imitation Learning](/202606/21/2606.19752v1-temporal-self-imitation-learning)  
-   标签：评分：6.0/10、query:vla
-   evidence：面向高效机器人操作的时间自模仿学习
+   evidence：LLM辅助的机器人物体重排带有弃权机制
 
 
 <div class="dpr-home-promo-card">
