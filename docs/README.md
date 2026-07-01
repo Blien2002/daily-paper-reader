@@ -6,73 +6,66 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-30
-- 运行时间：2026-06-30 22:09:43 UTC
+- 最新运行日期：2026-07-01
+- 运行时间：2026-07-01 21:19:56 UTC
 - 运行状态：成功
-- 本次总论文数：17
+- 本次总论文数：14
 - 精读区：6
-- 速读区：11
+- 速读区：8
 
 ### 今日简报（AI）
-今日日报聚焦机器人操作与灵巧性前沿，精读2篇高分论文，速读3篇触觉与跨体策略工作。  
-最值得看《SSI-Policy》的结构化场景接口视觉语言操作，以及《VibeAct》的振动驱动接触丰富灵巧控制，均获9.0分。  
-建议优先精读上述两文，并关注速读中触觉探索（TACTFUL）与自动轨迹标注（Keypose Exploration）对闭环操作的应用启发。
-- 详情：[/202606/30/README](/202606/30/README)
+今日精读6篇、速读8篇，重点关注机器人灵巧操作的触觉感知与自适应控制。
+
+最值得精读的两篇9分论文分别是《VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity》和《TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models》，聚焦振动触觉与触觉标注提示。
+
+建议优先阅读这两篇精读论文，深入理解触觉信号如何赋能视觉-语言-动作模型的交互式机器人操作。
+- 详情：[/202607/01/README](/202607/01/README)
 
 ### 精读区论文标签
-1. [SSI-Policy: Learning Structured Scene Interfaces for Vision-Language Robotic Manipulation](/202606/30/2606.26800v2-ssi-policy-learning-structured-scene-interfaces-for-vision-language-robotic-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：用于视觉-语言机器人操作的结构化场景接口
-2. [VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity](/202606/30/2606.27344v1-vibeact-vibration-to-actions-for-contact-rich-reactive-robot-dexterity)  
+1. [VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity](/202607/01/2606.27344v1-vibeact-vibration-to-actions-for-contact-rich-reactive-robot-dexterity)  
    标签：评分：9.0/10、query:tf
-   evidence：振动触觉用于灵巧操作及其模拟到现实迁移
-3. [TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models](/202606/30/2606.29089v1-tap-vla-tactile-annotation-prompting-for-vision-language-action-models)  
+   evidence：振动触觉感知用于接触丰富灵巧操作
+2. [TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models](/202607/01/2606.29089v1-tap-vla-tactile-annotation-prompting-for-vision-language-action-models)  
    标签：评分：9.0/10、query:tf
-   evidence：通过触觉标注提示将力触觉反馈集成到VLA模型
-4. [Event-VLA: Action-Conditioned Event Fusion for Robust Vision-Language-Action Model](/202606/30/2606.29384v1-event-vla-action-conditioned-event-fusion-for-robust-vision-language-action-model)  
+   evidence：触觉标注提示为VLA模型引入接触力信息
+3. [A Modular Vision-Language-Action Robotics Framework for Indoor Environments](/202607/01/2606.31144v1-a-modular-vision-language-action-robotics-framework-for-indoor-environments)  
    标签：评分：9.0/10、query:vla
-   evidence：提出Event-VLA，利用事件流增强VLA模型在光照变化下的鲁棒性
-5. [SA-VLA: State-aware tokenizer for improving Vision-Language-Action Models' performance](/202606/30/2606.30113v1-sa-vla-state-aware-tokenizer-for-improving-vision-language-action-models-performance)  
+   evidence：模块化VLA框架用于室内环境，使用语义体素地图和VLM
+4. [UniTacVLA: Unified Tactile Understanding and Prediction in Vision Language Action Models](/202607/01/2606.31723v1-unitacvla-unified-tactile-understanding-and-prediction-in-vision-language-action-models)  
+   标签：评分：9.0/10、query:tf
+   evidence：将触觉感知集成到VLA模型中
+5. [Z-1: Efficient Reinforcement Learning for Vision-Language-Action Models](/202607/01/2606.31846v1-z-1-efficient-reinforcement-learning-for-vision-language-action-models)  
    标签：评分：9.0/10、query:vla
-   evidence：VLA模型的状态感知分词器
-6. [Training Vision-Language-Action Models with Dense Embodied Chain-of-Thought Supervision](/202606/30/2606.30552v1-training-vision-language-action-models-with-dense-embodied-chain-of-thought-supervision)  
-   标签：评分：9.0/10、query:vla
-   evidence：提出ZR-0，一个26亿参数端到端VLA模型，采用具身思维链监督
+   evidence：面向VLA模型的强化学习后训练
+6. [Position: Vision-Language-Action Models Cannot Be Verified to Perform Physical Reasoning](/202607/01/2606.30686v1-position-vision-language-action-models-cannot-be-verified-to-perform-physical-reasoning)  
+   标签：评分：8.0/10、query:vla
+   evidence：质疑VLA模型物理推理能力的立场论文
 
 ### 速读区论文标签
-1. [TACTFUL: Tactile-Driven Exploration For Object Localization and Identification in Confined Environments](/202606/30/2606.24712v1-tactful-tactile-driven-exploration-for-object-localization-and-identification-in-confined-environments)  
-   标签：评分：8.0/10、query:tf
-   evidence：触觉驱动的无视觉物体定位与识别
-2. [Keypose Exploration: Efficient Automatic Trajectory Labelling and Cross-Embodiment Policy Transfer](/202606/30/2606.29028v1-keypose-exploration-efficient-automatic-trajectory-labelling-and-cross-embodiment-policy-transfer)  
+1. [From Grasps to Dexterity: Large-Scale Grasp Pretraining for Dexterous Manipulation](/202607/01/2606.30749v1-from-grasps-to-dexterity-large-scale-grasp-pretraining-for-dexterous-manipulation)  
    标签：评分：8.0/10、query:vla
-   evidence：使用视觉语言模型自动标注关键姿态，并训练关键姿态引导策略
-3. [OpenSPM: An Environment-Transferable Robotic Key Spatial Pose Memory and Closed-Loop High-Frequency Flow-Matching Action Generation Model](/202606/30/2606.29936v1-openspm-an-environment-transferable-robotic-key-spatial-pose-memory-and-closed-loop-high-frequency-flow-matching-action-generation-model)  
+   evidence：大规模抓取预训练用于灵巧操作
+2. [ELASTIC: Efficiently Learning to Adaptively Scale Test-Time Compute for Generative Control Policies](/202607/01/2606.31132v1-elastic-efficiently-learning-to-adaptively-scale-test-time-compute-for-generative-control-policies)  
    标签：评分：8.0/10、query:vla
-   evidence：提出OpenSPM结合空间姿态记忆和流匹配动作生成，用于端到端操作
-4. [ViPSim: Collaborating Visual and Parameter Spaces for Consistent Long-Horizon Embodied World Models](/202606/30/2606.28804v1-vipsim-collaborating-visual-and-parameter-spaces-for-consistent-long-horizon-embodied-world-models)  
+   evidence：优化生成控制策略（包括VLA）的测试时计算分配
+3. [Agentic RAG-VLM: Affordance-Aware Retrieval-Augmented Generation with Self-Reflective Planning for Robotic Grasping](/202607/01/2606.31200v1-agentic-rag-vlm-affordance-aware-retrieval-augmented-generation-with-self-reflective-planning-for-robotic-grasping)  
+   标签：评分：8.0/10、query:vla
+   evidence：面向机器人抓取的具身感知VLM，结合RAG与自反式规划
+4. [Plan Right, Then Plan Tight: Symbolic RL for Efficient Embodied Reasoning](/202607/01/2606.31260v1-plan-right-then-plan-tight-symbolic-rl-for-efficient-embodied-reasoning)  
+   标签：评分：8.0/10、query:vla
+   evidence：使用符号强化学习进行具身任务规划，涉及大语言模型
+5. [Adapting Generalist Robot Policies with Semantic Reinforcement Learning](/202607/01/2606.31958v1-adapting-generalist-robot-policies-with-semantic-reinforcement-learning)  
+   标签：评分：8.0/10、query:vla
+   evidence：利用语言提示对通用机器人策略进行强化学习适配
+6. [HUMEMBR: Learning Human Routines for Predictive Embodied Navigation](/202607/01/2606.30404v1-humembr-learning-human-routines-for-predictive-embodied-navigation)  
    标签：评分：7.0/10、query:vla
-   evidence：协同视觉与参数空间的世界模型用于VLA评估
-5. [Human2Any: Human-to-Robot Transfer via Constraint-Aware Compositional Planning](/202606/30/2606.28813v1-human2any-human-to-robot-transfer-via-constraint-aware-compositional-planning)  
-   标签：评分：7.0/10、query:vla
-   evidence：从人类视频学习以物体为中心的操作先验，用于机器人操作
-6. [LAMP: Long-Horizon Adaptive Manipulation Planning for Multi-Robot Collaboration in Cluttered Space](/202606/30/2606.29358v1-lamp-long-horizon-adaptive-manipulation-planning-for-multi-robot-collaboration-in-cluttered-space)  
-   标签：评分：7.0/10、query:vla
-   evidence：多机器人操作中的端到端规划
-7. [CORE: Common Outcome Regularities from Action-Free Visual Demonstrations for Robot Manipulation](/202606/30/2606.29517v1-core-common-outcome-regularities-from-action-free-visual-demonstrations-for-robot-manipulation)  
-   标签：评分：7.0/10、query:vla
-   evidence：从无动作视觉演示中提取共同结果规律用于机器人操作
-8. [Analytic Concept-Centric Memory for Agentic Embodied Manipulation](/202606/30/2606.29774v1-analytic-concept-centric-memory-for-agentic-embodied-manipulation)  
-   标签：评分：7.0/10、query:vla
-   evidence：分析式概念中心记忆用于机器人操作基础模型
-9. [Improving Robotic Imitation Learning via Trajectory Standardization](/202606/30/2606.22907v1-improving-robotic-imitation-learning-via-trajectory-standardization)  
+   evidence：预测性具身导航，学习人类日常模式
+7. [Hierarchical Policy Learning via Spectral Decomposition](/202607/01/2606.29570v1-hierarchical-policy-learning-via-spectral-decomposition)  
    标签：评分：6.0/10、query:vla
-   evidence：通过轨迹标准化改进机器人模仿学习
-10. [Learning Transferable Dynamics Priors from Action to World Modeling](/202606/30/2606.29501v1-learning-transferable-dynamics-priors-from-action-to-world-modeling)  
+   evidence：基于频谱分解的层次化策略学习用于机器人操作
+8. [Freeform Preference Learning for Robotic Manipulation](/202607/01/2606.32027v1-freeform-preference-learning-for-robotic-manipulation)  
    标签：评分：6.0/10、query:vla
-   evidence：在机器人操作数据上预训练扩散世界模型作为可迁移动力学先验
-11. [Automating the Design of Embodied AgentArchitectures](/202606/30/2606.30111v1-automating-the-design-of-embodied-agentarchitectures)  
-   标签：评分：6.0/10、query:vla
-   evidence：自动化具身智能体架构设计
+   evidence：使用自然语言偏好指导机器人策略学习
 
 
 <div class="dpr-home-promo-card">
