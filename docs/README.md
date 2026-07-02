@@ -6,66 +6,46 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-01
-- 运行时间：2026-07-01 21:19:56 UTC
+- 最新运行日期：2026-07-02
+- 运行时间：2026-07-02 21:37:29 UTC
 - 运行状态：成功
-- 本次总论文数：14
-- 精读区：6
-- 速读区：8
+- 本次总论文数：8
+- 精读区：5
+- 速读区：3
 
 ### 今日简报（AI）
-今日精读6篇、速读8篇，重点关注机器人灵巧操作的触觉感知与自适应控制。
-
-最值得精读的两篇9分论文分别是《VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity》和《TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models》，聚焦振动触觉与触觉标注提示。
-
-建议优先阅读这两篇精读论文，深入理解触觉信号如何赋能视觉-语言-动作模型的交互式机器人操作。
-- 详情：[/202607/01/README](/202607/01/README)
+今日推荐论文围绕视觉-语言-动作模型，精读两篇高分工作分别引入触觉标注和密集思维链监督以提升机器人操作泛化性。  
+最值得关注的是《TAP-VLA》与《Training VLA with Dense Embodied CoT》，前者通过触觉标注增强多模态感知，后者利用密集链式推理改善长时任务规划。  
+普通读者建议优先精读这两篇9分论文，随后可浏览速读中关于自适应推理计算与语义强化学习的扩展思路。
+- 详情：[/202607/02/README](/202607/02/README)
 
 ### 精读区论文标签
-1. [VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity](/202607/01/2606.27344v1-vibeact-vibration-to-actions-for-contact-rich-reactive-robot-dexterity)  
+1. [TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models](/202607/02/2606.29089v1-tap-vla-tactile-annotation-prompting-for-vision-language-action-models)  
    标签：评分：9.0/10、query:tf
-   evidence：振动触觉感知用于接触丰富灵巧操作
-2. [TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models](/202607/01/2606.29089v1-tap-vla-tactile-annotation-prompting-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:tf
-   evidence：触觉标注提示为VLA模型引入接触力信息
-3. [A Modular Vision-Language-Action Robotics Framework for Indoor Environments](/202607/01/2606.31144v1-a-modular-vision-language-action-robotics-framework-for-indoor-environments)  
+   evidence：通过注释提示将触觉反馈集成到VLA模型中用于接触丰富的操作
+2. [Training Vision-Language-Action Models with Dense Embodied Chain-of-Thought Supervision](/202607/02/2606.30552v2-training-vision-language-action-models-with-dense-embodied-chain-of-thought-supervision)  
    标签：评分：9.0/10、query:vla
-   evidence：模块化VLA框架用于室内环境，使用语义体素地图和VLM
-4. [UniTacVLA: Unified Tactile Understanding and Prediction in Vision Language Action Models](/202607/01/2606.31723v1-unitacvla-unified-tactile-understanding-and-prediction-in-vision-language-action-models)  
+   evidence：与论文4相同：采用密集具身思维链监督的端到端VLA模型
+3. [UniTacVLA: Unified Tactile Understanding and Prediction in Vision Language Action Models](/202607/02/2606.31723v1-unitacvla-unified-tactile-understanding-and-prediction-in-vision-language-action-models)  
    标签：评分：9.0/10、query:tf
-   evidence：将触觉感知集成到VLA模型中
-5. [Z-1: Efficient Reinforcement Learning for Vision-Language-Action Models](/202607/01/2606.31846v1-z-1-efficient-reinforcement-learning-for-vision-language-action-models)  
+   evidence：将统一触觉学习框架集成到VLA模型中用于接触丰富操作
+4. [ABot-M0.5: Unified Mobility-and-Manipulation World Action Model](/202607/02/2607.00678v1-abot-m05-unified-mobility-and-manipulation-world-action-model)  
    标签：评分：9.0/10、query:vla
-   evidence：面向VLA模型的强化学习后训练
-6. [Position: Vision-Language-Action Models Cannot Be Verified to Perform Physical Reasoning](/202607/01/2606.30686v1-position-vision-language-action-models-cannot-be-verified-to-perform-physical-reasoning)  
-   标签：评分：8.0/10、query:vla
-   evidence：质疑VLA模型物理推理能力的立场论文
+   evidence：提出ABot-M0.5，一个统一的移动操作世界动作模型，对齐时间粒度、动作解耦和推理
+5. [VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity](/202607/02/2606.27344v1-vibeact-vibration-to-actions-for-contact-rich-reactive-robot-dexterity)  
+   标签：评分：8.0/10、query:tf
+   evidence：桥接真实振动触觉传感与强化学习，用于接触丰富的灵巧操作
 
 ### 速读区论文标签
-1. [From Grasps to Dexterity: Large-Scale Grasp Pretraining for Dexterous Manipulation](/202607/01/2606.30749v1-from-grasps-to-dexterity-large-scale-grasp-pretraining-for-dexterous-manipulation)  
-   标签：评分：8.0/10、query:vla
-   evidence：大规模抓取预训练用于灵巧操作
-2. [ELASTIC: Efficiently Learning to Adaptively Scale Test-Time Compute for Generative Control Policies](/202607/01/2606.31132v1-elastic-efficiently-learning-to-adaptively-scale-test-time-compute-for-generative-control-policies)  
-   标签：评分：8.0/10、query:vla
-   evidence：优化生成控制策略（包括VLA）的测试时计算分配
-3. [Agentic RAG-VLM: Affordance-Aware Retrieval-Augmented Generation with Self-Reflective Planning for Robotic Grasping](/202607/01/2606.31200v1-agentic-rag-vlm-affordance-aware-retrieval-augmented-generation-with-self-reflective-planning-for-robotic-grasping)  
-   标签：评分：8.0/10、query:vla
-   evidence：面向机器人抓取的具身感知VLM，结合RAG与自反式规划
-4. [Plan Right, Then Plan Tight: Symbolic RL for Efficient Embodied Reasoning](/202607/01/2606.31260v1-plan-right-then-plan-tight-symbolic-rl-for-efficient-embodied-reasoning)  
-   标签：评分：8.0/10、query:vla
-   evidence：使用符号强化学习进行具身任务规划，涉及大语言模型
-5. [Adapting Generalist Robot Policies with Semantic Reinforcement Learning](/202607/01/2606.31958v1-adapting-generalist-robot-policies-with-semantic-reinforcement-learning)  
-   标签：评分：8.0/10、query:vla
-   evidence：利用语言提示对通用机器人策略进行强化学习适配
-6. [HUMEMBR: Learning Human Routines for Predictive Embodied Navigation](/202607/01/2606.30404v1-humembr-learning-human-routines-for-predictive-embodied-navigation)  
+1. [ELASTIC: Efficiently Learning to Adaptively Scale Test-Time Compute for Generative Control Policies](/202607/02/2606.31132v1-elastic-efficiently-learning-to-adaptively-scale-test-time-compute-for-generative-control-policies)  
    标签：评分：7.0/10、query:vla
-   evidence：预测性具身导航，学习人类日常模式
-7. [Hierarchical Policy Learning via Spectral Decomposition](/202607/01/2606.29570v1-hierarchical-policy-learning-via-spectral-decomposition)  
-   标签：评分：6.0/10、query:vla
-   evidence：基于频谱分解的层次化策略学习用于机器人操作
-8. [Freeform Preference Learning for Robotic Manipulation](/202607/01/2606.32027v1-freeform-preference-learning-for-robotic-manipulation)  
-   标签：评分：6.0/10、query:vla
-   evidence：使用自然语言偏好指导机器人策略学习
+   evidence：ELASTIC学习自适应缩放生成控制策略（包括视觉语言动作模型）的测试时计算
+2. [Adapting Generalist Robot Policies with Semantic Reinforcement Learning](/202607/02/2606.31958v1-adapting-generalist-robot-policies-with-semantic-reinforcement-learning)  
+   标签：评分：7.0/10、query:vla
+   evidence：使用语言提示作为动作空间的语义强化学习自适应通用策略
+3. [From World Models to World Action Models: A Concise Tutorial for Robotics](/202607/02/2607.00836v1-from-world-models-to-world-action-models-a-concise-tutorial-for-robotics)  
+   标签：评分：7.0/10、query:vla
+   evidence：关于机器人世界模型和世界动作模型的教程
 
 
 <div class="dpr-home-promo-card">
