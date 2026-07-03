@@ -6,46 +6,69 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-02
-- 运行时间：2026-07-02 21:37:29 UTC
+- 最新运行日期：2026-07-03
+- 运行时间：2026-07-03 21:19:08 UTC
 - 运行状态：成功
-- 本次总论文数：8
-- 精读区：5
-- 速读区：3
+- 本次总论文数：15
+- 精读区：9
+- 速读区：6
 
 ### 今日简报（AI）
-今日推荐论文围绕视觉-语言-动作模型，精读两篇高分工作分别引入触觉标注和密集思维链监督以提升机器人操作泛化性。  
-最值得关注的是《TAP-VLA》与《Training VLA with Dense Embodied CoT》，前者通过触觉标注增强多模态感知，后者利用密集链式推理改善长时任务规划。  
-普通读者建议优先精读这两篇9分论文，随后可浏览速读中关于自适应推理计算与语义强化学习的扩展思路。
-- 详情：[/202607/02/README](/202607/02/README)
+今日日报精选9篇精读、6篇速读，聚焦触觉与振动驱动的机器人灵巧操作。
+
+最值得关注的两篇精读论文：《VibeAct》通过振动信号实现接触丰富情境下的反应式灵巧操作；《TAP-VLA》利用触觉标注提示增强视觉-语言-动作模型。
+
+建议优先阅读这两篇高分精读，尤其关注触觉反馈如何提升机器人操作的鲁棒性与灵活性。
+- 详情：[/202607/03/README](/202607/03/README)
 
 ### 精读区论文标签
-1. [TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models](/202607/02/2606.29089v1-tap-vla-tactile-annotation-prompting-for-vision-language-action-models)  
+1. [VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity](/202607/03/2606.27344v1-vibeact-vibration-to-actions-for-contact-rich-reactive-robot-dexterity)  
    标签：评分：9.0/10、query:tf
-   evidence：通过注释提示将触觉反馈集成到VLA模型中用于接触丰富的操作
-2. [Training Vision-Language-Action Models with Dense Embodied Chain-of-Thought Supervision](/202607/02/2606.30552v2-training-vision-language-action-models-with-dense-embodied-chain-of-thought-supervision)  
-   标签：评分：9.0/10、query:vla
-   evidence：与论文4相同：采用密集具身思维链监督的端到端VLA模型
-3. [UniTacVLA: Unified Tactile Understanding and Prediction in Vision Language Action Models](/202607/02/2606.31723v1-unitacvla-unified-tactile-understanding-and-prediction-in-vision-language-action-models)  
+   evidence：整合力觉与触觉感知用于灵巧操作
+2. [TAP-VLA: Tactile Annotation Prompting for Vision Language Action Models](/202607/03/2606.29089v1-tap-vla-tactile-annotation-prompting-for-vision-language-action-models)  
    标签：评分：9.0/10、query:tf
-   evidence：将统一触觉学习框架集成到VLA模型中用于接触丰富操作
-4. [ABot-M0.5: Unified Mobility-and-Manipulation World Action Model](/202607/02/2607.00678v1-abot-m05-unified-mobility-and-manipulation-world-action-model)  
+   evidence：触觉注释提示的视觉语言动作模型
+3. [UniTacVLA: Unified Tactile Understanding and Prediction in Vision Language Action Models](/202607/03/2606.31723v1-unitacvla-unified-tactile-understanding-and-prediction-in-vision-language-action-models)  
+   标签：评分：9.0/10、query:tf
+   evidence：在VLA模型中统一触觉理解与预测，用于接触丰富的操作
+4. [ABot-M0.5: Unified Mobility-and-Manipulation World Action Model](/202607/03/2607.00678v1-abot-m05-unified-mobility-and-manipulation-world-action-model)  
    标签：评分：9.0/10、query:vla
-   evidence：提出ABot-M0.5，一个统一的移动操作世界动作模型，对齐时间粒度、动作解耦和推理
-5. [VibeAct: Vibration to Actions for Contact-Rich Reactive Robot Dexterity](/202607/02/2606.27344v1-vibeact-vibration-to-actions-for-contact-rich-reactive-robot-dexterity)  
-   标签：评分：8.0/10、query:tf
-   evidence：桥接真实振动触觉传感与强化学习，用于接触丰富的灵巧操作
+   evidence：统一移动操作的世界动作模型
+5. [From World Models to World Action Models: A Concise Tutorial for Robotics](/202607/03/2607.00836v1-from-world-models-to-world-action-models-a-concise-tutorial-for-robotics)  
+   标签：评分：9.0/10、query:vla
+   evidence：世界动作模型教程连接视觉语言预测与机器人动作
+6. [From World Models to World Action Models: A Concise Tutorial for Robotics](/202607/03/2607.00836v2-from-world-models-to-world-action-models-a-concise-tutorial-for-robotics)  
+   标签：评分：9.0/10、query:vla
+   evidence：世界动作模型教程连接视觉语言预测与机器人动作
+7. [VLAFlow: A Unified Training Framework for Vision-Language-Action Models via Co-training and Future Latent Alignment](/202607/03/2607.01586v1-vlaflow-a-unified-training-framework-for-vision-language-action-models-via-co-training-and-future-latent-alignment)  
+   标签：评分：9.0/10、query:vla
+   evidence：直接面向机器人操作的VLA模型训练框架
+8. [Guided Action Flow: Q-Guided Inference for Flow-Matching Vision-Language-Action Policies](/202607/03/2607.02092v1-guided-action-flow-q-guided-inference-for-flow-matching-vision-language-action-policies)  
+   标签：评分：9.0/10、query:vla
+   evidence：使用Q评论家对流匹配VLA策略进行推理时引导
+9. [Learning to Move Before Learning to Do: Task-Agnostic pretraining for VLAs](/202607/03/2607.02466v1-learning-to-move-before-learning-to-do-task-agnostic-pretraining-for-vlas)  
+   标签：评分：9.0/10、query:vla
+   evidence：VLA预训练框架应对演示稀缺
 
 ### 速读区论文标签
-1. [ELASTIC: Efficiently Learning to Adaptively Scale Test-Time Compute for Generative Control Policies](/202607/02/2606.31132v1-elastic-efficiently-learning-to-adaptively-scale-test-time-compute-for-generative-control-policies)  
-   标签：评分：7.0/10、query:vla
-   evidence：ELASTIC学习自适应缩放生成控制策略（包括视觉语言动作模型）的测试时计算
-2. [Adapting Generalist Robot Policies with Semantic Reinforcement Learning](/202607/02/2606.31958v1-adapting-generalist-robot-policies-with-semantic-reinforcement-learning)  
-   标签：评分：7.0/10、query:vla
-   evidence：使用语言提示作为动作空间的语义强化学习自适应通用策略
-3. [From World Models to World Action Models: A Concise Tutorial for Robotics](/202607/02/2607.00836v1-from-world-models-to-world-action-models-a-concise-tutorial-for-robotics)  
-   标签：评分：7.0/10、query:vla
-   evidence：关于机器人世界模型和世界动作模型的教程
+1. [ChronoFlow-Policy: Unifying Past-Current-Future Interaction Flow in Visuomotor Policy Learning](/202607/03/2606.31493v1-chronoflow-policy-unifying-past-current-future-interaction-flow-in-visuomotor-policy-learning)  
+   标签：评分：8.0/10、query:vla
+   evidence：视觉运动策略学习用于机器人操作任务
+2. [PhysMani: Physics-principled 3D World Model for Dynamic Object Manipulation](/202607/03/2607.01938v1-physmani-physics-principled-3d-world-model-for-dynamic-object-manipulation)  
+   标签：评分：8.0/10、query:vla
+   evidence：提出物理启发的3D高斯世界模型结合未来感知动作策略
+3. [Bridge-WA: Predicting Where and How the World Changes for Robotic Action](/202607/03/2607.02195v1-bridge-wa-predicting-where-and-how-the-world-changes-for-robotic-action)  
+   标签：评分：8.0/10、query:vla
+   evidence：轻量世界动作模型结合VLA与未来变化预测
+4. [The Speedup Paradox: Rethinking Inference Speed-Quality Trade-off in Embodied Tasks](/202607/03/2606.28529v1-the-speedup-paradox-rethinking-inference-speed-quality-trade-off-in-embodied-tasks)  
+   标签：评分：6.0/10、query:vla
+   evidence：具身基础模型在交互任务中的推理速度-质量权衡
+5. [The Speedup Paradox: Rethinking Inference Speed-Quality Trade-off in Embodied Tasks](/202607/03/2606.28529v2-the-speedup-paradox-rethinking-inference-speed-quality-trade-off-in-embodied-tasks)  
+   标签：评分：6.0/10、query:vla
+   evidence：重新思考具身任务中的推理速度-质量权衡
+6. [Efficient Visual Pointing for Embodied AI:Agent-Driven Data Synthesis, Cross-Block Attention, and Iterative Correction](/202607/03/2606.29850v1-efficient-visual-pointing-for-embodied-aiagent-driven-data-synthesis-cross-block-attention-and-iterative-correction)  
+   标签：评分：6.0/10、query:vla
+   evidence：视觉指向作为具身AI核心技能
 
 
 <div class="dpr-home-promo-card">
