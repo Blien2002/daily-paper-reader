@@ -1,0 +1,156 @@
+Title: Technical Report of RoboSpatial Challenge at CVPR 2026: Selective Reasoning Activation and Reference-Frame Disambiguation for Embodied Spatial Reasoning
+
+URL Source: https://arxiv.org/pdf/2606.31645v1
+
+Published Time: Wed, 01 Jul 2026 01:10:17 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Technical Report of RoboSpatial Challenge at CVPR 2026: Selective Reasoning Activation and Reference-Frame Disambiguation for Embodied Spatial Reasoning 
+
+## Yuxiang Xie 1 Qi Lv 1 Jianming Xing 1 Zijian Hong 1
+
+## Xiang Deng 1,2,∗ Weili Guan 1 Liqiang Nie 11Harbin Institute of Technology, Shenzhen, 2Ruoyu Technology 
+
+> ∗
+
+## Corresponding author 
+
+> 25B951074@stu.hit.edu.cn
+
+## Abstract 
+
+Vision-language models achieve strong general percep-tion but often struggle with the spatial reasoning re-quired for embodied tasks. We present RoboSpatial-Brain, our submission to the RoboSpatial Challenge at the Embodied Reasoning in Action Workshop, CVPR 2026, built on RoboBrain2.5-8B-NV. RoboSpatialBrain combines two training-free, inference-time mechanisms: a forced 
+
+<think> prefix activation strategy paired with a task-specific post-prompt that elicits deliberate reasoning on context and compatibility tasks, and an explicit reference-frame redirection pipeline that resolves camera-centric and object-centric ambiguity for context tasks. We ad-ditionally explore fine-tuning RoboBrain2.5 on compati-bility data and present a detailed analysis of its inter-action with prompting. RoboSpatialBrain achieved first place in the RoboSpatial Challenge, with an overall suc-cess rate of 80.9% on RoboSpatial-Home. Code is avail-able at https://github.com/YuxiangXie2003/ RoboSpatialBrain .
+
+## 1. Introduction 
+
+Spatial reasoning is a fundamental capability for embodied AI systems operating in real-world environments. While vision-language models (VLMs) achieve strong perfor-mance on tasks such as object detection and image caption-ing, prior work has shown that they consistently struggle with basic spatial relations [3] and often require specialized training to acquire reliable spatial reasoning abilities [2]. A further source of difficulty is reference-frame ambiguity: VLMs tend to default to a camera-centric interpretation of spatial language and fail to generalize when a query instead requires an object-centric frame of reference [4]. The RoboSpatial-Home benchmark [6] evaluates these abilities through three task types. Context tasks ask the model to identify vacant space in a specified direction rela-tive to a reference object. Compatibility tasks additionally require assessing whether the identified space can accom-modate a target object given its metric dimensions. Config-uration tasks require inferring relative positional relation-ships between two objects. In this report, we describe RoboSpatialBrain , our sub-mission to the RoboSpatial Challenge at the Embodied Reasoning in Action (ERA) Workshop, CVPR 2026. We build on RoboBrain2.5-8B-NV [7], chosen because it is pre-trained on embodied-task-specific spatial corpora such as 2D/3D grounding, inter-object spatial relationships, and depth-conditioned localization, which directly aligns it with the demands of the RoboSpatial benchmark. We extend it with two inference-time mechanisms: prompt-based rea-soning activation for reasoning-required tasks, and an ex-plicit reference-frame redirection pipeline for context tasks. We also explored fine-tuning the model for the compatibil-ity task, with the corresponding analysis presented in Sec-tion 2.3 and Section 3.3. Our approach achieves an overall success rate of 80.9% on the RoboSpatial Challenge. 
+
+## 2. Methodology 
+
+Figure 1 gives an overview of the RoboSpatialBrain infer-ence pipeline. We describe each component below. 
+
+2.1. Thinking Activation and Prompting 
+
+We observe that compatibility and context tasks demand a higher degree of reasoning ability from the model than con-figuration tasks do. Context tasks require understanding what constitutes vacant space and reasoning about which regions qualify as usable vacant space, while compatibil-ity tasks additionally require the model to judge, alongside the existence of vacant space, whether that space is large enough to accommodate the target object. We group these               
+
+> arXiv:2606.31645v1 [cs.CV] 30 Jun 2026 Pinpoint several points within the vacant space situated to the in front of the cup
+> Answer : (x,y) coordinates Is the banana right of the paper towel?
+> Answer : yes / no Can the keyboard fit above the counter?
+> Answer : yes / no
+> Input & Tasks (RoboSpatial-Home) LLM Classifier
+> (Qwen3.5-2B) Output label: //yes / no yes / no
+> VLM (RoboBrain2.5)
+> wpost-prompt & <think> (x,y) coordinates
+> Post-processing Final Output VLM (RoboBrain2.5)
+> w/o post-prompt & <think>
+> VLM (RoboBrain2.5)
+> wpost-prompt & <think> VLM coord2 LLM VLM direction map VLM coord1 original question target object facing direction new question
+> CONTEXT CONFIGURATION COMPATIBILITY
+
+Figure 1. Overview of the RoboSpatialBrain inference pipeline. Given an input image and a spatial query, the query is first routed by task category. For context and compatibility queries, a post-prompt is injected and a <think> prefix is forced onto the model’s output to elicit deliberate reasoning before the final answer is produced. For context queries specifically, an additional reference-frame redirection module disambiguates between camera-centric and object-centric interpretations of the query before the final answer is generated. Configuration 
+
+queries are passed to the base model without modification. 
+
+two task types together as reasoning-required tasks. Con-figuration tasks, in contrast, only require directly outputting the relative positional relationship between two target ob-jects, and we group this task type as reasoning-free .An intuitive idea is to explicitly induce reasoning in the model to improve success rates on reasoning-required tasks. Since RoboBrain2.5 does not expose a standard interface for explicitly toggling a thinking mode, we instead force a <think> prefix onto the model’s output. We addition-ally inject a post-prompt, detailed in Appendix A. Together, the forced <think> prefix and the post-prompt guide the model’s reasoning process. This intervention improves per-formance on reasoning-required tasks while reducing per-formance on the reasoning-free task. Our final setting there-fore applies both the forced <think> prefix and the post-prompt for compatibility and context queries, and applies no additional intervention for configuration queries. The corresponding ablation and analysis are presented in Sec-tion 3.1. 
+
+2.2. Reference Frame Redirection for Context Tasks 
+
+We empirically observe that RoboBrain2.5 tends to produce camera-centric spatial predictions by default. In practice, however, people frequently describe spatial relationships in an image using an object-centric frame of reference in-Pinpoint several points within the vacant space situated to the right of the chair 
+
+camera-centric object-centric 
+
+Figure 2. Camera-centric versus object-centric interpretations of the same context-task prompt. Many objects, such as chairs, ac-quire a canonical facing direction because a person seated in the object naturally imposes their own forward-facing direction onto it, which is why directional language describing such objects is es-pecially prone to this camera-centric and object-centric ambiguity. 
+
+stead. Figure 2 illustrates this ambiguity using the context-task prompt “Pinpoint several points within the vacant space situated to the right of the chair”: depending on whether “right” is interpreted relative to the camera or relative to the chair’s own facing direction, the predicted points land in entirely different regions of the image. We first attempted to resolve this ambiguity purely through prompting: we informed the model of the mapping relationship between object-centric and camera-centric di-rections and asked it to perform the conversion itself before producing a final answer. However, RoboBrain2.5 does not reliably follow this instruction. We therefore design an explicit conversion pipeline in-stead. We use a lightweight language model, Qwen3.5-2B [8], to extract the target object referenced in the query. RoboBrain2.5 is then prompted to determine the facing di-rection of the target object. Using a precomputed direction mapping table, the original object-centric query is rewrit-ten into its camera-centric equivalent, and RoboBrain2.5 is queried again on this rewritten version. The final output is obtained by merging the answer to the original query with the answer to the converted query. This pipeline requires no model fine-tuning. The corresponding ablation and analysis are presented in Section 3.2. 
+
+2.3. Fine-Tuning for the Compatibility Task 
+
+In addition to the inference-time mechanisms above, we explored fine-tuning RoboBrain2.5 on supplementary com-patibility data constructed from EmbodiedScan [9]. Under the most basic setting, without the post-prompt and without the forced <think> prefix, fine-tuning brings a substan-tial performance improvement over the base model. How-ever, under our best-performing prompting configuration, the base model still outperforms the fine-tuned checkpoints. We therefore did not include fine-tuning as a component of our final pipeline. The full setup, data construction, and de-tailed results are presented in Section 3.3. 
+
+## 3. Experiment 
+
+3.1. Thinking Activation and Prompting 
+
+We compare the performance of the configuration, com-patibility, and context tasks under different combinations of the post-prompt and the forced <think> prefix. Re-sults are shown in Table 1. Both compatibility and con-text benefit most from jointly applying the post-prompt and the <think> prefix, while configuration achieves its best performance when neither intervention is applied. The compatibility task shows by far the largest gain among the three task types: jointly applying the post-prompt and the <think> prefix raises its success rate from 40.0% to 83.8%, a 43.8 percentage-point improvement. We attribute this pattern to the difference in reasoning demand across task types. Although RoboBrain2.5 does not natively support chain-of-thought reasoning, forcing the                                              
+
+> Table 1. Success rate (%) on the three RoboSpatial task types under different combinations of the post-prompt and the forced
+> <think> prefix. Avg. denotes the official average score, com-puted using the official task distribution rather than a uniform macro-average over task types. The largest value in each column is bolded, except in the final row, which reports our selected per-task-optimal combination.
+> Config. Compat. Context Avg. Post-prompt + <think> 83.7 83.8 70.5 79.1
+> <think> only 84.6 59.0 63.1 69.4 Post-prompt only 86.2 64.8 68.8 73.7 Neither 88.6 40.0 64.8 65.7
+> Best Combination 88.6 83.8 70.5 80.9
+> Table 2. Context-task success rate (%) with and without reference frame redirection, denoted w and w/o respectively. ∆denotes the gain from redirection.
+> w redirect w/o redirect ∆
+> Post-prompt + <think> 70.5 68.8 +1.7
+> <think> only 63.1 59.8 +3.3 Post-prompt only 68.8 66.4 +2.4 Neither 64.8 61.5 +3.3
+
+<think> prefix nonetheless appears to have a positive ef-fect on the model’s reasoning behavior, even though no visible reasoning trace is produced. We hypothesize that, because RoboBrain2.5 is built on the Qwen3-VL archi-tecture [1], the forced prefix implicitly activates residual reasoning-format priors carried over from the Qwen series of models. Supervised fine-tuning suppresses the model’s decoding behavior so that it does not explicitly emit a rea-soning trace; however, the corresponding thinking pathway may still participate in representation construction during the forward pass. This manifests as a performance improve-ment on tasks that require complex reasoning, and a perfor-mance decrease on simpler tasks due to overthinking. Based on these results, our final configuration applies both the post-prompt and the forced <think> prefix for compatibility and context tasks, and applies neither for con-figuration tasks, yielding the row labeled “Best Combina-tion” in Table 1. 
+
+3.2. Reference Frame Redirection 
+
+We compare context-task performance with and without reference frame redirection. Results are shown in Table 2. Reference frame redirection brings a consistent perfor-mance improvement across all post-prompt and <think> 
+
+prefix configurations, confirming that resolving the camera-centric and object-centric ambiguity is beneficial regardless of the reasoning-elicitation setting in use. Table 3. Compatibility-task success rate (%) for the base model and two fine-tuned checkpoints at 1,000 and 3,000 training steps, under different post-prompt and <think> prefix combinations. ∆ denotes the change relative to the base model and is bolded. Base 1000 steps ∆(1000 steps) 3000 steps ∆(3000 steps) Post-prompt + <think> 83.8 71.4 −12.4 61.0 −22.8                 
+
+> <think> only 59.0 61.9 +2.9 53.3 −5.7
+> Post-prompt only 64.8 74.3 +9.5 64.8 0.0
+> Neither 40.0 67.6 +27.6 61.0 +21.0
+
+3.3. Fine-Tuning 
+
+Training instability with mixed task data. At the outset of this work, we attempted to improve model performance purely through fine-tuning. We first used the RoboSpatial pipeline to separately construct configuration, compatibil-ity, and context training data, shuffled them together, and trained on the mixture. This setup caused the model to col-lapse: it converged to a degenerate state in which it pro-duced a single fixed type of output per task category regard-less of the input, with configuration predictions converg-ing entirely to “no”, compatibility predictions converging entirely to “yes”, and context predictions converging to a small cluster of points concentrated in one region of the im-age. 
+
+Compatibility-only data construction. To avoid this collapse, we restricted training to compatibility data only. We filtered the EmbodiedScan dataset [9] to retain images that are not excessively blurry and in which the target ob-ject is clearly identifiable. From the filtered images, we con-structed 24,000 examples in compatibility-task VQA format using the RoboSpatial data construction pipeline [6]. Train-ing hyperparameters are listed in Appendix B. We evaluate checkpoints at 1,000 and 3,000 steps, selected based on a held-out validation split. 
+
+Results. Table 3 compares the fine-tuned checkpoints against the base model across the same post-prompt and 
+
+<think> prefix combinations used above. Under the most basic setting, with neither the post-prompt nor the 
+
+<think> prefix applied, the 1,000-step checkpoint im-proves over the base model by 27.6 percentage points, and the 3,000-step checkpoint improves over it by 21.0 per-centage points. When only the post-prompt is used, the fine-tuned model remains no worse than the base model. However, under our best-performing combination, the post-prompt together with the <think> prefix, the base model outperforms both fine-tuned checkpoints: the 1,000-step checkpoint falls 12.4 percentage points below the base model, and the 3,000-step checkpoint falls 22.8 percent-age points below it. The same pattern holds when only the 
+
+<think> prefix is used, and the gap widens as training proceeds from 1,000 to 3,000 steps. We attribute this pattern to the simplicity of our data construction procedure: because the compatibility train-ing data was constructed in a limited-diversity construc-tion pipeline and covers a narrow distribution of scenes and question types, fine-tuning on it appears to degrade the model’s broader reasoning and instruction-following abil-ity, consistent with prior findings that narrow-domain su-pervised fine-tuning can induce catastrophic forgetting of a model’s general capabilities [5]. This would in turn dimin-ish the benefit that the post-prompt and the <think> prefix would otherwise provide. This finding is consistent with our decision to exclude fine-tuning from the final RoboSpatial-Brain pipeline, and instead motivates the data-quality direc-tions discussed in Section 4. 
+
+## 4. Conclusion and Future Work 
+
+We present RoboSpatialBrain , the first-place solution to the RoboSpatial Challenge at the ERA Workshop, CVPR 2026, achieving an overall success rate of 80.9%. Built on RoboBrain2.5-8B-NV, our method combines se-lective <think> prefix activation for reasoning-required tasks, namely compatibility and context, with an ex-plicit reference-frame redirection pipeline that resolves the camera-centric and object-centric ambiguity inherent to context-task queries. We additionally explored fine-tuning RoboBrain2.5 on compatibility data and presented a de-tailed analysis of its effect under different prompting con-figurations, offering insight into how fine-tuning interacts with prompt-based reasoning elicitation. For future work, the training data used in our fine-tuning experiments was drawn from a single source, Embodied-Scan, and constructed with a relatively simple pipeline. Broadening both the data sources and the diversity of scenes, object categories, and question phrasings, in the spirit of the data construction strategies used to train Robo-Brain2.5 itself [7], may help fine-tuning better preserve the model’s general reasoning ability while still improving task-specific performance. Higher-quality 3D scene datasets such as ScanNet++ [10] could also serve as a complemen-tary data source going forward. 
+
+## References 
+
+> [1] Shuai Bai, Yuxuan Cai, Ruizhe Chen, Keqin Chen, Xionghui Chen, Zesen Cheng, Lianghao Deng, Wei Ding, Chang Gao,
+
+Chunjiang Ge, Wenbin Ge, Zhifang Guo, Qidong Huang, Jie Huang, Fei Huang, Binyuan Hui, Shutong Jiang, Zhao-hai Li, Mingsheng Li, Mei Li, Kaixin Li, Zicheng Lin, Jun-yang Lin, Xuejing Liu, Jiawei Liu, Chenglong Liu, Yang Liu, Dayiheng Liu, Shixuan Liu, Dunjie Lu, Ruilin Luo, Chenxu Lv, Rui Men, Lingchen Meng, Xuancheng Ren, Xingzhang Ren, Sibo Song, Yuchong Sun, Jun Tang, Jianhong Tu, Jian-qiang Wan, Peng Wang, Pengfei Wang, Qiuyue Wang, Yux-uan Wang, Tianbao Xie, Yiheng Xu, Haiyang Xu, Jin Xu, Zhibo Yang, Mingkun Yang, Jianxin Yang, An Yang, Bowen Yu, Fei Zhang, Hang Zhang, Xi Zhang, Bo Zheng, Humen Zhong, Jingren Zhou, Fan Zhou, Jing Zhou, Yuanzhi Zhu, and Ke Zhu. Qwen3-vl technical report. arXiv preprint arXiv:2511.21631 , 2025. 3 [2] Boyuan Chen, Zhuo Xu, Sean Kirmani, Brain Ichter, Dorsa Sadigh, Leonidas Guibas, and Fei Xia. Spatialvlm: Endow-ing vision-language models with spatial reasoning capabili-ties. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition (CVPR) , pages 14455– 14465, 2024. 1 [3] Amita Kamath, Jack Hessel, and Kai-Wei Chang. What’s “up” with vision-language models? investigating their strug-gle with spatial reasoning. In EMNLP , 2023. 1 [4] Dingming Li, Hongxing Li, Zixuan Wang, Yuchen Yan, Hang Zhang, Siqi Chen, Guiyang Hou, Shengpei Jiang, Wenqi Zhang, Yongliang Shen, Weiming Lu, and Yueting Zhuang. Viewspatial-bench: Evaluating multi-perspective spatial localization in vision-language models, 2025. 1 [5] Yun Luo, Zhen Yang, Fandong Meng, Yafu Li, Jie Zhou, and Yue Zhang. An empirical study of catastrophic forgetting in large language models during continual fine-tuning. IEEE Transactions on Audio, Speech and Language Processing ,33:3776–3786, 2025. 4 [6] Chan Hee Song, Valts Blukis, Jonathan Tremblay, Stephen Tyree, Yu Su, and Stan Birchfield. RoboSpatial: Teaching spatial understanding to 2D and 3D vision-language models for robotics. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2025. Oral Presentation. 1, 4 [7] Huajie Tan, Enshen Zhou, Zhiyu Li, Yijie Xu, Yuheng Ji, Xiansheng Chen, Cheng Chi, Pengwei Wang, Huizhu Jia, Yulong Ao, Mingyu Cao, Sixiang Chen, Zhe Li, Mengzhen Liu, Zixiao Wang, Shanyu Rong, Yaoxu Lyu, Zhongxia Zhao, Peterson Co, Yibo Li, Yi Han, Shaoxuan Xie, Guocai Yao, Songjing Wang, Leiduo Zhang, Xi Yang, Yance Jiao, Donghai Shi, Kunchang Xie, Shaokai Nie, Chunlei Men, Yonghua Lin, Zhongyuan Wang, Tiejun Huang, and Shang-hang Zhang. Robobrain 2.5: Depth in sight, time in mind. 
+
+arXiv preprint arXiv:2601.14352 , 2026. 1, 4 [8] Qwen Team. Qwen3.5: Accelerating productivity with na-tive multimodal agents, 2026. 3 [9] Tai Wang, Xiaohan Mao, Chenming Zhu, Runsen Xu, Ruiyuan Lyu, Peisen Li, Xiao Chen, Wenwei Zhang, Kai Chen, Tianfan Xue, Xihui Liu, Cewu Lu, Dahua Lin, and Jiangmiao Pang. Embodiedscan: A holistic multi-modal 3d perception suite towards embodied ai. In IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2024. 3, 4 [10] Chandan Yeshwanth, Yueh-Cheng Liu, Matthias Nießner, and Angela Dai. Scannet++: A high-fidelity dataset of 3d in-door scenes. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 12–22, 2023. 4 Technical Report of RoboSpatial Challenge at CVPR 2026: Selective Reasoning Activation and Reference-Frame Disambiguation for Embodied Spatial Reasoning 
+
+# Supplementary Material 
+
+Table 4. Fine-tuning hyperparameters. 
+
+Hyperparameter Value LoRA rank 16 GPUs 4 × NVIDIA A100 Global batch size 4Optimizer AdamW Learning rate 1 × 10 −4
+
+LR decay floor 1 × 10 −5
+
+Total steps 4,000 
+
+## A. Post-Prompts 
+
+We list below the post-prompts used for each task type when the post-prompt intervention is applied, as described in Sec-tion 3.1. The configuration prompt was used only in abla-tion experiments and is not used in the final pipeline. 
+
+Configuration. 
+
+Your task is to answer the question above. Respond with a brief explanation if needed, followed by ayes or no answer in the last line of your response. Format your final answer strictly as follows on the last line of your response: Answer: yes or no Do not include additional text after this line 
+
+Compatibility. 
+
+Look at the spatial positions and relationships of objects in the image. Based on your visual analysis, answer yes or no. Your final line must be: Answer: yes or no 
+
+Context. 
+
+You MUST provide at least 5distinct 2D points that satisfy the conditions above. Do NOT output only one point. Format your final answer strictly as a list of tuples: [(x1, y1), (x2, y2), (x3, y3), ...]. 
+
+## B. Fine-Tuning Hyperparameters 
+
+Table 4 lists the hyperparameters used for the compatibility-task fine-tuning experiment described in Section 2.3.
