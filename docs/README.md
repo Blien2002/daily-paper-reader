@@ -6,85 +6,82 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-09
-- 运行时间：2026-07-09 21:44:52 UTC
+- 最新运行日期：2026-07-10
+- 运行时间：2026-07-10 20:55:03 UTC
 - 运行状态：成功
-- 本次总论文数：21
-- 精读区：10
+- 本次总论文数：20
+- 精读区：9
 - 速读区：11
 
 ### 今日简报（AI）
-1) 今日核心解读统一移动与操作世界动作模型ABot-M0.5（9.0/10），并速览异构机器人推理、触觉反馈及通用策略评测三项进展。
-2) 最值得精读ABot-M0.5提出的移动-操作联合动作空间，以及RoboDojo提供的虚实统一通用策略评测基准。
-3) 建议先从ABot-M0.5入手理解动作模型设计，再参考RoboDojo基准评估自身策略的泛化能力。
-- 详情：[/202607/09/README](/202607/09/README)
+今日重点聚焦触觉基础模型与轻量级视觉-语言-动作模型，同步关注便携式推理运行时及触觉反馈技术。
+最值得深入研读的是满分精读《TouchWorld》预测反应式触觉基础模型与《FabriVLA》轻量级多任务操作模型。
+建议后续关注触觉与VLA模型的融合方向，并探索将其高效部署至异构机器人平台的实现路径。
+- 详情：[/202607/10/README](/202607/10/README)
 
 ### 精读区论文标签
-1. [ABot-M0.5: Unified Mobility-and-Manipulation World Action Model](/202607/09/2607.00678v1-abot-m05-unified-mobility-and-manipulation-world-action-model)  
+1. [TouchWorld: A Predictive and Reactive Tactile Foundation Model for Dexterous Manipulation](/202607/10/2607.07287v2-touchworld-a-predictive-and-reactive-tactile-foundation-model-for-dexterous-manipulation)  
+   标签：评分：10.0/10、query:tf
+   evidence：触觉基础模型用于灵巧操作
+2. [FabriVLA: A Lightweight Vision-Language-Action Model for Precise Multi-Task Manipulation](/202607/10/2607.08575v1-fabrivla-a-lightweight-vision-language-action-model-for-precise-multi-task-manipulation)  
+   标签：评分：10.0/10、query:vla
+   evidence：轻量级视觉-语言-动作模型用于多任务操作
+3. [WorldBagel: Uncovering the Power of Unified Multimodal Models for Vision-Language-Action-World Modeling](/202607/10/2607.03461v1-worldbagel-uncovering-the-power-of-unified-multimodal-models-for-vision-language-action-world-modeling)  
    标签：评分：9.0/10、query:vla
-   evidence：统一移动与操作的世界动作模型，解决VLA和WAM的局限
-2. [ABot-M0.5: Unified Mobility-and-Manipulation World Action Model](/202607/09/2607.00678v2-abot-m05-unified-mobility-and-manipulation-world-action-model)  
+   evidence：统一视觉-语言-动作-世界建模框架
+4. [Worldscape-MoE: A Unified Mixture-of-Experts World Model for Scalable Heterogeneous Action Control](/202607/10/2607.03964v1-worldscape-moe-a-unified-mixture-of-experts-world-model-for-scalable-heterogeneous-action-control)  
    标签：评分：9.0/10、query:vla
-   evidence：融合VLA与WAM的移动操控统一世界动作模型
-3. [Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots](/202607/09/2607.02501v2-embodiedcpp-a-portable-inference-runtime-of-embodied-ai-models-on-heterogeneous-robots)  
+   evidence：统一混合专家世界模型支持异构动作控制
+5. [DSWAM: A Dual-System World Action Foundation Model for Fine-Grained Robot Manipulation](/202607/10/2607.04927v1-dswam-a-dual-system-world-action-foundation-model-for-fine-grained-robot-manipulation)  
    标签：评分：9.0/10、query:vla
-   evidence：面向异构机器人的VLA与WAM模型便携推理运行时
-4. [WorldBagel: Uncovering the Power of Unified Multimodal Models for Vision-Language-Action-World Modeling](/202607/09/2607.03461v1-worldbagel-uncovering-the-power-of-unified-multimodal-models-for-vision-language-action-world-modeling)  
+   evidence：双系统世界动作基础模型，比较VLA和WAM
+6. [Learning 4D Geometric Priors for Inference-Efficient World Action Models](/202607/10/2607.05468v1-learning-4d-geometric-priors-for-inference-efficient-world-action-models)  
    标签：评分：9.0/10、query:vla
-   evidence：统一多模态模型用于视觉-语言-动作-世界建模
-5. [OmniTacTune: Policy-Agnostic Real-World RL for Tactile Residual Adaptation of Visual Policies](/202607/09/2607.03723v1-omnitactune-policy-agnostic-real-world-rl-for-tactile-residual-adaptation-of-visual-policies)  
+   evidence：带4D几何先验的世界动作模型
+7. [TouchWorld: A Predictive and Reactive Tactile Foundation Model for Dexterous Manipulation](/202607/10/2607.07287v1-touchworld-a-predictive-and-reactive-tactile-foundation-model-for-dexterous-manipulation)  
    标签：评分：9.0/10、query:tf
-   evidence：触觉残差适应视觉策略进行接触丰富操作
-6. [SoftVTBench: A Safety-Aware Visuo-Tactile Benchmark for Physically Constrained Robotic Manipulation of Deformable Objects](/202607/09/2607.04234v1-softvtbench-a-safety-aware-visuo-tactile-benchmark-for-physically-constrained-robotic-manipulation-of-deformable-objects)  
-   标签：评分：9.0/10、query:tf
-   evidence：面向可变形物体操作的视觉-触觉基准，融合力与触觉感知
-7. [DSWAM: A Dual-System World Action Foundation Model for Fine-Grained Robot Manipulation](/202607/09/2607.04927v1-dswam-a-dual-system-world-action-foundation-model-for-fine-grained-robot-manipulation)  
+   evidence：面向灵巧操作的预测与反应式触觉基础模型
+8. [TFP: Temporally Conditioned Memory-Fusion Policies for Visuomotor Learning](/202607/10/2607.08283v1-tfp-temporally-conditioned-memory-fusion-policies-for-visuomotor-learning)  
    标签：评分：9.0/10、query:vla
-   evidence：双系统世界动作模型作为VLA的替代，比较两种范式
-8. [WAM-TTT: Steering World-Action Models by Watching Human Play at Test Time](/202607/09/2607.06988v1-wam-ttt-steering-world-action-models-by-watching-human-play-at-test-time)  
+   evidence：时序记忆融合策略处理VLA在阶段相关任务中的不足
+9. [Native Video-Action Pretraining for Generalizable Robot Control](/202607/10/2607.08639v1-native-video-action-pretraining-for-generalizable-robot-control)  
    标签：评分：9.0/10、query:vla
-   evidence：通过人类视频在测试时训练来引导世界-动作模型
-9. [TouchWorld: A Predictive and Reactive Tactile Foundation Model for Dexterous Manipulation](/202607/09/2607.07287v1-touchworld-a-predictive-and-reactive-tactile-foundation-model-for-dexterous-manipulation)  
-   标签：评分：9.0/10、query:tf
-   evidence：触觉基础模型整合力与触觉用于灵巧操控
-10. [Dual Latent Memory in Vision-Language-Action Models for Robotic Manipulation](/202607/09/2607.07608v1-dual-latent-memory-in-vision-language-action-models-for-robotic-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：LaMem-VLA将潜在记忆令牌注入VLA推理以处理长程任务
+   evidence：用于泛化机器人控制的视频-行动基础模型
 
 ### 速读区论文标签
-1. [Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots](/202607/09/2607.02501v1-embodiedcpp-a-portable-inference-runtime-of-embodied-ai-models-on-heterogeneous-robots)  
+1. [Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots](/202607/10/2607.02501v1-embodiedcpp-a-portable-inference-runtime-of-embodied-ai-models-on-heterogeneous-robots)  
    标签：评分：8.0/10、query:vla
-   evidence：面向异构机器人的VLA与WAM模型可移植推理运行时
-2. [Current as Touch: Proprioceptive Contact Feedback for Compliant Dexterous Manipulation](/202607/09/2607.03529v1-current-as-touch-proprioceptive-contact-feedback-for-compliant-dexterous-manipulation)  
+   evidence：用于VLA和WAM模型的可移植推理运行时
+2. [Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots](/202607/10/2607.02501v2-embodiedcpp-a-portable-inference-runtime-of-embodied-ai-models-on-heterogeneous-robots)  
+   标签：评分：8.0/10、query:vla
+   evidence：面向VLA和WAM模型的可移植推理运行时
+3. [Current as Touch: Proprioceptive Contact Feedback for Compliant Dexterous Manipulation](/202607/10/2607.03529v1-current-as-touch-proprioceptive-contact-feedback-for-compliant-dexterous-manipulation)  
    标签：评分：8.0/10、query:tf
-   evidence：利用电机电流的本体触觉反馈实现柔顺操控
-3. [RoboDojo: A Unified Sim-and-Real Benchmark for Comprehensive Evaluation of Generalist Robot Manipulation Policies](/202607/09/2607.04434v2-robodojo-a-unified-sim-and-real-benchmark-for-comprehensive-evaluation-of-generalist-robot-manipulation-policies)  
+   evidence：利用电机电流作为接触反馈的力觉感知框架
+4. [Bridging Physical Reasoning and Task Generalization via Visual Action Outcome Reasoning Alignment](/202607/10/2607.06522v1-bridging-physical-reasoning-and-task-generalization-via-visual-action-outcome-reasoning-alignment)  
    标签：评分：8.0/10、query:vla
-   evidence：通用机器人操控策略评估基准
-4. [PRISM: Personalized Robotic Dataset Generation via Image-based Scene and Motion Synthesis](/202607/09/2607.04880v1-prism-personalized-robotic-dataset-generation-via-image-based-scene-and-motion-synthesis)  
+   evidence：VLM推理与动作对齐
+5. [RynnWorld-4D: 4D Embodied World Models for Robotic Manipulation](/202607/10/2607.06559v1-rynnworld-4d-4d-embodied-world-models-for-robotic-manipulation)  
    标签：评分：8.0/10、query:vla
-   evidence：为视觉-语言-动作模型生成个性化数据集
-5. [From World Models to World Action Models: A Concise Tutorial for Robotics](/202607/09/2607.00836v3-from-world-models-to-world-action-models-a-concise-tutorial-for-robotics)  
+   evidence：用于操作的4D世界模型
+6. [Diagnosing Semantic Handoff Failures in Agent-Orchestrated Vision-Language-Action Skill Composition](/202607/10/2607.06256v1-diagnosing-semantic-handoff-failures-in-agent-orchestrated-vision-language-action-skill-composition)  
    标签：评分：7.0/10、query:vla
-   evidence：连接世界模型与世界动作模型的机器人教程
-6. [RoboDojo: A Unified Sim-and-Real Benchmark for Comprehensive Evaluation of Generalist Robot Manipulation Policies](/202607/09/2607.04434v3-robodojo-a-unified-sim-and-real-benchmark-for-comprehensive-evaluation-of-generalist-robot-manipulation-policies)  
+   evidence：VLA技能组合失败诊断
+7. [RynnWorld-Teleop: An Action-Conditioned World Model for Digital Teleoperation](/202607/10/2607.06558v1-rynnworld-teleop-an-action-conditioned-world-model-for-digital-teleoperation)  
    标签：评分：7.0/10、query:vla
-   evidence：面向通用机器人操作策略的统一仿真与真实基准
-7. [RynnWorld-Teleop: An Action-Conditioned World Model for Digital Teleoperation](/202607/09/2607.06558v1-rynnworld-teleop-an-action-conditioned-world-model-for-digital-teleoperation)  
+   evidence：基于世界模型的数字遥操作用于机器人学习
+8. [A Closed-Loop Multi-Agent Framework for Robust Multi-Robot Manipulation](/202607/10/2607.06990v1-a-closed-loop-multi-agent-framework-for-robust-multi-robot-manipulation)  
    标签：评分：7.0/10、query:vla
-   evidence：动作条件世界模型用于数字遥操作生成机器人数据
-8. [SPECTRA: Context-Conditioned Spectral Movement Primitives for Robot Skill Generalization](/202607/09/2607.06978v1-spectra-context-conditioned-spectral-movement-primitives-for-robot-skill-generalization)  
+   evidence：基于LLM的多机器人操作
+9. [PriGo: Test-Time Primitive Guidance to Diffusion and Flow Policies for Adaptive Robotic Manipulation](/202607/10/2607.07076v1-prigo-test-time-primitive-guidance-to-diffusion-and-flow-policies-for-adaptive-robotic-manipulation)  
    标签：评分：7.0/10、query:vla
-   evidence：频域模仿学习用于机器人技能泛化
-9. [LAMP: Latent Motion Prior-Guided Real-World Learning for Dexterous Hand Manipulation](/202607/09/2607.06323v1-lamp-latent-motion-prior-guided-real-world-learning-for-dexterous-hand-manipulation)  
+   evidence：扩散/流策略的测试时基元引导用于操作
+10. [Learning Task-Sufficient World Models by Synergizing Agentic Exploration and Structured Modeling](/202607/10/2607.04409v1-learning-task-sufficient-world-models-by-synergizing-agentic-exploration-and-structured-modeling)  
    标签：评分：6.0/10、query:vla
-   evidence：隐式运动先验用于真实世界灵巧手操控学习
-10. [EmbodiedGen V2: An Agentic, Simulation-Ready 3D World Engine for Embodied AI](/202607/09/2607.07459v1-embodiedgen-v2-an-agentic-simulation-ready-3d-world-engine-for-embodied-ai)  
+   evidence：世界模型学习用于具身决策
+11. [DexVerse: A Modular Benchmark for Multi-Task, Multi-Embodiment Dexterous Manipulation](/202607/10/2607.08751v1-dexverse-a-modular-benchmark-for-multi-task-multi-embodiment-dexterous-manipulation)  
    标签：评分：6.0/10、query:vla
-   evidence：生成式3D世界引擎，构建可模拟环境以支持具身策略训练
-11. [Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence](/202607/09/2607.07675v1-scaling-mixture-of-experts-video-pretraining-for-embodied-intelligence)  
-   标签：评分：6.0/10、query:vla
-   evidence：使用混合专家模型的具身智能视频预训练
+   evidence：大规模模块化灵巧操作基准
 
 
 <div class="dpr-home-promo-card">
