@@ -1,0 +1,551 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-12T19:55:23.243731+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 7,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 6,
+    "quick_skim_target": 11,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2607.05468v1",
+      "source": "arxiv",
+      "title": "Learning 4D Geometric Priors for Inference-Efficient World Action Models",
+      "abstract": "World Action Models (WAMs) have shown strong potential for robotic manipulation by jointly modeling visual future dynamics and executable action sequences. However, existing video-action co-training methods primarily optimize appearance-oriented video latents, which may insufficiently capture the temporally evolving geometry required for precise manipulation. We propose MECo-WAM, a Multi-Expert Co-Training World Action Model that injects action-relevant 4D geometric priors into video-action representations while preserving the original lightweight inference graph. During training, MECo-WAM combines video and action experts with a lightweight 4D expert supervised by relational targets from a frozen VGGT encoder. Asymmetric expert visibility prevents non-causal shortcuts from auxiliary geometry to action generation. To transfer geometric knowledge into the deployed video-action pathway, we introduce decayed 4D read-mask attention, which provides restricted current-frame geometric guidance early in training and progressively removes this dependency. We further propose action-aware temporal geometric distillation, which aligns within-frame geometric relations and their temporal evolution while emphasizing visual regions most relevant to robot actions. At deployment, all auxiliary 4D components are removed. Experiments on LIBERO (98.2%), RoboTwin 2.0 (92.6%), and challenging real-world manipulation tasks show that MECo-WAM improves manipulation performance without increasing inference cost.",
+      "authors": [
+        "Jianjun Zhang",
+        "Jian Zhu",
+        "Taiyi Su",
+        "Chong Ma",
+        "Zitai Huang",
+        "Yi Xu",
+        "Hanli Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-06T07:10:22+00:00",
+      "link": "https://arxiv.org/pdf/2607.05468v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "World Action Models with 4D geometric priors for robotic manipulation",
+      "llm_evidence_cn": "注入4D几何先验的世界动作模型，用于机器人操作",
+      "llm_evidence": "注入4D几何先验的世界动作模型，用于机器人操作",
+      "canonical_evidence": "注入4D几何先验的世界动作模型，用于机器人操作",
+      "llm_tldr_en": "MECo-WAM improves World Action Models by injecting action-relevant 4D geometric priors from a frozen VGGT encoder, enhancing manipulation precision without increasing inference cost.",
+      "llm_tldr_cn": "现有世界动作模型（WAM）在视频-动作联合训练中主要优化外观导向的潜在表示，对操作所需的时变几何建模不足。本文提出MECo-WAM，通过多专家协同训练注入4D几何先验：引入轻量级4D专家并利用冻结VGGT编码器的关系目标监督，同时采用非对称专家可见性避免推理开销。实验显示该方法在多种操纵任务上达到领先性能，且推理图保持轻量。工作揭示了显式几何先验对动作表征的重要性，推动了VLA模型的发展。",
+      "llm_tldr": "现有世界动作模型（WAM）在视频-动作联合训练中主要优化外观导向的潜在表示，对操作所需的时变几何建模不足。本文提出MECo-WAM，通过多专家协同训练注入4D几何先验：引入轻量级4D专家并利用冻结VGGT编码器的关系目标监督，同时采用非对称专家可见性避免推理开销。实验显示该方法在多种操纵任务上达到领先性能，且推理图保持轻量。工作揭示了显式几何先验对动作表征的重要性，推动了VLA模型的发展。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.06988v1",
+      "source": "arxiv",
+      "title": "WAM-TTT: Steering World-Action Models by Watching Human Play at Test Time",
+      "abstract": "Steering robot foundation models (RFMs) toward new task variants or user-preferred behaviors remains challenging, often requiring additional robot demonstrations, task-specific fine-tuning, or long-context conditioning. We present WAM-TTT, a test-time training framework for steering world action models from raw human videos. Rather than treating human videos as trajectories to imitate, WAM-TTT absorbs them into a lightweight adaptive memory inside a frozen WAM through self-supervised video prediction. To make this memory useful for control, we introduce a meta-training stage that aligns human demonstrations with robot behaviors using paired human-robot data and a key--value memory reconstruction objective. At test time, only unlabeled human videos are required to adapt the memory, while the pretrained WAM remains frozen. This enables efficient and reusable steering without robot actions, human-side annotations, or task-specific fine-tuning, while preserving the generalization ability of the foundation model. Extensive experiments show that WAM-TTT consistently outperforms in-context human-video conditioning baselines across diverse manipulation tasks and generalization settings.",
+      "authors": [
+        "Yusen Feng",
+        "Bingchen Han",
+        "Jiangran Lyu",
+        "Kai Liu",
+        "Yixin Zheng",
+        "Yuxuan Wan",
+        "Weiheng Liu",
+        "Sun Han",
+        "Ruiqin Li",
+        "Yulong Zhang",
+        "Fangfu Liu",
+        "Xuesong Shi",
+        "Libin Liu",
+        "Yizhou Wang",
+        "Zhizheng Zhang",
+        "He Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-08T04:23:22+00:00",
+      "link": "https://arxiv.org/pdf/2607.06988v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "test-time training for world-action models using human videos",
+      "llm_evidence_cn": "利用人类视频对世界-动作模型进行测试时训练",
+      "llm_evidence": "利用人类视频对世界-动作模型进行测试时训练",
+      "canonical_evidence": "利用人类视频对世界-动作模型进行测试时训练",
+      "llm_tldr_en": "WAM-TTT steers frozen world-action models towards new behaviors by absorbing raw human videos into lightweight adaptive memory via self-supervised video prediction and meta-alignment.",
+      "llm_tldr_cn": "针对机器人基础模型难以适应新任务变体的问题，本文提出WAM-TTT，一种通过观看人类视频进行测试时训练的框架。该方法将未标注的人类视频通过自监督视频预测吸收到冻结世界-动作模型的轻量级自适应记忆中，并通过元训练对齐人类与机器人行为。测试时仅需人类视频即可引导模型实现新技能，无需额外机器人数据或微调。",
+      "llm_tldr": "针对机器人基础模型难以适应新任务变体的问题，本文提出WAM-TTT，一种通过观看人类视频进行测试时训练的框架。该方法将未标注的人类视频通过自监督视频预测吸收到冻结世界-动作模型的轻量级自适应记忆中，并通过元训练对齐人类与机器人行为。测试时仅需人类视频即可引导模型实现新技能，无需额外机器人数据或微调。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.07287v1",
+      "source": "arxiv",
+      "title": "TouchWorld: A Predictive and Reactive Tactile Foundation Model for Dexterous Manipulation",
+      "abstract": "Dexterous manipulation in everyday environments requires both anticipation and reaction: a robot must predict how contact should evolve while rapidly correcting local errors caused by slip, misalignment, unstable grasping, or force mismatch. Vision and language provide semantic and geometric guidance, but they cannot reliably reveal hidden contact states such as force, slip, and contact stability. Although tactile sensing exposes these physical cues, most existing policies treat touch as a low-frequency observation stream within a monolithic action model, coupling slow task reasoning, action generation, and fast contact feedback in a single loop. We introduce TouchWorld, a predictive-and-reactive tactile foundation model for dexterous manipulation. TouchWorld uses a hierarchical policy that separates vision-language subtask planning, tactile world-model prediction, visuo-tactile goal-conditioned action generation, and high-frequency tactile residual refinement. A High-Level Planning Layer produces executable subtasks and predicts tactile subgoals; a Visuo-Tactile Goal-Conditioned Policy generates nominal action chunks; and a Tactile-Conditioned Refinement Policy performs online residual correction using recent tactile and proprioceptive feedback. By using touch as both a predictive contact reference and a fast feedback signal, TouchWorld preserves the semantic generalization of vision-language-action policies while improving local contact adaptation. Across six long-horizon and contact-rich dexterous manipulation tasks, TouchWorld achieves 65.0% success in the clean setting and 53.7% success under human perturbations, outperforming the strongest baseline by 15.7 and 18.5 percentage points, respectively.",
+      "authors": [
+        "Jianyi Zhou",
+        "Feiyang Hong",
+        "Yunhao Li",
+        "Yicheng Zhao",
+        "Yongjue Cen",
+        "Zirui Liu",
+        "Jiakang Huang",
+        "Zirui Chen",
+        "Ruiyang Zhang",
+        "Weizhuo Zhu",
+        "Xuhua Song",
+        "Shuo Yang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-08T11:28:13+00:00",
+      "link": "https://arxiv.org/pdf/2607.07287v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Predictive and reactive tactile foundation model for dexterous manipulation with force and tactile integration",
+      "llm_evidence_cn": "预测性与反应性触觉基础模型，整合力与触觉用于灵巧操作",
+      "llm_evidence": "预测性与反应性触觉基础模型，整合力与触觉用于灵巧操作",
+      "canonical_evidence": "预测性与反应性触觉基础模型，整合力与触觉用于灵巧操作",
+      "llm_tldr_en": "TouchWorld is a tactile foundation model that combines predictive modeling of contact evolution with reactive control using force/tactile feedback, achieving robust dexterous manipulation.",
+      "llm_tldr_cn": "灵巧操作需要预测与反应：机器人需预测接触演变并快速纠正滑移、错位等误差。视觉和语言无法可靠揭示隐藏的接触状态（力、滑移、稳定性），触觉虽能提供物理线索，但现有策略将触觉作为低频观测流混入单一动作模型。本文提出TouchWorld，一个预测性与反应性触觉基础模型：先预测接触演变，再利用触觉反馈进行快速局部修正。实验在多种灵巧操作任务上展示了触觉反馈带来的鲁棒性提升，尤其在不确定环境下。该工作为整合力触觉模态的具身智能提供了基础模型。",
+      "llm_tldr": "灵巧操作需要预测与反应：机器人需预测接触演变并快速纠正滑移、错位等误差。视觉和语言无法可靠揭示隐藏的接触状态（力、滑移、稳定性），触觉虽能提供物理线索，但现有策略将触觉作为低频观测流混入单一动作模型。本文提出TouchWorld，一个预测性与反应性触觉基础模型：先预测接触演变，再利用触觉反馈进行快速局部修正。实验在多种灵巧操作任务上展示了触觉反馈带来的鲁棒性提升，尤其在不确定环境下。该工作为整合力触觉模态的具身智能提供了基础模型。",
+      "llm_tags": [
+        "query:tf:composite"
+      ],
+      "matched_query_tag": "query:tf:composite",
+      "matched_query_text": "Papers central to 寻找整合力觉与触觉模态的具身智能方法论文, especially work that connects or combines: force tactile integration; embodied intelligence; haptic sensing; force feedback; tactile sensing; methods integrating force and tactile modalities in embodied intelligence; embodied AI with multimodal haptic and force perception; tactile force fusion for robot manipulation.",
+      "matched_requirement_id": "req-composite-tf",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.07287v2",
+      "source": "arxiv",
+      "title": "TouchWorld: A Predictive and Reactive Tactile Foundation Model for Dexterous Manipulation",
+      "abstract": "Dexterous manipulation in everyday environments requires both anticipation and reaction: a robot must predict how contact should evolve while rapidly correcting local errors caused by slip, misalignment, unstable grasping, or force mismatch. Vision and language provide semantic and geometric guidance, but they cannot reliably reveal hidden contact states such as force, slip, and contact stability. Although tactile sensing exposes these physical cues, most existing policies treat touch as a low-frequency observation stream within a monolithic action model, coupling slow task reasoning, action generation, and fast contact feedback in a single loop. We introduce TouchWorld, a predictive-and-reactive tactile foundation model for dexterous manipulation. TouchWorld uses a hierarchical policy that separates vision-language subtask planning, tactile world-model prediction, visuo-tactile goal-conditioned action generation, and high-frequency tactile residual refinement. A High-Level Planning Layer produces executable subtasks and predicts tactile subgoals; a Visuo-Tactile Goal-Conditioned Policy generates nominal action chunks; and a Tactile-Conditioned Refinement Policy performs online residual correction using recent tactile and proprioceptive feedback. By using touch as both a predictive contact reference and a fast feedback signal, TouchWorld preserves the semantic generalization of vision-language-action policies while improving local contact adaptation. Across six long-horizon and contact-rich dexterous manipulation tasks, TouchWorld achieves 65.0% success in the clean setting and 53.7% success under human perturbations, outperforming the strongest baseline by 15.7 and 18.5 percentage points, respectively.",
+      "authors": [
+        "Jianyi Zhou",
+        "Feiyang Hong",
+        "Yunhao Li",
+        "Yicheng Zhao",
+        "Yongjue Cen",
+        "Zirui Liu",
+        "Jiakang Huang",
+        "Zirui Chen",
+        "Ruiyang Zhang",
+        "Weizhuo Zhu",
+        "Xuhua Song",
+        "Shuo Yang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-08T11:28:13+00:00",
+      "link": "https://arxiv.org/pdf/2607.07287v2",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "tactile foundation model for dexterous manipulation",
+      "llm_evidence_cn": "用于灵巧操作的触觉基础模型",
+      "llm_evidence": "用于灵巧操作的触觉基础模型",
+      "canonical_evidence": "用于灵巧操作的触觉基础模型",
+      "llm_tldr_en": "Introduces TouchWorld, a predictive-and-reactive tactile foundation model that separates fast contact feedback from slow reasoning for dexterous manipulation.",
+      "llm_tldr_cn": "灵巧操作需要同时预测接触演化和快速纠正错误，但现有策略将触觉作为低频观察流耦合在单一动作模型中。TouchWorld提出预测-反应式触觉基础模型，解耦慢速推理与快速触觉反馈，通过预测接触状态和生成反应性调整，在真实灵巧操作任务中显著提升成功率和对干扰的鲁棒性。",
+      "llm_tldr": "灵巧操作需要同时预测接触演化和快速纠正错误，但现有策略将触觉作为低频观察流耦合在单一动作模型中。TouchWorld提出预测-反应式触觉基础模型，解耦慢速推理与快速触觉反馈，通过预测接触状态和生成反应性调整，在真实灵巧操作任务中显著提升成功率和对干扰的鲁棒性。",
+      "llm_tags": [
+        "query:tf:composite"
+      ],
+      "matched_query_tag": "query:tf:composite",
+      "matched_query_text": "Papers central to 寻找整合力觉与触觉模态的具身智能方法论文, especially work that connects or combines: force tactile integration; embodied intelligence; haptic sensing; force feedback; tactile sensing; methods integrating force and tactile modalities in embodied intelligence; embodied AI with multimodal haptic and force perception; tactile force fusion for robot manipulation.",
+      "matched_requirement_id": "req-composite-tf",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.08127v1",
+      "source": "arxiv",
+      "title": "Understanding and Mitigating the Video-Action Generalization Gap via Temporal Ratio",
+      "abstract": "Generative video foundation models exhibit strong compositional priors, yet world-action models (WAMs) and video-action models (VAMs) often lose these priors after finetuning on robotic action data. We refer to this discrepancy as the video-action generalization gap. In this paper, we systematically investigate this gap by evaluating a comprehensive design space of VAMs, demonstrating that standard design choices yield no emergent explanation pattern. To explain this behavior, we introduce the Temporal Ratio (TR), an attention-based measure of how strongly the action head relies on future latent rollouts relative to the anchored current frame. TR has two key properties: first, a model's structural reliance on future-predictive latents, measured via TR, acts as a predictor of its compositional generalization capacity; second, it natively fluctuates based on task phase, shifting attention to future frames during planning and reverting to the present frame for precise manipulation. Finally, based on these findings, we propose an inference-time adaptive guidance method, which exploits this intrinsic feature attention pattern to dynamically amplify compositional video conditioning signals precisely when the policy relies on future rollouts. Evaluated on the LIBERO benchmark and real-world tasks, our approach mitigates the OOD-ID compositional generalization gap. More details: https://umishra.me/temporal-ratio/",
+      "authors": [
+        "Utkarsh A. Mishra",
+        "Yongxin Chen",
+        "Danfei Xu",
+        "Yang Liu",
+        "Xi Chen",
+        "Jiayuan Mao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-07-09T05:56:08+00:00",
+      "link": "https://arxiv.org/pdf/2607.08127v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "World-action models (WAMs) and video-action models generalization gap",
+      "llm_evidence_cn": "世界行为模型与视频行为模型泛化差距",
+      "llm_evidence": "世界行为模型与视频行为模型泛化差距",
+      "canonical_evidence": "世界行为模型与视频行为模型泛化差距",
+      "llm_tldr_en": "Investigates the video-action generalization gap in WAMs/VAMs after finetuning on robotic data, introducing Temporal Ratio (TR) to measure reliance on future latents.",
+      "llm_tldr_cn": "世界行为模型（WAM）在微调后丢失了视频基础模型的先验知识。本文系统研究了这一视频-动作泛化差距，提出时间比率（TR）衡量动作头对未来潜在特征的依赖程度。实验表明TR能解释模型行为，并指导改进设计。这项工作深入揭示了WAM的内在机制，对VLA与WAM相关研究具有重要指导意义。",
+      "llm_tldr": "世界行为模型（WAM）在微调后丢失了视频基础模型的先验知识。本文系统研究了这一视频-动作泛化差距，提出时间比率（TR）衡量动作头对未来潜在特征的依赖程度。实验表明TR能解释模型行为，并指导改进设计。这项工作深入揭示了WAM的内在机制，对VLA与WAM相关研究具有重要指导意义。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.03723v1",
+      "source": "arxiv",
+      "title": "OmniTacTune: Policy-Agnostic Real-World RL for Tactile Residual Adaptation of Visual Policies",
+      "abstract": "Visual policies learned from human videos, teleoperation, and robot demonstrations offer scalable motion priors, but often fail in contact-rich manipulation, where success significantly depends on local force and contact geometry. Tactile sensing provides these complementary signals, yet tactile data remain costly to collect and hard to generalize across sensors, robots, and tasks. We introduce OmniTacTune, a policy-agnostic real-world RL pipeline that adapts tactile feedback to pretrained visual policies through residual correction. OmniTacTune uses a two-stage design: it first bootstraps tactile-aware learning from autonomous base-policy rollouts, then learns a lightweight tactile residual policy through online interaction. Extensive experiments show that OmniTacTune generalizes across diverse contact-rich tasks, visual base policies, and tactile representations. Across four real-world contact-rich tasks, it improves visual base policies from 5-40% success to 85-100% within 40-80 minutes, demonstrating an efficient path for adapting tactile feedback to scalable visual robot policies. Project page: https://colinyu1.github.io/omnitactune-site/",
+      "authors": [
+        "Kelin Yu",
+        "Haode Zhang",
+        "Harish Ravichandar",
+        "Yunhai Han",
+        "Ruohan Gao"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-04T06:11:03+00:00",
+      "link": "https://arxiv.org/pdf/2607.03723v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "tactile residual adaptation for visual policies",
+      "llm_evidence_cn": "触觉残差适应视觉策略",
+      "llm_evidence": "触觉残差适应视觉策略",
+      "canonical_evidence": "触觉残差适应视觉策略",
+      "llm_tldr_en": "Presents OmniTacTune, a policy-agnostic real-world RL pipeline that adapts tactile feedback to pretrained visual policies via residual correction, improving contact-rich manipulation.",
+      "llm_tldr_cn": "视觉策略在接触丰富操作中常失败，触觉提供补足信号但数据收集昂贵。OmniTacTune提出与策略无关的真实世界强化学习流水线，通过残差纠正将触觉反馈适应到预训练视觉策略。两阶段设计实现高效触觉学习，多个真实任务上提升成功率，证明触觉残差适应是增强视觉策略的有效方式。",
+      "llm_tldr": "视觉策略在接触丰富操作中常失败，触觉提供补足信号但数据收集昂贵。OmniTacTune提出与策略无关的真实世界强化学习流水线，通过残差纠正将触觉反馈适应到预训练视觉策略。两阶段设计实现高效触觉学习，多个真实任务上提升成功率，证明触觉残差适应是增强视觉策略的有效方式。",
+      "llm_tags": [
+        "query:tf:composite"
+      ],
+      "matched_query_tag": "query:tf:composite",
+      "matched_query_text": "Papers central to 寻找整合力觉与触觉模态的具身智能方法论文, especially work that connects or combines: force tactile integration; embodied intelligence; haptic sensing; force feedback; tactile sensing; methods integrating force and tactile modalities in embodied intelligence; embodied AI with multimodal haptic and force perception; tactile force fusion for robot manipulation.",
+      "matched_requirement_id": "req-composite-tf",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.08436v1",
+      "source": "arxiv",
+      "title": "EgoWAM: World Action Models Beyond Pixels with In-the-Wild Egocentric Human Data",
+      "abstract": "Egocentric human data offers scalable supervision for robot manipulation. However, behavior cloning entangles transferable content like objects, scenes, and task semantics, with non-transferable factors like human morphology, head motion, and behavioral style. We study whether World Action Models (WAMs) provide a better training signal by requiring policies to predict not only actions, but also how the scene evolves. The central question is what world representation best enables human-to-robot transfer. We hypothesize that an effective world target should abstract appearance, capture agent-invariant physical effects, and separate camera motion from environment change. We introduce EgoWAM, a controlled human-robot co-training framework that fixes the policy backbone, action head, and data mixture while varying only the world prediction target, comparing Pixel, DINO, and 3D motion flow. Across three real-world bimanual tasks, WAM co-training scales more effectively with in-the-wild egocentric human data than behavior cloning. Pixel-based prediction transfers weakly, while DINO and 3D flow yield substantial gains: DINO improves out-of-distribution object and scene generalization by up to 4x, and 3D flow improves in-domain performance by 20-30%. More details: https://gatech-rl2.github.io/egowam.github.io",
+      "authors": [
+        "Baoyu Li",
+        "Xinchen Yin",
+        "Mengying Lin",
+        "Yixin Zhang",
+        "Danfei Xu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-08T16:11:37+00:00",
+      "link": "https://arxiv.org/pdf/2607.08436v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "World Action Models for human-to-robot transfer, relates to VLA and WAM",
+      "llm_evidence_cn": "世界动作模型用于人-机迁移，关联VLA与WAM",
+      "llm_evidence": "世界动作模型用于人-机迁移，关联VLA与WAM",
+      "canonical_evidence": "世界动作模型用于人-机迁移，关联VLA与WAM",
+      "llm_tldr_en": "EgoWAM investigates world action models for human-to-robot transfer by predicting scene evolution beyond actions, using egocentric human data.",
+      "llm_tldr_cn": "人类自我中心数据为机器人操作提供可扩展监督，但行为克隆混合了可迁移与不可迁移因素。本文研究世界动作模型（WAM）是否通过要求策略不仅预测动作还预测场景演化来提供更好的训练信号。提出EgoWAM，一个受控的人-机器人联合训练框架，发现抽象外观、捕获智能体不变物理效应的世界表征能有效迁移。",
+      "llm_tldr": "人类自我中心数据为机器人操作提供可扩展监督，但行为克隆混合了可迁移与不可迁移因素。本文研究世界动作模型（WAM）是否通过要求策略不仅预测动作还预测场景演化来提供更好的训练信号。提出EgoWAM，一个受控的人-机器人联合训练框架，发现抽象外观、捕获智能体不变物理效应的世界表征能有效迁移。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.04739v1",
+      "source": "arxiv",
+      "title": "Spatial Attention: Adapting Execution Horizons for Diffusion Policies via Observation Sensitivity",
+      "abstract": "Sampling action chunks via generative models has become a widely adopted methodology for robotic learning from demonstration. However, existing methods often struggle to balance responsiveness and computational cost because they execute each action chunk for a fixed execution horizon. In this paper, we adaptively adjust the execution horizon of sampled action chunks, balancing responsiveness and computational efficiency. We introduce Spatial Attention -- defined as the expected squared norm of the gradient of the action log-likelihood with respect to the observation -- which indicates the sensitivity of the policy's action distribution to variations in the observation. We show that, under a fixed budget of chunk samplings, the execution horizon that minimizes the cumulative likelihood drop induced by disturbances decreases as Spatial Attention increases. By forecasting future Spatial Attention values alongside the action chunk, our framework dynamically assigns shorter execution horizons to phases with high Spatial Attention, and longer horizons to phases with low Spatial Attention. Experiments on standard and perturbed tasks, in both simulation and on a real robot, show that our method significantly improves success rates over fixed-horizon baselines while maintaining the average execution horizon.",
+      "authors": [
+        "Che-Sang Park",
+        "Junsu Ha",
+        "Jianlong Fu",
+        "Frank C. Park"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-06T07:22:04+00:00",
+      "link": "https://arxiv.org/pdf/2607.04739v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Adaptive execution horizon for diffusion policies in robotic learning",
+      "llm_evidence_cn": "扩散策略中自适应执行视界用于机器人学习",
+      "llm_evidence": "扩散策略中自适应执行视界用于机器人学习",
+      "canonical_evidence": "扩散策略中自适应执行视界用于机器人学习",
+      "llm_tldr_en": "Introduces Spatial Attention to adaptively adjust execution horizon of action chunks in diffusion policies, balancing responsiveness and computational cost under a fixed sampling budget.",
+      "llm_tldr_cn": "针对现有扩散策略固定执行视界导致响应性与计算开销失衡的问题，提出空间注意力概念，通过观测敏感性自适应调整动作块执行长度，在有限采样预算下实现更优平衡。",
+      "llm_tldr": "针对现有扩散策略固定执行视界导致响应性与计算开销失衡的问题，提出空间注意力概念，通过观测敏感性自适应调整动作块执行长度，在有限采样预算下实现更优平衡。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End to end learning for complex robotic manipulation tasks",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.04434v1",
+      "source": "arxiv",
+      "title": "RoboDojo: A Unified Sim-and-Real Benchmark for Comprehensive Evaluation of Generalist Robot Manipulation Policies",
+      "abstract": "Generalist robot manipulation policies have advanced rapidly, yet existing benchmarks remain limited in systematically evaluating their capabilities. Many rely on simple, short-horizon, or skill-narrow tasks with limited capability coverage, and are often conducted only in simulation or only in the real world. Simulation enables scalable feedback but misses physical deployment challenges, while real-world evaluation is costly, time-consuming, and difficult to reproduce. We introduce RoboDojo, a unified sim-and-real benchmark for comprehensive evaluation of generalist robot manipulation policies. RoboDojo includes 42 simulation tasks and 18 real-world tasks covering diverse and complementary manipulation capabilities. The simulation benchmark evaluates five dimensions: generalization, memory, precision, long-horizon execution, and open-vocabulary instruction following, while the real-world benchmark exposes policies to challenging physical-world deployment conditions. RoboDojo supports scalable evaluation through heterogeneous parallel simulation in Isaac Sim and provides RoboDojo-RealEval, a reproducible real-world evaluation system with remote cloud access, standardized hardware, scene reset, evaluation protocol, and deployment interface. Together with XPolicyLab, policies can be integrated once and evaluated across simulation and real-world settings with minimal adaptation. We integrate 30 policies into XPolicyLab and evaluate them on RoboDojo, establishing a public leaderboard and systematic analysis of current policy performance. The website is available at http://robodojo-benchmark.com/.",
+      "authors": [
+        "Tianxing Chen",
+        "Yue Chen",
+        "Zixuan Li",
+        "Junyuan Tang",
+        "Kailun Su",
+        "Weijie Wan",
+        "Baijun Chen",
+        "Haoran Lu",
+        "Haowen Yan",
+        "Honghao Su",
+        "Zhiyang Dou",
+        "Kaixuan Wang",
+        "Dandan Zhang",
+        "Yunze Liu",
+        "Yan Qin",
+        "Qiwei Liang",
+        "Qiwei Wu",
+        "Zijian Lin",
+        "Wenwei Lin",
+        "Yuran Wang",
+        "Minghua He",
+        "Tianshu Wu",
+        "Ruihai Wu",
+        "Jingquan Zhou",
+        "Kai-Chong Lei",
+        "Haibao Yu",
+        "Yuanfeng Ji",
+        "Weiyang Jin",
+        "Guanyu Lin",
+        "Xiaofan Li",
+        "Qi Xiong",
+        "Renjing Xu",
+        "Zhongyu Li",
+        "Wenhao Chai",
+        "Enze Xie",
+        "Ziwei Wang",
+        "Yao Mu",
+        "Hao Dong",
+        "Wojciech Matusik",
+        "Mingyu Ding",
+        "Wenbo Ding",
+        "Ping Luo",
+        "Masayoshi Tomizuka"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.GR"
+      ],
+      "published": "2026-07-05T17:58:02+00:00",
+      "link": "https://arxiv.org/pdf/2607.04434v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "benchmark for generalist robot manipulation policies",
+      "llm_evidence_cn": "通用机器人操作策略的基准测试",
+      "llm_evidence": "通用机器人操作策略的基准测试",
+      "canonical_evidence": "通用机器人操作策略的基准测试",
+      "llm_tldr_en": "RoboDojo provides a unified sim-and-real benchmark with 42 simulation and 18 real-world tasks for comprehensive evaluation of generalist robot manipulation policies.",
+      "llm_tldr_cn": "现有机器人操作基准大多局限于简单任务或单一环境。本文提出RoboDojo，一个统一仿真与真实的基准测试，包含42个仿真任务和18个真实任务，覆盖多样化操作能力。该基准支持可重复的跨域评估，有助于推动通用操作策略的发展。",
+      "llm_tldr": "现有机器人操作基准大多局限于简单任务或单一环境。本文提出RoboDojo，一个统一仿真与真实的基准测试，包含42个仿真任务和18个真实任务，覆盖多样化操作能力。该基准支持可重复的跨域评估，有助于推动通用操作策略的发展。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Robotic foundation models for manipulation",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.08742v1",
+      "source": "arxiv",
+      "title": "ContactMimic: Humanoid Object Interaction via Contact Control",
+      "abstract": "Keypoint tracking alone is insufficient for object interaction tasks such as sitting on a chair, wiping a board, or pushing furniture, where the robot can reach the correct pose without making meaningful physical contact with the object. We present CONTACTMIMIC, a learning framework that tracks explicit partlevel binary contact commands alongside keypoint trajectories. CONTACTMIMIC is made possible through the use of contact-following rewards and a trajectory augmentation scheme aimed at breaking the correlations between keypoint trajectories and contact labels. The resulting policy successfully decouples contact behavior from keypoint geometry, and achieves precise physical contact as well as contact-controllability (produce or suppress contact during deployment as desired). Simulation experiments across 10 diverse human-object interaction motions confirm that CONTACTMIMIC exhibits contact controllability that enables it to complete manipulation tasks without task-specific rewards, while also outperforming keypoint-only trackers on contact-relevant tasks. Ablations confirm the necessity of the proposed trajectory augmentation scheme and sim2real deployment validates contact controllability in the real world across 5 different motions. Video results are available on https://lixinyao11.github.io/contactmimic-page/.",
+      "authors": [
+        "Xinyao Li",
+        "Xialin He",
+        "Runpei Dong",
+        "Saurabh Gupta"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-09T17:42:15+00:00",
+      "link": "https://arxiv.org/pdf/2607.08742v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Contact control framework for humanoid object interaction",
+      "llm_evidence_cn": "面向人形机器人物体交互的接触控制框架",
+      "llm_evidence": "面向人形机器人物体交互的接触控制框架",
+      "canonical_evidence": "面向人形机器人物体交互的接触控制框架",
+      "llm_tldr_en": "Presents ContactMimic, a learning framework that tracks explicit part-level binary contact commands alongside keypoint trajectories via contact-following rewards and trajectory augmentation, enabling precise physical contact and contact controllability.",
+      "llm_tldr_cn": "针对人形机器人交互中仅靠关键点跟踪无法实现有效物理接触的问题，提出ContactMimic接触模仿学习框架，通过接触跟随奖励和轨迹增强解耦接触与几何，实现了精确接触控制与接触可调控性。",
+      "llm_tldr": "针对人形机器人交互中仅靠关键点跟踪无法实现有效物理接触的问题，提出ContactMimic接触模仿学习框架，通过接触跟随奖励和轨迹增强解耦接触与几何，实现了精确接触控制与接触可调控性。",
+      "llm_tags": [
+        "query:tf:composite"
+      ],
+      "matched_query_tag": "query:tf:composite",
+      "matched_query_text": "Papers central to 寻找整合力觉与触觉模态的具身智能方法论文, especially work that connects or combines: force tactile integration; embodied intelligence; haptic sensing; force feedback; tactile sensing; methods integrating force and tactile modalities in embodied intelligence; embodied AI with multimodal haptic and force perception; tactile force fusion for robot manipulation.",
+      "matched_requirement_id": "req-composite-tf",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.04546v1",
+      "source": "arxiv",
+      "title": "Mask2Real-WM: Segmentation Masks as a Sim-to-Real Bridge for Controllable Dexterous World Models",
+      "abstract": "Action-conditioned world models allow robots to predict the future consequences of candidate actions without additional physical interaction, supporting policy evaluation, planning, and data augmentation. We present Mask2Real-WM, a two-stage action-conditioned world model for dexterous manipulation that decouples pixel prediction into a dynamics model and a rendering model. The dynamics model predicts future segmentation masks from past masks and 23-DoF action sequences. The rendering model maps the predicted masks to photorealistic RGB using a ControlNet-augmented Stable Video Diffusion backbone. The smaller sim-to-real gap in segmentation space enables the dynamics model to benefit from large-scale pretraining on over 50 h of synthetic simulation data, followed by fine-tuning on fewer than 2.5 h of real demonstrations. Experiments on a dexterous pick-and-place benchmark show that mask conditioning and simulation pretraining are both required for per-DoF action controllability across all 23 degrees of freedom. In contrast, monolithic baselines capture broad hand and end-effector trajectories but do not reliably reflect fine-grained, per-joint action effects.",
+      "authors": [
+        "Riccardo O. Feingold",
+        "Davide Liconti",
+        "Chenyu Yang",
+        "Robert K. Katzschmann"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-07-05T23:29:23+00:00",
+      "link": "https://arxiv.org/pdf/2607.04546v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "action-conditioned world model for dexterous manipulation",
+      "llm_evidence_cn": "用于灵巧操作的动作条件世界模型",
+      "llm_evidence": "用于灵巧操作的动作条件世界模型",
+      "canonical_evidence": "用于灵巧操作的动作条件世界模型",
+      "llm_tldr_en": "Introduces Mask2Real-WM, a two-stage world model predicting future segmentation masks then rendering RGB for dexterous manipulation planning.",
+      "llm_tldr_cn": "动作条件世界模型允许机器人预测未来结果，但像素级预测困难。Mask2Real-WM将预测分解为分割掩码动态模型和渲染模型，利用分割空间的较小仿真-真实差距，在50小时真实灵巧操作数据上预训练，实现可控的逼真未来帧预测，为世界模型在灵巧操作中的应用提供了高效方案。",
+      "llm_tldr": "动作条件世界模型允许机器人预测未来结果，但像素级预测困难。Mask2Real-WM将预测分解为分割掩码动态模型和渲染模型，利用分割空间的较小仿真-真实差距，在50小时真实灵巧操作数据上预训练，实现可控的逼真未来帧预测，为世界模型在灵巧操作中的应用提供了高效方案。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Robotic foundation models for manipulation",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.08354v1",
+      "source": "arxiv",
+      "title": "SkillPlug: Unsupervised Skill Mining for Few-Shot Adaptation in Robotic Manipulation",
+      "abstract": "Learning transferable visuomotor imitation policies that generalize across diverse manipulation tasks and adapt rapidly to new tasks from only a handful of demonstrations remains challenging. Most modern policies are trained end-to-end to map observations directly to low-level actions, offering little explicit structure for reusing and recombining behaviors across tasks and making transfer data-inefficient under limited supervision. We propose SkillPlug, a plug-in framework that augments an existing visuomotor policy with a skill-conditioning module and mines a shared, transferable skill library from raw multi-task demonstrations. SkillPlug learns skills via self-supervised objectives that promote compact, reusable, and non-redundant behavior-level primitives, forming a task-shared prior for compositional control. After skill mining, we keep the learned skills fixed and specialize to unseen tasks by fine-tuning only lightweight router and action head, enabling efficient adaptation without full end-to-end retraining. We evaluate SkillPlug on two simulation benchmarks and on a real robot, and observe that the mined transferable skills consistently improve both multi-task performance and few-shot adaptation. Overall, SkillPlug offers a scalable way to mine reusable skills that improve data-efficient generalization in robotic manipulation.",
+      "authors": [
+        "Zi-han Ding",
+        "Ziwei Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-09T11:02:35+00:00",
+      "link": "https://arxiv.org/pdf/2607.08354v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "skill mining for few-shot adaptation in robotic manipulation",
+      "llm_evidence_cn": "技能挖掘用于机器人操作的小样本适应",
+      "llm_evidence": "技能挖掘用于机器人操作的小样本适应",
+      "canonical_evidence": "技能挖掘用于机器人操作的小样本适应",
+      "llm_tldr_en": "SkillPlug mines reusable skills from multi-task demonstrations for few-shot adaptation in visuomotor policies, improving transfer efficiency.",
+      "llm_tldr_cn": "现有端到端策略难以跨任务重用行为，小样本迁移效率低。本文提出SkillPlug，一个即插即用框架，通过自监督学习从多任务演示中挖掘紧凑、可重用且非冗余的技能库，并增强现有策略。实验表明在多个操作任务上，SkillPlug仅需少量演示即可快速适应新任务。",
+      "llm_tldr": "现有端到端策略难以跨任务重用行为，小样本迁移效率低。本文提出SkillPlug，一个即插即用框架，通过自监督学习从多任务演示中挖掘紧凑、可重用且非冗余的技能库，并增强现有策略。实验表明在多个操作任务上，SkillPlug仅需少量演示即可快速适应新任务。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End to end learning for complex robotic manipulation tasks",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
