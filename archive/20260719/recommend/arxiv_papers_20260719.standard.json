@@ -1,0 +1,731 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-07-19T20:49:17.717520+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 8,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 9,
+    "quick_skim_target": 11,
+    "quick_selected": 9
+  },
+  "deep_dive": [
+    {
+      "id": "2607.14695v1",
+      "source": "arxiv",
+      "title": "Reflex: Real-Time VLA Control through Streaming Inference",
+      "abstract": "Flow matching Vision-Language-Action (VLA) models promise precise continuous control, but their iterative denoising nature introduces fundamental incompatibilities with real-time robotics: global timestep injection invalidates KV-caching, forcing a choice between slow $O(N^2)$ re-computation or mathematically incorrect cache reuse. We present \\textbf{Reflex}, a framework that enables \\textit{real-time streaming inference} for flow matching policies by exploiting the \\textit{Timestep-Invariance Property} -- that perception encoders are functionally independent of the denoising loop. Reflex partitions the attention context into static, sliding, and dynamic regions, enabling $O(1)$ incremental cache updates while preserving full-batch-equivalent attention outputs for fixed inputs. To ensure stability under continuous high-frequency inference, we introduce \\textit{AdaRMSNorm}, an adaptive normalization layer that prevents BFloat16 numerical collapse by gating on flow phase. We further maximize throughput through an \\textit{async pipeline} that decouples visual encoding from action generation, combined with \\textit{operator fusion} that reduces kernel overhead. On LIBERO and Kinetix benchmarks, Reflex achieves a 2.58$\\times$ inference speedup and 50Hz stable streaming, reducing reaction latency by up to 54\\% and enabling efficient deployment without performance degradation.",
+      "authors": [
+        "Yuanchun Guo",
+        "Bingyan Liu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-16T07:56:43+00:00",
+      "link": "https://arxiv.org/pdf/2607.14695v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "real-time VLA streaming inference framework exploiting timestep-invariance",
+      "llm_evidence_cn": "利用时间步不变性的实时VLA流推理框架",
+      "llm_evidence": "利用时间步不变性的实时VLA流推理框架",
+      "canonical_evidence": "利用时间步不变性的实时VLA流推理框架",
+      "llm_tldr_en": "Proposes Reflex, a framework enabling real-time streaming inference for flow-matching VLA policies by partitioning attention context and leveraging timestep-invariance.",
+      "llm_tldr_cn": "流匹配VLA模型在实时部署中存在推理延迟和KV缓存失效问题。该论文提出Reflex框架，利用时间步不变性将感知编码器与去噪循环解耦，通过分区注意力上下文实现O(1)增量缓存更新。在保持全批次等效注意力输出的同时，显著降低推理延迟，使VLA模型能够满足实时控制需求。",
+      "llm_tldr": "流匹配VLA模型在实时部署中存在推理延迟和KV缓存失效问题。该论文提出Reflex框架，利用时间步不变性将感知编码器与去噪循环解耦，通过分区注意力上下文实现O(1)增量缓存更新。在保持全批次等效注意力输出的同时，显著降低推理延迟，使VLA模型能够满足实时控制需求。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.10383v2",
+      "source": "arxiv",
+      "title": "ABot-N1: Toward a General Visual Language Navigation Foundation Model",
+      "abstract": "Visual Language Navigation foundation models aim to unify deep reasoning for grounded spatial decisions with broad versatility for diverse embodied tasks. Current approaches typically achieve this integration via monolithic policies that map observations directly to actions, yet they often suffer from coordinate drift and poor handling of long-tail semantics. Furthermore, these black-box mappings lack interpretability, hindering the simultaneous achievement of generality, robustness, and transparency. We present ABot-N1, a step toward a general Visual Language Navigation foundation model, that addresses these challenges by decoupling cognition from control via a slow-fast architecture guided by dual visual-language signals. More specifically, a slow vision-language reasoner performs explicit Chain-of-Thought reasoning while producing a pixel goal. This compact set of image-space anchor points serves as a universal interface for diverse tasks, including point-goal, object-goal, poi-goal, instruction-following, and person-following. Subsequently, a fast action expert leverages both the textual cues and the pixel guidance to generate continuous waypoints at the native control frequency. By bridging high-level intents and low-level control through pixel-grounded anchors paired with explicit linguistic traces, our approach ensures robust, generalizable, and interpretable navigation across simulation and real-world benchmarks. ABot-N1 establishes new state-of-the-art records, delivering massive gains specifically in urban-scale navigation: boosting POI arrival by 35.0% (to 77.3%) and achieving 95.4%/92.9% SR in complex indoor and outdoor scenes. It also maintains superior robustness across object-reaching, person-following, and instruction-following tasks. New Point-Goal/POI-Goal benchmarks are released as open source to advance the field of urban-scale navigation.",
+      "authors": [
+        "Ruiyan Gong",
+        "Yingnan Guo",
+        "Junjun Hu",
+        "Jintao Kong",
+        "Xiaoxu Leng",
+        "Tianlun Li",
+        "Weize Li",
+        "Fei Liu",
+        "Zhicheng Liu",
+        "Jia Lu",
+        "Minghua Luo",
+        "Chenlin Ming",
+        "Yanfen Shen",
+        "Jiyue Tao",
+        "Zhengbo Wang",
+        "Mingyang Yin",
+        "Minqi Gu",
+        "Zihao Guan",
+        "Wei Guo",
+        "Guoqing Liu",
+        "Huachong Pang",
+        "Menglin Yang",
+        "Zeqian Ye",
+        "Xiaoxiao Geng",
+        "Zhining Gu",
+        "Honglin Han",
+        "Di Jing",
+        "Hongyu Pan",
+        "Mingchao Sun",
+        "Kuan Yang",
+        "Jianfang Zhang",
+        "Yanghong Chen",
+        "Ye He",
+        "Wei Mei",
+        "Jiahao Shi",
+        "Xiangpo Yang",
+        "Yanqing Zhu",
+        "Yang Cai",
+        "Jingjing Ma",
+        "Shihui Su",
+        "Zixiao Tang",
+        "Linbo Zheng",
+        "Zedong Chu",
+        "Xiaolong Wu",
+        "Ziqiao Li",
+        "Mu Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-07-11T16:21:03+00:00",
+      "link": "https://arxiv.org/pdf/2607.10383v2",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "general visual language navigation foundation model",
+      "llm_evidence_cn": "通用的视觉语言导航基础模型",
+      "llm_evidence": "通用的视觉语言导航基础模型",
+      "canonical_evidence": "通用的视觉语言导航基础模型",
+      "llm_tldr_en": "Introduces ABot-N1, a general visual language navigation foundation model with slow-fast architecture decoupling cognition from control for improved generalization and interpretability.",
+      "llm_tldr_cn": "该论文提出ABot-N1，一个通用的视觉语言导航基础模型。通过慢-快架构将认知与控制解耦，使用双视觉语言信号引导，解决了现有单策略模型中的坐标漂移和长尾语义问题。实验表明ABot-N1在多种导航任务上实现了更强的泛化能力、鲁棒性和可解释性，朝着通用视觉语言导航基础模型迈出了重要一步。",
+      "llm_tldr": "该论文提出ABot-N1，一个通用的视觉语言导航基础模型。通过慢-快架构将认知与控制解耦，使用双视觉语言信号引导，解决了现有单策略模型中的坐标漂移和长尾语义问题。实验表明ABot-N1在多种导航任务上实现了更强的泛化能力、鲁棒性和可解释性，朝着通用视觉语言导航基础模型迈出了重要一步。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.11689v1",
+      "source": "arxiv",
+      "title": "From World Action Models to Embodied Brains: A Roadmap for Open-World Physical Intelligence",
+      "abstract": "Artificial general intelligence ultimately requires agents that can reason and act in the physical world. Action models, vision-language-action policies, and world models have advanced this goal, while World Action Models (WAMs) are particularly promising because they connect candidate interventions with predicted consequences. However, progress remains fragmented: models use incompatible action spaces and prediction targets, datasets and tasks follow different conventions, and runtime systems expose limited interfaces for reuse and evaluation. We review the evolution toward WAMs and organize these limitations into three coupled gaps: model roles and representations, objectives and standardization, and system composition. Building on this analysis, we propose a co-evolution roadmap for physical intelligence centered on the \\emph{embodied brain}, a long-term model target for integrating multimodal context, comparing candidate interventions, and issuing state-transition or capability requests rather than direct actuator commands. WAMs provide promising prototypes for its predictive functions, while a physical harness grounds model outputs through tools, controllers, verification, and trace logging. Shared contracts align heterogeneous models, data, tasks, and embodiments, and closed-loop post-training converts verified interaction into reusable experience. Together, these components define a modular physical-intelligence stack for adaptive and self-improving embodied agents.",
+      "authors": [
+        "Yuanzhi Liang",
+        "Xufeng Zhan",
+        "Haibin Huang",
+        "Chi Zhang",
+        "Xuelong Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-13T15:22:56+00:00",
+      "link": "https://arxiv.org/pdf/2607.11689v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Roadmap covering VLA, WAM, and embodied intelligence",
+      "llm_evidence_cn": "涵盖VLA、WAM和具身智能的路线图",
+      "llm_evidence": "涵盖VLA、WAM和具身智能的路线图",
+      "canonical_evidence": "涵盖VLA、WAM和具身智能的路线图",
+      "llm_tldr_en": "This roadmap reviews the evolution from action models to World Action Models, identifying three coupled gaps and proposing directions for open-world physical intelligence.",
+      "llm_tldr_cn": "该路线图综述了从动作模型、VLA策略到世界模型的发展，重点分析了通向世界动作模型的三个耦合差距：模型角色与表示、目标与标准化、系统组合。为开放世界物理智能提供了系统化研究框架。",
+      "llm_tldr": "该路线图综述了从动作模型、VLA策略到世界模型的发展，重点分析了通向世界动作模型的三个耦合差距：模型角色与表示、目标与标准化、系统组合。为开放世界物理智能提供了系统化研究框架。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.12894v1",
+      "source": "arxiv",
+      "title": "Hy-Embodied-VLM-1.0: Efficient Physical-World Agents",
+      "abstract": "Building capable embodied agents requires not only multimodal perception and understanding, but also agentic capabilities for reasoning about actions, adapting to evolving situations, and interacting with the physical world. In this report, we introduce Hy-Embodied-VLM-1.0, an efficient and powerful embodied foundation model specifically designed for embodied agents operating in the physical world. To cultivate such capabilities from the pre-training stage onward, we define an action-centric capability taxonomy comprising three progressive dimensions: Action-Relevant State Understanding, Action-Transition Reasoning, and Sequential and Adaptive Reasoning. Guided by this taxonomy, we develop a systematic data pipeline and curate data mixtures spanning both pre-training and post-training. To deliver strong physical-world understanding and interaction capabilities while supporting latency-sensitive deployment, we build our model on the Hy3-A3B language backbone and the Hy-ViT2 vision encoder. Its efficient Mixture-of-Experts architecture combines strong model capacity with high inference efficiency. We evaluate Hy-Embodied-VLM-1.0 on a comprehensive suite of 38 benchmarks covering embodied perception, physical-world understanding, and embodied reasoning. The model achieves the best performance among similarly sized models on 19 of the 38 benchmarks and substantially outperforms strong competitors, including Qwen3.6-A3B and Cosmos 3. Compared with the previous-generation Hy-Embodied-0.5 MoT-2B, Hy-Embodied-VLM-1.0 improves average performance by 8.4%. Despite activating only 3B parameters, it achieves performance close to that of the previous-generation model with 32B activated parameters. Beyond static benchmark evaluation, Hy-Embodied-VLM-1.0 also demonstrates strong performance on embodied agentic tasks requiring multi-turn interaction and long-horizon reasoning.",
+      "authors": [
+        "Ziyi Wang",
+        "Xumin Yu",
+        "Yongming Rao",
+        "Yonggen Ling",
+        "Yunheng Li",
+        "Oran Wang",
+        "Mingqi Gao",
+        "Yuchen Zhou",
+        "Yves Liang",
+        "Zuyan Liu",
+        "Yani Zhang",
+        "Rui Huang",
+        "Xiaoran Xu",
+        "Bowen Yuan",
+        "Yifu Yuan",
+        "Xu Tan",
+        "He Zhang",
+        "Yufei Huang",
+        "Shenghao Zhang",
+        "Hongsheng Wu",
+        "Han Hu",
+        "Zhengyou Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-14T15:34:17+00:00",
+      "link": "https://arxiv.org/pdf/2607.12894v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "embodied foundation model with action-centric taxonomy for VLA",
+      "llm_evidence_cn": "面向具身智能的动作中心能力分类的VLM",
+      "llm_evidence": "面向具身智能的动作中心能力分类的VLM",
+      "canonical_evidence": "面向具身智能的动作中心能力分类的VLM",
+      "llm_tldr_en": "Proposes Hy-Embodied-VLM-1.0, an embodied foundation model with an action-centric capability taxonomy covering state understanding, transition reasoning, and adaptive reasoning, designed for physical-world agents.",
+      "llm_tldr_cn": "该论文针对具身智能体在物理世界中的行动推理和适应能力不足的问题，提出Hy-Embodied-VLM-1.0，一种高效的具身基础模型。通过定义动作中心能力分类体系（包括状态理解、过渡推理和序列自适应推理），并构建系统数据流水线，从预训练阶段开始培养具身能力。该方法为VLA模型提供了结构与训练范式，使智能体能更好地进行物理交互。",
+      "llm_tldr": "该论文针对具身智能体在物理世界中的行动推理和适应能力不足的问题，提出Hy-Embodied-VLM-1.0，一种高效的具身基础模型。通过定义动作中心能力分类体系（包括状态理解、过渡推理和序列自适应推理），并构建系统数据流水线，从预训练阶段开始培养具身能力。该方法为VLA模型提供了结构与训练范式，使智能体能更好地进行物理交互。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.14609v1",
+      "source": "arxiv",
+      "title": "Representation-Aligned Tactile Grounding for Contact-Rich Robotic Manipulation",
+      "abstract": "Tactile-enhanced vision-language-action (VLA) policies have been introduced for contact-rich manipulation, where critical interaction states are often hidden from vision. Future tactile prediction is a promising way to use touch because it turns tactile outcomes into supervision for action-induced contact dynamics. Yet VLA policies contain representations with different roles, from perceptual encoding to motor prediction, making it unclear where this supervision should be applied. We study this as a representation-alignment problem. Through a linear probe analysis, we find that future tactile states are most predictable from intermediate action-expert features, rather than from vision-language features or final action states. Motivated by this observation, we introduce a lightweight Latent Tactile Predictor (LTP), which predicts compact future tactile embeddings from the identified intermediate representation. By avoiding direct prediction of noisy raw tactile signals, LTP provides an action-outcome grounding signal that aligns intermediate action representations with future contact consequences. Experiments on real-world contact-rich manipulation tasks show that representation-aligned tactile grounding outperforms less aligned or multi-interface tactile prediction, highlighting the importance of where tactile supervision is applied.",
+      "authors": [
+        "Ruilin Chen",
+        "Jingkai Jia",
+        "Tong Yang",
+        "Xinyu Zhou",
+        "Qiao Sun",
+        "Jiangwei Zhong",
+        "Shizeng Zhang",
+        "Nuo Chen",
+        "Bailin He",
+        "Wei Li",
+        "Wenqiang Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-16T06:12:05+00:00",
+      "link": "https://arxiv.org/pdf/2607.14609v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Representation-aligned tactile grounding for contact-rich manipulation in VLA policies",
+      "llm_evidence_cn": "在VLA策略中实现表示对齐的触觉接地，用于接触丰富操作",
+      "llm_evidence": "在VLA策略中实现表示对齐的触觉接地，用于接触丰富操作",
+      "canonical_evidence": "在VLA策略中实现表示对齐的触觉接地，用于接触丰富操作",
+      "llm_tldr_en": "Finds that future tactile states are best predicted from intermediate action-expert features and proposes representation-aligned tactile grounding for contact-rich VLA policies.",
+      "llm_tldr_cn": "在接触丰富的机器人操作中，触觉信息对视觉被遮挡的状态至关重要。本文研究如何将未来触觉预测作为监督信号应用于VLA策略。通过线性探针分析，发现未来触觉状态在中间动作专家特征上最可预测，而非视觉语言特征或最终动作状态。据此提出表示对齐的触觉接地方法，在中间特征上施加触觉预测任务。实验证明该方法有效提升了接触丰富的操作性能。该工作为触觉与VLA的融合提供了新思路。",
+      "llm_tldr": "在接触丰富的机器人操作中，触觉信息对视觉被遮挡的状态至关重要。本文研究如何将未来触觉预测作为监督信号应用于VLA策略。通过线性探针分析，发现未来触觉状态在中间动作专家特征上最可预测，而非视觉语言特征或最终动作状态。据此提出表示对齐的触觉接地方法，在中间特征上施加触觉预测任务。实验证明该方法有效提升了接触丰富的操作性能。该工作为触觉与VLA的融合提供了新思路。",
+      "llm_tags": [
+        "query:tf:composite"
+      ],
+      "matched_query_tag": "query:tf:composite",
+      "matched_query_text": "Papers central to 寻找整合力觉与触觉模态的具身智能方法论文, especially work that connects or combines: force tactile integration; embodied intelligence; haptic sensing; force feedback; tactile sensing; methods integrating force and tactile modalities in embodied intelligence; embodied AI with multimodal haptic and force perception; tactile force fusion for robot manipulation.",
+      "matched_requirement_id": "req-composite-tf",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.14739v1",
+      "source": "arxiv",
+      "title": "FoMoVLA: Bridging Visual Foresight and Motion Guidance for Vision-Language-Action Models",
+      "abstract": "Vision-Language-Action (VLA) models have achieved impressive results in visuomotor policy learning, yet remain fundamentally reactive, mapping current observations and language to actions without explicit forward prediction of world dynamics. Existing visual foresight methods predict future visual states but lack explicit motion guidance: they show where to go but not how to get there. We argue that future feature prediction and sparse point tracking are naturally complementary: the former provides the goal state, while the latter captures the continuous motion path toward it. We propose FoMoVLA, a framework that augments VLA representations with explicit spatio-temporal supervision by jointly learning future feature foresight and sparse 2D point tracking, enhancing the continuous action policy. FoMoVLA introduces compact foresight tokens to decode future feature states, decodes sparse temporal 2D point trajectories to model compact geometric motion, and couples both through a lightweight future-conditioned cross-attention module that enables consistent reasoning between anticipated states and point dynamics. Extensive experiments on LIBERO, RoboCasa GR-1 Tabletop, and LIBERO-Plus demonstrate state-of-the-art performance and strong zero-shot generalization. Project page is available at https://liauto-research.github.io/FoMoVLA.",
+      "authors": [
+        "Wei Li",
+        "Peijin Jia",
+        "Yuan Ma",
+        "Xuefeng Jiang",
+        "Titong Jiang",
+        "Sheng Sun",
+        "Yujian Li",
+        "Xin Wen",
+        "Han Hong",
+        "Zhikang Liu",
+        "Bailin Li",
+        "Kun Zhan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-16T09:04:50+00:00",
+      "link": "https://arxiv.org/pdf/2607.14739v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Enhances VLA models with visual foresight and motion guidance",
+      "llm_evidence_cn": "通过视觉预见和运动引导增强VLA模型",
+      "llm_evidence": "通过视觉预见和运动引导增强VLA模型",
+      "canonical_evidence": "通过视觉预见和运动引导增强VLA模型",
+      "llm_tldr_en": "FoMoVLA augments VLA representations by jointly learning future feature prediction and sparse point tracking for explicit spatio-temporal supervision.",
+      "llm_tldr_cn": "针对现有VLA模型缺乏显式前向预测和运动引导的问题，提出FoMoVLA框架，结合未来特征预测（提供目标状态）和稀疏点跟踪（提供连续运动路径）为VLA表示增加时空监督。实验表明该方法提升了策略的预见性和执行性能。",
+      "llm_tldr": "针对现有VLA模型缺乏显式前向预测和运动引导的问题，提出FoMoVLA框架，结合未来特征预测（提供目标状态）和稀疏点跟踪（提供连续运动路径）为VLA表示增加时空监督。实验表明该方法提升了策略的预见性和执行性能。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.11027v1",
+      "source": "arxiv",
+      "title": "SegDiff: Segmented Trajectory Diffusion for Consistent and Adaptive Robot Manipulation",
+      "abstract": "Imitation learning enables robots to acquire manipulation skills from demonstrations by mapping observations to actions. Existing approaches predict either short-horizon continuous action sequences or discrete keyposes. However, continuous prediction methods suffer from compounding errors due to short prediction horizons and struggle with multi-modal action distributions, whereas keypose-based methods necessitate an external planner, constraining real-time applicability. To address these challenges, we introduce SegDiff, a closed-loop visuomotor policy that integrates the strengths of both paradigms. SegDiff decomposes demonstrations into motion segments between keyposes and learns to predict the continuous trajectory from the current state to the next keypose, enabling long-horizon prediction with real-time refinement. Furthermore, we leverage the capability of diffusion models and DDIM inversion to propose a Dynamic Temporal Ensembling mechanism, which allows the policy to efficiently respond to dynamic environments and mitigate discontinuities caused by inconsistent multi-modal sampling. SegDiff demonstrates significant performance gains over existing approaches across various simulated and real-world scenarios, indicating its strong ability to reason over extended temporal dependencies while maintaining real-time adaptability and control stability.",
+      "authors": [
+        "Haidong Cao",
+        "Wenjun Cao",
+        "Quanhao Li",
+        "Sicheng Xie",
+        "Zhiying Du",
+        "Jiaqi Leng",
+        "Zuxuan Wu",
+        "Yu-Gang Jiang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-13T02:48:03+00:00",
+      "link": "https://arxiv.org/pdf/2607.11027v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "segmented trajectory diffusion for manipulation",
+      "llm_evidence_cn": "分段轨迹扩散方法用于机器人操作",
+      "llm_evidence": "分段轨迹扩散方法用于机器人操作",
+      "canonical_evidence": "分段轨迹扩散方法用于机器人操作",
+      "llm_tldr_en": "SegDiff proposes a closed-loop visuomotor policy that decomposes demonstrations into motion segments, predicting continuous trajectories while avoiding compounding errors, achieving consistent and adaptive manipulation.",
+      "llm_tldr_cn": "现有模仿学习方法在机器人操作中存在短视预测误差累积或多模态动作分布难以处理的问题。SegDiff提出分段轨迹扩散策略，通过将演示分解为关键位姿间的运动片段并学习连续轨迹预测，兼顾了离散运动规划的稳定性和连续控制的灵活性。实验表明该方法在多种操作任务中优于现有基线。",
+      "llm_tldr": "现有模仿学习方法在机器人操作中存在短视预测误差累积或多模态动作分布难以处理的问题。SegDiff提出分段轨迹扩散策略，通过将演示分解为关键位姿间的运动片段并学习连续轨迹预测，兼顾了离散运动规划的稳定性和连续控制的灵活性。实验表明该方法在多种操作任务中优于现有基线。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End-to-end robotic manipulation tasks",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.10383v1",
+      "source": "arxiv",
+      "title": "ABot-N1: Toward a General Visual Language Navigation Foundation Model",
+      "abstract": "Visual Language Navigation foundation models aim to unify deep reasoning for grounded spatial decisions with broad versatility for diverse embodied tasks. Current approaches typically achieve this integration via monolithic policies that map observations directly to actions, yet they often suffer from coordinate drift and poor handling of long-tail semantics. Furthermore, these black-box mappings lack interpretability, hindering the simultaneous achievement of generality, robustness, and transparency. We present ABot-N1, a step toward a general Visual Language Navigation foundation model, that addresses these challenges by decoupling cognition from control via a slow-fast architecture guided by dual visual-language signals. More specifically, a slow vision-language reasoner performs explicit Chain-of-Thought reasoning while producing a pixel goal. This compact set of image-space anchor points serves as a universal interface for diverse tasks, including point-goal, object-goal, poi-goal, instruction-following, and person-following. Subsequently, a fast action expert leverages both the textual cues and the pixel guidance to generate continuous waypoints at the native control frequency. By bridging high-level intents and low-level control through pixel-grounded anchors paired with explicit linguistic traces, our approach ensures robust, generalizable, and interpretable navigation across simulation and real-world benchmarks. ABot-N1 establishes new state-of-the-art records, delivering massive gains specifically in urban-scale navigation: boosting POI arrival by 35.0% (to 77.3%) and achieving 95.4%/92.9% SR in complex indoor and outdoor scenes. It also maintains superior robustness across object-reaching, person-following, and instruction-following tasks. New Point-Goal/POI-Goal benchmarks are released as open source to advance the field of urban-scale navigation.",
+      "authors": [
+        "Ruiyan Gong",
+        "Yingnan Guo",
+        "Junjun Hu",
+        "Jintao Kong",
+        "Xiaoxu Leng",
+        "Tianlun Li",
+        "Weize Li",
+        "Fei Liu",
+        "Zhicheng Liu",
+        "Jia Lu",
+        "Minghua Luo",
+        "Chenlin Ming",
+        "Yanfen Shen",
+        "Jiyue Tao",
+        "Zhengbo Wang",
+        "Mingyang Yin",
+        "Minqi Gu",
+        "Zihao Guan",
+        "Wei Guo",
+        "Guoqing Liu",
+        "Huachong Pang",
+        "Menglin Yang",
+        "Zeqian Ye",
+        "Xiaoxiao Geng",
+        "Zhining Gu",
+        "Honglin Han",
+        "Di Jing",
+        "Hongyu Pan",
+        "Mingchao Sun",
+        "Kuan Yang",
+        "Jianfang Zhang",
+        "Yanghong Chen",
+        "Ye He",
+        "Wei Mei",
+        "Jiahao Shi",
+        "Xiangpo Yang",
+        "Yanqing Zhu",
+        "Zedong Chu",
+        "Xiaolong Wu",
+        "Mu Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-07-11T16:21:03+00:00",
+      "link": "https://arxiv.org/pdf/2607.10383v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Visual Language Navigation foundation model, related to VLA",
+      "llm_evidence_cn": "视觉语言导航基础模型，与VLA相关",
+      "llm_evidence": "视觉语言导航基础模型，与VLA相关",
+      "canonical_evidence": "视觉语言导航基础模型，与VLA相关",
+      "llm_tldr_en": "ABot-N1 decouples cognition from control with a slow-fast architecture for visual language navigation, addressing coordinate drift and interpretability.",
+      "llm_tldr_cn": "本文提出ABot-N1视觉语言导航基础模型，采用慢-快架构解耦认知与控制，由双视觉-语言信号引导，缓解了坐标漂移和长尾语义问题，提升了通用性和可解释性。",
+      "llm_tldr": "本文提出ABot-N1视觉语言导航基础模型，采用慢-快架构解耦认知与控制，由双视觉-语言信号引导，缓解了坐标漂移和长尾语义问题，提升了通用性和可解释性。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.14047v1",
+      "source": "arxiv",
+      "title": "PhysClaw-0: A Symbiotic Agentic System for Robot Autonomy via Language Corrections",
+      "abstract": "Autonomous data collection governs the volume and quality of real-world trajectories for manipulation policy learning. Existing pipelines reduce human effort via self-resetting, VLM verification, or language-guided correction, yet episode-scoped fixes must be reissued whenever the same failure recurs, so oversight cost grows with session length rather than with the number of distinct problems. We present PhysClaw-0, a human-robot symbiotic agentic system in which corrections are retained and reused across rounds. The collection loop collects, verifies, and resets autonomously, pausing for a remote operator only when a phase exhausts an explicit retry budget. An LLM parser maps each natural-language utterance to a structured adjustment stored in Corrective Memory, so addressed failure modes typically need not be corrected again under the same conditions. On a real-robot desktop-clearing testbed, PhysClaw-0 matches teleoperation episode success while reducing human working time to 16%. Language corrections improve verifier-human agreement in all four evaluated settings and raise average single-attempt success from 12.5% to 47.5% (arm-selection: 20.0% to 50.0%). Policies fine-tuned on PhysClaw-0 data match teleoperation-trained policy success at a fraction of collection human cost.",
+      "authors": [
+        "Boyuan Wang",
+        "Zhenyuan Zhang",
+        "Zhiqin Yang",
+        "Peijun Gu",
+        "Shuya Wang",
+        "Xiaofeng Wang",
+        "Xianghui Ze",
+        "Yifan Chang",
+        "Guosheng Zhao",
+        "Jiangnan Shao",
+        "Guan Huang",
+        "Hengyu Liu",
+        "Yonggang Zhang",
+        "Wei Xue",
+        "Chunyuan Guan",
+        "Chenglin Pu",
+        "Yike Guo",
+        "Xingang Wang",
+        "Zheng Zhu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.HC",
+        "eess.SY"
+      ],
+      "published": "2026-07-15T17:16:24+00:00",
+      "link": "https://arxiv.org/pdf/2607.14047v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "language-correction based data collection system",
+      "llm_evidence_cn": "基于语言纠正的数据收集系统",
+      "llm_evidence": "基于语言纠正的数据收集系统",
+      "canonical_evidence": "基于语言纠正的数据收集系统",
+      "llm_tldr_en": "PhysClaw-0 presents a human-robot symbiotic system that retains and reuses language corrections across episodes, reducing human oversight cost by focusing on distinct problems rather than repeated failures.",
+      "llm_tldr_cn": "机器人自主数据收集成本高，现有方法每次重发纠正指令。PhysClaw-0构建人机共生系统，将自然语言纠正解析为结构化调整并跨轮次复用，只在新型故障时暂停请求人工。系统显著降低人工干预频率，提升数据收集效率，为策略学习提供高质量轨迹。",
+      "llm_tldr": "机器人自主数据收集成本高，现有方法每次重发纠正指令。PhysClaw-0构建人机共生系统，将自然语言纠正解析为结构化调整并跨轮次复用，只在新型故障时暂停请求人工。系统显著降低人工干预频率，提升数据收集效率，为策略学习提供高质量轨迹。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.15004v1",
+      "source": "arxiv",
+      "title": "CosFly-VLA: A Spatially Aware Vision-Language-Action Model for UAV Tracking",
+      "abstract": "Dynamic target tracking is essential for Unmanned Aerial Vehicles (UAVs) operating in complex urban environments, where both the target and the camera viewpoint change continuously. Existing Vision-Language-Action (VLA) policies can track visible targets effectively, but their performance often degrades when buildings, vegetation, or roadside objects block the line of sight. During sustained occlusion, a policy may lose the target state, execute actions toward an incorrect region, and amplify this error through subsequent observations until re-acquisition becomes impossible. To this end, we present CosFly-VLA, a spatially aware VLA model that jointly grounds the target, estimates its visibility, and generates continuous flight actions through a structured prediction interface. To train this policy, we use a large-scale recipe over diverse data sources. Spatially Grounded Continued Pretraining (CPT) on a 500k mixed pool injects UAV-view depth, distance, and 3-D spatial reasoning. A three-stage Curriculum-based Supervised Fine-Tuning (SFT) process then specializes the tracker through multi-head warm-up followed by two-stage curriculum learning over natural and hard / long-occlusion data. Chain-of-Thought (CoT) training subsequently teaches recovery-oriented reasoning traces before structured answers. Finally, a closed-loop Reinforcement Learning (RL) stage optimizes tracking behavior with a multi-component reward covering stand-off tracking, grounding quality, collision avoidance, and task success. Relative to OpenVLA, CosFly-VLA-0.8B reduces open-loop Average Displacement Error (ADE) by 34.1% on seen-test and 35.3% on unseen-test. Closed-loop optimization improves Success Rate (SR) by 29.8% and 2.5%, respectively. These results demonstrate progress from visible-frame imitation toward spatially grounded action-closed-loop control, evaluated under a shared oracle state history.",
+      "authors": [
+        "Ruilong Ren",
+        "Songsheng Cheng",
+        "Yunpeng Zhou",
+        "Hanxuan Chen",
+        "Xiangyue Wang",
+        "Tianle Zeng",
+        "Shuai Yuan",
+        "Binbo Li",
+        "Hanzhong Guo",
+        "Ji Pei",
+        "Da Zhang",
+        "Kangli Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-16T13:52:08+00:00",
+      "link": "https://arxiv.org/pdf/2607.15004v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Spatially aware VLA model for UAV tracking, direct VLA application",
+      "llm_evidence_cn": "空间感知VLA模型用于无人机追踪，直接VLA应用",
+      "llm_evidence": "空间感知VLA模型用于无人机追踪，直接VLA应用",
+      "canonical_evidence": "空间感知VLA模型用于无人机追踪，直接VLA应用",
+      "llm_tldr_en": "CosFly-VLA proposes a spatially aware VLA model that jointly grounds target, estimates visibility, and generates flight actions under occlusion.",
+      "llm_tldr_cn": "本文提出空间感知的VLA模型CosFly-VLA，联合目标定位、可见性估计和连续飞行动作生成，在遮挡场景下保持追踪鲁棒性，扩展了VLA在无人机追踪领域的应用。",
+      "llm_tldr": "本文提出空间感知的VLA模型CosFly-VLA，联合目标定位、可见性估计和连续飞行动作生成，在遮挡场景下保持追踪鲁棒性，扩展了VLA在无人机追踪领域的应用。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.11031v1",
+      "source": "arxiv",
+      "title": "GraspGraphNet: Graph-Structured Multi-Embodiment Dexterous Grasp Generation",
+      "abstract": "Dexterous grasp generation across robot hands is challenging because hands differ in kinematic topology, actuation dimensions, and native command spaces. We introduce GraspGraphNet, a topology-aware grasp generation framework that represents each hand as a URDF-derived kinematic graph and directly generates executable palm poses and joint configurations. GraspGraphNet combines hierarchical object surface encoding, differentiable forward kinematics, and dynamic world-edge message passing to model evolving robot-object interactions. It applies conditional flow matching directly in executable palm-pose and joint-state space, avoiding post-processing optimization, inverse kinematics, and retargeting. Using a shared model trained on Barrett Hand, Allegro Hand, and Shadow Hand, GraspGraphNet achieves an average success rate of 83.48% with 40ms inference time per grasp on a 40-object benchmark. Without retraining, the same model achieves 72.70% success on controlled finger-removal variants, demonstrating robustness to hand-topology variations. These results suggest that graph-structured hand representations can effectively support dexterous grasp generation across robot hands with different kinematic structures. Project: https://lysees.github.io/graspgraphnet-page",
+      "authors": [
+        "Yeonseo Lee",
+        "Taeyeop Lee",
+        "Hyosup Shin",
+        "Guebin Hwang",
+        "Sungho Jo"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-13T02:54:09+00:00",
+      "link": "https://arxiv.org/pdf/2607.11031v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "topology-aware dexterous grasp generation across multiple hand embodiments",
+      "llm_evidence_cn": "跨多种机械手拓扑的灵巧抓取生成",
+      "llm_evidence": "跨多种机械手拓扑的灵巧抓取生成",
+      "canonical_evidence": "跨多种机械手拓扑的灵巧抓取生成",
+      "llm_tldr_en": "Introduces GraspGraphNet, a grasp generation framework that uses kinematic graphs and conditional flow matching to produce executable grasps across diverse robotic hands.",
+      "llm_tldr_cn": "不同机械手在运动和命令空间上的差异使灵巧抓取生成困难。该论文提出GraspGraphNet，将每个手表示为运动学图，通过层次化物体表面编码、可微分前向运动学和动态消息传递，直接在可执行姿态和关节空间进行条件流匹配。该方法避免了逆运动学和重定位，用一个共享模型同时适配Barrett Hand、Allegro Hand等多种手。",
+      "llm_tldr": "不同机械手在运动和命令空间上的差异使灵巧抓取生成困难。该论文提出GraspGraphNet，将每个手表示为运动学图，通过层次化物体表面编码、可微分前向运动学和动态消息传递，直接在可执行姿态和关节空间进行条件流匹配。该方法避免了逆运动学和重定位，用一个共享模型同时适配Barrett Hand、Allegro Hand等多种手。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Robotic foundation models for manipulation",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.14514v1",
+      "source": "arxiv",
+      "title": "VTM-Nav: Hierarchical Visual-Topological Memory for Cross-Episode Object-Goal Navigation",
+      "abstract": "Object-goal navigation requires an embodied agent to locate and reach an instance of a specified object category in an indoor environment. Recent training-free approaches leverage vision-language models (VLMs) for open-vocabulary semantic reasoning, but are typically evaluated under an episodic protocol that resets all scene-specific state after each episode. We introduce Cross-Episode Object-Goal Navigation, in which an agent repeatedly operates in the same scene, retains only self-acquired experience, and keeps its model parameters fixed. To support experience reuse, we present \\method, a training-free VLM navigation framework with a persistent hierarchical Visual-Topological Memory (VTM). The VTM organizes scene knowledge at room and object levels and retrieves relevant experience through coarse-to-fine matching, providing memory as soft guidance only when it agrees with current observations. A conservative execution guard further mitigates oscillations, blocked motions, and premature stopping. Under a controlled same-scene protocol, we evaluate \\method{} on three benchmarks, HM3D v0.1, HM3D v0.2, and MP3D, and compare it with a strengthened WMNav baseline augmented with cross-episode textual memory, while keeping the VLM backbone and action pipeline identical. \\method{} achieves the best performance across all three benchmarks, demonstrating the effectiveness and robustness of structured visual-topological experience reuse across datasets.",
+      "authors": [
+        "Xiaoran Xu",
+        "Yupeng Wu",
+        "Tianyu Xue",
+        "Yifan Xu",
+        "Xuanran Dong",
+        "Xiaoshan Yang",
+        "Changsheng Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-07-16T03:11:37+00:00",
+      "link": "https://arxiv.org/pdf/2607.14514v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "VLM-based navigation with hierarchical memory for embodied agents",
+      "llm_evidence_cn": "基于VLM的具身代理导航，使用分层记忆",
+      "llm_evidence": "基于VLM的具身代理导航，使用分层记忆",
+      "canonical_evidence": "基于VLM的具身代理导航，使用分层记忆",
+      "llm_tldr_en": "Proposes VTM-Nav, a training-free VLM navigation framework with persistent hierarchical visual-topological memory for cross-episode object-goal navigation.",
+      "llm_tldr_cn": "该论文针对物体目标导航中场景状态重置的问题，提出跨场景物体目标导航任务，并设计VTM-Nav框架。利用视觉语言模型进行开放词汇推理，结合分层视觉拓扑记忆组织场景知识，使智能体能在多次部署中保留并利用经验。实验表明，该方法在未见环境中有效提升导航效率。尽管任务为导航而非操作，其记忆和VLM使用思路可迁移至具身智能其他领域。",
+      "llm_tldr": "该论文针对物体目标导航中场景状态重置的问题，提出跨场景物体目标导航任务，并设计VTM-Nav框架。利用视觉语言模型进行开放词汇推理，结合分层视觉拓扑记忆组织场景知识，使智能体能在多次部署中保留并利用经验。实验表明，该方法在未见环境中有效提升导航效率。尽管任务为导航而非操作，其记忆和VLM使用思路可迁移至具身智能其他领域。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.12630v1",
+      "source": "arxiv",
+      "title": "Instance-Enriched Semantic Maps for Visual Language Navigation",
+      "abstract": "Visual Language Navigation (VLN) aims to enable an embodied agent to navigate complex environments by following natural language instructions. Recent approaches build semantic spatial maps and leverage Large Language Models (LLMs) for reasoning and decision making. Despite these advances, existing systems lack instance-level object detail and robustness to diverse user queries, limiting reliable navigation in complex indoor environments. To address these limitations, we propose Instance-Enriched Semantic Maps, a unified framework with three key contributions: (1) Instance-level two-and-a-half-dimensional (2.5D) rich information mapping that constructs maps from color and depth observations via open-vocabulary panoptic segmentation, preserving vertical distinctions and capturing small objects, while storing diverse semantic attributes and natural language captions enriched with room-level context. (2) Robust query processing via LLM-based target selection, which dynamically routes queries across type-specialized experts and integrates their outputs through score-level fusion, enabling consistent goal selection across diverse query formulations. (3) Storage-efficient semantic representation that achieves approximately 96% reduction compared to three-dimensional (3D) scene-graph approaches while preserving sufficient spatial information for navigation. The proposed 2.5D representation outperforms the 3D baseline by over 27% in prediction-normalized Area Under the Curve (AUC). In navigation experiments, our method achieves over 17% improvement in object retrieval and over 23% in navigation success compared to the baseline across diverse query types. The project page is available at https://rcilab.github.io/iesm_vln.",
+      "authors": [
+        "Jiho Hong",
+        "Eunae Kang",
+        "Sanghyun Kim",
+        "Young-Sik Shin"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-07-14T11:09:48+00:00",
+      "link": "https://arxiv.org/pdf/2607.12630v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "embodied agent navigation with LLM reasoning",
+      "llm_evidence_cn": "具身导航结合大语言模型推理",
+      "llm_evidence": "具身导航结合大语言模型推理",
+      "canonical_evidence": "具身导航结合大语言模型推理",
+      "llm_tldr_en": "Instance-Enriched Semantic Maps enhance VLN by adding instance-level object detail and open-vocabulary panoptic segmentation to improve LLM-based navigation in complex environments.",
+      "llm_tldr_cn": "现有的视觉语言导航系统缺乏实例级对象细节和鲁棒性。本文提出实例增强语义地图，通过开放词汇全景分割构建2.5D实例地图，结合大语言模型进行推理，显著提升了复杂室内环境中导航的可靠性和对多样化用户查询的鲁棒性。",
+      "llm_tldr": "现有的视觉语言导航系统缺乏实例级对象细节和鲁棒性。本文提出实例增强语义地图，通过开放词汇全景分割构建2.5D实例地图，结合大语言模型进行推理，显著提升了复杂室内环境中导航的可靠性和对多样化用户查询的鲁棒性。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.14675v1",
+      "source": "arxiv",
+      "title": "An Intelligent-Cloud Edge Multimodal Interaction System for Robots",
+      "abstract": "Robust human-robot interaction in complex environments requires accurate gesture perception, semantic scene understanding, and reliable task planning under limited onboard computing resources. This paper presents a cloud-edge multimodal interaction framework that integrates an enhanced YOLO-based gesture detector with coordinated large language model (LLM) and vision-language model (VLM) agents. The proposed detector, incorporates the Convolutional Block Attention Module (CBAM) into the neck and replaces the baseline bounding-box regression objective with Distance-IoU (DIoU) loss. These modifications improve feature discrimination and localization for small or partially occluded gestures in complex backgrounds. The cloud layer performs gesture detection, scene understanding, multimodal fusion, and action planning, whereas the TonyPi robot locally handles data acquisition, communication, action execution, and feedback. Experiments on a public gesture dataset and a custom dataset show that YOLO-DC achieves precision values of 98.9% and 95.0%, with mAP@0.5 values of 90.7% and 92.7%, respectively. System-level evaluation yields success rates of 95%, 88%, and 82% for single-action, composite-action, and vision-dependent tasks. A 30 participant evaluation yields an overall mean satisfaction score of 3.69 out of 5. These results demonstrate the feasibility of combining refined gesture detection with multimodal agents for resource-constrained robotic interaction.",
+      "authors": [
+        "Zihan Guo",
+        "Xiaoqi Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-07-16T07:39:18+00:00",
+      "link": "https://arxiv.org/pdf/2607.14675v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "cloud-edge multimodal interaction with LLM and VLM agents",
+      "llm_evidence_cn": "云边多模态交互，集成LLM和VLM智能体",
+      "llm_evidence": "云边多模态交互，集成LLM和VLM智能体",
+      "canonical_evidence": "云边多模态交互，集成LLM和VLM智能体",
+      "llm_tldr_en": "Presents a cloud-edge multimodal interaction system for robots integrating enhanced gesture detector with LLM and VLM agents for task planning under limited onboard resources.",
+      "llm_tldr_cn": "该论文提出一种云边协作的多模态交互系统，将改进的YOLO手势检测器与大型语言模型（LLM）及视觉语言模型（VLM）智能体协调配合。系统在云端进行手势检测与场景理解，边缘端执行规划与动作生成，从而在有限板载资源下实现鲁棒的人机交互。实验在复杂背景下验证了手势检测的准确性和任务规划的可靠性。",
+      "llm_tldr": "该论文提出一种云边协作的多模态交互系统，将改进的YOLO手势检测器与大型语言模型（LLM）及视觉语言模型（VLM）智能体协调配合。系统在云端进行手势检测与场景理解，边缘端执行规划与动作生成，从而在有限板载资源下实现鲁棒的人机交互。实验在复杂背景下验证了手势检测的准确性和任务规划的可靠性。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Integration of large language models with robotic action spaces",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.14919v1",
+      "source": "arxiv",
+      "title": "Human-Robot Interaction in GenAI Architectures via the Agent-Client Protocol",
+      "abstract": "Recent advances in Generative Artificial Intelligence (GenAI), particularly Large Language Models (LLMs), are driving robotic architectures toward agent-based high-level orchestration, in which natural-language instructions can be translated into context-aware action sequences. While the integration of these agents and robotic capabilities is increasingly converging toward standardization through the Model Context Protocol (MCP), the upper Human-Robot Interaction (HRI) layer remains fragmented by proprietary, ad hoc interfaces that hinder real-time human-in-the-loop collaboration.   To address this fragmentation, this paper proposes the adoption of the Agent-Client Protocol (ACP) -- a communication standard originally introduced for coding agents in software engineering -- as a unified communication contract for the HRI layer in agent-based robotic systems. By combining ACP at the interface-agent link and MCP at the agent-execution link, we formulate a fully decoupled three-layer architecture that separates human interaction, deliberative orchestration, and physical execution. This topology removes rigid architectural dependencies, enabling heterogeneous user interfaces to connect to the same robotic system and allowing the underlying robotic platform to be replaced without requiring client-specific integration changes. Moreover, it provides native support for collaborative HRI capabilities such as real-time observability, explicit human authorization, and immediate task interruption. We experimentally evaluate the proposed architecture on a physical mobile robot, demonstrating interoperability across three heterogeneous user interfaces and validating real-time human-in-the-loop workflows with negligible latency overhead.",
+      "authors": [
+        "Jesus Moncada-Ramirez",
+        "Jose-Raul Ruiz-Sarmiento",
+        "Javier Gonzalez-Jimenez"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-16T12:38:48+00:00",
+      "link": "https://arxiv.org/pdf/2607.14919v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-driven robot architecture with ACP protocol",
+      "llm_evidence_cn": "基于LLM的机器人架构与ACP协议",
+      "llm_evidence": "基于LLM的机器人架构与ACP协议",
+      "canonical_evidence": "基于LLM的机器人架构与ACP协议",
+      "llm_tldr_en": "Proposes adopting Agent-Client Protocol (ACP) as a standard for human-robot interaction in GenAI robotic architectures, enabling real-time human-in-the-loop collaboration.",
+      "llm_tldr_cn": "该论文针对生成式AI机器人架构中人机交互层碎片化的问题，提出采用Agent-Client协议（ACP）作为标准化接口。ACP原本用于编程智能体，这里被适配为人机通信协议，支持实时人类在环协作。该方法通过统一高层指令到动作序列的转换，提升了系统可互操作性和灵活性。",
+      "llm_tldr": "该论文针对生成式AI机器人架构中人机交互层碎片化的问题，提出采用Agent-Client协议（ACP）作为标准化接口。ACP原本用于编程智能体，这里被适配为人机通信协议，支持实时人类在环协作。该方法通过统一高层指令到动作序列的转换，提升了系统可互操作性和灵活性。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Integration of large language models with robotic action spaces",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
