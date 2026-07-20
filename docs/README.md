@@ -6,65 +6,52 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-19
-- 运行时间：2026-07-19 20:54:54 UTC
+- 最新运行日期：2026-07-20
+- 运行时间：2026-07-20 21:40:56 UTC
 - 运行状态：成功
-- 本次总论文数：15
+- 本次总论文数：10
 - 精读区：6
-- 速读区：9
+- 速读区：4
 
 ### 今日简报（AI）
-今日推荐15篇论文，精读6篇，重点聚焦实时VLA控制与视觉语言导航。最值得关注的是《Reflex》的流式推理VLA控制和《ABot-N1》的通用导航基础模型，均获高分推荐。建议优先阅读这两篇，深入理解实时性与泛化性的最新突破。
-- 详情：[/202607/19/README](/202607/19/README)
+今日精选10篇论文，精读6篇，其中《AC-VLA》与《Worlds in One Demo》分别以10分和9分领跑，聚焦鲁棒动作执行与开放世界移动操作合成数据方法。  
+最值得关注两个方向：组合学习可提升机器人对分布外动作执行的鲁棒性，合成数据引擎则能低成本解锁开放世界移动操作能力。  
+建议优先阅读上述两篇高分论文，了解如何通过组合模块或虚拟数据生成来增强机器人泛化性。
+- 详情：[/202607/20/README](/202607/20/README)
 
 ### 精读区论文标签
-1. [Reflex: Real-Time VLA Control through Streaming Inference](/202607/19/2607.14695v1-reflex-real-time-vla-control-through-streaming-inference)  
+1. [AC-VLA: Robust Out-of-Distribution Action Execution via Compositional Learning](/202607/20/2607.15714v1-ac-vla-robust-out-of-distribution-action-execution-via-compositional-learning)  
    标签：评分：10.0/10、query:vla
-   evidence：利用时间步不变性的实时VLA流推理框架
-2. [ABot-N1: Toward a General Visual Language Navigation Foundation Model](/202607/19/2607.10383v2-abot-n1-toward-a-general-visual-language-navigation-foundation-model)  
+   evidence：通过组合学习实现鲁棒分布外执行的VLA模型
+2. [Worlds in One Demo: A Synthetic Data Engine for Learning Open-World Mobile Manipulation](/202607/20/2607.13154v2-worlds-in-one-demo-a-synthetic-data-engine-for-learning-open-world-mobile-manipulation)  
    标签：评分：9.0/10、query:vla
-   evidence：通用的视觉语言导航基础模型
-3. [From World Action Models to Embodied Brains: A Roadmap for Open-World Physical Intelligence](/202607/19/2607.11689v1-from-world-action-models-to-embodied-brains-a-roadmap-for-open-world-physical-intelligence)  
-   标签：评分：9.0/10、query:vla
-   evidence：涵盖VLA、WAM和具身智能的路线图
-4. [Hy-Embodied-VLM-1.0: Efficient Physical-World Agents](/202607/19/2607.12894v1-hy-embodied-vlm-10-efficient-physical-world-agents)  
-   标签：评分：9.0/10、query:vla
-   evidence：面向具身智能的动作中心能力分类的VLM
-5. [Representation-Aligned Tactile Grounding for Contact-Rich Robotic Manipulation](/202607/19/2607.14609v1-representation-aligned-tactile-grounding-for-contact-rich-robotic-manipulation)  
+   evidence：移动操作策略的合成数据引擎
+3. [Representation-Aligned Tactile Grounding for Contact-Rich Robotic Manipulation](/202607/20/2607.14609v1-representation-aligned-tactile-grounding-for-contact-rich-robotic-manipulation)  
    标签：评分：9.0/10、query:tf
-   evidence：在VLA策略中实现表示对齐的触觉接地，用于接触丰富操作
-6. [FoMoVLA: Bridging Visual Foresight and Motion Guidance for Vision-Language-Action Models](/202607/19/2607.14739v1-fomovla-bridging-visual-foresight-and-motion-guidance-for-vision-language-action-models)  
+   evidence：触觉增强的视觉-语言-动作策略与表示对齐的未来触觉预测
+4. [Exo2EgoPose: Leveraging Exocentric Demonstrations for Vision-Language guided Egocentric 3D Hand Pose Forecasting](/202607/20/2607.15890v1-exo2egopose-leveraging-exocentric-demonstrations-for-vision-language-guided-egocentric-3d-hand-pose-forecasting)  
    标签：评分：9.0/10、query:vla
-   evidence：通过视觉预见和运动引导增强VLA模型
+   evidence：视觉语言引导的自我中心手部姿态预测用于机器人操控
+5. [From World Action Models to Embodied Brains: A Roadmap for Open-World Physical Intelligence](/202607/20/2607.11689v1-from-world-action-models-to-embodied-brains-a-roadmap-for-open-world-physical-intelligence)  
+   标签：评分：8.0/10、query:vla
+   evidence：关于世界动作模型和VLA策略的具身智能路线图
+6. [Dynamics-Aware Meta-Imitation for Generalization to Unseen Robotic Manipulation](/202607/20/2607.15880v1-dynamics-aware-meta-imitation-for-generalization-to-unseen-robotic-manipulation)  
+   标签：评分：8.0/10、query:vla
+   evidence：动态感知元模仿学习用于未知机器人操作泛化
 
 ### 速读区论文标签
-1. [SegDiff: Segmented Trajectory Diffusion for Consistent and Adaptive Robot Manipulation](/202607/19/2607.11027v1-segdiff-segmented-trajectory-diffusion-for-consistent-and-adaptive-robot-manipulation)  
-   标签：评分：8.0/10、query:vla
-   evidence：分段轨迹扩散方法用于机器人操作
-2. [CosFly-VLA: A Spatially Aware Vision-Language-Action Model for UAV Tracking](/202607/19/2607.15004v1-cosfly-vla-a-spatially-aware-vision-language-action-model-for-uav-tracking)  
-   标签：评分：8.0/10、query:vla
-   evidence：空间感知VLA模型用于无人机追踪，直接VLA应用
-3. [ABot-N1: Toward a General Visual Language Navigation Foundation Model](/202607/19/2607.10383v1-abot-n1-toward-a-general-visual-language-navigation-foundation-model)  
-   标签：评分：7.0/10、query:vla
-   evidence：视觉语言导航基础模型，与VLA相关
-4. [GraspGraphNet: Graph-Structured Multi-Embodiment Dexterous Grasp Generation](/202607/19/2607.11031v1-graspgraphnet-graph-structured-multi-embodiment-dexterous-grasp-generation)  
-   标签：评分：7.0/10、query:vla
-   evidence：跨多种机械手拓扑的灵巧抓取生成
-5. [Instance-Enriched Semantic Maps for Visual Language Navigation](/202607/19/2607.12630v1-instance-enriched-semantic-maps-for-visual-language-navigation)  
-   标签：评分：7.0/10、query:vla
-   evidence：具身导航结合大语言模型推理
-6. [PhysClaw-0: A Symbiotic Agentic System for Robot Autonomy via Language Corrections](/202607/19/2607.14047v1-physclaw-0-a-symbiotic-agentic-system-for-robot-autonomy-via-language-corrections)  
+1. [Affordance-Based Manipulation Planning with Text Goals and Sim-to-Real Generalisation via Real-to-Sim Image Conversion](/202607/20/2607.11004v1-affordance-based-manipulation-planning-with-text-goals-and-sim-to-real-generalisation-via-real-to-sim-image-conversion)  
    标签：评分：6.0/10、query:vla
-   evidence：基于语言纠正的数据收集系统
-7. [VTM-Nav: Hierarchical Visual-Topological Memory for Cross-Episode Object-Goal Navigation](/202607/19/2607.14514v1-vtm-nav-hierarchical-visual-topological-memory-for-cross-episode-object-goal-navigation)  
+   evidence：基于文本目标的操控规划与仿真到现实的泛化
+2. [Towards Human-level Dexterous Teleoperation](/202607/20/2607.11481v1-towards-human-level-dexterous-teleoperation)  
    标签：评分：6.0/10、query:vla
-   evidence：基于VLM的具身代理导航，使用分层记忆
-8. [An Intelligent-Cloud Edge Multimodal Interaction System for Robots](/202607/19/2607.14675v1-an-intelligent-cloud-edge-multimodal-interaction-system-for-robots)  
+   evidence：推进用于具身操作的灵巧遥操作
+3. [UESF-Bench: Benchmarking and Probing for Unified Embodied Seeking and Following](/202607/20/2607.13621v1-uesf-bench-benchmarking-and-probing-for-unified-embodied-seeking-and-following)  
    标签：评分：6.0/10、query:vla
-   evidence：云边多模态交互，集成LLM和VLM智能体
-9. [Human-Robot Interaction in GenAI Architectures via the Agent-Client Protocol](/202607/19/2607.14919v1-human-robot-interaction-in-genai-architectures-via-the-agent-client-protocol)  
+   evidence：具身智能体中语言引导的人类跟随基准
+4. [Let the Body Follow: Coupled Egocentric Control for Whole-Body Robot Teleoperation](/202607/20/2607.16095v1-let-the-body-follow-coupled-egocentric-control-for-whole-body-robot-teleoperation)  
    标签：评分：6.0/10、query:vla
-   evidence：基于LLM的机器人架构与ACP协议
+   evidence：全身遥操作耦合自我中心控制
 
 
 <div class="dpr-home-promo-card">
