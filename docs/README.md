@@ -6,65 +6,55 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-22
-- 运行时间：2026-07-22 21:29:22 UTC
+- 最新运行日期：2026-07-23
+- 运行时间：2026-07-23 21:18:43 UTC
 - 运行状态：成功
-- 本次总论文数：15
-- 精读区：6
-- 速读区：9
+- 本次总论文数：11
+- 精读区：4
+- 速读区：7
 
 ### 今日简报（AI）
-今日精选15篇论文聚焦机器人接触操作与动态导航，精读两篇满分工作分别提出基于力的记忆VLA模型和增强推理的世界动作模型。值得重点关注FM-VLA的触觉记忆机制与WorldScape Policy 2.0的推理增强能力，它们为复杂操作与可操控世界建模提供了新思路。建议读者优先精读这两篇，再结合速读中的触觉对齐与慢推理-快规划框架，深入理解接触鲁棒性与动态场景决策的融合趋势。
-- 详情：[/202607/22/README](/202607/22/README)
+1) 今日聚焦接触丰富型机器人操作，两篇高分论文分别提出触觉对齐表征与基于力的记忆机制，显著提升灵巧操作性能。  
+2) 最值得关注的方向：将触觉/力感知与视觉-语言-动作模型深度融合，可有效解决接触任务中的反馈缺失与状态估计难题。  
+3) 建议优先阅读精读两篇论文，并关注速读中自主数据收集与物理世界建模的实用方法，用于构建更鲁棒的机器人学习系统。
+- 详情：[/202607/23/README](/202607/23/README)
 
 ### 精读区论文标签
-1. [FM-VLA: Force-based Memory for Vision-Language-Action Models in Contact-Rich Manipulation](/202607/22/2607.18231v1-fm-vla-force-based-memory-for-vision-language-action-models-in-contact-rich-manipulation)  
-   标签：评分：10.0/10、query:tf
-   evidence：基于力记忆的视觉语言动作模型，用于接触丰富操纵
-2. [WorldScape Policy 2.0: Empowering Steerable World Action Modeling with Reasoning-Augmented Memory](/202607/22/2607.18840v1-worldscape-policy-20-empowering-steerable-world-action-modeling-with-reasoning-augmented-memory)  
-   标签：评分：10.0/10、query:vla
-   evidence：具有推理增强记忆的世界动作模型，用于机器人操纵
-3. [Towards Human-like Physical Intelligence: Lifelong Vision-Language-Action Learning for Robotic Manipulation](/202607/22/2607.14852v2-towards-human-like-physical-intelligence-lifelong-vision-language-action-learning-for-robotic-manipulation)  
+1. [Representation-Aligned Tactile Grounding for Contact-Rich Robotic Manipulation](/202607/23/2607.14609v1-representation-aligned-tactile-grounding-for-contact-rich-robotic-manipulation)  
+   标签：评分：9.0/10、query:tf
+   evidence：触觉增强VLA策略中的表征对齐触觉接地
+2. [FM-VLA: Force-based Memory for Vision-Language-Action Models in Contact-Rich Manipulation](/202607/23/2607.18231v1-fm-vla-force-based-memory-for-vision-language-action-models-in-contact-rich-manipulation)  
+   标签：评分：9.0/10、query:tf
+   evidence：基于力记忆的VLA模型用于接触丰富操作
+3. [Masked Visual Actions for Unified World Modeling](/202607/23/2607.19343v1-masked-visual-actions-for-unified-world-modeling)  
    标签：评分：9.0/10、query:vla
-   evidence：针对机器人操作终身VLA学习，解决可塑-稳定权衡
-4. [From Perception to Assistance: Open-Vocabulary Shared Autonomy for Robotic Manipulation](/202607/22/2607.17323v1-from-perception-to-assistance-open-vocabulary-shared-autonomy-for-robotic-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：使用开放词汇VLM的共享自主机器人操作
-5. [STeP: Signal Temporal Logic for Precise Specifications for Action Generation with Vision Language Models](/202607/22/2607.18580v1-step-signal-temporal-logic-for-precise-specifications-for-action-generation-with-vision-language-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：使用信号时序逻辑为VLA模型提供精确动作生成
-6. [Masked Visual Actions for Unified World Modeling](/202607/22/2607.19343v1-masked-visual-actions-for-unified-world-modeling)  
-   标签：评分：9.0/10、query:vla
-   evidence：通过掩码视觉动作实现机器人操纵的统一世界建模
+   evidence：提出掩码视觉动作作为像素空间控制接口，用于机器人世界建模和操作
+4. [WorldScape Policy 2.0: Empowering Steerable World Action Modeling with Reasoning-Augmented Memory](/202607/23/2607.18840v1-worldscape-policy-20-empowering-steerable-world-action-modeling-with-reasoning-augmented-memory)  
+   标签：评分：8.0/10、query:vla
+   evidence：具有推理增强记忆的世界动作模型用于操作
 
 ### 速读区论文标签
-1. [Representation-Aligned Tactile Grounding for Contact-Rich Robotic Manipulation](/202607/22/2607.14609v1-representation-aligned-tactile-grounding-for-contact-rich-robotic-manipulation)  
-   标签：评分：8.0/10、query:vla
-   evidence：触觉增强的VLA策略与表示对齐
-2. [Token-Wise Latent Streaming from Slow Reasoners to Fast Planners for Dynamic Vision Language Navigation](/202607/22/2607.16806v1-token-wise-latent-streaming-from-slow-reasoners-to-fast-planners-for-dynamic-vision-language-navigation)  
-   标签：评分：8.0/10、query:vla
-   evidence：将VLM知识流式传输到快速规划器用于动态导航
-3. [Athena-Brain Technical Report: An Efficient Robot Brain for General Intelligence and Embodied Interactio](/202607/22/2607.18985v1-athena-brain-technical-report-an-efficient-robot-brain-for-general-intelligence-and-embodied-interactio)  
-   标签：评分：8.0/10、query:vla
-   evidence：用于设备端具身交互的紧凑型大语言模型
-4. [JoyNexus: Service-Oriented Multi-Tenant Post-Training for VLA Models](/202607/22/2607.16074v1-joynexus-service-oriented-multi-tenant-post-training-for-vla-models)  
+1. [Zero2Skill: Bootstrapping Robot Skills through Autonomous Data Collection, Training, and Deployment](/202607/23/2607.14047v3-zero2skill-bootstrapping-robot-skills-through-autonomous-data-collection-training-and-deployment)  
    标签：评分：7.0/10、query:vla
-   evidence：VLA模型的后训练服务
-5. [Asynchronous Multimodal Diffusion Policy Composition via Latency-Aware Guidance Fusion](/202607/22/2607.17257v1-asynchronous-multimodal-diffusion-policy-composition-via-latency-aware-guidance-fusion)  
+   evidence：利用LLM进行机器人技能数据收集
+2. [RoboInter1.5: A Holistic Intermediate Representation Suite for Embodied World Modeling and Robotic Manipulation](/202607/23/2607.18709v2-robointer15-a-holistic-intermediate-representation-suite-for-embodied-world-modeling-and-robotic-manipulation)  
    标签：评分：7.0/10、query:vla
-   evidence：异步多模态扩散策略与延迟感知融合
-6. [ConceptTree: Bringing Semantic Transparency to Black-Box Decision Making for Robotic Manipulation](/202607/22/2607.17861v1-concepttree-bringing-semantic-transparency-to-black-box-decision-making-for-robotic-manipulation)  
+   evidence：提供面向机器人操作和世界建模的中间表示套件与数据集
+3. [Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents](/202607/23/2607.19190v2-agentic-real2sim-physics-based-world-modeling-with-vision-language-agents)  
    标签：评分：7.0/10、query:vla
-   evidence：机器人操作技能选择的可解释决策
-7. [RoboInter1.5: A Holistic Intermediate Representation Suite for Embodied World Modeling and Robotic Manipulation](/202607/22/2607.18709v1-robointer15-a-holistic-intermediate-representation-suite-for-embodied-world-modeling-and-robotic-manipulation)  
+   evidence：使用视觉语言智能体进行物理世界建模
+4. [Learning Personalized Safety Interventions for Haptic Human-Robot Shared Control](/202607/23/2607.19534v1-learning-personalized-safety-interventions-for-haptic-human-robot-shared-control)  
+   标签：评分：7.0/10、query:tf
+   evidence：触觉反馈用于人机共享控制，学习个性化安全干预
+5. [SeededGrasp: Language-Guided Grasping in Complex Scenes with Multiple Embodiments](/202607/23/2607.20207v1-seededgrasp-language-guided-grasping-in-complex-scenes-with-multiple-embodiments)  
    标签：评分：7.0/10、query:vla
-   evidence：为具身世界建模和机器人操作提供中间表示套件
-8. [Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents](/202607/22/2607.19190v1-agentic-real2sim-physics-based-world-modeling-with-vision-language-agents)  
-   标签：评分：7.0/10、query:vla
-   evidence：使用视觉语言代理的物理世界建模用于具身AI
-9. [PAVXploreRL: Physical-Action-Visual World Model Reinforcement Learning with Action Exploration](/202607/22/2607.16602v1-pavxplorerl-physical-action-visual-world-model-reinforcement-learning-with-action-exploration)  
+   evidence：使用VLM引导抓取生成
+6. [RoboInter1.5: A Holistic Intermediate Representation Suite for Embodied World Modeling and Robotic Manipulation](/202607/23/2607.18709v1-robointer15-a-holistic-intermediate-representation-suite-for-embodied-world-modeling-and-robotic-manipulation)  
    标签：评分：6.0/10、query:vla
-   evidence：用于具身AI的世界模型强化学习
+   evidence：用于具身世界建模和操作的中间表示
+7. [KineBench: Benchmarking Embodied World Models via IDM-Free Kinematic Grounding](/202607/23/2607.19876v1-kinebench-benchmarking-embodied-world-models-via-idm-free-kinematic-grounding)  
+   标签：评分：6.0/10、query:vla
+   evidence：具身世界模型评估基准
 
 
 <div class="dpr-home-promo-card">
