@@ -6,70 +6,50 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-25
-- 运行时间：2026-07-25 19:59:08 UTC
+- 最新运行日期：2026-07-26
+- 运行时间：2026-07-26 20:28:52 UTC
 - 运行状态：成功
-- 本次总论文数：16
+- 本次总论文数：10
 - 精读区：6
-- 速读区：10
+- 速读区：4
 
 ### 今日简报（AI）
-1) 今日精选16篇，精读聚焦世界行动建模与多模态导航，2篇高分论文值得细看。  
-2) 最推荐《WorldScape Policy 2.0》的记忆增强推理框架（10分）和《PGN》的盘古基础模型导航系统（9分），前者革新可控世界行动，后者提供视觉语言导航工程实现。  
-3) 建议优先精读这两篇，速读《SOPD-SocialNav》可补充社交导航技巧，对机器人落地有参考价值。
-- 详情：[/202607/25/README](/202607/25/README)
+今日日报聚焦触觉记忆与推理增强世界动作模型，两篇9.0高分研究分别攻克接触丰富操作的力记忆和可操控世界动作建模。最值得精读《FM-VLA》将力传感融入VLA模型，以及《WorldScape Policy 2.0》用推理增强记忆实现动作引导。建议优先研读这两篇论文，重点关注记忆机制如何提升机器人操作的泛化性与可控性。
+- 详情：[/202607/26/README](/202607/26/README)
 
 ### 精读区论文标签
-1. [WorldScape Policy 2.0: Empowering Steerable World Action Modeling with Reasoning-Augmented Memory](/202607/25/2607.18840v1-worldscape-policy-20-empowering-steerable-world-action-modeling-with-reasoning-augmented-memory)  
-   标签：评分：10.0/10、query:vla
-   evidence：具有推理增强记忆的可控世界动作模型
-2. [PGN: Design and Implementation of a Vision-Language Navigation System Based on Pangu Multimodal Foundation Model](/202607/25/2607.17806v1-pgn-design-and-implementation-of-a-vision-language-navigation-system-based-on-pangu-multimodal-foundation-model)  
-   标签：评分：9.0/10、query:vla
-   evidence：基于多模态基础模型的视觉语言导航系统
-3. [Anticipate Before Acting: Future-State-Conditioned Vision-Language Navigation](/202607/25/2607.18042v2-anticipate-before-acting-future-state-conditioned-vision-language-navigation)  
-   标签：评分：9.0/10、query:vla
-   evidence：端到端视觉语言动作模型用于导航
-4. [FM-VLA: Force-based Memory for Vision-Language-Action Models in Contact-Rich Manipulation](/202607/25/2607.18231v1-fm-vla-force-based-memory-for-vision-language-action-models-in-contact-rich-manipulation)  
+1. [FM-VLA: Force-based Memory for Vision-Language-Action Models in Contact-Rich Manipulation](/202607/26/2607.18231v1-fm-vla-force-based-memory-for-vision-language-action-models-in-contact-rich-manipulation)  
    标签：评分：9.0/10、query:tf
-   evidence：面向VLA的基于力记忆的接触丰富操作模型
-5. [Robots Acquire Manipulation Skills in Seconds from a Single Human Video](/202607/25/2607.20033v1-robots-acquire-manipulation-skills-in-seconds-from-a-single-human-video)  
+   evidence：面向接触丰富操作的VLA模型基于力的记忆
+2. [WorldScape Policy 2.0: Empowering Steerable World Action Modeling with Reasoning-Augmented Memory](/202607/26/2607.18840v1-worldscape-policy-20-empowering-steerable-world-action-modeling-with-reasoning-augmented-memory)  
    标签：评分：9.0/10、query:vla
-   evidence：从单个人类视频一次性获取操作技能
-6. [Robots Acquire Manipulation Skills in Seconds from a Single Human Video](/202607/25/2607.20033v2-robots-acquire-manipulation-skills-in-seconds-from-a-single-human-video)  
+   evidence：带推理增强记忆的世界动作模型用于操作
+3. [Learning Personalized Safety Interventions for Haptic Human-Robot Shared Control](/202607/26/2607.19534v1-learning-personalized-safety-interventions-for-haptic-human-robot-shared-control)  
+   标签：评分：9.0/10、query:tf
+   evidence：学习触觉安全干预用于共享控制
+4. [ReferTrack: Referring Then Tracking for Embodied Visual Tracking](/202607/26/2607.20061v1-refertrack-referring-then-tracking-for-embodied-visual-tracking)  
    标签：评分：9.0/10、query:vla
-   evidence：从单个人类视频中一次学习机器人操作技能
+   evidence：使用VLA策略的具身视觉跟踪：先指代后跟踪范式
+5. [FELT: Generating Tactile Signals from Vision for Visuo-Tactile Manipulation](/202607/26/2607.20683v1-felt-generating-tactile-signals-from-vision-for-visuo-tactile-manipulation)  
+   标签：评分：9.0/10、query:tf
+   evidence：从视觉生成触觉信号用于视觉-触觉操作
+6. [G2-Nav: Grounded and Guarded Vision-Language Costmaps for Robot Social Navigation](/202607/26/2607.16956v1-g2-nav-grounded-and-guarded-vision-language-costmaps-for-robot-social-navigation)  
+   标签：评分：8.0/10、query:vla
+   evidence：基于VLM的代价图用于机器人社交导航
 
 ### 速读区论文标签
-1. [SOPD-SocialNav: Selective On-Policy Distillation for Vision-Language Social Navigation](/202607/25/2607.19850v1-sopd-socialnav-selective-on-policy-distillation-for-vision-language-social-navigation)  
+1. [PhyAgentOS: A Self-Evolving Operating System for Embodied Agents with Decoupled Cognitive Planning and Physical Execution](/202607/26/2607.16636v1-phyagentos-a-self-evolving-operating-system-for-embodied-agents-with-decoupled-cognitive-planning-and-physical-execution)  
    标签：评分：8.0/10、query:vla
-   evidence：视觉-语言模型用于社交导航，选择式蒸馏
-2. [Closing the Lab-to-Store Gap: A Data-Efficient Post-Training and Experience-Driven Learning VLA Framework for Retail Humanoids](/202607/25/2607.20345v1-closing-the-lab-to-store-gap-a-data-efficient-post-training-and-experience-driven-learning-vla-framework-for-retail-humanoids)  
-   标签：评分：8.0/10、query:vla
-   evidence：面向零售人形机器人的VLA框架，包含后训练和经验驱动学习
-3. [Predicting Grasping Compliance in Robotic Hands through Analytical-Model-Informed Neural Networks](/202607/25/2607.17541v1-predicting-grasping-compliance-in-robotic-hands-through-analytical-model-informed-neural-networks)  
+   evidence：为具身智能体解耦认知规划与物理执行的运行时系统
+2. [PAVXploreRL: Physical-Action-Visual World Model Reinforcement Learning with Action Exploration](/202607/26/2607.16602v2-pavxplorerl-physical-action-visual-world-model-reinforcement-learning-with-action-exploration)  
+   标签：评分：7.0/10、query:vla
+   evidence：面向具身AI的PAV世界模型与动作探索
+3. [Predicting Grasping Compliance in Robotic Hands through Analytical-Model-Informed Neural Networks](/202607/26/2607.17541v1-predicting-grasping-compliance-in-robotic-hands-through-analytical-model-informed-neural-networks)  
    标签：评分：7.0/10、query:tf
-   evidence：抓取中的力与顺应性建模
-4. [Agentic Real2Sim: Physics-based World Modeling with Vision-Language Agents](/202607/25/2607.19190v2-agentic-real2sim-physics-based-world-modeling-with-vision-language-agents)  
-   标签：评分：7.0/10、query:vla
-   evidence：使用视觉语言代理进行真实到仿真的世界建模，用于机器人操作
-5. [Scale Up Strategically: Learning Compositional Generalization via Bias-Aware Evaluation and Data Collection for Robotic Manipulation](/202607/25/2607.21582v1-scale-up-strategically-learning-compositional-generalization-via-bias-aware-evaluation-and-data-collection-for-robotic-manipulation)  
-   标签：评分：7.0/10、query:vla
-   evidence：机器人操作的组合泛化诊断与数据收集
-6. [AXIS: A Growable Community-Driven Data Engine for Scalable Robot Manipulation](/202607/25/2607.21588v1-axis-a-growable-community-driven-data-engine-for-scalable-robot-manipulation)  
-   标签：评分：7.0/10、query:vla
-   evidence：用于可扩展机器人操作的数据引擎
-7. [A Generative Partially Specified Finite State Machine Approach to Complex Behaviour Planning](/202607/25/2607.15674v1-a-generative-partially-specified-finite-state-machine-approach-to-complex-behaviour-planning)  
+   evidence：用分析模型信息神经网络预测抓取柔顺性
+4. [LAVIFT: Latent-Action-Guided Vision Fine-Tuning for Surgical Interaction Recognition](/202607/26/2607.19889v1-lavift-latent-action-guided-vision-fine-tuning-for-surgical-interaction-recognition)  
    标签：评分：6.0/10、query:vla
-   evidence：用于具身机器人的生成式行为规划
-8. [RoboInter1.5: A Holistic Intermediate Representation Suite for Embodied World Modeling and Robotic Manipulation](/202607/25/2607.18709v1-robointer15-a-holistic-intermediate-representation-suite-for-embodied-world-modeling-and-robotic-manipulation)  
-   标签：评分：6.0/10、query:vla
-   evidence：用于机器人操作的全面中间表示套件
-9. [EA-Nav: Learning Safe Visual Navigation Policies with Embodiment Awareness](/202607/25/2607.19880v1-ea-nav-learning-safe-visual-navigation-policies-with-embodiment-awareness)  
-   标签：评分：6.0/10、query:vla
-   evidence：具身智能中跨具身导航的模仿学习方法
-10. [Information-dependent eye-hand coordination emerges from active vision](/202607/25/biorxiv-10-64898-2026-05-29-726887-v2-information-dependent-eye-hand-coordination-emerges-from-active-vision)  
-   标签：评分：6.0/10、query:vla
-   evidence：主动视觉驱动眼手协调的具身智能原理
+   evidence：用于手术交互识别的端到端潜动作引导微调
 
 
 <div class="dpr-home-promo-card">
