@@ -6,88 +6,71 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-07-31
-- 运行时间：2026-07-31 20:42:07 UTC
+- 最新运行日期：2026-08-01
+- 运行时间：2026-08-01 21:02:42 UTC
 - 运行状态：成功
-- 本次总论文数：22
-- 精读区：11
+- 本次总论文数：17
+- 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日精读11篇、速读11篇，聚焦具身智能中的触觉-视觉融合与机器人操作学习。  
-最值得关注的是两篇9.0分精读论文《ViTacWorld》和《N0-VTLA》，均围绕视觉-触觉-语言统一模型提升接触密集操作能力。  
-建议普通读者留意速读中“零人类演示”与“跨具身迁移”方向，了解降低人工数据依赖的机器人学习新路径。
-- 详情：[/202607/31/README](/202607/31/README)
+今日17篇论文中，两篇满分工作聚焦触觉-语言-动作模型与触觉原生世界模型，为接触丰富的操作任务带来规模化突破。最值得关注的方向是触觉令牌化与触觉原生世界动作建模，二者均以10/10满分入选精读。建议优先研读这两篇触觉相关论文，以把握该领域最新技术趋势。
+- 详情：[/202608/01/README](/202608/01/README)
 
 ### 精读区论文标签
-1. [ViTacWorld: Scaling Visuo-Tactile World Models for Contact-Rich Robot Manipulation](/202607/31/2607.22530v1-vitacworld-scaling-visuo-tactile-world-models-for-contact-rich-robot-manipulation)  
+1. [$N_0$-VTLA: Scaling Vision-Tactile-Language-Action Model with Latent Tactile Tokens](/202608/01/2607.23782v1-n0-vtla-scaling-vision-tactile-language-action-model-with-latent-tactile-tokens)  
+   标签：评分：10.0/10、query:vla
+   evidence：具有潜在触觉令牌的视觉-触觉-语言-动作基础模型
+2. [$N_0$-TWAM: Scaling Tactile-Native World-Action Model for Contact-Rich Manipulation](/202608/01/2607.23783v1-n0-twam-scaling-tactile-native-world-action-model-for-contact-rich-manipulation)  
+   标签：评分：10.0/10、query:tf
+   evidence：触觉原生世界-动作模型用于接触丰富操作
+3. [LeapBot-WA: World-Anchor Action Models via Predictive Latent Alignments](/202608/01/2607.23969v1-leapbot-wa-world-anchor-action-models-via-predictive-latent-alignments)  
+   标签：评分：10.0/10、query:vla
+   evidence：通过JEPA预测性潜在对齐提出世界锚点行动模型，是VLA/WAM复合主题的核心
+4. [ViTacWorld: Scaling Visuo-Tactile World Models for Contact-Rich Robot Manipulation](/202608/01/2607.22530v1-vitacworld-scaling-visuo-tactile-world-models-for-contact-rich-robot-manipulation)  
    标签：评分：9.0/10、query:tf
-   evidence：直接面向接触丰富操作，整合视觉与触觉模态，与力触觉融合需求高度匹配。
-2. [$N_0$-VTLA: Scaling Vision-Tactile-Language-Action Model with Latent Tactile Tokens](/202607/31/2607.23782v1-n0-vtla-scaling-vision-tactile-language-action-model-with-latent-tactile-tokens)  
-   标签：评分：9.0/10、query:tf
-   evidence：视觉-触觉-语言-动作基础模型，直接整合触觉感知与反馈控制
-3. [LeapBot-WA: World-Anchor Action Models via Predictive Latent Alignments](/202607/31/2607.23969v1-leapbot-wa-world-anchor-action-models-via-predictive-latent-alignments)  
+   evidence：面向接触丰富操作的视觉-触觉世界模型
+5. [LeapBot-WA: World-Anchor Action Models via Predictive Latent Alignments](/202608/01/2607.23969v2-leapbot-wa-world-anchor-action-models-via-predictive-latent-alignments)  
    标签：评分：9.0/10、query:vla
-   evidence：提出面向具身智能的世界锚点动作模型（WAM），采用预测潜在对齐
-4. [LeapBot-WA: World-Anchor Action Models via Predictive Latent Alignments](/202607/31/2607.23969v2-leapbot-wa-world-anchor-action-models-via-predictive-latent-alignments)  
+   evidence：面向具身智能的世界动作模型范式
+6. [DC-WAM: Dynamic-Centric Visual Supervision and Reasoning for World-Action Models](/202608/01/2607.25918v1-dc-wam-dynamic-centric-visual-supervision-and-reasoning-for-world-action-models)  
    标签：评分：9.0/10、query:vla
-   evidence：与LeapBot-WA v1相同：通过预测潜在对齐的世界锚点动作模型
-5. [A Motion-Aware Vector Quantization Framework with Centroid Reuse for Efficient VLA Inference](/202607/31/2607.24148v1-a-motion-aware-vector-quantization-framework-with-centroid-reuse-for-efficient-vla-inference)  
-   标签：评分：9.0/10、query:vla
-   evidence：面向具身AI的高效VLA推理加速
-6. [τ: Learning Touch-Augmented Vision-Language-Action Models from Future Visual Supervision](/202607/31/2607.24485v1--learning-touch-augmented-vision-language-action-models-from-future-visual-supervision)  
-   标签：评分：9.0/10、query:vla
-   evidence：触觉增强的视觉-语言-动作模型
-7. [τ: Learning Touch-Augmented Vision-Language-Action Models from Future Visual Supervision](/202607/31/2607.24485v2--learning-touch-augmented-vision-language-action-models-from-future-visual-supervision)  
-   标签：评分：9.0/10、query:vla
-   evidence：触觉增强的视觉-语言-动作模型
-8. [DC-WAM: Dynamic-Centric Visual Supervision and Reasoning for World-Action Models](/202607/31/2607.25918v1-dc-wam-dynamic-centric-visual-supervision-and-reasoning-for-world-action-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：提出面向世界-动作模型的动态中心视觉监督，直接关联VLA/WAM主题
-9. [RL$^2$-VLA: Adaptive RL Latent Compositional Steering with Test-Time Scaling for Vision-Language-Action Models](/202607/31/2607.26991v2-rl2-vla-adaptive-rl-latent-compositional-steering-with-test-time-scaling-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：在VLA潜空间上用强化学习做自适应测试时引导
-10. [RedFlow: Redirect Failure into Action-Level Corrections for Flow-matching VLA Policy](/202607/31/2607.27782v1-redflow-redirect-failure-into-action-level-corrections-for-flow-matching-vla-policy)  
-   标签：评分：9.0/10、query:vla
-   evidence：面向流匹配VLA操作策略的离线强化学习动作级纠错
-11. [RoboBRIDGE: A Modular Framework for Bridging Policies to Robust Real-World Robotic Agents](/202607/31/2607.27881v1-robobridge-a-modular-framework-for-bridging-policies-to-robust-real-world-robotic-agents)  
-   标签：评分：9.0/10、query:vla
-   evidence：模块化框架将预训练VLA模型转化为具有故障恢复与长时程一致性的可靠真实世界机器人代理。
+   evidence：以动态为中心视觉监督的世界-动作模型
 
 ### 速读区论文标签
-1. [PAC-DP: PAC-Bayesian Diffusion Policy Learning](/202607/31/2607.24296v1-pac-dp-pac-bayesian-diffusion-policy-learning)  
+1. [Tri-Manual Visuomotor Imitation Learning of Robot Policies](/202608/01/2607.25731v1-tri-manual-visuomotor-imitation-learning-of-robot-policies)  
    标签：评分：8.0/10、query:vla
-   evidence：基于PAC-贝叶斯正则化的扩散策略机器人操作
-2. [Practice Makes Policies: Bootstrapping and Consolidating Robotic Capabilities from Zero Human Demonstrations](/202607/31/2607.26809v1-practice-makes-policies-bootstrapping-and-consolidating-robotic-capabilities-from-zero-human-demonstrations)  
+   evidence：面向多臂机器人演示与策略学习的三臂视运动模仿学习
+2. [Embodied Agents Take Control: Minimal-Interface Zero-Shot Agents Rival Industrial-Scale Policies in Vision-and-Language Navigation](/202608/01/2607.26148v1-embodied-agents-take-control-minimal-interface-zero-shot-agents-rival-industrial-scale-policies-in-vision-and-language-navigation)  
    标签：评分：8.0/10、query:vla
-   evidence：无需人类演示的通用机器人操控自改进框架
-3. [Cross-Embodiment Transfer via Behavior-Aligned Representations](/202607/31/2607.27549v1-cross-embodiment-transfer-via-behavior-aligned-representations)  
-   标签：评分：8.0/10、query:vla
-   evidence：VLA中的行为对齐表示
-4. [World Action Planner: Generalizable Decision-Making with Action-Conditioned World Models](/202607/31/2607.27599v1-world-action-planner-generalizable-decision-making-with-action-conditioned-world-models)  
-   标签：评分：8.0/10、query:vla
-   evidence：视觉语言模型推理与世界模型动作规划结合，实现通用决策
-5. [Data Pyramid for Embodied Manipulation](/202607/31/2607.24744v1-data-pyramid-for-embodied-manipulation)  
+   evidence：展示最小接口零样本智能体在具身视觉-语言导航中取得强性能
+3. [LEACL: LLM-Enhanced Automatic Curriculum Learning for Reinforcement Learning in Long-Horizon Manipulation Tasks](/202608/01/2607.23515v1-leacl-llm-enhanced-automatic-curriculum-learning-for-reinforcement-learning-in-long-horizon-manipulation-tasks)  
    标签：评分：7.0/10、query:vla
-   evidence：具身基础模型的数据配方
-6. [Tri-Manual Visuomotor Imitation Learning of Robot Policies](/202607/31/2607.25731v2-tri-manual-visuomotor-imitation-learning-of-robot-policies)  
+   evidence：面向长时程操作的大语言模型增强自动课程学习
+4. [Transformer Transformer: A Unified Model for Motion-Conditioned Robot Co-design](/202608/01/2607.25798v1-transformer-transformer-a-unified-model-for-motion-conditioned-robot-co-design)  
    标签：评分：7.0/10、query:vla
-   evidence：三臂视觉运动模仿学习，面向多臂操作策略的端到端行为克隆
-7. [S2A2: Audio-Visual Imitation Learning for Manipulation Tasks Using Acoustic Spatial Information](/202607/31/2607.26047v1-s2a2-audio-visual-imitation-learning-for-manipulation-tasks-using-acoustic-spatial-information)  
+   evidence：面向操作的本体协同设计统一基础模型
+5. [Enfold: Folding World-Generator Computation into Predictive Representations for Efficient Embodied Control](/202608/01/2607.26657v1-enfold-folding-world-generator-computation-into-predictive-representations-for-efficient-embodied-control)  
    标签：评分：7.0/10、query:vla
-   evidence：视听多模态模仿学习框架，用于端到端操作策略学习
-8. [SymmGrid: Super-Scaling On-Robot Learning with Parallelized Symmetries and Egocentric-Exocentric Visual Perception](/202607/31/2607.26985v1-symmgrid-super-scaling-on-robot-learning-with-parallelized-symmetries-and-egocentric-exocentric-visual-perception)  
+   evidence：面向具身控制的世界生成计算复用
+6. [It's Not Just More Demos: Counterfactual Action Sensitivity Coverage for Data-Efficient Robust Robot Imitation](/202608/01/2607.27261v1-its-not-just-more-demos-counterfactual-action-sensitivity-coverage-for-data-efficient-robust-robot-imitation)  
    标签：评分：7.0/10、query:vla
-   evidence：基于对称性的轨迹增强框架加速实时机器人强化学习，支持自我/外部中心视觉。
-9. [The Curse of Precision: A Data Scaling Law for High-Precision Robotic Manipulation](/202607/31/2607.23108v1-the-curse-of-precision-a-data-scaling-law-for-high-precision-robotic-manipulation)  
+   evidence：面向操作中视觉干扰鲁棒性的反事实数据筛选模仿学习方法
+7. [SpatialCLI: Learning to Reason With Spatial Tools, Then Without Them](/202608/01/2607.27703v1-spatialcli-learning-to-reason-with-spatial-tools-then-without-them)  
+   标签：评分：7.0/10、query:vla
+   evidence：面向具身智能体的视觉语言模型空间推理能力提升方法
+8. [DexDirect: Direct Kinesthetic Arm Guidance for Efficient Dexterous Demonstration Collection](/202608/01/2607.27784v1-dexdirect-direct-kinesthetic-arm-guidance-for-efficient-dexterous-demonstration-collection)  
+   标签：评分：7.0/10、query:vla
+   evidence：为灵巧操作学习提供高效动觉演示采集方法
+9. [Failure Detection for Surgical Robot Imitation Policies via Flow-Matching World Modeling](/202608/01/2607.27511v1-failure-detection-for-surgical-robot-imitation-policies-via-flow-matching-world-modeling)  
    标签：评分：6.0/10、query:vla
-   evidence：研究高精度机器人操作中模仿学习的数据扩展定律，与端到端操作学习相关。
-10. [Embodied GPT-5.1: Evidence of a World Model?](/202607/31/2607.23899v1-embodied-gpt-51-evidence-of-a-world-model)  
+   evidence：基于流匹配世界模型的机器人手术模仿策略故障检测
+10. [UniCross: Unified Cross-Skill Dexterous Manipulation Synthesis](/202608/01/2607.28198v1-unicross-unified-cross-skill-dexterous-manipulation-synthesis)  
    标签：评分：6.0/10、query:vla
-   evidence：探索使用大型多模态语言模型作为物理移动机器人的高层控制器
-11. [FloAff-Kitchen: Bridging Navigation and Manipulation via Canonical and Progressive Floor Affordance Learning](/202607/31/2607.24207v1-floaff-kitchen-bridging-navigation-and-manipulation-via-canonical-and-progressive-floor-affordance-learning)  
+   evidence：面向灵巧操作的统一技能建模，涵盖抓取、重定位、手内旋转与平移
+11. [SemAnCorr: Semantic Anchored Correspondence for Zero-Shot Manipulation Skill Transfer](/202608/01/2607.28382v1-semancorr-semantic-anchored-correspondence-for-zero-shot-manipulation-skill-transfer)  
    标签：评分：6.0/10、query:vla
-   evidence：具身智能、机器人学习、移动操作可通行性
+   evidence：通过语义锚定稠密对应实现零样本操作技能迁移
 
 
 <div class="dpr-home-promo-card">
