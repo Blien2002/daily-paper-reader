@@ -1,0 +1,508 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-08-02T20:23:52.870942+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 7,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 6,
+    "quick_skim_target": 11,
+    "quick_selected": 6
+  },
+  "deep_dive": [
+    {
+      "id": "2607.23782v1",
+      "source": "arxiv",
+      "title": "$N_0$-VTLA: Scaling Vision-Tactile-Language-Action Model with Latent Tactile Tokens",
+      "abstract": "We present $N_0$-VTLA, a vision-tactile-language-action (VTLA) foundation model capable of (1) fine-grained contact-rich manipulation with tactile perception and tactile-feedback control, and (2) offline policy improvement from stored deployment data. Building on current vision-based backbones, we propose a training recipe for tactile integration consisting of visuo-tactile pre-training, staged tactile-pathway integration, and advantage-conditioned offline policy improvement. During pre-training, the policy learns broad contact priors from NeoData, our large-scale visuo-tactile robot dataset; to our knowledge, $N_0$-VTLA is the first VTLA model pretrained on tactile data at scale. During post-training, we augment the policy with a predictive tactile pathway that distills the contact patterns learned at scale into the fine motion adjustments required by downstream tactile-centric manipulation. For offline policy improvement, we introduce ALTER, an advantage-conditioned offline reinforcement learning method that converts relative progress and trajectory-event comparisons into binary advantage labels for policy training on a fixed deployment corpus, further improving task-specific learning on contact-rich skills such as deformable object manipulation. Across contact-rich benchmarks, $N_0$-VTLA outperforms strong baselines by wide margins: it wins all nine real-robot NeoReal tasks and reaches 63.8% mean success on a twenty-task simulation suite, against 44.0% for the strongest baseline. $N_0$-VTLA policies trained with ALTER reach 75-95% success on three long-horizon real-robot tasks. These results lay a foundation for versatile tactile-driven manipulation policies.",
+      "authors": [
+        "NeoteAI Team",
+        "Fudan TEAI Team"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-26T17:58:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.23782v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "scaling a vision-tactile-language-action foundation model with latent tactile tokens for contact-rich manipulation",
+      "llm_evidence_cn": "提出带潜在触觉token的视觉-触觉-语言-动作基础模型，面向精细接触丰富操作",
+      "llm_evidence": "提出带潜在触觉token的视觉-触觉-语言-动作基础模型，面向精细接触丰富操作",
+      "canonical_evidence": "提出带潜在触觉token的视觉-触觉-语言-动作基础模型，面向精细接触丰富操作",
+      "llm_tldr_en": "N0-VTLA introduces a vision-tactile-language-action foundation model pretrained on large-scale visuo-tactile data, enabling fine-grained contact-rich manipulation and offline policy improvement.",
+      "llm_tldr_cn": "针对触觉感知在VLA基础模型中的融合不足以及离线策略改进困难，N0-VTLA提出视觉-触觉-语言-动作基础模型。模型采用视觉-触觉预训练、分阶段触觉通路集成和优势条件化离线策略改进的训练方案，并在大规模视觉-触觉机器人数据集NeoData上预训练。这是首个在大规模触觉数据上预训练的VTLA模型，支持精细接触丰富的操作和触觉反馈控制。实验表明其能利用离线部署数据持续提升策略性能，为多模态具身基础模型提供了新范式。",
+      "llm_tldr": "针对触觉感知在VLA基础模型中的融合不足以及离线策略改进困难，N0-VTLA提出视觉-触觉-语言-动作基础模型。模型采用视觉-触觉预训练、分阶段触觉通路集成和优势条件化离线策略改进的训练方案，并在大规模视觉-触觉机器人数据集NeoData上预训练。这是首个在大规模触觉数据上预训练的VTLA模型，支持精细接触丰富的操作和触觉反馈控制。实验表明其能利用离线部署数据持续提升策略性能，为多模态具身基础模型提供了新范式。",
+      "llm_tags": [
+        "query:tf:composite"
+      ],
+      "matched_query_tag": "query:tf:composite",
+      "matched_query_text": "Papers central to 寻找整合力觉与触觉模态的具身智能方法论文, especially work that connects or combines: force tactile integration; embodied intelligence; haptic sensing; force feedback; tactile sensing; methods integrating force and tactile modalities in embodied intelligence; embodied AI with multimodal haptic and force perception; tactile force fusion for robot manipulation.",
+      "matched_requirement_id": "req-composite-tf",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.23969v1",
+      "source": "arxiv",
+      "title": "LeapBot-WA: World-Anchor Action Models via Predictive Latent Alignments",
+      "abstract": "World Action Models (WAMs) have emerged as a powerful paradigm for embodied intelligence, yet the prevailing reliance on pixel-level video generation creates a fundamental bottleneck. Forcing models to reconstruct task-irrelevant visual details dissipates representational capacity and renders policies vulnerable to visual distractors. In this paper, we propose LeapBot-WA, which establishes a novel Predictive-Latent paradigm for WAMs by operationalizing the Joint-Embedding Predictive Architecture (JEPA) as a World-Anchor. Departing from the traditional reliance on visual synthesis, LeapBot-WA shifts the core of world modeling to Predictive Semantic Alignment, extracting abstract physical dynamics directly within a latent foundation space. To bridge the modality gap between non-Gaussian predictive features and diffusion priors, we introduce the Isotropic Semantic Autoencoder (ISAE), which reshapes the anchor's latent space into a diffusion-friendly manifold to prevent off-manifold drift. Furthermore, we design an Asymmetric Mixture-of-Transformers (MoT) architecture. During training, an Anchor Diffusion Transformer acts as a privileged dynamics expert to guide the Action Diffusion Transformer; at inference, this heavy dynamics branch is pruned, enabling zero-overhead execution. LeapBot-WA achieves state-of-the-art performance among predictive models on LIBERO and matches top-tier generative WAMs on RoboTwin 2.0 without requiring large-scale trajectory pre-training. It further demonstrates superior zero-shot robustness to unseen environments and successful real-world transfer, establishing a highly efficient and robust latent-centric paradigm for scalable robotic control. Code: https://github.com/LeapWM/leapbot-wa.",
+      "authors": [
+        "Pei Liu",
+        "Nan Zheng",
+        "Lang Zhang",
+        "Daojie Peng",
+        "Yanan Zhang",
+        "Feilong Kong",
+        "Mingyue Feng",
+        "Jiachao Liu",
+        "Yaonong Wang",
+        "Qifeng Chen",
+        "Jun Ma"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-27T03:36:45+00:00",
+      "link": "https://arxiv.org/pdf/2607.23969v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "World Action Models (WAMs) for embodied intelligence; latent predictive world-anchor action model, central to the composite VLA/WAM theme",
+      "llm_evidence_cn": "具身智能的世界动作模型(WAM)，提出基于JEPA的潜在世界锚点动作模型，契合VLA与WAM复合主题",
+      "llm_evidence": "具身智能的世界动作模型(WAM)，提出基于JEPA的潜在世界锚点动作模型，契合VLA与WAM复合主题",
+      "canonical_evidence": "具身智能的世界动作模型(WAM)，提出基于JEPA的潜在世界锚点动作模型，契合VLA与WAM复合主题",
+      "llm_tldr_en": "LeapBot-WA proposes a JEPA-based world-anchor action model for embodied intelligence, shifting world modeling from pixel-level video generation to predictive semantic alignment in a latent space.",
+      "llm_tldr_cn": "现有世界动作模型(WAM)依赖像素级视频生成，浪费表示能力且易受视觉干扰。为此提出LeapBot-WA，将JEPA预测架构作为世界锚点，把世界建模转化为在潜在基础空间中的预测语义对齐，提取抽象物理动态。该方法摆脱了视频重建，为具身智能提供更高效的世界动作模型范式。",
+      "llm_tldr": "现有世界动作模型(WAM)依赖像素级视频生成，浪费表示能力且易受视觉干扰。为此提出LeapBot-WA，将JEPA预测架构作为世界锚点，把世界建模转化为在潜在基础空间中的预测语义对齐，提取抽象物理动态。该方法摆脱了视频重建，为具身智能提供更高效的世界动作模型范式。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.23969v2",
+      "source": "arxiv",
+      "title": "LeapBot-WA: World-Anchor Action Models via Predictive Latent Alignments",
+      "abstract": "World Action Models (WAMs) have emerged as a powerful paradigm for embodied intelligence, yet the prevailing reliance on pixel-level video generation creates a fundamental bottleneck. Forcing models to reconstruct task-irrelevant visual details dissipates representational capacity and renders policies vulnerable to visual distractors. In this paper, we propose LeapBot-WA, which establishes a novel Predictive-Latent paradigm for WAMs by operationalizing the Joint-Embedding Predictive Architecture (JEPA) as a World-Anchor. Departing from the traditional reliance on visual synthesis, LeapBot-WA shifts the core of world modeling to Predictive Semantic Alignment, extracting abstract physical dynamics directly within a latent foundation space. To bridge the modality gap between non-Gaussian predictive features and diffusion priors, we introduce the Isotropic Semantic Autoencoder (ISAE), which reshapes the anchor's latent space into a diffusion-friendly manifold to prevent off-manifold drift. Furthermore, we design an Asymmetric Mixture-of-Transformers (MoT) architecture. During training, an Anchor Diffusion Transformer acts as a privileged dynamics expert to guide the Action Diffusion Transformer; at inference, this heavy dynamics branch is pruned, enabling zero-overhead execution. LeapBot-WA achieves state-of-the-art performance among predictive models on LIBERO and matches top-tier generative WAMs on RoboTwin 2.0 without requiring large-scale trajectory pre-training. It further demonstrates superior zero-shot robustness to unseen environments and successful real-world transfer, establishing a highly efficient and robust latent-centric paradigm for scalable robotic control. Code: https://github.com/LeapWM/leapbot-wa.",
+      "authors": [
+        "Pei Liu",
+        "Nan Zheng",
+        "Lang Zhang",
+        "Daojie Peng",
+        "Yanan Zhang",
+        "Feilong Kong",
+        "Mingyue Feng",
+        "Jiachao Liu",
+        "Yaonong Wang",
+        "Qifeng Chen",
+        "Jun Ma"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-27T03:36:45+00:00",
+      "link": "https://arxiv.org/pdf/2607.23969v2",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "World Action Models (WAMs) for embodied intelligence; latent predictive world-anchor action model, central to the composite VLA/WAM theme",
+      "llm_evidence_cn": "具身智能的世界动作模型(WAM)，提出基于JEPA的潜在世界锚点动作模型，契合VLA与WAM复合主题",
+      "llm_evidence": "具身智能的世界动作模型(WAM)，提出基于JEPA的潜在世界锚点动作模型，契合VLA与WAM复合主题",
+      "canonical_evidence": "具身智能的世界动作模型(WAM)，提出基于JEPA的潜在世界锚点动作模型，契合VLA与WAM复合主题",
+      "llm_tldr_en": "LeapBot-WA proposes a JEPA-based world-anchor action model for embodied intelligence, shifting world modeling from pixel-level video generation to predictive semantic alignment in a latent space.",
+      "llm_tldr_cn": "现有世界动作模型(WAM)依赖像素级视频生成，浪费表示能力且易受视觉干扰。为此提出LeapBot-WA，将JEPA预测架构作为世界锚点，把世界建模转化为在潜在基础空间中的预测语义对齐，提取抽象物理动态。该方法摆脱了视频重建，为具身智能提供更高效的世界动作模型范式。",
+      "llm_tldr": "现有世界动作模型(WAM)依赖像素级视频生成，浪费表示能力且易受视觉干扰。为此提出LeapBot-WA，将JEPA预测架构作为世界锚点，把世界建模转化为在潜在基础空间中的预测语义对齐，提取抽象物理动态。该方法摆脱了视频重建，为具身智能提供更高效的世界动作模型范式。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25918v1",
+      "source": "arxiv",
+      "title": "DC-WAM: Dynamic-Centric Visual Supervision and Reasoning for World-Action Models",
+      "abstract": "World-Action Models (WAMs) augment robot policies with future visual prediction, but it remains unclear what the visual modality should learn for control. While photorealistic future prediction provides dense supervision, it also incurs substantial computation and can allocate capacity to texture, illumination, and background variations that are only weakly related to action selection. Recent efficient WAM variants suggest that the main benefit of the video branch may not lie in the rendered future itself, but in the control-relevant visual representations induced during training. In this work, we revisit future video prediction from a dynamic-centric perspective and ask whether an existing RGB-based WAM can be redirected from appearance-dominated reconstruction toward interaction-induced visual dynamics without introducing additional modality-specific predictions or online inputs at deployment. We propose DC-WAM, a dynamic-centric WAM framework that redistributes supervision and computation in the RGB video branch. At the supervision level, DC-WAM combines temporal-difference flow matching with trajectory-guided weighting, emphasizing dense temporal changes and localized regions where the gripper, manipulated objects, and contact areas move. At the reasoning level, DynaRoute predicts token-wise dynamic relevance and converts it into an attention bias, guiding the model toward control-relevant future tokens. Experiments in simulation and on real-world manipulation tasks show that DC-WAM consistently improves policy performance, especially under out-of-distribution perturbations in lighting, object appearance, and background texture.",
+      "authors": [
+        "Haoyuan Ji",
+        "Lingxiang Fan",
+        "Shang Su",
+        "Yinqiao Lu",
+        "Mengkai Shi",
+        "Jun Gao",
+        "Shuo Feng"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-28T16:08:50+00:00",
+      "link": "https://arxiv.org/pdf/2607.25918v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "directly targets World-Action Models (WAM), a core component of the combined VLA-WAM theme",
+      "llm_evidence_cn": "直接研究世界-动作模型（WAM），是VLA与WAM联合检索主题的核心内容",
+      "llm_evidence": "直接研究世界-动作模型（WAM），是VLA与WAM联合检索主题的核心内容",
+      "canonical_evidence": "直接研究世界-动作模型（WAM），是VLA与WAM联合检索主题的核心内容",
+      "llm_tldr_en": "DC-WAM redirects an RGB-based World-Action Model from appearance-dominated future prediction to dynamic-centric supervision, improving control-relevant representations and efficiency.",
+      "llm_tldr_cn": "针对World-Action Model中未来视频预测计算开销大且过多关注纹理光照等与动作弱相关外观线索的问题，提出动态中心化的视觉监督与推理方法。该方法将RGB-based WAM从外观主导的重建导向控制相关的动态表征学习，从而提升策略学习效率。实验验证动态中心化监督能保留WAM的视频分支收益同时显著降低计算成本。该工作为理解WAM中视觉模态应学习什么提供了重要视角。",
+      "llm_tldr": "针对World-Action Model中未来视频预测计算开销大且过多关注纹理光照等与动作弱相关外观线索的问题，提出动态中心化的视觉监督与推理方法。该方法将RGB-based WAM从外观主导的重建导向控制相关的动态表征学习，从而提升策略学习效率。实验验证动态中心化监督能保留WAM的视频分支收益同时显著降低计算成本。该工作为理解WAM中视觉模态应学习什么提供了重要视角。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.25853v1",
+      "source": "arxiv",
+      "title": "HiSkill: Empowering LLM Agents with Hierarchical Skill Graphs",
+      "abstract": "Skills have become an important abstraction for enabling large language model (LLM) agents to reuse past experience in long-horizon interactive tasks. However, existing trajectory-to-skill methods often produce flat collections of high-level textual skills that are stored and retrieved independently, leaving skill relations underutilized and maintaining a gap between high-level skills and executable actions. In this paper, we propose HiSkill, a hierarchical skill graph framework that organizes interaction trajectories into a directed graph with skill nodes, AtomicOp nodes, and typed edges. Specifically, the graph connects reusable high-level skills with executable action templates, while also capturing decomposition, temporal transition, compatibility, support, and recovery relations among them. At inference time, HiSkill retrieves a compact task-relevant subgraph and performs subgraph-guided task execution, where a symbolic task state, an active skill, and the retrieved subgraph guide the LLM agent to switch skills, select AtomicOps, and ground executable actions iteratively. Experiments on three interactive environments show that HiSkill outperforms state-of-the-art baselines while reducing inference token consumption, demonstrating the effectiveness of bridging high-level skills and executable action grounding through a hierarchical skill graph. Our data and code is available at https://github.com/BUPT-GAMMA/HiSkill.",
+      "authors": [
+        "Yu Hao",
+        "Jinxuan Cai",
+        "Qi Zhang",
+        "Yawen Li",
+        "Zhiqiang Zhang",
+        "Chuan Shi",
+        "Cheng Yang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-07-28T15:25:47+00:00",
+      "link": "https://arxiv.org/pdf/2607.25853v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hierarchical skill graph connecting LLM high-level skills to executable action templates",
+      "llm_evidence_cn": "层级技能图连接LLM高层技能与可执行动作模板",
+      "llm_evidence": "层级技能图连接LLM高层技能与可执行动作模板",
+      "canonical_evidence": "层级技能图连接LLM高层技能与可执行动作模板",
+      "llm_tldr_en": "HiSkill organizes LLM agent interaction trajectories into a hierarchical skill graph with skill nodes, AtomicOp nodes and typed edges, bridging high-level skills with executable actions for long-horizon tasks.",
+      "llm_tldr_cn": "面向长程交互任务，现有轨迹到技能的方法生成的技能集合是平铺且孤立的，难以与可执行动作对齐。本文提出HiSkill框架，将交互轨迹构建为包含技能节点、原子操作节点和类型化边的有向图，捕捉技能间的分解、时序迁移、兼容与支持等关系。该图结构连接了可复用高层技能与可执行动作模板，显著增强了LLM智能体在长时程任务中复用经验与执行动作的能力。",
+      "llm_tldr": "面向长程交互任务，现有轨迹到技能的方法生成的技能集合是平铺且孤立的，难以与可执行动作对齐。本文提出HiSkill框架，将交互轨迹构建为包含技能节点、原子操作节点和类型化边的有向图，捕捉技能间的分解、时序迁移、兼容与支持等关系。该图结构连接了可复用高层技能与可执行动作模板，显著增强了LLM智能体在长时程任务中复用经验与执行动作的能力。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Integration of large language models with robotic action spaces",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2607.28625v1",
+      "source": "arxiv",
+      "title": "ACE-Data-0: Human-Centric Ambient Capture as Embodied Data Engine",
+      "abstract": "Embodied intelligence faces a fundamental data bottleneck. Models must capture how first-person perception, whole-body motion, dexterous manipulation, object state, sound, and touch evolve together as humans pursue goals over time. Existing datasets fragment this experience across viewpoints, modalities, or spatial scales, leaving the full perception-action loop only partially observed. We introduce the Ambient Capture Engine (ACE), a human-centric data engine that transforms real home environments into spatially calibrated, temporally synchronized recording studios. ACE operates at two complementary scales: a table-scale configuration resolves hand-object manipulation, while a room-scale configuration captures whole-body motion, locomotion, and interactions across a furnished home. ACE records egocentric and multi-view exocentric video, full-body and articulated hand motion, object geometry and 6-DoF trajectories, audio, and tactile signals as a unified multisensory stream. Using ACE, we build ACE-Data-0, comprising 150 hours and 17M video frames across 200 task categories, performed by 50 participants in 2 environments, for a total of 75,000 interaction episodes. The dataset spans atomic manipulation, long-horizon chains of household activities, and human-scene interaction, while preserving natural behavioral variation through goal-level rather than step-by-step instructions. We further introduce a hierarchical benchmark that progresses from signals to scene components and then to interactions. Evaluations of state-of-the-art methods expose substantial gaps under contact, occlusion, egomotion, and long temporal horizons. ACE-Data-0 provides synchronized human demonstrations with aligned perceptual, kinematic, and contact supervision, offering a scalable foundation for imitation learning, world models, vision-language-action systems, and embodied AI.",
+      "authors": [
+        "Yukang Cao",
+        "Haozhe Xie",
+        "Beichen Wen",
+        "Runmao Yao",
+        "Yinghao Liu",
+        "Yue Huang",
+        "Zhichao Liao",
+        "Yunxiang Wang",
+        "Haiheng Liu",
+        "Xingshun Tian",
+        "Dawei Su",
+        "Long Zhuo",
+        "Dacheng Tao",
+        "Xiaogang Wang",
+        "Liang Pan",
+        "Ziwei Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-30T17:59:50+00:00",
+      "link": "https://arxiv.org/pdf/2607.28625v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Embodied data engine for multimodal perception-action cycles",
+      "llm_evidence_cn": "为具身智能提供多模态感知-行动数据引擎",
+      "llm_evidence": "为具身智能提供多模态感知-行动数据引擎",
+      "canonical_evidence": "为具身智能提供多模态感知-行动数据引擎",
+      "llm_tldr_en": "ACE transforms real homes into calibrated recording studios for embodied data, capturing synchronized first-person perception, whole-body motion, dexterous manipulation, sound, and touch at table and room scale.",
+      "llm_tldr_cn": "具身智能受制于数据瓶颈，现有数据集常只覆盖部分视角或模态，无法完整观察感知-行动过程。本文提出ACE环境采集引擎，将真实家庭空间改造为空间标定、时间同步的录制环境，以桌面级和房间级两种尺度同步采集手物操作、全身运动、声音与触觉等信号。该系统为训练具身模型提供了富有多模态且时空对齐的数据来源。该工作为解决具身数据碎片化问题提供了一种基础设施方案。",
+      "llm_tldr": "具身智能受制于数据瓶颈，现有数据集常只覆盖部分视角或模态，无法完整观察感知-行动过程。本文提出ACE环境采集引擎，将真实家庭空间改造为空间标定、时间同步的录制环境，以桌面级和房间级两种尺度同步采集手物操作、全身运动、声音与触觉等信号。该系统为训练具身模型提供了富有多模态且时空对齐的数据来源。该工作为解决具身数据碎片化问题提供了一种基础设施方案。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2607.26657v1",
+      "source": "arxiv",
+      "title": "Enfold: Folding World-Generator Computation into Predictive Representations for Efficient Embodied Control",
+      "abstract": "World generative models are typically used through what they produce: a rendered future, a video-conditioned action, or latent context computed by a costly generative branch. We argue that their more reusable asset is the computation that constructs a future. As a generator transforms a corrupted future into a coherent trajectory, its intermediate states organize appearance, spatial layout, and interaction across levels of abstraction. Can this future-generative computation be internalized in a representation inferred from the present alone? We present Enfold, which transfers this computation into a representation predicted from the current visual context and language instruction. During training, multi-level states exposed as the generator processes the observed future supervise a current-only encoder. The learned representation is fed back to condition future generation and is read by task heads without allowing task gradients to reshape the encoder. At deployment, action prediction no longer executes the generator. Across LIBERO, RoboTwin2.0, and real-robot tasks, Enfold supports strong control while reducing action latency by $3.7\\times$ relative to Fast--WAM, Enfold-Flash reaches $10.1\\times$. Representation analyses show that it suppresses nuisance variation and preferentially captures changes that emerge over longer horizons. When the current scene is altered by human intervention, both the generated continuation and the executed actions adapt, which is inconsistent with fixed trajectory replay. These results recast a world generator as a source of predictive control representations: its future need not be materialized at every step if its internal structure can be enfolded into the present.",
+      "authors": [
+        "Weili Zeng",
+        "Yitong Xing",
+        "Fulong Liu",
+        "Chengqun Yang",
+        "Antao Xiang",
+        "Feng Tian",
+        "Jingnan Gao",
+        "Jisong Cai",
+        "Xin Wang",
+        "Xiaomin Wu",
+        "Yao Mu",
+        "Yichao Yan"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-29T09:17:33+00:00",
+      "link": "https://arxiv.org/pdf/2607.26657v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Folds world-generator computation into predictive representations for embodied control, aligning with the WAM theme",
+      "llm_evidence_cn": "将世界生成器计算内化到预测表示中用于具身控制，与WAM主题一致",
+      "llm_evidence": "将世界生成器计算内化到预测表示中用于具身控制，与WAM主题一致",
+      "canonical_evidence": "将世界生成器计算内化到预测表示中用于具身控制，与WAM主题一致",
+      "llm_tldr_en": "Enfold internalizes the computation of a world generator into a representation predicted from current visual context and language instruction, enabling efficient embodied control without costly generative branches.",
+      "llm_tldr_cn": "世界生成模型常通过渲染未来、视频条件动作或潜在上下文来使用，但更可复用的是其计算过程本身。Enfold将该计算内化为当前视觉上下文和语言指令即可预测的表示，避免在线生成分支的高开销。训练中利用多层级状态迁移，使表示高效支撑具身控制。",
+      "llm_tldr": "世界生成模型常通过渲染未来、视频条件动作或潜在上下文来使用，但更可复用的是其计算过程本身。Enfold将该计算内化为当前视觉上下文和语言指令即可预测的表示，避免在线生成分支的高开销。训练中利用多层级状态迁移，使表示高效支撑具身控制。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2607.25593v1",
+      "source": "arxiv",
+      "title": "When Does Legacy Data Start to Help? Emergent Transfer in Cross-Configuration Robot Learning",
+      "abstract": "Robotic hardware evolves over time, but demonstration data is often tied to a specific sensor and actuator configuration. This raises a practical and underexplored question: when does legacy data begin to benefit an upgraded robot? We study this question on a wheeled humanoid platform across two hardware generations, where both the camera and gripper are changed while the overall morphology remains fixed. Contrary to the common assumption that more cross-configuration data is always helpful, we observe a grokking-like transition: legacy data remains ineffective until the upgraded configuration acquires a minimum level of task competence, after which co-training gains rise sharply before diminishing near saturation. We hypothesize that this task-dependent transition is governed by a transfer threshold and characterize the resulting three-phase pattern. Across real-robot manipulation tasks, we observe all three phases: no measurable benefit at low competence ($10.0\\% \\rightarrow 10.0\\%$), a sharp gain after crossing the threshold ($23.3\\% \\rightarrow 86.7\\%$ on flower insertion), and diminishing returns at high competence ($85.0\\% \\rightarrow 93.3\\%$ on pen insertion). We provide a theoretical account based on gradient alignment and residual policy uncertainty, and derive a phase-aware rule for deciding when to collect more new-hardware data and when to reuse legacy demonstrations. We further validate this three-phase pattern on a mobile dual-arm watering task, with results consistent with our predictions.",
+      "authors": [
+        "Tao Wang",
+        "Hudson Hou",
+        "Yingdong Hu",
+        "Yufeng Liu",
+        "Qinghai Li",
+        "Yingjie Jiang",
+        "Yingzhi Wang",
+        "Cheng Ma",
+        "Richard Wang",
+        "Yang Gao"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-28T11:24:52+00:00",
+      "link": "https://arxiv.org/pdf/2607.25593v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "robotic learning across hardware configurations uses demonstration data",
+      "llm_evidence_cn": "跨硬件配置的机器人学习，研究演示数据的迁移效应",
+      "llm_evidence": "跨硬件配置的机器人学习，研究演示数据的迁移效应",
+      "canonical_evidence": "跨硬件配置的机器人学习，研究演示数据的迁移效应",
+      "llm_tldr_en": "Studies when legacy demonstration data starts to benefit an upgraded robot with changed camera and gripper, finding a grokking-like emergent transfer and providing practical guidance for cross-configuration robot learning.",
+      "llm_tldr_cn": "该论文针对机器人硬件升级后旧演示数据何时开始有用的实际问题，在轮式人形平台的两代硬件上开展研究。与直觉不同，作者发现类grokking的转换现象：旧数据在升级配置达到一定任务能力前基本无效，之后联合训练收益迅速上升并在接近饱和前回落。这为跨代配置下的机器人学习数据策略提供了重要经验规律。",
+      "llm_tldr": "该论文针对机器人硬件升级后旧演示数据何时开始有用的实际问题，在轮式人形平台的两代硬件上开展研究。与直觉不同，作者发现类grokking的转换现象：旧数据在升级配置达到一定任务能力前基本无效，之后联合训练收益迅速上升并在接近饱和前回落。这为跨代配置下的机器人学习数据策略提供了重要经验规律。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2607.23797v1",
+      "source": "arxiv",
+      "title": "Memory for Attention: Language-Conditioned Re-Perception with a Vision--Language--Motion Map",
+      "abstract": "A robot carrying a persistent, behavior-annotated map faces two planning questions, and its memory answers only one well. The \\emph{spatial-navigation} question -- how to walk around a room -- we address first and report a negative: building on Vision--Language--Motion Maps (VLMM), a behavior-aware planner cost cuts a planning-time objective by $\\sim$35\\% over 28 AI2-THOR scenes, but under closed-loop execution the real benefit nearly vanishes ($\\sim$4\\%) and an on-demand vision--language model (VLM) does as well. The \\emph{resource-allocation} question differs: under a limited perception budget, what should the robot re-observe now to keep its map fresh? Framing re-perception as this attention decision, we show a persistent map's memory (change-history, or even just recency of last sighting) yields the best schedule (held-out), matching an oracle, while the memoryless VLM prior is poor. Because the schedule reallocates budget toward what matters, memory's benefit concentrates on the important objects ($\\sim$1.6$\\times$ the mean), and a downstream fetch task confirms fewer wasted trips; the gain grows with per-instance heterogeneity exactly as a Cauchy--Schwarz bound predicts -- it equals $\\mathrm{Var}(\\sqrtλ)$, the variance of root-volatility. With a real CLIP prior on rendered objects the advantage is $+21$--$26\\%$. The map's distinctive value appears when the task is \\emph{language-conditioned}: told what to track, VLMM grounds the relevant objects (open-vocabulary) and tracks their change (memory), beating even a strong relevance-weighted recency baseline ($+2.5\\%$) -- so its motion channel adds value beyond a last-seen timestamp -- and an on-demand VLM ($+8.9\\%$); neither language nor dynamics alone suffices. The map earns its keep not by telling the robot how to walk around a room, but by telling it what to pay attention to.",
+      "authors": [
+        "Dibyendu Ghosh"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-26T18:49:54+00:00",
+      "link": "https://arxiv.org/pdf/2607.23797v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "language-conditioned re-perception with a Vision-Language-Motion Map for robot planning",
+      "llm_evidence_cn": "利用视觉-语言-运动图实现语言条件化重感知，支持机器人规划",
+      "llm_evidence": "利用视觉-语言-运动图实现语言条件化重感知，支持机器人规划",
+      "canonical_evidence": "利用视觉-语言-运动图实现语言条件化重感知，支持机器人规划",
+      "llm_tldr_en": "This paper studies a persistent behavior-annotated map for robot planning, showing that a Vision-Language-Motion Map helps spatial-navigation planning at planning time but yields little closed-loop gain, and reframes re-perception as a resource-allocation attention decision under limited perception budgets.",
+      "llm_tldr_cn": "机器人携带持久的行为标注地图时需要回答空间导航与资源分配两类规划问题。基于视觉-语言-运动图的规划器虽然在规划阶段将目标成本降低约35%，但在闭环执行中收益几乎消失。论文将重感知建模为有限感知预算下的注意力分配决策，为地图型记忆系统的设计提供了新视角和方法。",
+      "llm_tldr": "机器人携带持久的行为标注地图时需要回答空间导航与资源分配两类规划问题。基于视觉-语言-运动图的规划器虽然在规划阶段将目标成本降低约35%，但在闭环执行中收益几乎消失。论文将重感知建模为有限感知预算下的注意力分配决策，为地图型记忆系统的设计提供了新视角和方法。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.24083v1",
+      "source": "arxiv",
+      "title": "Learning Reusable Hybrid Motion Priors for Humanoid Locomotion from Motion Imitation",
+      "abstract": "Reinforcement learning can produce robust humanoid controllers, but each new task is typically trained as a separate policy with its own reward design and training process. Motion imitation provides an alternative source of motor competence by training policies to track retargeted human motions, yet the resulting controllers remain reference trackers and are not directly usable as task policies. We propose a three-stage pipeline that turns motion-imitation skills into a reusable hybrid motion prior (HMP) for humanoid locomotion. First, an expert policy is trained to imitate retargeted human motion-capture clips. Second, the expert is distilled into a frozen architecture composed of a proprioceptive encoder, a residual vector-quantized (RVQ) codebook, and an action decoder. Third, task-level policies are trained to solve locomotion tasks by selecting discrete codebook entries while the HMP remains frozen. We evaluate the method on velocity tracking, point-goal navigation, and fall-recovery velocity tracking in simulation, and deploy the velocity-tracking policy on a real Unitree G1 robot. The distillation process preserves the tracking behavior of the expert, while the resulting HMP can be reused without retraining as the action interface for different downstream locomotion policies. The learned HMP reveals an interpretable codebook structure in which the number of active RVQ stages modulates the available gait patterns. We further show that training the codebook with the rotation trick improves latent organization and reduces downstream falls compared with a standard straight-through estimator.",
+      "authors": [
+        "Valerio Belli",
+        "Valerio Modugno",
+        "Enrico Mingo Hoffman",
+        "Fabio Amadio"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.RO"
+      ],
+      "published": "2026-07-27T07:25:17+00:00",
+      "link": "https://arxiv.org/pdf/2607.24083v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "learns reusable hybrid motion priors from motion imitation for humanoid locomotion",
+      "llm_evidence_cn": "从动作模仿中学习可复用的混合运动先验，用于人形机器人运动",
+      "llm_evidence": "从动作模仿中学习可复用的混合运动先验，用于人形机器人运动",
+      "canonical_evidence": "从动作模仿中学习可复用的混合运动先验，用于人形机器人运动",
+      "llm_tldr_en": "This three-stage pipeline converts motion-imitation skills into a reusable hybrid motion prior (HMP) for humanoid locomotion, distilling an expert imitation policy into a frozen encoder with residual vector-quantized modules to support downstream task policies.",
+      "llm_tldr_cn": "强化学习可以为每个人形机器人任务训练独立策略，但难以复用其运动能力。该工作提出三阶段流水线，先训练模仿人类动捕片段的专家策略，再蒸馏为包含本体感觉编码器与残差向量量化的冻结架构，形成可复用的混合运动先验。该先验可直接作为下游任务策略的基础，减少了每个新任务的训练成本。",
+      "llm_tldr": "强化学习可以为每个人形机器人任务训练独立策略，但难以复用其运动能力。该工作提出三阶段流水线，先训练模仿人类动捕片段的专家策略，再蒸馏为包含本体感觉编码器与残差向量量化的冻结架构，形成可复用的混合运动先验。该先验可直接作为下游任务策略的基础，减少了每个新任务的训练成本。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.25053v1",
+      "source": "arxiv",
+      "title": "Motion Generation With Environmental Constraints",
+      "abstract": "Robot motion planning faces challenges in high-dimensional spaces and uncertain environments, often constrained by the need for collision-free motions. We advocate an alternative approach, Environmental Constraint Exploitation (ECE), where deliberate contact with the environment simplifies planning by reducing dimensionality and computational complexity. By integrating ECE into motion planning algorithms, we bias exploration to task-relevant regions and leverage contact for uncertainty reduction to improve robustness during execution. We evaluate ECE benefits with RRT-based planners and demonstrate their practical benefits in a real-world application. This work consolidates and extends prior research, showcasing how ECE simplifies motion planning while enhancing adaptability and performance in complex environments.",
+      "authors": [
+        "Előd Páll",
+        "Oliver Brock"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-07-27T20:31:40+00:00",
+      "link": "https://arxiv.org/pdf/2607.25053v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Contact-based motion planning useful for embodied manipulation",
+      "llm_evidence_cn": "基于接触的运动规划对具身操作具有方法支撑价值",
+      "llm_evidence": "基于接触的运动规划对具身操作具有方法支撑价值",
+      "canonical_evidence": "基于接触的运动规划对具身操作具有方法支撑价值",
+      "llm_tldr_en": "This paper advocates Environmental Constraint Exploitation (ECE) for motion planning, deliberately using contact to reduce dimensionality and uncertainty, integrated into RRT-based planners and validated in real-world applications.",
+      "llm_tldr_cn": "机器人运动规划常需避免碰撞，但在高维和不确定环境中计算代价高昂。本文提出环境约束利用方法，主动利用与环境的接触来降低规划维度与计算复杂度，并将该策略结合到RRT类规划器中。实验与真实应用表明该方法在提高规划效率的同时增强执行鲁棒性。这为接触丰富的机器人操作与运动生成提供了一种替代范式。",
+      "llm_tldr": "机器人运动规划常需避免碰撞，但在高维和不确定环境中计算代价高昂。本文提出环境约束利用方法，主动利用与环境的接触来降低规划维度与计算复杂度，并将该策略结合到RRT类规划器中。实验与真实应用表明该方法在提高规划效率的同时增强执行鲁棒性。这为接触丰富的机器人操作与运动生成提供了一种替代范式。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2607.27145v1",
+      "source": "arxiv",
+      "title": "Explainable and Resource-Efficient Spatial Reasoning in Multimodal LLMs for Decision-Critical Applications",
+      "abstract": "As Multimodal Large Language Models (MLLMs) are increasingly deployed in decision-critical pipelines such as robotics, embodied AI, and safety monitoring, the opacity of their spatial judgments limits operator trust and auditability. MLLMs demonstrate strong reasoning but often struggle with fine-grained spatial understanding and object hallucination. Prior work, ByDeWay, introduced Layered-Depth-Based Prompting (LDP), a training-free framework that mitigates hallucinations by structuring prompts using monocular depth estimation. However, coarse depth layering falls short in resolving object-to-object spatial relationships within the same geometric plane, such as projective (\"left of\", \"above\") and topological (\"inside\", \"touching\") relations. We propose ByDeWay-V2, which integrates explicit spatial relational context alongside depth cues, expressed as human-readable predicates that serve as auditable evidence for downstream decision support. Using an open-vocabulary object detector (YOLO-World-L), our framework computes pairwise geometric relations between detected objects and injects them as structured spatial predicates into the MLLM prompt, bridging 3D scene depth and 2D spatial semantics without any training. We evaluate ByDeWay-V2 on the Visual Spatial Reasoning (VSR) and BLINK benchmarks across multiple MLLMs, with hallucination grounding assessed via POPE. On the BLINK spatial subset, ByDeWay-V2 achieves a 46 percent relative F1 improvement over LDP for Qwen2.5-VL, and recovers BLIP-Base's spatial reasoning on VSR from near-random performance to a competitive F1 of 0.53. Our lightest configuration operates under a strict 40-token context budget on CPU, showing the framework's suitability for resource-constrained, real-time decision-support settings.",
+      "authors": [
+        "Piyush Jain",
+        "Kousik Dasgupta",
+        "Rajarshi Roy",
+        "Subarna Tripathi"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-07-29T17:20:56+00:00",
+      "link": "https://arxiv.org/pdf/2607.27145v1",
+      "tags": [
+        "keyword:VLA",
+        "query:VLA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Spatial reasoning enhancement for multimodal LLMs in embodied AI and robotics",
+      "llm_evidence_cn": "面向具身智能与机器人的多模态LLM空间推理增强",
+      "llm_evidence": "面向具身智能与机器人的多模态LLM空间推理增强",
+      "canonical_evidence": "面向具身智能与机器人的多模态LLM空间推理增强",
+      "llm_tldr_en": "Proposes an explainable, resource-efficient extension to layered-depth prompting for multimodal LLMs, improving fine-grained spatial reasoning and reducing hallucination in robotics and embodied AI.",
+      "llm_tldr_cn": "针对多模态大模型在机器人、具身智能等决策关键任务中空间判断不透明、细粒度空间理解不足和对象幻觉的问题，在Layered-Depth-Based Prompting基础上进一步精细化深度分层，以解析同一几何平面内物体之间的投射和拓扑空间关系。该方法无需训练，可提升空间推理的准确性和可解释性，同时保持资源高效。",
+      "llm_tldr": "针对多模态大模型在机器人、具身智能等决策关键任务中空间判断不透明、细粒度空间理解不足和对象幻觉的问题，在Layered-Depth-Based Prompting基础上进一步精细化深度分层，以解析同一几何平面内物体之间的投射和拓扑空间关系。该方法无需训练，可提升空间推理的准确性和可解释性，同时保持资源高效。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
