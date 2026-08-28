@@ -229,6 +229,15 @@ class InitZeroResultGuardTest(unittest.TestCase):
                 )
                 self.assertIn("已跳过 Supabase 同步", text)
 
+    def test_preprint_inits_pass_explicit_papers_table(self):
+        """契约 4 的配套：三个 preprint init 必须像 11 个会议 init 那样显式传表名，
+        不依赖 SUPABASE_PAPERS_TABLE 环境变量，避免漏配时解析失败或写错表。"""
+        for name in ("biorxiv", "medrxiv", "chemrxiv"):
+            with self.subTest(source=name):
+                text = (SRC / "maintain" / f"init_{name}.py").read_text(encoding="utf-8")
+                self.assertIn('"--papers-table",', text, f"init_{name}.py 未显式传 --papers-table")
+                self.assertIn(f'"{name}_papers",', text, f"init_{name}.py 的表名不正确")
+
 
 if __name__ == "__main__":
     unittest.main()

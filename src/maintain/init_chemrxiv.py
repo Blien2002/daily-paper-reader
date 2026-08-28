@@ -126,6 +126,10 @@ def main() -> None:
         os.path.join(SCRIPT_DIR, "sync.py"),
         "--backend-key",
         "chemrxiv",
+        # 显式指定目标表，与 11 个会议 init 保持一致：
+        # 不依赖 SUPABASE_PAPERS_TABLE 环境变量，避免漏配时写错表。
+        "--papers-table",
+        "chemrxiv_papers",
         "--date",
         date_str,
         "--schema",
