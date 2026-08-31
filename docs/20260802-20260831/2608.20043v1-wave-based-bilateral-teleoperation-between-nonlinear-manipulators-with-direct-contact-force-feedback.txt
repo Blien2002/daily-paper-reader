@@ -1,0 +1,1110 @@
+Title: Wave-Based Bilateral Teleoperation between Nonlinear Manipulators with Direct Contact Force Feedback
+
+URL Source: https://arxiv.org/pdf/2608.20043v1
+
+Published Time: Fri, 21 Aug 2026 00:54:45 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Wave-Based Bilateral Teleoperation between Nonlinear Manipulators with Direct Contact Force Feedback 
+
+G. Q. Bao Tran, Takanori Miyoshi, and Ho Duc Tho 
+
+Abstract — We study bilateral teleoperation between nonlin-ear, multi-DOF robotic manipulators in the presence of constant communication delays. Unlike classical wave-transformation architectures that transmit a coordinating force, we consider the case where the environmental force is reflected to the master side to enhance teleoperation transparency. Since direct contact force feedback might destabilize the closed-loop system, we first develop a passivity-shortage characterization for the Euler– Lagrange remote system using a linear matrix inequality (LMI) approach. An upper strictly passive communication law is then employed to compensate for the computed passivity shortage so that the closed-loop stability under delays as well as position and force synchronization are preserved under appropriate con-ditions. Simulations with nonlinear 2-DOF robotic manipulators in different settings illustrate our approach. 
+
+I. INTRODUCTION Bilateral teleoperation enables a human operator to interact with a remote environment through a master–slave robotic architecture. However, the presence of communication delays 
+
+may destabilize an otherwise stable closed-loop system, es-pecially in force-reflecting teleoperation [1]. Passivity-based approaches have become a cornerstone for addressing delay-induced instability, starting from the scattering transforma-tion framework in [2], [3] and its wave-transformation (WT) interpretation in [4]. Subsequent works refined this paradigm to handle time-varying delays, wave reflections, and perfor-mance limitations [5], [6], [7], [8], [9], [10], [11]. A well-known trade-off exists between stability and transparency in delayed teleoperation systems [12]. In particular, when direct environmental contact forces are transmitted through a lossless passive WT channel, the remote robot may become non-passive, potentially destabilizing the closed-loop system. To avoid this issue, most WT-based architectures transmit a coordinating force rather than the true environmental contact force, which degrades transparency and telepresence quality. In order to enable stable environmental contact force feed-back to enhance transparency, a stabilizing communication law based on an upper strictly passive (USP) communica-tion channel is proposed for bilateral teleoperation systems with constant delays [13]. The key idea is to deliberately introduce an excess level of passivity in the communication                 
+
+> G. Q. B. Tran is with Coordinated Science Laboratory, University of Illinois Urbana-Champaign, Urbana, IL 61801, USA (e-mail:
+
+baotran@illinois.edu ). His work is supported by the AFOSR MURI FA9550-23-1-0337 and NSF CMMI-2452534 grants. T. Miyoshi is with Department of System Safety, Nagaoka University of Technology, 1603-1 Kamitomiokamachi, Niigata, Japan (e-mail: miyoshi@mech.nagaokaut.ac.jp ). H. D. Tho is with Department of Control Engineering and Automation, HCMC University of Technology (HCMUT), HCMC, Vietnam (e-mail: 
+
+hoductho@hcmut.edu.vn ). 
+
+channel to compensate for the passivity shortage of the remote subsystem when direct contact force feedback is used. By using Lyapunov and Lyapunov–Krasovskii techniques, delay-independent stability of the closed-loop system is established, and simulations illustrate improved transparency compared to classical lossless WT schemes. More recently, a force-receptive scattering transformation has been proposed in [14]. By introducing additional communication ports and redundant scattering weights, the scheme allows kinematic and force information to be transmitted independently. These redundant parameters can be optimized numerically to im-prove teleoperation transparency while preserving passivity of the communication channel. However, both works rely on linear, time-invariant robot models with a single degree-of-freedom (DOF). In many practical teleoperation applications, the robot dynamics are inherently nonlinear and multi-DOF, motivating the development of a framework that can handle nonlinear robot dynamics while retaining desirable communication and transparency properties. This paper has two objectives. First, we extend the sta-bilizing communication law framework of [13] to bilat-eral teleoperation systems with nonlinear multi-DOF Euler– Lagrange robots. Second, inspired by [14], we investigate optimization-based tuning of the communication channel to improve teleoperation transparency while preserving delay-robust stability. Our main contributions are as follows:  
+
+> •
+
+A passivity-shortage characterization of the nonlinear re-mote subsystem via an LMI condition is developed;  
+
+> •
+
+A vector-valued multi-DOF extension of the USP com-munication law for nonlinear teleoperation guaranteeing stability as well as position and force synchronization under appropriate conditions;  
+
+> •
+
+An optimization-based tuning procedure is developed to improve teleoperation transparency. Note again that the proposed approach is delay-independent, namely larger constant delays mainly degrade transparency and transient performance without affecting stability. 
+
+Notations: Let Rm×n represent the set of real m × n
+
+matrices. Denote Sn>0 as the set of n-dimensional real pos-itive definite symmetric matrices, and In the n-dimensional identity matrix. Let | · | be the Euclidean vector norm. Let 
+
+L∞ (resp., L2) denote the space of uniformly bounded (resp., square integrable) functions [15, Page 196]. In matrices, ⋆
+
+denotes the entries determined by symmetry. II. PROBLEM DESCRIPTION We consider a bilateral teleoperation architecture with constant communication delay T > 0, where a nonlinear arXiv:2608.20043v1 [eess.SY] 20 Aug 2026 Hum n Loc l
+
+> Robot
+> Comm.
+> Ch nnel
+> Remote
+> Robot
+> Environ
+> ment
+
+·qm  ·qm  ·qsd  ·qs 
+
+Fe Fe Fmd FhFig. 1. Velocity–force nonlinear teleoperation architecture with delayed communication channel. 
+
+local master robot interacts with a human operator and a nonlinear remote slave robot interacts with an environment (see Fig. 1). The two robots are modeled as Euler–Lagrange systems with generalized positions qm, q s ∈ Rn [16], [17] 
+
+Mm(qm)¨ qm + Cm(qm, ˙qm) ˙ qm + Gm(qm) = τm + Fh,
+
+(1a) 
+
+Ms(qs)¨ qs + Cs(qs, ˙qs) ˙ qs + Gs(qs) = τs − Fe,
+
+(1b) where Mm(qm), M s(qs) ∈ Sn>0 are inertia matrices, 
+
+Cm(qm, ˙qm), C s(qs, ˙qs) ∈ Rn×n are Coriolis /centrifugal terms, Gm(qm), τ m, F h ∈ Rn and Gs(qs), τ s, F e ∈ Rn
+
+denote gravity, control, and interaction forces, respectively. The matrices Mi(qi) and Ci(qi, ˙qi) (i ∈ { m, s }) satisfy the standard properties of Euler–Lagrange systems [18]  
+
+> •
+
+Mi(qi) is symmetric positive definite for all qi; 
+
+> •
+
+˙Mi(qi) − 2Ci(qi, ˙qi) is skew-symmetric. In (1a), the human force Fh exerted on the local robot is modeled as 
+
+Fh = −Khqm + f ⋆h , (2) where Kh ∈ S n>0 is the spring coefficient of the human hand. The exogenous force f ⋆h generated by human muscles is 
+
+f ⋆h = Khqmd + F ⋆h , (3) where qmd , F ⋆h ∈ Rn represent respectively the constant and time-varying part. We assume that F ⋆h ∈ L ∞ ∩ L 2. Likewise, the environment force takes the form 
+
+Fe = Ke(qs, ˙qs)qs, (4) where Ke(qs, ˙qs) ∈ S n>0 is the (state-dependent) stiffness matrix of the environment. In order to improve teleoperation transparency, the contact force Fe is transmitted to the local side instead of a coordinating force. As seen in the linear, scalar setting [13], such a direct contact force feedback may render the remote subsystem (including the remote robot 
+
++ controller + environment) non-passive and can in turn destabilize the closed-loop teleoperation under delays. In order to circumvent this major problem, a multi-input multi-output USP communication law will be established within the communication channel (see Fig. 1) to dissipate excessive energy generated by the remote subsystem. The control inputs for the local and remote robots, em-ploying both gravity compensation and damping injection, are given by 
+
+τm = −Bm(qm, ˙qm) ˙ qm − Fmd + Gm(qm), (5a) 
+
+τs = −Bs1(qs, ˙qs) ˙ qs + Fs + Gs(qs), (5b) where Bm(qm, ˙qm) ∈ Sn>0, Bs1(qs, ˙qs) ∈ Rn×n are (possibly) state-dependent damping matrices. Moreover, the coordinating force is 
+
+Fs = Ks(qs, ˙qs)
+
+Z t
+
+> 0
+
+( ˙ qsd − ˙qs)dτ +Bs2(qs, ˙qs)( ˙ qsd − ˙qs), (6) with Ks(qs, ˙qs), B s2(qs, ˙qs) ∈ Rn×n the integral and pro-portional gains, respectively, where (qsd , ˙qsd ) is the remote command and Fmd is the reflected force at the master side, all produced by the communication law. Substituting (5b) into (1b) under the assumption that qsd (0) = qs(0) , we get the closed-loop dynamics of the remote subsystem 
+
+Ms(qs)¨ qs + C(qs, ˙qs) ˙ qs + K(qs, ˙qs)qs =
+
+Ks(qs, ˙qs)qsd + Bs2(qs, ˙qs) ˙ qsd , (7a) in which 
+
+C(qs, ˙qs) = Cs(qs, ˙qs) + Bs1(qs, ˙qs) + Bs2(qs, ˙qs), (7b) 
+
+K(qs, ˙qs) = Ks(qs, ˙qs) + Ke(qs, ˙qs). (7c) Similarly, by applying (5a) on (1a), we obtain the dynamics of the local subsystem 
+
+Mm(qm)¨ qm + Cm(qm, ˙qm) ˙ qm + Bm(qm, ˙qm) ˙ qm
+
+= −Fmd + Fh. (8) In this paper, by using direct environmental force feed-back, our objective is to design a communication channel so that the closed-loop teleoperation system remains stable in the presence of communication delays while achieving high-fidelity haptic realism. In other words, the main goals are to ensure that:  
+
+> •
+
+qs tracks qm, i.e., the remote robot follows the local one during free motion (i.e., when not resisted by the environment);  
+
+> •
+
+Fh tracks Fe, i.e., the human operator can feel the force exerted by the remote environment on the remote robot during hard contact. To facilitate the analysis, we assume a priori boundedness of the slave motion over possibly large sets. 
+
+Assumption 1: There exist compact sets P, V ⊂ Rn such that qs(t) ∈ P and ˙qs(t) ∈ V for all t ≥ 0.
+
+Remark 1: Assumption 1 requires the slave position and velocity to evolve within compact sets that can be large, while no convergence is assumed. In practice, robotic joints operate within physical limits and the injected damping together with the communication law prevents unbounded velocity growth. Consequently, the slave trajectories remain confined to a bounded region of the state space during normal operation. This assumption ensures that the matrices Ms(qs),
+
+C(qs, ˙qs), etc., remain bounded, which later enables the LMI-based passivity characterization to be verified over the set P × V . Moreover, this assumption is imposed only on the slave (remote) robot, not on the master (local) robot. Since boundedness of all signals is established later, the analysis is not circular. Moreover, the boundedness of qs and 
+
+˙qs established later in Theorem 2 ensures that the trajectories remain inside some compact subset of Rn × Rn, so the sets 
+
+P and V can always be chosen to contain the reachable trajectories. Note that this first assumed boundedness does not guarantee stability (in the sense of arbitrarily bounding solutions by bounding their initial conditions) or asymptotic convergence, and we will later prove in Theorem 2 the convergence to 0 of important signals, which is not assumed. In this spirit, the later results can be stated in a semi-global way, which will be investigated in our future work. Next, we characterize the passivity shortage of the remote subsystem, which will be used to design the USP stabilizing communication law. The following assumptions are made, which are standard in robotic systems [19, Pages 126–127]. 
+
+Assumption 2: The matrix Mi (i ∈ { m, s }) is uniformly invertible as M −1 
+
+> i
+
+. The maps Mi, M −1 
+
+> i
+
+, Ci, Bm, Bs1, Bs2,
+
+Ks, and Ke are C1. There exists bm > 0 such that 
+
+Bm(p, v ) ⪰ bmIn, ∀(p, v ) ∈ Rn × Rn. (9) III. PASSIVITY-SHORTAGE ANALYSIS OF THE NONLINEAR REMOTE SUBSYSTEM In order to quantify the amount of passivity shortage of the remote subsystem (7) when direct environmental contact force feedback is used, the input–output map Fe– ˙qsd will be analyzed. We first define the following augmented states 
+
+x := ( ˙ qs, q s, q sd ) ∈ R3n, (10a) 
+
+z := ( ˙ qs, q s, ˙qsd , q sd ) ∈ R4n. (10b) Let P ∈ S 3n>0 and consider the quadratic storage function 
+
+Vs(x) := x⊤P x. (11) 
+
+Theorem 1 (Passivity shortage of slave): Suppose that Assumptions 1 and 2 hold. Then, along (7), it holds that 
+
+˙Vs(x) ≤ F ⊤ 
+
+> e
+
+˙qsd + α ˙q⊤ 
+
+> sd
+
+˙qsd − λ ˙q⊤ 
+
+> s
+
+˙qs, ∀t ≥ 0, (12) if there exist α > 0, P ∈ S 3n>0, and λ > 0 such that for all 
+
+(p, v ) ∈ P × V , the following LMI is satisfied 
+
+A2(p, v )⊤P A 1 + A⊤ 
+
+> 1
+
+P A 2(p, v ) + A3(p, v ) ⪯ 0, (13a) where the matrices are defined as 
+
+A1 =
+
+
+
+In 0 0 00 In 0 00 0 0 In
+
+ ∈ R3n×4n, (13b) 
+
+A2(p, v ) = 
+
+A2a(p, v ) A2b(p, v ) A2c(p, v ) A2d(p, v )
+
+In 0 0 00 0 In 0
+
+
+
+∈ R3n×4n, (13c) 
+
+A3(p, v ) = 
+
+
+
+λI n 0 0 0
+
+⋆ 0 − 12 Ke(p, v ) 0
+
+⋆ ⋆ −αI n 0
+
+⋆ ⋆ ⋆ 0
+
+ ∈ R4n×4n, (13d) and the sub-matrices of A2(p, v ) are given by 
+
+A2a(p, v ) = −(Ms(p)) −1C(p, v ) ∈ Rn×n, (13e) 
+
+A2b(p, v ) = −(Ms(p)) −1K(p, v ) ∈ Rn×n, (13f) 
+
+A2c(p, v ) = ( Ms(p)) −1Bs2(p, v ) ∈ Rn×n, (13g) 
+
+A2d(p, v ) = ( Ms(p)) −1Ks(p, v ) ∈ Rn×n. (13h) 
+
+Proof: Differentiating Vs(x) = x⊤P x along trajec-tories gives ˙Vs(x) = ˙x⊤P x + x⊤P ˙x. We also have ˙x =(¨ qs, ˙qs, ˙qsd ). From (7) and Assumption 2, we have 
+
+¨qs = −(Ms(qs)) −1C(qs, ˙qs) ˙ qs − (Ms(qs)) −1K(qs, ˙qs)qs
+
++ ( Ms(qs)) −1Bs2(qs, ˙qs) ˙ qsd + ( Ms(qs)) −1Ks(qs, ˙qs)qsd .
+
+Therefore, we get ˙x = A2(qs, ˙qs)z. Using this result and also x = A1z, we deduce that 
+
+˙Vs(x) = z⊤A2(qs, ˙qs)⊤P A 1z + z⊤A⊤ 
+
+> 1
+
+P A 2(qs, ˙qs)z
+
+= z⊤(A2(qs, ˙qs)⊤P A 1 + A⊤ 
+
+> 1
+
+P A 2(qs, ˙qs)) z. 
+
+Since Ke(qs, ˙qs) is symmetric, we obtain 
+
+F ⊤ 
+
+> e
+
+˙qsd = q⊤ 
+
+> s
+
+Ke(qs, ˙qs) ˙ qsd 
+
+= 12 z⊤
+
+
+
+0 0 0 0
+
+⋆ 0 Ke(qs, ˙qs) 0
+
+⋆ ⋆ 0 0
+
+⋆ ⋆ ⋆ 0
+
+ z. 
+
+Moreover, the following properties hold: 
+
+−λ ˙q⊤ 
+
+> s
+
+˙qs = z⊤
+
+
+
+−λI n 0 0 0
+
+⋆ 0 0 0
+
+⋆ ⋆ 0 0
+
+⋆ ⋆ ⋆ 0
+
+ z, α ˙q⊤ 
+
+> sd
+
+˙qsd = z⊤
+
+
+
+0 0 0 0
+
+⋆ 0 0 0
+
+⋆ ⋆ αI n 0
+
+⋆ ⋆ ⋆ 0
+
+ z. 
+
+Collecting the above expressions yields 
+
+˙Vs(x) − (F ⊤ 
+
+> e
+
+˙qsd + α ˙q⊤ 
+
+> sd
+
+˙qsd − λ ˙q⊤ 
+
+> s
+
+˙qs)= z⊤(A2(qs, ˙qs)⊤P A 1 + A⊤ 
+
+> 1
+
+P A 2(qs, ˙qs) + A3(qs, ˙qs)) z. 
+
+By Assumption 1, condition (13a) implies 
+
+A2(qs, ˙qs)⊤P A 1 + A⊤ 
+
+> 1
+
+P A 2(qs, ˙qs) + A3(qs, ˙qs) ⪯ 0
+
+along trajectories. Hence, (12) follows. 
+
+Remark 2: According to Theorem 1, the remote subsys-tem is non-passive with a passivity shortage level of α > 0
+
+and an excessive velocity dissipation −λ < 0 when there exists a constant storage matrix P solving (13a). To relax conservativeness especially in high-DOF robots, the analysis could allow a state-dependent storage matrix P (p, v ). In that case, the storage function for the remote subsystem becomes Vs(x) = x⊤P (qs, ˙qs)x, and a parameter-dependent LMI condition can be deduced, which is more tractable than (13a) thanks to reduced conservativeness. In practice, the LMI (13a) can be solved following either: i) polytopic method [20] (provided that we choose vertices so that (13a) can be written as a convex combination of its vertex values, in exchange for higher conservativeness); or ii) grid-based method [21] (which is less conservative but requires a high enough number of grid points to be verified [22]). Tum
+
+vm
+
+vs
+
+us
+
+˙qsd 
+
+Fmd 
+
+˙qm c12 ++ +−−+
+
+1/d 12 
+
+c22 
+
+c11 
+
+1/c 21 
+
+Fe
+
+d11 
+
+d21 
+
+d22   
+
+> ++Fig. 2. Communication channel governed by a USP wave transformation with vectorized inputs and outputs ( Tis the constant time delay).
+
+IV. WAVE-BASED STABILIZING COMMUNICATION LAW 
+
+A. Structure of Communication Law 
+
+The dissipation inequality (12) derived in the previous section shows that the remote subsystem exhibits a passivity shortage with respect to the port ˙qsd due to direct environ-mental contact force feedback. To guarantee stability of the delayed teleoperation loop, the communication channel must therefore supply an excess level of passivity that compensates for this shortage [13]. In this section, we construct such a communication law by extending the scalar USP wave-transformation framework to vector-valued communication ports for nonlinear multi-DOF robotic manipulators. The vector-valued USP communication structure is illus-trated in Fig. 2. Let b > 0 be the characteristic impedance. Denote γl ≤ 0 and γr ≤ 0 as the excessive level of passivity at the port ˙qm and ˙qsd , respectively. The scattering weights 
+
+cij and dij (i, j ∈ { 1, 2}) are given by [13] 
+
+c11 = b, c12 = bγ l + 14b , (14a) 
+
+c21 = b, c22 = bγ l − 14b , (14b) 
+
+d11 = b, d12 = −bγ r + 14b , (14c) 
+
+d21 = b, d22 = −bγ r − 14b . (14d) From Fig. 2, the vector-valued wave variables um, vm, us,
+
+vs ∈ Rn are described as follows 
+
+um(t) = c11 Fmd (t) + c12 ˙qm(t), (15a) 
+
+vm(t) = c21 Fmd (t) + c22 ˙qm(t), (15b) 
+
+us(t) = d21 Fe(t) + d22 ˙qsd (t), (15c) 
+
+vs(t) = d11 Fe(t) + d12 ˙qsd (t), (15d) together with the delay relations 
+
+vs(t) = um(t − T ), (16a) 
+
+vm(t) = us(t − T ). (16b) By combining the wave definitions with the delay relations, we can express the channel dynamics directly in terms of the physical variables ( ˙ qm, F e, ˙qsd , F md ). Eliminating the wave variables yields the following communication law 
+
+˙qsd (t) = 4b2γl + 1 
+
+−4b2γr + 1 ˙qm(t − T ) + ζ1(t), (17a) 
+
+Fmd (t) = Fe(t − T ) + ζ2(t), (17b) where the residual terms ζ1(t) and ζ2(t) are 
+
+ζ1(t) = 4b2
+
+−4b2γr + 1 (Fmd (t − T ) − Fe(t)) , (17c) 
+
+ζ2(t) = 1
+
+b
+
+
+
+−
+
+
+
+bγ l − 14b
+
+
+
+˙qm(t)+
+
+
+
+−bγ r − 14b
+
+
+
+˙qsd (t − T )
+
+
+
+. (17d) From (17), the following results can be obtained 
+
+˙qsd (t) = δ ˙qsd (t − 2T ) + ∆( t), (18a) where 
+
+δ = −4b2γr − 1
+
+−4b2γr + 1 , (18b) 
+
+∆( t) = 2
+
+−4b2γr + 1 ˙qm(t − T )+ 4b2
+
+−4b2γr + 1 (Fe(t − 2T ) − Fe(t)) . (18c) Thus, the delayed recursion governing ˙qsd has exactly the same form as in the scalar law [13]. 
+
+B. Stability and Transparency of Communication Law 
+
+The stability and transmission properties of the USP communication law follow from the delayed linear recursion satisfied by ˙qsd . The coefficient δ depends only on γr and satisfies 
+
+|δ| < 1 whenever γr < 0. (19) Hence, the recursion (18a) is exponentially stable. We make the following assumption regarding the initial histories. 
+
+Assumption 3: The delayed signals are initialized by bounded continuous histories on [−T, 0] . In particular, um,
+
+us, vm, vs, ˙qm, ˙qsd , Fe, and Fmd are supplied with bounded initial histories wherever required by the delay relations. The next theorem is the nonlinear, multi-DOF version of [13, Theorem 4], which ensures boundedness of signals and especially the asymptotic convergence of velocities. 
+
+Theorem 2 (Closed-loop stability): Suppose that Theo-rem 1 is satisfied with α > 0 and λ > 0, and that Assumptions 2 and 3 hold. If the communication parameter satisfies 
+
+γl ≤ 0, γr < −α, (20) then all signals remain bounded. Moreover, as t → +∞,
+
+˙qm(t) → 0, ˙qs(t) → 0. (21) Proof: Consider the Lyapunov–Krasovskii functional 
+
+V = 12 ˙q⊤
+
+> m
+
+Mm(qm) ˙ qm
+
++ 12 (qmd − qm)⊤Kh(qmd − qm)+ Vs(x) + Vc, (22) where Vs(x) is the storage function from Theorem 1 with 
+
+x = ( ˙ qs, q s, q sd ), and 
+
+Vc =
+
+Z tt−T
+
+(|um(s)|2 + |us(s)|2)ds (23) is the communication-channel storage defined for the gen-eralized wave transformation. Since Mm(qm) ∈ S n>0 for all 
+
+qm ∈ Rn, Kh ∈ S n>0, P ∈ S 3n>0, and Vc ≥ 0, we have 
+
+V (t) ≥ 0, ∀t ≥ 0. (24) We differentiate V in (22) along the closed-loop trajectories. First, we have 
+
+ddt 
+
+ 12 ˙q⊤
+
+> m
+
+Mm(qm) ˙ qm
+
+
+
+= ˙ q⊤
+
+> m
+
+Mm(qm)¨ qm+ 12 ˙q⊤ 
+
+> m
+
+˙Mm(qm) ˙ qm.
+
+Second, since Kh and qmd are constant, we have 
+
+ddt 
+
+ 12 (qmd − qm)⊤Kh(qmd − qm)
+
+
+
+= −(qmd −qm)⊤Kh ˙qm.
+
+Hence, we get 
+
+˙V = ˙ q⊤
+
+> m
+
+Mm(qm)¨ qm + 12 ˙q⊤ 
+
+> m
+
+˙Mm(qm) ˙ qm
+
+− (qmd − qm)⊤Kh ˙qm + ˙Vs(x) + ˙Vc. (25) Next, by the property of Euler–Lagrange systems, ˙Mm(qm)−
+
+2Cm(qm, ˙qm) is skew-symmetric. Hence, 
+
+˙q⊤
+
+> m
+
+ 12 ˙Mm(qm) − Cm(qm, ˙qm)
+
+
+
+˙qm = 0 ,
+
+which implies that 
+
+˙q⊤
+
+> m
+
+Mm(qm)¨ qm + 12 ˙q⊤ 
+
+> m
+
+˙Mm(qm) ˙ qm
+
+= ˙ q⊤
+
+> m
+
+(Mm(qm)¨ qm + Cm(qm, ˙qm) ˙ qm).
+
+Substituting this into (25), we obtain 
+
+˙V = ˙ q⊤
+
+> m
+
+(Mm(qm)¨ qm + Cm(qm, ˙qm) ˙ qm)
+
+− (qmd − qm)⊤Kh ˙qm + ˙Vs(x) + ˙Vc.
+
+Using (8) and the symmetry of Kh, we get 
+
+˙V = − ˙q⊤
+
+> m
+
+Bm(qm, ˙qm) ˙ qm − ˙q⊤
+
+> m
+
+Fmd 
+
++ ˙ q⊤
+
+> m
+
+F ⋆h + ˙Vs(x) + ˙Vc. (26) Differentiating Vc in (23) gives 
+
+˙Vc = u⊤
+
+> m
+
+(t)um(t) + u⊤ 
+
+> s
+
+(t)us(t)
+
+− u⊤
+
+> m
+
+(t − T )um(t − T ) − u⊤ 
+
+> s
+
+(t − T )us(t − T )= u⊤
+
+> m
+
+um − v⊤
+
+> m
+
+vm + u⊤ 
+
+> s
+
+us − v⊤ 
+
+> s
+
+vs. (27) For the master-side port, the wave-variable definitions yield 
+
+u⊤
+
+> m
+
+um − v⊤
+
+> m
+
+vm = ( c211 − c221 )F ⊤
+
+> md
+
+Fmd 
+
++ 2( c11 c12 − c21 c22 )F ⊤ 
+
+> md
+
+˙qm + ( c212 − c222 ) ˙ q⊤ 
+
+> m
+
+˙qm.
+
+Using (14a)-(14b), we get u⊤
+
+> m
+
+um − v⊤
+
+> m
+
+vm = F ⊤ 
+
+> md
+
+˙qm +
+
+γl ˙q⊤ 
+
+> m
+
+˙qm. Similarly, for the slave-side port, 
+
+u⊤ 
+
+> s
+
+us − v⊤ 
+
+> s
+
+vs = ( d221 − d211 )F ⊤ 
+
+> e
+
+Fe
+
++ 2( d21 d22 − d11 d12 )F ⊤ 
+
+> e
+
+˙qsd + ( d222 − d212 ) ˙ q⊤ 
+
+> sd
+
+˙qsd .
+
+Using (14c)-(14d), we get u⊤ 
+
+> s
+
+us − v⊤ 
+
+> s
+
+vs = −F ⊤ 
+
+> e
+
+˙qsd +
+
+γr ˙q⊤ 
+
+> sd
+
+˙qsd . Plugging these into (27), we obtain 
+
+˙Vc = F ⊤ 
+
+> md
+
+˙qm − F ⊤ 
+
+> e
+
+˙qsd + γl ˙q⊤ 
+
+> m
+
+˙qm + γr ˙q⊤ 
+
+> sd
+
+˙qsd . (28) Substituting (12) and (28) into (26) gives 
+
+˙V ≤ − ˙q⊤
+
+> m
+
+Bm(qm, ˙qm) ˙ qm −  F ⊤ 
+
+> md
+
+˙qm + ˙ q⊤
+
+> m
+
+F ⋆h
+
++ ( 
+
+F ⊤ 
+
+> e
+
+˙qsd + α ˙q⊤ 
+
+> sd
+
+˙qsd − λ ˙q⊤ 
+
+> s
+
+˙qs)+ ( F ⊤ 
+
+> md
+
+˙qm − 
+
+F ⊤ 
+
+> e
+
+˙qsd + γl ˙q⊤ 
+
+> m
+
+˙qm + γr ˙q⊤ 
+
+> sd
+
+˙qsd )= − ˙q⊤
+
+> m
+
+(Bm(qm, ˙qm) − γlIn) ˙ qm
+
++ ( γr + α) ˙ q⊤ 
+
+> sd
+
+˙qsd − λ ˙q⊤ 
+
+> s
+
+˙qs + ˙ q⊤
+
+> m
+
+F ⋆h .
+
+Since γl ≤ 0, define βm := bm − γl > 0 with bm from Assumption 2. From (9), we get 
+
+Bm(p, v ) − γlIn ⪰ βmIn, ∀(p, v ) ∈ Rn × Rn,
+
+hence 
+
+˙q⊤
+
+> m
+
+(Bm(qm, ˙qm) − γlIn) ˙ qm ≥ βm| ˙qm|2.
+
+Therefore, we have 
+
+˙V ≤ − βm| ˙qm|2 + ( γr + α)| ˙qsd |2 − λ| ˙qs|2 + ˙ q⊤
+
+> m
+
+F ⋆h . (29) Using Young’s inequality, we have 
+
+˙q⊤
+
+> m
+
+F ⋆h ≤ βm
+
+2 | ˙qm|2 + 12βm
+
+|F ⋆h |2.
+
+Substituting this into (29) yields 
+
+˙V ≤ − βm
+
+2 | ˙qm|2 + ( γr + α)| ˙qsd |2 − λ| ˙qs|2 + 12βm
+
+|F ⋆h |2.
+
+Let −(γr + α) = η > 0. We get 
+
+˙V ≤ − βm
+
+2 | ˙qm|2 − η| ˙qsd |2 − λ| ˙qs|2 + 12βm
+
+|F ⋆h |2. (30) We now integrate both sides of (30) from 0 to t and get 
+
+V (t) − V (0) ≤ − βm
+
+2
+
+Z t
+
+> 0
+
+| ˙qm(s)|2ds − η
+
+Z t
+
+> 0
+
+| ˙qsd (s)|2ds 
+
+− λ
+
+Z t
+
+> 0
+
+| ˙qs(s)|2ds + 12βm
+
+Z t
+
+> 0
+
+|F ⋆h (s)|2ds. (31) Thanks to (24), rearranging terms gives 
+
+βm
+
+2
+
+Z t
+
+> 0
+
+| ˙qm(s)|2ds + η
+
+Z t
+
+> 0
+
+| ˙qsd (s)|2ds + λ
+
+Z t
+
+> 0
+
+| ˙qs(s)|2ds 
+
+≤ V (0) + 12βm
+
+Z t
+
+> 0
+
+|F ⋆h (s)|2ds. (32) Because F ⋆h ∈ L 2, the right-hand side of (32) is bounded uni-formly in t. Letting t → +∞, we conclude that ˙qm, ˙qsd , ˙qs ∈L2. Next, from the fact that V (t) ≥ 0, the integrated inequality also shows that V ∈ L ∞.We next establish boundedness of the state variables from the boundedness of V . Since Kh ∈ S n>0 is constant, boundedness of V implies boundedness of qmd − qm, and since qmd is constant, this implies boundedness of qm.Because Mm(qm) ∈ S n>0 is continuous and qm is bounded, boundedness of V implies boundedness of ˙qm. Similarly since P ∈ S 3n>0, boundedness of Vs(x) implies boundedness of x = ( ˙ qs, q s, q sd ). Thus, qm, ˙qm, q s, ˙qs, q sd are bounded. Since Fh = Kh(qmd −qm)+ F ⋆h , and since qm is bounded and F ⋆h ∈ L ∞ by assumption, it follows that Fh ∈ L ∞.Because (qs, ˙qs) ∈ P × V , Ke is bounded on P × V , and qs
+
+is bounded, it follows from Fe = Ke(qs, ˙qs)qs that Fe ∈ L ∞.Using (18a), we analyze the behavior of ˙qsd . Since ˙qm ∈ L ∞
+
+and Fe ∈ L ∞, it follows from (18c) that ∆ ∈ L ∞. Hence, from the recursion (18a) with |δ| < 1, we obtain ˙qsd ∈ L ∞.Using (17), we then get Fmd ∈ L ∞. We thus get τm ∈ L ∞
+
+and τs ∈ L ∞, and in turn ¨qm ∈ L ∞ and ¨qs ∈ L ∞. By differentiating (18a) and noting that ¨qm, ¨qs, ˙qs ∈ L ∞, we can infer that ¨qsd ∈ L ∞. Because ¨qm, ¨qs ∈ L ∞ and ˙qm, ˙qs ∈ L 2,Barbalat-type arguments (see [23]) imply (21). 
+
+Remark 3: The use of Kh in the functional (22) pre-vents us from considering a state-dependent stiffness, i.e., 
+
+Kh(qm, ˙qm), in (2). Indeed, if this were the case, the derivative ˙Kh would show up in ˙V as some extra terms that are not easy to handle. But note that our results provide sufficient but not necessary conditions. Now that stability is ensured, the next theorem, which is the nonlinear, multi-DOF version of [13, Theorem 5], guarantees teleoperation transparency under appropriate con-ditions. Denote the position and force tracking errors 
+
+eq (t) := qs(t) − qm(t − T ), (33a) 
+
+ef (t) := Fh(t) − Fe(t − T ). (33b) 
+
+Theorem 3 (Teleoperation transparency): Suppose that Theorem 1 is satisfied and the channel is designed as described in Theorem 2. Then, the following statements hold. 1) (Free motion): Assume that Ks(p, 0) is non-singular for all p ∈ P . If γr = − 14b2 and Fe ≡ 0, then 
+
+lim  
+
+> t→+∞
+
+eq (t) = qs(0) − qm(−T ). (34) Thus, if initial positions satisfy qs(0) = qm(−T ),1 then 
+
+eq (t) → 0 as t → +∞; (35) 2) (Hard contact): Assume that Ke is C1 on P × V . If 
+
+¨qm(t) → 0 as t → +∞, then 
+
+ef (t) → 0 as t → +∞. (36)        
+
+> 1As per Assumption 3, initial histories are defined on [−T, 0] (negative time). While the condition qs(0) = qm(−T)is rather restrictive, it is only needed for exact asymptotic synchronization. Otherwise, a constant bias remains as in (34).
+
+Proof: First, we prove the free-motion result. Substi-tuting γr = − 14b2 and Fe ≡ 0 into (18a) yields ˙qsd (t) = ˙qm(t − T ). Integrating and rearranging this give 
+
+qsd (t) − qm(t − T ) = qsd (0) − qm(−T ). (37) Next, we differentiate (7). Since ¨qs, ˙qs, ¨qsd are bounded (from Theorem 2), the jerk ... 
+
+q s is bounded. Hence, ¨qs is uniformly continuous. Because ˙qs(t) → 0 as t → +∞
+
+(from Theorem 2), Barbalat’s lemma [15, Page 323] implies 
+
+¨qs(t) → 0. Taking t → +∞ in the free-motion slave dynamics yields 
+
+Ks(qs(+ ∞), 0)( qs(+ ∞) − qsd (+ ∞)) = 0 .
+
+Because Ks(p, 0) is non-singular for all p ∈ P , we obtain 
+
+qsd (t) − qs(t) → 0. (38) Combining (37) and (38) gives 
+
+lim 
+
+> t→+∞
+
+(qs(t) − qm(t − T )) = qs(0) − qm(−T ).
+
+We now prove the hard-contact result. Taking the limit 
+
+t → +∞ in (8) and using ˙qm(t) → 0 (from Theorem 2) together with the assumption ¨qm(t) → 0 give 
+
+lim 
+
+> t→+∞
+
+(Fh(t) − Fmd (t)) = 0 . (39) Next, we analyze the difference Fe(t) − Fe(t − 2T ). Since 
+
+Fe = Keqs and ˙qs ∈ L ∞ with ˙qs(t) → 0, we obtain using the Lebesgue dominated convergence theorem [24] 
+
+lim 
+
+> t→+∞
+
+(Fe(t) − Fe(t − 2T )) = lim 
+
+> t→+∞
+
+Z tt−2T
+
+˙Fe(s)ds 
+
+=
+
+Z 0
+
+> −2T
+
+lim 
+
+> t→+∞
+
+
+
+Ke(qs(t + s), ˙qs(t + s)) ˙ qs(t + s)+ ˙Ke(qs(t + s), ˙qs(t + s)) qs(t + s)
+
+
+
+ds, 
+
+where ˙Ke(qs, ˙qs) is given by 
+
+˙Ke(qs, ˙qs) = 
+
+> n
+
+X
+
+> i=1
+
+∂K e
+
+∂q s,i 
+
+(qs, ˙qs) ˙ qs,i +
+
+> n
+
+X
+
+> i=1
+
+∂K e
+
+∂ ˙qs,i 
+
+(qs, ˙qs)¨ qs,i ,
+
+where ˙qs,i (resp., ¨qs,i ) is the i-th component of ˙qs (resp., 
+
+¨qs). Because Ke is C1 on P × V compact, Ke and its partial derivatives are bounded on P × V , and since qs is bounded, while ˙qs(t) → 0 and ¨qs(t) → 0, we obtain 
+
+lim 
+
+> t→+∞
+
+(Fe(t) − Fe(t − 2T )) = 0 . (40) Applying (40) together with ˙qm(t) → 0 to (18c), we get that 
+
+∆( t) → 0. Hence, (18a) becomes a stable recursive equation with a vanishing disturbance, implying ˙qsd → 0. Therefore, from (17), we have that 
+
+lim 
+
+> t→+∞
+
+(Fmd (t) − Fe(t − T )) = 0 .
+
+Finally, combining this with (39) yields the second claim. Theorem 3 therefore shows that the proposed communi-cation law achieves asymptotic position transmission in free motion and force transmission during hard contact. Note that condition γr = − 14b2 is not imposed in the hard-contact case. C. Optimization-Based Tuning of Communication Law 
+
+The USP communication law depends on the scattering parameters b and γl (note that for impedance matching we impose γr = − 14b2 < 0). While the condition γr <
+
+0, which determines the excess passivity injected by the communication channel, guarantees stability of the delayed recursion (18a), the particular choice of b and γl can strongly affect transparency and performance. We therefore view the communication law as a parameterized mapping with tunable parameters 
+
+θ := ( b, γ l). (41) For each choice of θ, the communication law (17) generates the signals ˙qsd and Fmd that determine the interaction forces experienced by the human operator. To improve transparency, the parameter θ can be optimized offline so as to improve both position and force tracking between the master and slave sides. We therefore consider the combined weighted objective 
+
+J (θ) = 
+
+Z Tw
+
+> 0
+
+(wq |eq (t)|2 + wf |ef (t)|2)dt, (42) over a time window Tw > 0 larger than the transient phase, where wq ≥ 0 and wf ≥ 0 are normalized weighting coefficients that determine the relative importance of position and force transparency. The optimization problem is then, with α from Theorem 1, 
+
+min  
+
+> θ
+
+J (θ) (43a) s.t. 0 < b < 12√α , γl ≤ 0. (43b) Then, with the obtained b, we take γr = − 14b2 . Note that the constraints (43b) already impose that γr < −α to guarantee stability according to Theorem 2. The parameter γl mainly affects the transmission gain from the master velocity to the slave command and can therefore be tuned to improve transparency. The optimization can be carried out offline using simulation-based evaluation of J (θ), yielding commu-nication parameters that preserve stability while improving transmission. While the optimization uses finite-horizon sim-ulations, stability and transparency are guaranteed beyond the time Tw as long as the parameters found satisfy Theorems 2 and 3. V. NUMERICAL ILLUSTRATION To illustrate the proposed framework, numerical simula-tions are conducted on a nonlinear two-DOF planar manip-ulator for both the master and slave robots. 
+
+A. Robot Dynamics and Simulation Scenario 
+
+Both the master and slave robots are modeled as the same nonlinear Euler–Lagrange system after gravity compensation 
+
+M (q)¨ q + C(q, ˙q) ˙ q + B ˙q = τ + F, (44a) where q = ( q1, q 2) ∈ R2 denotes joint positions and F
+
+denotes the external interaction force (human force for the master and environment force for the slave). The inertia matrix in (44a) is given by [18, Page 165] 
+
+M (q) = 
+
+ 17 4 + 2 cos( q2) 2 + cos( q2)2 + cos( q2) 2
+
+
+
+, (44b) in kg, and the Coriolis matrix is 
+
+C(q, ˙q) = 
+
+− sin( q2) ˙ q2 − sin( q2)( ˙ q1 + ˙ q2)sin( q2) ˙ q1 0
+
+
+
+. (44c) We take Kh = 20 I2 (N /m) and F ⋆h = (0 , 0) (N). The viscous damping matrix is Bm = Bs1 = 0 .5I2 (Ns /m). The coor-dinating force gains are Ks = 100 I2 and Bs2 = 20 I2. This choice of Bs2 corresponds to the parameter selection used in the theoretical development of the USP communication law. Here, the robots are nonlinear and have two DOFs while satisfying standard Euler–Lagrange properties. To simulate both the free-motion and hard-contact cases, we assume that there is a wall with a stiffness of Ke = 100 I2
+
+(which is moderately hard) placed at the position qs = 0 in the negative side (component-wise). As a result, contact is made whenever qs reaches 0 from a positive value, and the actual environment force can be described by 
+
+Fe(qs) = Ke min( qs, 0) , (45) where the minimum is taken component-wise. This corre-sponds to a unilateral contact model in which the slave robot interacts with the environment only when qs penetrates the surface, while no force is applied during free motion. To alternate between these two cases, we let qmd be a periodic step function switching between qmd = ±0.1 (m) with a period of 60 (s), spending half of the period in each mode, which is piece-wise constant. Note that this switching Fe is only for the sake of illustrative simulations and we still treat 
+
+Fe = Keqs in the channel design. We introduce a constant delay T = 0 .2 (s) in both transmission directions. 
+
+B. Passivity Analysis and Communication Law Design 
+
+To evaluate the passivity-shortage condition, with the matrices depending on q2 but not q1 and under assumptions about the boundedness of qs, ˙qs, we solve (13a) on the set P × V = [ −π, π ]2 × [−1, 1] 2 following a grid-based approach [21] with step size 0.1, using YALMIP [25]. We impose λ = 0 .001 and obtain α = 5 .7709 together with a storage matrix P . Although this approach only verifies (13a) at the grid points and not necessarily over the entire set P×V ,it provides a simple approximate certificate for dissipation. To emphasize force transmission, the optimization mini-mizes the cost (42) with wq = 0 and wf = 1 , which is evalu-ated through 120 -second long simulations of the closed-loop teleoperation system at each iteration. The optimization prob-lem is solved using MATLAB’s patternsearch solver, where the variables are constrained in 0.03 ≤ b ≤ 0.09 and 
+
+−25 ≤ γl ≤ − 15 . The optimized parameters that we can find are b = 0 .06 and γl = −20 , leading to γr = −69 .4444 .Notice that since the cost J (θ) is evaluated through time-domain simulations, it is generally non-convex and non-smooth; therefore, gradient-based optimization methods such 0 50 100 00.05 0.1 0 50 100 -0.01 00.01 0.02 Fig. 3. Stable position trajectories and tracking errors between the robots. 0 20 40 60 80 100 120 -4 -2 020 20 40 60 80 100 -5 05
+
+Fig. 4. Force transmission results (first component only; the other one is similar) and force tracking errors. 
+
+as fmincon may exhibit poor performance or convergence issues. Instead, the derivative-free patternsearch iter-atively explores a set of directions on a mesh around the current iterate and accepts steps that decrease the objective function, without requiring gradient information. 
+
+C. Simulation Results 
+
+Fig. 3 shows the resulting closed-loop position trajectories, which remain stable, and the position transmission errors, which can only converge to constant offsets in the hard-contact case. Indeed, the environment’s stiffness prevents the slave’s position from penetrating as far as the master’s. The magnitude of the slave velocities ˙qs is smaller than 0.06 (m /
+
+s), well below the value assumed when solving LMIs. Notice that qs in the simulations changes signs, so we are indeed alternating between free-motion and hard-contact scenarios, with contact made at around 33 (s) and each 60 (s) after that. Fig. 4 presents effective force transmission in both cases, so the human can accurately feel the force exerted by the environment remotely. The root-mean-square error of force tracking over the simulation horizon is found to be 
+
+1.2993 (N). Apart from patternsearch , we have exper-imented with the particleswarm and surrogateopt 
+
+optimization schemes on MATLAB, giving similar or slightly worse results. Our simulation results illustrate transmission of positions in free motion and of forces in hard contact. VI. CONCLUSION This paper addresses bilateral teleoperation between non-linear robots with constant communication delays while directly transmitting the environmental contact force. Apassivity-shortage characterization of the nonlinear slave dynamics is derived, leading to an LMI condition ensuring a dissipation inequality. The USP communication law is then applied to guarantee stability of the delayed teleoperation loop and transparency in position and force transmission under appropriate conditions. The channel parameters are tuned via optimization to improve transparency. Future work will investigate the case of dimension mis-match between master and slave, extended neural network-inspired communication channels [14] capable of transmit-ting richer information such as velocities, as well as experi-mental validation on robotic teleoperation platforms [26]. REFERENCES [1] Y. Yokokohji, T. Imaida, and T. Yoshikawa, “Bilateral teleoperation under time-varying communication delay,” in IEEE/RSJ International Conf. on Intelligent Robots and Systems , vol. 3, 1999, pp. 1854–1859. [2] R. J. Anderson and M. W. Spong, “Bilateral control of teleoperators with time delay,” in IEEE International Conference on Systems, Man, and Cybernetics , vol. 1, 1988, pp. 131–138. [3] R. Anderson and M. Spong, “Bilateral control of teleoperators with time delay,” IEEE Trans. Aut. Ctrl. , vol. 34, no. 5, pp. 494–501, 1989. [4] G. Niemeyer and J.-J. Slotine, “Stable adaptive teleoperation,” IEEE Journal of Oceanic Engineering , vol. 16, no. 1, pp. 152–162, 1991. [5] R. Lozano, N. Chopra, and M. W. Spong, “Passivation of force re-flecting bilateral teleoperators with time varying delay,” in Proceedings of the 8. Mechatronics Forum , no. 954-962. University of Twente Enschede, The Netherlands, 2002, pp. 24–26. [6] N. A. Tanner and G. Niemeyer, “Improving perception in time-delayed telerobotics,” The International Journal of Robotics Research , vol. 24, no. 8, pp. 631–644, 2005. [7] N. Chopra, M. W. Spong, R. Ortega, and N. E. Barabanov, “On tracking performance in bilateral teleoperation,” IEEE Transactions on Robotics , vol. 22, no. 4, pp. 861–866, 2006. [8] A. Aziminejad, M. Tavakoli, R. V. Patel, and M. Moallem, “Transpar-ent time-delayed bilateral teleoperation using wave variables,” IEEE Trans. Control Systems Technology , vol. 16, no. 3, pp. 548–555, 2008. [9] S. Hirche, T. Matiakis, and M. Buss, “A distributed controller ap-proach for delay-independent stability of networked control systems,” 
+
+Automatica , vol. 45, no. 8, pp. 1828–1836, 2009. [10] E. Nu˜ no, L. Basa˜ nez, and R. Ortega, “Passivity-based control for bilateral teleoperation: A tutorial,” Automatica , vol. 47, no. 3, pp. 485– 495, 2011. [11] I. G. Polushin, “A generalization of the scattering transformation for conic systems,” IEEE Transactions on Automatic Control , vol. 59, no. 7, pp. 1989–1995, 2014. [12] D. Lawrence, “Stability and transparency in bilateral teleoperation,” 
+
+IEEE Trans. Robotics & Automation , vol. 9, no. 5, pp. 624–637, 1993. [13] H. D. Tho and T. Miyoshi, “On stabilizing communication law for bilateral teleoperations,” IEEE Transactions on Automatic Control ,vol. 68, no. 12, pp. 8134–8141, 2023. [14] H. D. Tho, N. V. Hao, and T. Miyoshi, “Force-receptive scattering transformation for bilateral teleoperations,” Automatica , vol. 189, p. 112987, 2026. [15] H. K. Khalil, Nonlinear systems . Upper Saddle River, NJ: Prentice Hall, 2002. [16] E. Nu˜ no, R. Ortega, N. Barabanov, and L. Basa˜ nez, “A globally stable pd controller for bilateral teleoperators,” IEEE Transactions on Robotics , vol. 24, no. 3, pp. 753–758, 2008. [17] N. Chopra, M. W. Spong, and R. Lozano, “Synchronization of bilateral teleoperators with time delay,” Automatica , vol. 44, no. 8, pp. 2142– 2148, 2008. [18] R. M. Murray, Z. Li, and S. S. Sastry, A mathematical introduction to robotic manipulation , 1st ed. Boca Raton: CRC Press, 1994. [19] F. L. Lewis, D. M. Dawson, and C. T. Abdallah, Robot manipulator control: Theory and practice , 2nd ed. NY: Marcel Dekker, 2004. [20] P. Apkarian, P. Gahinet, and G. Becker, “Self-scheduled H∞ control of linear parameter-varying systems: A design example,” Automatica ,vol. 31, no. 9, pp. 1251–1261, 1995. [21] F. Wu, “Control of linear parameter varying systems,” Ph.D. disserta-tion, University of California, Berkeley, 1995. [22] A. Sferlazza, S. Tarbouriech, and L. Zaccarian, “Time-varying sampled-data observer with asynchronous measurements,” IEEE Transactions on Automatic Control , vol. 64, no. 2, pp. 869–876, 2019. [23] B. Farkas and S.-A. Wegner, “Variations on Barbalat’s lemma,” 
+
+American Mathematical Monthly , vol. 123, no. 8, p. 825 – 830, 2016. [24] D. R. Sherbert and R. G. Bartle, Introduction to real analysis . J. Wiley, 1992. [25] J. L¨ ofberg, “YALMIP : A toolbox for modeling and optimization in MATLAB,” in In Proc. of CACSD Conference , Taipei, Taiwan, 2004. [26] Y. Pattanapong, T. Mikami, H. D. Tho, and T. Miyoshi, “A coupled unilateral teleoperation system using an omnidirectional mobile robot haptic interface,” IEEE Access , vol. 13, pp. 170 454–170 474, 2025.

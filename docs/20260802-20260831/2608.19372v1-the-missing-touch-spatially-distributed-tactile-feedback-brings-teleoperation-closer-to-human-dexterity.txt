@@ -1,0 +1,752 @@
+Title: The Missing Touch: Spatially Distributed Tactile Feedback Brings Teleoperation Closer to Human Dexterity
+
+URL Source: https://arxiv.org/pdf/2608.19372v1
+
+Published Time: Fri, 21 Aug 2026 00:12:24 GMT
+
+Number of Pages: 41
+
+Markdown Content:
+# The Missing Touch: Spatially Distributed Tactile Feedback Brings Teleoperation Closer to Human Dexterity 
+
+## Rohan Kota, Gregory Reardon ∗, J. Edward Colgate ∗
+
+Center for Robotics and Biosystems, Northwestern University, Evanston, IL. 
+
+> ∗
+
+Equal contribution 
+
+A fundamental challenge in robotic teleoperation is enabling an operator to control a remote robot as effortlessly and intuitively as their own hands. De-spite the growing use of teleoperation to collect demonstration data for training autonomous robot policies, teleoperated robot performance still falls significantly short of human dexterity, even for basic tasks. Here, we present evidence that a key factor contributing to this performance gap is the absence of spatially distributed tactile feedback. Using a two-degree-of-freedom (DoF) bilateral force-feedback telemanipulator paired with a 32-DoF tactile fingertip display, we show that op-erator performance improves significantly when localized deformations on the remote manipulator are faithfully reproduced on the operator’s fingertip. In a se-ries of teleoperation tasks, reproducing distributed contact information not only accelerated task performance but also brought teleoperated movements closer to natural human behavior by minimizing corrective actions and task completion steps, thereby reducing the deviation between teleoperated and natural trajecto-ries by 29–79%. Furthermore, we found that increasing the resolution of the tactile feedback—by refining how finely the measured displacements were quantized for reproduction—compressed the state-space distribution of teleoperated motions, 
+
+1arXiv:2608.19372v1 [cs.RO] 19 Aug 2026 which has been associated with improved training outcomes for autonomous robot policies. Together, these results suggest that spatially distributed tactile feedback is essential for closing the gap between human and teleoperated dexterity and training the next generation of autonomous robots. 
+
+When a person reaches for a cup, they produce a movement of striking regularity: their hand follows a smooth, bell-shaped velocity profile ( 1–3 ), settles onto the handle without overshoot, and grips with just enough force to prevent slip ( 4). Human manipulation is fast, efficient, and robust to external disturbances, avoiding large unnecessary movements and exhibiting low variability and failure rates. A key contributor to this performance is the spatially distributed nature of touch ( 5), which provides continuous information about contact location, pressure distribution, and incipient slip at the fingertips. When this cutaneous information is removed by anesthetizing the fingertips, however, manipulation degrades sharply: people grip objects much harder than necessary, drop them more frequently, and rely increasingly on vision to compensate ( 6–9 ). Robotic teleoperation ( 10–13 ) has become a major pathway for transferring human manipu-lation skills to robots ( 12, 14–17 ). Yet despite decades of work on force feedback during robotic teleoperation ( 18–21 ), without spatially resolved cutaneous cues at the fingertip, operators experi-ence a sensory deficit similar to fingertip anesthesia: they feel interaction forces but not the local contact patterns that normally guide manipulation. As a result, they exhibit many of the same compensatory behaviors observed under cutaneous anesthesia ( 8, 9 ), producing demonstrations that are slower ( 22–26 ), less accurate ( 27 ), and characterized by more corrective movements than direct manipulation (Fig. 1A). Autonomous policies trained on such demonstrations inherit these inefficiencies, executing tasks more slowly and less accurately, along trajectories that depart from the smooth and efficient motions characteristic of unmediated human movement. Improving the naturalness of teleoperated demonstrations can therefore improve the quality of the data from which autonomous policies learn. Rather than reproducing distributed contact deformations at the fingertip, many researchers have used the cutaneous channel to render low-dimensional force information through vibrotactile or electrotactile stimulation ( 25–27 ), skin-stretch displays ( 28, 29 ), or uniformly tilting platforms mounted on the fingertip ( 22–24 ). Although rendering force information through the cutaneous channel has been shown to improve task speed and accuracy ( 22,24,27,30 ), these outcome measures 2AE
+
+BVertical DoF Horizontal DoF Motor CD 
+
+> Full 2D 1D Off
+> Increasing Feedback Resolution
+> Task
+> Naturalness Speed Accuracy Teleoperation gap Human Teleoperation
+> Human Teleoperation
+
+Figure 1 : Spatially distributed cutaneous feedback improves naturalness of teleoperated mo-tion. (A) Humans performing tasks through a robotic teleoperation system (green) move more slowly, less accurately, and less naturally than during direct manipulation (orange). Although prior works demonstrate that haptic feedback reduces the teleoperation gap in speed and accuracy, clos-ing it fully requires restoring natural movement patterns (dashed arrow). ( B) Participants used a 2-degree-of-freedom (DoF) leader-follower teleoperation device with bilateral kinesthetic force feedback, driven by brushless DC motors and capstan transmissions. The device allows teleoper-ators to move in the vertical and horizontal directions. ( C) A vision-based tactile sensor serving as the robot “finger” records spatially distributed contact during interaction with the environment. (D) A 32-DoF cutaneous shape display reproduces this distributed contact information on the operator’s fingertip via controlled inflation of small elastic domes. ( E) Teleoperated movement patterns converge toward natural human movements as the spatial resolution of cutaneous feedback increases. Renderings of the tactile displays illustrate the four feedback conditions: Off (left panel): no cutaneous feedback; 1D (second panel): uniform inflation across the display upon contact; 2D 
+
+(third panel): independent inflation of the upper and lower display halves based on contact location; 
+
+Full (right panel): localized inflation matching the distribution of contact on the robot finger. 3leave the underlying movement patterns of teleoperated behavior largely unexamined. While the temporal and kinematic structure of direct manipulation has been studied extensively ( 1–3 ), the extent to which teleoperated behavior departs from these natural movement patterns—and the factors that might narrow that gap—remains poorly understood. Here, we investigate whether reproducing spatially distributed fingertip deformations can make teleoperated behavior more closely resemble natural human manipulation. Modern robotic hands increasingly incorporate high-resolution tactile sensors, such as vision-based sensors ( 31–33 ), capable of capturing dense contact geometry. Such information has proven valuable for autonomous manipulation, substantially improving performance in contact-rich tasks and increasing imitation-learning success rates ( 34–38 ). However, these rich tactile measurements are rarely conveyed to human operators during teleoperation. Although prior teleoperation systems have rendered robot-side contact data through the cutaneous channel ( 22–24 ), these approaches effectively collapse a spatially distributed signal into a low-dimensional cue. However, recent advances in electro-osmotic actuation ( 39 ) provide a potential alternative by enabling highly localized skin deformation at the fingertip. In this work, we integrate a tactile display with high spatial resolution into a custom 2-degree-of-freedom (DoF) telemanipulation system (Fig. 1B) that also provides kinesthetic force feedback via bilateral control. Local deformations measured by a vision-based tactile sensor (GelSight Inc., Waltham, MA, USA; Fig. 1C) on the robot finger are mapped to corresponding deformation patterns on a 32-DoF cutaneous shape display (Fluid Reality, Chicago, IL, USA) under the operator’s finger-tip (Fig. 1D). To our knowledge, this is the first teleoperation system to relay localized deformations from a robot fingertip to a human fingertip in this manner. To quantify behavioral naturalness, we compare teleoperated trajectories with trajectories from direct human manipulation using dynamic time warping (DTW) ( 40 ). Across two behavioral studies—a button discrimination task and a peg-rolling task—we systematically vary the spatial resolution of the conveyed tactile signal and find that finer spatial feedback produces teleoperated trajectories that more closely resemble natural human movement (Fig. 1E). We further show that spatially distributed cutaneous feedback shrinks the state space covered by teleoperated demonstrations and improves trajectory consistency across teleoper-ators with varying skill levels, reducing both within- and between-operator variability—properties that have been linked to improved learning performance in autonomous robot policies ( 41, 42 ). 4Together, these results suggest that preserving the spatial structure of tactile information can make teleoperated demonstrations faster, more human-like, and more consistent, providing higher-quality data for training autonomous robot policies. 
+
+## Results 
+
+To evaluate the effects of high-resolution, spatially distributed tactile feedback on teleoperated manipulation, we conducted two experiments using a 2-DoF leader-follower telemanipulator. Lo-calized deformations measured at the robot fingertip were reproduced via a 32-DoF tactile display. We systematically varied the spatial fidelity of the tactile feedback across four conditions (Fig. 1E): 
+
+• Off : No cutaneous feedback 
+
+• 1D : All-in-phase cutaneous feedback 
+
+• 2D : Two regions of cutaneous feedback 
+
+• Full : Fully localized cutaneous feedback In both experiments, participants completed 48 trials (12 per feedback condition), and per-formance was quantified using both general and task-specific metrics. Participants also received kinesthetic force feedback across all cutaneous feedback conditions ( 43 ). Before each experiment, participants completed the task with their bare finger in order to facilitate comparison between teleoperated and natural trajectories (see Materials and Methods). 
+
+Spatially resolved feedback produces more natural teleoperated movements 
+
+Humans routinely complete fine-motor tasks without direct visual attention—adjusting the volume on a smartphone, or pressing buttons on a television remote—by leveraging spatially varying feedback from across the fingerpad ( 44 ). Reproducing this spatial structure in teleoperation should, in turn, allow teleoperators to re-engage those same strategies and perform tasks as naturally as they would with their own hands. To evaluate this hypothesis, 12 participants were asked to push one of two adjacent buttons, spaced 1 cm apart, without vision—a task that demands high operator precision, since imprecise finger positioning can depress both buttons at once (Fig. 2A). 5Off 1D 2D Full Bx-position [mm] time [s] Off 1D 2D Full Direct Min Distance Max Distance 
+
+A Switchback Max Overshoot 1400 040 0.6 2.4 30180 0000 0000
+
+C DE F                   
+
+> 10 915 23 58 7*** *** *** *** *** *** *** *** *** *Off 1D 2D Full Off 1D 2D Full Off 1D 2D Full Off 1D 2D Full Std DTW Distance [mm] Mean Overshoot [mm] DTW Distance (Normalized) Completion Time (Normalized)
+> Button 1 Button 2
+> *** *** *
+> 1 cm 2.5 cm
+> +x
+
+Figure 2 : Button discrimination task experimental results. Box plots show median (center line), interquartile range (box), 1.5 × interquartile range (whiskers), and outliers (circles). Unless otherwise noted, pairwise comparisons were performed between the Full condition (orange) and the Off (blue), 1D (purple), and 2D (magenta) conditions (stars indicate statistical significance). (A) Participants were asked to press one of two nearby buttons separated by 1 cm without visual feedback. Idealized trajectories illustrate characteristic movement patterns observed under each feedback condition. ( B) Trajectory of median distance from the participant’s baseline trajectory (red) for each feedback condition (target: Button 2; odd-numbered participants shown). When participants received no cutaneous feedback, they frequently overshot the button and reversed directions (“switchbacks”). Higher resolutions of cutaneous feedback produced trajectories with a smaller DTW distance to the participants’ baseline trajectory (darker lines). Shaded region: button location. ( C) Box plots of participants’ mean overshoot distance for each condition. ( D) Box plots of participants’ mean DTW distance for each condition, normalized by their mean distance across all trials. Pairwise comparisons were performed between all six feedback-condition pairs. ( E) Box plots of within-participant standard deviation of DTW distance. ( F) Box plots of participants’ mean completion time for each condition, normalized by their mean completion time across all trials. Pairwise comparisons were performed between all six feedback-condition pairs. 6Fully localized cutaneous feedback brought teleoperated behavior markedly closer to natural human performance. During direct task execution, participants followed largely ballistic trajectories toward the target button (Fig. 2B; red traces). Without cutaneous feedback, however, participants developed idiosyncratic strategies to complete the task, such as pressing randomly at various in-crements until the correct button was pushed (Fig. 2A, blue line). Coarser feedback helped, but still forced operators to overshoot and then reverse direction to isolate the target button without depressing its neighbor (Fig. 2A, purple and magenta lines). These detours resulted in teleoper-ated trajectories that exhibited larger overshoots (Fig. 2C) and more frequent direction reversals (“switchbacks”), sometimes several per trial (Fig. 2A, B). Full feedback pulled both measures back toward the natural pattern, significantly reducing the average overshoot ( 𝑝 < 0.001; Table S1) and switchback count ( 𝑝 ≤ 0.007; Table S2) relative to the Off , 1D , and 2D conditions. To compare the direct and teleoperated movements more comprehensively, we computed the dynamic time warping (DTW) distance between each teleoperated trajectory and its direct manipu-lation counterpart, with smaller DTW distances indicating closer agreement with natural movement patterns. DTW distance was strongly modulated by feedback resolution ( 𝑝 < 0.001; Fig. 2D); every feedback level ( 1D , 2D , Full ) produced significantly smaller DTW distances than the Off condition (𝑝 < 0.001), but improving naturalness beyond the 1D level required the high spatial resolution of the Full condition ( 𝑝 = 0.014; Table S3). Notably, within-participant variability of DTW distance in the Full condition was also significantly lower than in the 2D (𝑝 = 0.013), 1D (𝑝 < 0.001), and Off (𝑝 < 0.001) conditions, indicating that full localization not only produced faster and more natural trajectories, but did so more consistently (Fig. 2E; Table S4). Completion time was likewise affected by feedback condition ( 𝑝 < 0.001; Fig. 2F): any level of cutaneous feedback accelerated task execution relative to the Off condition ( 𝑝 < 0.001; Ta-ble S5). Unlike the DTW distance, however, the difference in completion times between the 
+
+1D and Full conditions did not reach significance after correction for multiple comparisons (𝑝 = 0.025 , 𝑝 adj = 0.074), suggesting that while cutaneous feedback broadly accelerated task execution, higher feedback resolution yielded comparatively larger benefits for trajectory natural-ness than for speed. Additionally, although Full feedback completion times were not significantly faster than in 1D or 2D feedback, spatially distributed feedback significantly lowered the variability in task completion time compared to the 2D (𝑝 = 0.003), 1D (𝑝 = 0.003), and Off (𝑝 < 0.001) 7conditions (Table S6). 
+
+Spatially distributed feedback improves dynamic manipulation 
+
+In the button task, cutaneous feedback played a dominant role because kinesthetic cues reveal little about which button lies beneath the fingertip. To evaluate whether the benefits of spatially distributed feedback generalize to manipulation settings where cutaneous cues are less essential, 10 participants were asked to perform a peg-rolling task in which they rolled a peg forward until it reached a hard stop, then backward to its starting position (Fig. 3A). Unlike the button discrimination task, this task does not involve multi-point tactile discrimination, and kinesthetic forces generated during contact with the peg provide more informative feedback about finger position. As in the button task, participants completed 48 trials across 4 feedback conditions (12 per feedback condition). Task completion consisted of a series of forward strokes punctuated by “loopbacks” that reset the finger relative to the peg (Fig. 3A, blue and orange lines). Optimal rolling therefore depended on a clear sense of where the finger sat relative to the peg, and the behavioral data suggest that full-resolution feedback supported this sense most effectively. This is evident in the prototypical trajectories taken from a single participant (Fig. 3B). In the Full condition, the participant completed the task in fewer strokes (Fig. 3B, green lines); a clear sense of how far the peg had rolled across their finger allowed them to reposition their finger optimally (Fig. 3B, blue lines) and maximize the length of the next stroke. In the 2D condition, the participant was less certain of the peg’s location and consequently produced wasted motion by rolling off the peg (Fig. 3B, red lines). In the 1D 
+
+and Off conditions, this uncertainty grew, and the participant tended to slip farther off the peg and onto the surface beneath. The Off condition was the most severe: with no sense of the peg’s position relative to the finger, the participant often looped back by the wrong amount and missed the peg entirely, producing spurious motions (Fig. 3B, gray lines). Aggregated across all trials and participants, the Full condition produced significantly fewer roll-offs onto the underlying surface (𝑝 ≤ 0.039; Table S7), significantly longer strokes ( 𝑝 ≤ 0.004; Fig. 3C; Table S8), and significantly fewer strokes than any other condition ( 𝑝 ≤ 0.014; Fig. 3D; Table S9). We then compared participants’ teleoperated trajectories to their direct manipulation counter-part. The differences in stroke length, number of strokes, and frequency of roll-offs were reflected in the DTW distances, which were strongly modulated by feedback resolution ( 𝑝 < 0.001; Fig. 3E). 8B
+
+> 716 20 40
+
+C D
+
+> **
+
+E FG H
+
+Off Full 
+
+> Stroke Length Loopback
+
+A                             
+
+> 0120 040
+> Off 1D 2D Full
+> x-position [mm] y-position [mm] Stroke Loop
+> Slip Misc
+> Average Strokes Per Trial Average Stroke Length [mm] DTW Distance (Normalized) Std Completion Time [s] Completion Time (Normalized) 0.5 1.5 Std DTW Distance [mm] 0500 0.5 1.5 Off 1D 2D Full 30 0Off 1D 2D Full Off 1D 2D Full Off 1D 2D Full Off 1D 2D Full Off 1D 2D Full *** *** *** *** ** *** *** *** *** ***** ** ** ** ** ** ** **
+> Slip
+> +x +y
+
+Figure 3 : Peg rolling task experimental results. Box plots show median (center line), interquartile range (box), 1.5 × interquartile range (whiskers), and outliers (circles). Unless otherwise noted, pairwise comparisons were performed between the Full condition (orange) and the Off (blue), 
+
+1D (purple), and 2D (magenta) conditions (stars indicate statistical significance). ( A) Participants were asked to roll a peg forward to a hard stop and then backward to its starting position. Task completion consisted of a series of rolling strokes punctuated by “loopbacks” to reset the finger relative to the peg. ( B) Prototypical trajectories from one participant during the forward-rolling phase, segmented into rolling strokes (green), loopbacks (blue), finger slips past the peg (red), and miscellaneous movements (gray). Example cutaneous-display activation patterns are shown at the beginning (triangle), middle (circle), and end (star) of a stroke. ( C) Box plots of participants’ mean stroke length for each condition. ( D) Box plots of participants’ mean number of strokes per trial for each condition. ( E) Box plots of participants’ mean DTW distance for each condition, normalized by their mean distance across all trials. Pairwise comparisons were performed between all six feedback-condition pairs. ( F) Box plots of within-participant standard deviation of DTW distance. ( G) Box plots of participants’ mean completion time for each condition, normalized by their mean completion time across all trials. Pairwise comparisons were performed between all six feedback-condition pairs. ( H) Box plots of within-participant standard deviation of completion time. 9Score [1-7] Q4 Frustration Q3 Difficulty Q2 Mental Demand Q1 Performance 1234567***** **** *** *Off 1D 2D Full 
+
+> A
+> Q4 Frustration Q3 Difficulty Q2 Mental Demand Q1 Performance 1234567Score [1-7] ****B
+
+Figure 4 : Post-experiment questionnaire results. After completing each task, participants com-pleted a modified NASA-TLX questionnaire, rating perceived performance (Q1), mental demand (Q2), task difficulty (Q3), and frustration (Q4) on a 7-point scale (1 = not at all, 7 = very). Box plots show median (center line), interquartile range (box), 1.5 × interquartile range (whiskers), and out-liers (circles). ( A) Responses for the button discrimination task. ( B) Responses for the peg-rolling task. Both 2D and Full feedback yielded significantly smaller DTW distances (i.e., more natural trajec-tories) than the Off condition ( 𝑝 < 0.001), and Full feedback produced more natural trajectories than both the 1D (𝑝 < 0.001) and 2D (𝑝 = 0.003) conditions (Table S10). Consistency followed the same pattern as the button task: within-participant variability under Full feedback was significantly lower than in any of the other conditions ( 𝑝 ≤ 0.005; Fig. 3F; Table S11). Completion time was also strongly affected by feedback resolution ( 𝑝 < 0.001; Fig. 3G). Both 2D and Full feedback produced faster completions than the Off condition ( 𝑝 < 0.001); Full 
+
+feedback outpaced both 1D and 2D (𝑝 < 0.001); and 2D in turn was faster than 1D (𝑝 = 0.001; Table S12). Completion times under Full feedback were also more consistent than those under the coarser feedback conditions ( 𝑝 = 0.003; Fig. 3H; Table S13). 10 Improvements in naturalness co-occur with perceived reductions in mental demand 
+
+The gains in naturalness were accompanied by a reduction in self-reported effort. In post-experiment questionnaires, participants rated their perceived performance (Q1), the task’s mental demand (Q2) and difficulty (Q3), and their frustration during the task (Q4) under each feedback condition. Most notably, participants reported progressively lower mental demand as feedback resolution increased (Fig. 4, Q2; Tables S14 and S15). The co-occurrence of lower cognitive load with more natural, lower-variability trajectories suggests that high-resolution feedback may allow operators to engage the sensorimotor control strategies they already use in natural manipulation, rather than recruiting deliberate, cognitively costly strategies to interpret an impoverished feedback signal. 
+
+Implications for learning from demonstration 
+
+Spatially distributed cutaneous feedback also improves the consistency and quality of datasets used for training autonomous robot policies. Prior work has shown that policy learning benefits from datasets whose trajectories occupy a smaller state space ( 42 ). We found that spatially distributed cutaneous feedback not only made teleoperation trials more natural, but also increased their consis-tency, resulting in a more compact state-space distribution. In the button task, spurious motions and incorrect button presses expanded the state-space coverage under the uniform or absent feedback conditions (Fig. 5A). In the peg-rolling task, the reduction in slips off the peg decreases occupancy of the lower region of the state space (Fig. 5B). To further visualize trajectory distributions for the peg-rolling task, we generated occupancy heat maps for each feedback condition (Fig. 5C). These heat maps reveal a more concentrated state-space distribution when participants received spatially distributed cutaneous feedback. To quantitatively assess trajectory consistency, we computed pairwise DTW distances between all trials within each feedback condition for every participant (Fig. 5D, E). These pairwise distances were then averaged within each participant to obtain a single measure of inter-trial variability per condition. Within participants, inter-trial DTW distance—a measure of trajectory variability— was significantly lower under spatially distributed cutaneous feedback compared to no cutaneous feedback, indicating more consistent demonstrations ( 𝑝 ≤ 0.003; Tables S16 and S17). We then evaluated whether this effect extends to multi-operator datasets, where variability in 11 1D Off 2D Full 
+
+> x-position [mm] y-position [mm]
+> 12 34
+
+A 
+
+> 0160
+> Button Location
+
+B          
+
+> 535 y-position [mm] x-position [mm] 0120
+> x-position [mm] 0120 535 y-position [mm] ≤1.2x10 110 210 3Off 1D 2D Full 01500 Mean Inter-Trial DTW Distance [mm] (Button Task) Inter-Trial DTW Distances [mm] (Button Task) 04500 Off 1D 2D Full
+
+D FC
+
+> 100 700 Mean Inter-Trial DTW Distance [mm] (PegTask)
+
+E       
+
+> Inter-Trial DTW Distances [mm] (Peg task) Off 1D 2D Full 02700 Off 1D 2D Full Q3: 290 Q3: 390 Q3: 461 Q3: 504 Q3: 105 Q3: 104 Q3: 176 Q3: 642
+
+G
+
+> ** ** **  *** *** *** *** *** *** *** Count
+
+Figure 5 : Improving dataset consistency for autonomous policy training. Aggregating demon-strations collected with higher-resolution cutaneous feedback produces more concentrated trajectory distributions and reduced inter-trial variability. ( A) Overlaid trajectories from all participants and trials in the button discrimination task (target: Button 2) for each feedback condition. ( B) Overlaid trajectories from all participants and trials in the peg-rolling task (forward roll only) for each feed-back condition. ( C) State-space occupancy heatmaps for the peg-rolling task. Higher-resolution feedback yields a more concentrated state space distribution. ( D) Box plots of mean pairwise DTW distance between trials from the same participant in the button discrimination task. Box plots show median (center line), interquartile range (box), 1.5 × interquartile range (whiskers), and outliers (circles). ( E) Box plots of mean pairwise DTW distance between trials from the same participant in the peg-rolling task. Box plot details: see above. ( F) Violin plots of all pairwise inter-trial DTW distances in the button discrimination task. Solid lines indicate medians and dashed lines indicate upper and lower quartiles. The upper quartile DTW distance is noted next to each of the respective plots. ( G) Violin plots of all pairwise inter-trial DTW distances in the peg-rolling task. Violin plot details: see above. 12 teleoperation skill can increase dataset heterogeneity and degrade policy learning ( 41 ). Participants in our study reported a wide range of prior teleoperation experience, reflected by the variability in mean DTW distances and task completion times across participants (Fig. 2D, F; Fig. 3E, G; Tables S18 and S19). To evaluate the effect of feedback on multi-operator datasets, we combined demonstrations from all participants to construct one dataset per feedback condition for each task (Fig. 5A, B) and computed DTW distances between all pairs of trials. Trajectory variability in the spatially distributed feedback dataset was substantially lower than in all other conditions ( 𝑝 < 0.001; Fig. 5F, G), indicating more consistent aggregated demonstrations that are better suited for policy learning. 
+
+## Discussion 
+
+Across two tasks, we found that the spatial resolution of cutaneous feedback shapes not only how quickly teleoperators complete a task, but how closely their movements resemble natural, unmediated human manipulation. Highly localized ( Full ) cutaneous feedback drew teleoperated trajectories significantly closer to those produced during direct manipulation (Fig. 2B, D; Fig. 3B, E) and did so more consistently across trials than coarser or absent feedback (Fig. 2E; Fig. 3F). Whereas prior work has largely established that haptic feedback accelerates teleoperated task completion ( 22–24,26 ), our results show that the resolution of that feedback substantially influences the naturalness of the resulting motion. Additionally, spatially distributed feedback improves the quality of datasets used to train au-tonomous robot policies. Prior studies have shown that policy learning can be hindered by demon-strations exhibiting excessive variability, diffuse state-space coverage, or large differences in opera-tor proficiency ( 41, 42 ). Consistent with this, we found that spatially distributed feedback produced trajectories with more concentrated state-space occupancy (Fig. 5A, B, C) and greater consistency both within (Fig. 5D, E) and across (Fig. 5F, G) operators. 
+
+The value of feedback resolution depends on task Kinesthetic interactions. Although spatially distributed cutaneous feedback consistently im-proved performance across both tasks, the magnitude and nature of the benefit depended on the task 13 itself. One task-dependent factor was the degree of redundancy between kinesthetic and cutaneous information, as uniform cutaneous feedback becomes redundant with kinesthetic force cues when the two are aligned. In the peg-rolling task, many participants reported that the uniform 1D feedback felt very similar to the Off condition. We attribute this to redundancy with kinesthetic cues: pushing down on the peg transmits forces through the telemanipulator that already deform the operator’s fingerpad uniformly, supplying much of what the spatially uniform 1D rendering would convey. Consistent with this interpretation, the reduction in DTW distance ( 𝑝 = 0.059) and completion time from Off to 1D (𝑝 = 0.112) were both insignificant. In the button discrimination task, by contrast, kinesthetic cues carried little information about button location, leaving the cutaneous channel as the dominant source of task-relevant information; there, even uniform 1D feedback produced large and highly significant improvements over Off in both naturalness ( 𝑝 < 0.001) and speed ( 𝑝 < 0.001). The redundancy of kinesthetic and uniform cutaneous cues motivates sensory subtraction approaches, in which spatially uniform cutaneous deformation is used to convey force information in place of kinesthetic feedback ( 22–24 ). Our results add an important qualification: when tactile feedback provides spatially distributed information about the contact, it provides information that is distinct from and complementary to kinesthetic feedback. The added spatial information can accelerate task completion and yield trajectories that are significantly more natural and consistent. 
+
+Feature size. In some cases, coarser feedback levels can help amplify small features. In the button task, although many participants found Full feedback the most intuitive, some reported that 2D was easier to interpret: under Full feedback, each small button inflated only a few pixels on the cutaneous display, whereas the coarser 2D rendering expanded the size of each button to half the display. Accordingly, Full feedback provided little additional benefit over 2D (naturalness, 
+
+𝑝 = 0.244; speed, 𝑝 = 0.237). In the peg-rolling task, however, the peg inflated one to two rows of pixels at a time, producing larger and more perceivable contact patches—mirrored by the significantly more natural and faster trajectories under Full than 2D reported above. These results, in conjunction with the above observations about kinesthetic interactions, suggest that the value of cutaneous feedback resolution is not fixed but depends on the task’s spatial information requirements. High-resolution feedback is most valuable when it conveys information 14 that is unavailable through kinesthetic feedback and when the relevant contact features can be effectively represented by the display. Thus, rather than treating increased resolution as uniformly beneficial, teleoperation systems should match tactile rendering resolution to the spatial-information demands of the task. 
+
+Improving proprioceptive awareness 
+
+The peg-rolling task further hints at a broader role for cutaneous feedback in supporting participants’ proprioceptive sense of where the manipulator is positioned with respect to the environment. Although peg rolling does not require fine tactile discrimination in the same way the button task does, participants frequently reported that the Full condition gave them a clearer sense of how far the peg had traveled across the fingerpad, allowing them to better judge how far to reposition the finger during each loopback. Behaviorally, this manifested in longer stroke lengths and fewer strokes per trial, consistent with operators using the spatial cutaneous signal to plan their repositioning. Because cutaneous and proprioceptive afferents are known to be integrated during natural sensorimotor control ( 45, 46 ), it is plausible that richer cutaneous rendering sharpens the state estimate used to plan movement. However, additional studies are required to establish a causal link between rendered cutaneous resolution and proprioceptive awareness. 
+
+The case for naturalness 
+
+Our results suggest that naturalness and task speed, while strongly associated, are separable per-formance dimensions that can improve independently. Even when improvements in task speed are modest, increasing naturalness may provide more robust demonstrations for training autonomous robot policies. In the button discrimination task, more natural demonstrations exhibited smaller overshoots (Fig. 2C) and fewer direction reversals (Table S2). Similarly, in the peg-rolling task, more natural demonstrations were characterized by longer rolling strokes (Fig. 3C), fewer strokes required to complete the task (Fig. 3D), and fewer slips off the peg. Together, these behaviors produced more concentrated state-space coverage in the Full condition than in the coarser feedback conditions (Fig. 5A, B, C). Moreover, completion-time variability was significantly lower when par-ticipants received spatially distributed feedback (Table S6), even when task completion times were not significantly reduced (Table S5), indicating greater consistency across demonstrations. Reduced 15 variability in both the spatial and temporal characteristics of teleoperated demonstrations may be particularly beneficial for training autonomous policies, where concentrated state-space coverage and consistent demonstrations have been associated with improved training outcomes ( 41, 42 ). Variability, of course, has benefits: it has been shown that diversity across environments, ini-tial conditions, task instances, and successful manipulation strategies can improve the robustness and generalization of learned policies ( 47, 48 ). However, this is not an argument for low-quality teleoperation, as not all forms of variability contribute equally to learning ( 41, 42 ). Here, spatially distributed tactile feedback primarily reduced erroneous movements, such as overshoots, rather than limiting meaningful behavioral diversity. As a result, demonstrations collected with spatially dis-tributed feedback may provide a cleaner supervisory signal for imitation learning while preserving opportunities to capture the diversity of valid manipulation strategies within a task itself. Beyond implications for autonomous policy learning, the distinction between task speed and naturalness may also be important for applications in which operators perform repetitive manipula-tions over long durations, where reducing cognitive effort and promoting intuitive control could be as valuable as maximizing throughput. Because higher resolutions of tactile feedback reduced the mental demand on participants (Fig. 4, Q2), spatially distributed cutaneous feedback may support longer, less-fatiguing teleoperation sessions, though dedicated studies will be needed to evaluate operator endurance directly. 
+
+Limitations and future directions 
+
+Several limitations should be considered when interpreting these results. First, we leverage dynamic time warping to quantify the deviation in hand position between teleoperation and direct manipu-lation. However, alternative metrics—such as those that compare action sequences in long-horizon tasks or individual joint motions during dexterous manipulation—may capture aspects of behavior not reflected by DTW. Future work should explore whether the effects observed here generalize across alternative measures of natural behavior. Second, the present study employed a 2-DoF leader-follower telemanipulator and two experi-mental tasks chosen to span distinct manipulation demands. Although these tasks reveal consistent benefits of spatially resolved cutaneous feedback, they do not encompass the full range of contact interactions encountered in real-world teleoperation. Future studies should investigate whether the 16 observed benefits extend to higher-DoF systems, multi-finger telemanipulation, and more com-plex dexterous tasks. It will also be important to determine whether the relationship suggested here generalizes to a broader class of tasks. Establishing how finely feedback must be localized to recover natural manipulation—and where diminishing returns emerge—would provide valuable design targets for future tactile displays and teleoperation systems. 
+
+Conclusion 
+
+Reproducing the spatial structure of contact experienced by a remote manipulator is essential for natural teleoperation, with broad implications for surgical robotics, hazardous-environment ma-nipulation, and robot learning from demonstration. Across two manipulation tasks, we found that spatially distributed cutaneous feedback substantially narrowed the gap between teleoperated move-ments and direct manipulation, improving not only task speed, but also the naturalness, consistency, and cognitive demands of teleoperation. Beyond these immediate performance gains, our results suggest that spatially distributed cutaneous feedback may strengthen teleoperators’ propriocep-tive awareness, helping them better estimate contact state and plan subsequent movements. More broadly, as teleoperation increasingly serves as the mechanism for collecting demonstration data for training autonomous manipulation systems ( 12, 14, 15, 17 ), the quality of tactile feedback may influence not only the human operator’s performance but also the quality of policies learned from their demonstrations. By promoting more natural and consistent behavior, spatially resolved cuta-neous feedback has the potential to benefit both human teleoperation and the autonomous systems that learn from it ( 38 ). 
+
+## Materials and Methods 
+
+Experimental hardware 
+
+Experimentation was performed on a custom 2-degree-of-freedom (DoF) leader-follower teleoper-ation system capable of horizontal and vertical motion (Fig. 1B). The two DoFs are each actuated by a brushless DC motor (EC 45 Flat, Maxon Group, Sachseln, Switzerland) through cable transmis-sions with 33:1 and 30:1 reduction ratios, respectively, while link positions are measured by 14-bit capacitive encoders (AMT212B-V, Same Sky, Lake Oswego, OR, USA). Each DoF is controlled by 17 a separate microcontroller (Teensy 4.1, SparkFun Electronics, Boulder, CO, USA) running field-oriented commutation through the SimpleFOC library, with resulting signals routed to four motor drivers (BOOSTXL-DRV8301, Texas Instruments, Dallas, TX, USA) that power the motors. A bi-lateral controller is executed at 10 kHz on each microcontroller to deliver kinesthetic force feedback to the human operator. The robot “finger” (Fig. 1C) is a vision-based tactile sensor (GelSight Mini, GelSight Inc., Waltham, MA, USA), and cutaneous feedback is provided to the human operator using a 32-DoF cutaneous shape display driven by electro-osmotic pumps (Fluid Reality, Chicago, IL, USA; Fig. 1D). 
+
+Mapping from tactile sensor to shape display 
+
+When the robot finger makes contact with the environment (Fig. S1A), images from the vision-based tactile sensor (Fig. S1B) are converted into a 32-pixel inflation pattern (Fig. S1C) corresponding to the physical layout of the shape display (Fig. S1D; Algorithm S1). When the tactile sensor is first initialized, a reference image 𝐼 0 is captured and stored. Each subsequent frame 𝐼 (Fig. S1B) is then differenced with 𝐼 0 and converted to grayscale to yield a difference image 𝐼 d = 𝐼 − 𝐼 0,which is smoothed with a 3 × 3 Gaussian blur. If the Frobenius norm of 𝐼 d falls below a certain threshold, 𝑇 noise floor , no pixels are inflated on the shape display. Otherwise, Otsu’s method is applied to binarize 𝐼 d via adaptive histogram-based thresholding. Each pixel 𝑖 on the cutaneous display is then mapped to a corresponding image coordinate (𝑥 𝑖 , 𝑦 𝑖 ), reflecting the physical layout of the display (visualized as circles of radius 𝑟 in Fig. S1C). If the Frobenius norm of pixel intensities within a 2 𝑟 × 2𝑟 region centered at each (𝑥 𝑖 , 𝑦 𝑖 ) exceeds a contact threshold 𝑇 𝑐𝑜𝑛𝑡𝑎𝑐𝑡 (shaded circles in Fig. S1C), the corresponding display pixel is inflated to convey localized contact to the operator’s fingertip (Fig. S1D). 
+
+Experimental design 
+
+We evaluated the effect of cutaneous feedback resolution on task naturalness using two tasks: a button discrimination task and a peg-rolling task. All subjects consented to participate in the experiment under Northwestern University’s Institutional Review Board protocol #STU00223620 and were compensated for their time. In both tasks, subjects performed 48 trials across 4 feedback conditions (12 trials per condition, randomized order; Fig. 1E): 18 • Off: No cutaneous feedback 
+
+• 1D: All-in-phase cutaneous feedback 
+
+• 2D: Two regions of cutaneous feedback 
+
+• Full: Fully localized cutaneous feedback In the Off condition, no shape display pixels inflated regardless of contact on the robot finger (Fig. 1E, first column). In the 1D condition, all pixels inflated if any single pixel was activated by the mapping algorithm (Algorithm S1; Fig. 1E, second column). In the 2D condition, all pixels in the top or bottom half of the display were inflated if any pixel in the corresponding half was activated (Fig. 1E, third column). Finally, in the Full condition, only the pixels activated by the mapping algorithm were inflated (Fig. 1E, fourth column). Participants received kinesthetic force feedback in all 48 trials, and the robot end-effector trajectory was recorded throughout each trial. Before the teleoperation trials, each participant’s dominant index finger was strapped to the robot end-effector and they completed the task directly with their bare finger. Participants were blindfolded to match the absence of visual feedback during teleoperation, and the resulting tra-jectories served as baselines for comparison (see Fig. 2B, red traces). During the actual trials, participants’ view of the task workspace and robot end-effector was obstructed by a monitor dis-playing a graphical user interface (GUI). The GUI conveyed the current trial number, the active cutaneous feedback condition, and task-specific instructions. Following the trials, participants rated the following statements from the NASA Task Load Index (TLX) questionnaire ( 49 ) on a scale of 1 (Not at all) to 7 (Very): 
+
+• Q1, Performance: How successful were you in accomplishing what you were asked to do? 
+
+• Q2, Mental Demand: How mentally demanding was the task? 
+
+• Q3, Difficulty: How hard did you have to work to accomplish your level of performance? 
+
+• Q4, Frustration: How insecure, discouraged, irritated, stressed, and annoyed were you? 
+
+Button discrimination. Twelve participants between the ages of 19 and 37 (7 male, 5 female, mean age 28.6 years) took part in this experiment, of whom 11 were right-handed and 1 was 19 left-handed. No participant reported physical impairments that might have affected their ability to operate the device or perceive the haptic feedback. The participants had varying levels of experience with teleoperation devices: 5 reported no experience, 6 reported some experience, and 1 reported having extensive experience. Participants were instructed to find and press two nearby buttons spaced 1 cm apart—close enough that the robot finger (2.5 cm across) could simultaneously cover and depress both (Fig. 2A). The buttons were constructed using 0.25” diameter ball bearings, enabling the tactile sensor to slide over them without damaging the gel of the sensor. The buttons were electrically connected to the data acquisition program and required a depression of 0.25 mm to register a click. In each trial, the GUI instructed the participant to push either the closer or farther button; the trial concluded only when the correct button (and no other button) was pressed. Between trials, the button positions were varied between two possible locations along the horizontal movement axis to prevent participants from memorizing their locations. Participants were given 8 practice trials (2 per feedback condition) before the start of the actual trials. 
+
+Peg rolling. A separate set of ten participants between the ages of 19 and 31 (7 male, 3 female, mean age 25.9 years) took part in the peg-rolling experiment, all of whom were right-handed. No participant reported physical impairments that might have affected their ability to operate the device or perceive the haptic feedback. The participants had varying levels of experience with teleoperation devices: 4 reported no experience, 6 reported some experience, and 0 reported having extensive experience. Participants were instructed to roll a peg forward until it contacted a hard stop, then backward to its starting position. The peg was constructed out of a steel shaft and, to ensure that the peg remained straight throughout each trial, it was specially designed with a rack and pinion on both sides (Fig. 3A). The GUI directed participants when to initiate each movement phase (i.e., “Roll Forward” and “Roll Backward”). Participants were given 4 practice trials (1 per feedback condition) before the start of the actual trials. 
+
+Data and statistical analysis 
+
+During all trials, trajectory data were collected at 50 Hz. For both tasks, two-dimensional dynamic time warping (DTW) distances were computed between each teleoperated trajectory and each of the participant’s equivalent direct manipulation trajectories, then averaged to produce a single DTW distance per trial. Distances were then normalized by each participant’s mean DTW distance across 20 all trials. A linear mixed-effects model (LME) with random intercepts was fit to the normalized DTW distances, with Feedback Condition as a fixed effect and Participant as a random effect: Normalized DTW Distance ∼ Feedback Condition + ( 1|Participant ). (1) The main effect of Feedback Condition was evaluated using analysis of variance (ANOVA; 
+
+𝛼 = 0.05), followed by post hoc coefficient tests between all six pairs of conditions ( 𝛼 = 0.05, Holm-Bonferroni corrected). To assess variability in task naturalness, per-participant standard deviations of DTW distance were compared between the Full condition and the 2D , 1D , and Off 
+
+conditions using one-tailed Wilcoxon signed-rank tests ( 𝛼 = 0.05, Holm-Bonferroni corrected). Task completion times were normalized by each participant’s mean completion time across all trials and then analyzed using the same LME structure: Normalized Completion Time ∼ Feedback Condition + ( 1|Participant ). (2) The main effect of Feedback Condition was evaluated with an ANOVA ( 𝛼 = 0.05), followed by post hoc pairwise coefficient tests ( 𝛼 = 0.05, Holm-Bonferroni corrected) between all conditions. To assess variability in task completion times, per-participant standard deviations of completion time were compared between the Full condition and the 2D , 1D , and Off conditions using one-tailed Wilcoxon signed-rank tests ( 𝛼 = 0.05, Holm-Bonferroni corrected). Task-specific trajectory metrics were also analyzed. For the button task, mean overshoot beyond the target button and the total number of switchbacks were compared. For the peg-rolling task, mean stroke length, mean number of strokes per trial, and the number of slips from the peg onto the underlying surface were compared. For each metric, one-tailed Wilcoxon signed-rank tests (𝛼 = 0.05, Holm-Bonferroni corrected) were performed between the Full condition and the 2D ,
+
+1D , and Off conditions. To quantify the consistency of teleoperated trajectories, we computed pairwise DTW distances between all teleoperated trials within each feedback condition. We first computed pairwise DTW distances between trajectories from the same participant, yielding a mean inter-trial DTW distance for each participant and feedback condition. These per-participant means were compared between the Full condition and the 2D , 1D , and Off conditions using one-tailed Wilcoxon signed-rank 21 tests ( 𝛼 = 0.05, Holm-Bonferroni corrected). We then combined trajectories across participants to form an aggregated demonstration dataset for each feedback condition, mimicking the multi-operator datasets often used for robot learning. Pairwise DTW distances were computed between all trajectories in each aggregated dataset to characterize inter-trial variability across operators. The resulting DTW-distance distributions were compared between the Full condition and each of the other feedback conditions using one-tailed Mann-Whitney U tests ( 𝛼 = 0.05, Holm-Bonferroni corrected). Finally, post-experiment questionnaire responses (Q1–Q4) were analyzed using one-tailed Wilcoxon signed-rank tests ( 𝛼 = 0.05, Holm-Bonferroni corrected). Comparisons were performed between adjacent feedback conditions, i.e. between the Off and 1D , 1D and 2D , and 2D and Full 
+
+conditions. The statistical results for all the tests mentioned above can be found in the Supplemental Text and Tables S1 to S19. 22 References and Notes 
+
+1. T. Flash, N. Hogan, The coordination of arm movements: an experimentally confirmed math-ematical model. Journal of Neuroscience 5 (7), 1688–1703 (1985). 2. P. G. Morasso, Spatial control of arm movements. Experimental Brain Research 42 , 223–227 (2004). 3. L. Vaisman, L. Dipietro, H. Krebs, A Comparative Analysis of Speed Profile Models for Wrist Pointing Movements. IEEE transactions on neural systems and rehabilitation engineering 21 
+
+(2012). 4. R. Johansson, J. Flanagan, Coding and use of tactile signals from the fingertips in object manipulation tasks. Nature reviews. Neuroscience 10 , 345–59 (2009). 5. B. P. Delhaye, F. Schiltz, F. Crevecoeur, J.-L. Thonnard, P. Lef` evre, Fast grip force adaptation to friction relies on localized fingerpad strains. Science advances 10 (3) (2024). 6. R. Johansson, G. Westling, Roles of glabrous skin receptors and sensorimotor memory in automatic control of precision grip when lifting rougher or more slippery objects. Experimental brain research 56 , 550–64 (1984). 7. A.-S. Augurelle, A. M. Smith, T. Lejeune, J.-L. Thonnard, Importance of Cutaneous Feed-back in Maintaining a Secure Grip During Manipulation of Hand-Held Objects. Journal of Neurophysiology 89 (2), 665–671 (2003). 8. P. Jenmalm, R. S. Johansson, Visual and Somatosensory Information about Object Shape Control Manipulative Fingertip Forces. Journal of Neuroscience 17 (11), 4486–4499 (1997). 9. K. Ung, J. F. Magnotti, B. Kim, J. M. Yau, P. F. Nordmark, Acute Loss of Tactile Input Leads to General Compensatory Changes in Eye–Hand Coordination during Object Manipulation. 
+
+eNeuro 12 (9) (2025). 10. P. F. Hokayem, M. W. Spong, Bilateral teleoperation: An historical survey. Automatica 42 (12), 2035–2057 (2006). 23 11. T. Zhang, et al. , Deep Imitation Learning for Complex Manipulation Tasks from Virtual Reality Teleoperation, in 2018 IEEE International Conference on Robotics and Automation (ICRA) 
+
+(2018), pp. 5628–5635. 12. T. Z. Zhao, V. Kumar, S. Levine, C. Finn, Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware, in Robotics: Science and Systems (2023). 13. Y. Qin, et al. , AnyTeleop: A General Vision-Based Dexterous Robot Arm-Hand Teleoperation System, in Robotics: Science and Systems (2023). 14. B. D. Argall, S. Chernova, M. Veloso, B. Browning, A survey of robot learning from demon-stration. Robotics and Autonomous Systems 57 (5), 469–483 (2009). 15. N. Jaquier, et al. , Transfer Learning in Robotics: An Upcoming Breakthrough? A Review of Promises and Challenges. The International Journal of Robotics Research 44 (3), 465–485 (2025). 16. Z. Fu, T. Z. Zhao, C. Finn, Mobile ALOHA: Learning bimanual mobile manipulation using low-cost whole-body teleoperation, in 8th Annual Conference on Robot Learning (2024). 17. C. Chi, et al. , Diffusion policy: Visuomotor policy learning via action diffusion. The Interna-tional Journal of Robotics Research 44 (10–11), 1684–1704 (2025). 18. B. Hannaford, A design framework for teleoperators with kinesthetic feedback. IEEE Transac-tions on Robotics and Automation 5 (4), 426–434 (1989). 19. S. Nahri, S. Du, B. Wyk, A Review on Haptic Bilateral Teleoperation Systems. Journal of Intelligent & Robotic Systems 104 (2022). 20. D. Lawrence, Stability and transparency in bilateral teleoperation. IEEE Transactions on Robotics and Automation 9 (5), 624–637 (1993), doi:10.1109/70.258054. 21. G. Niemeyer, J.-J. Slotine, Stable adaptive teleoperation. IEEE Journal of Oceanic Engineering 
+
+16 (1), 152–162 (1991). 24 22. C. Pacchierotti, L. Meli, F. Chinello, M. Malvezzi, D. Prattichizzo, Cutaneous haptic feedback to ensure the stability of robotic teleoperation systems. International Journal of Robotics Research 34 (2015). 23. C. Pacchierotti, D. Prattichizzo, K. J. Kuchenbecker, Cutaneous Feedback of Fingertip De-formation and Vibration for Palpation in Robotic Surgery. IEEE Transactions on Biomedical Engineering 63 (2), 278–287 (2016). 24. L. Meli, C. Pacchierotti, D. Prattichizzo, Sensory Subtraction in Robot-Assisted Surgery: Fingertip Skin Deformation Feedback to Ensure Safety and Improve Transparency in Bimanual Haptic Interaction. IEEE Transactions on Biomedical Engineering 61 , 1318–1327 (2014). 25. M. Massimino, Improved force perception through sensory substitution. Control Engineering Practice 3 (2), 215–222 (1995). 26. M. Tavakoli, A. Aziminejad, R. V. Patel, M. Moallem, High-Fidelity Bilateral Teleoperation Systems and the Effect of Multimodal Haptics. IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cybernetics) 37 (6), 1512–1528 (2007). 27. A. Okamura, Methods for haptic feedback in teleoperated robot-assisted surgery. Industrial Robot 31 (6), 499–508 (2004). 28. S. Schorr, I. Nisky, W. Provancher, A. Okamura, Tactor-Induced Skin Stretch as a Sensory Substitution Method in Teleoperated Palpation. IEEE Transactions on Human-Machine Systems 
+
+45 , 1–13 (2015). 29. C. Saudrais, B. Bayle, M.-A. Vitrani, F. V´ erit´ e, Skin-Stretch Haptic Feedback Augmentation Improves Performance in a Simulated Laparoscopic Palpation Task. IEEE Transactions on Haptics 17 (4), 578–590 (2024). 30. S. Portoles, et al. , Evaluation of Haptic Feedback on Bimanually Teleoperated Laparoscopy for Endometriosis Surgery. IEEE Transactions on Biomedical Engineering 66 , 1207–1221 (2018). 31. M. K. Johnson, E. H. Adelson, Retrographic sensing for the measurement of surface texture and shape, in IEEE Conference on Computer Vision and Pattern Recognition (2009). 25 32. M. K. Johnson, F. Cole, A. Raj, E. H. Adelson, Microgeometry capture using an elastomeric sensor. ACM Transactions on Graphics 30 (4) (2011). 33. K. Shimonomura, Tactile Image Sensors Employing Camera: A Review. Sensors 19 (18) (2019). 34. N. Funk, et al. , On the Importance of Tactile Sensing for Imitation Learning: A Case Study on Robotic Match Lighting. IEEE Robotics and Automation Letters PP , 1–8 (2026). 35. A. George, S. Gano, P. Katragadda, A. B. Farimani, VITaL Pretraining: Visuo-Tactile Pretrain-ing for Tactile and Non-Tactile Manipulation Policies, in 2025 IEEE International Conference on Robotics and Automation (ICRA) (2025), pp. 258–264. 36. R. Calandra, et al. , The Feeling of Success: Does Touch Sensing Help Predict Grasp Outcomes?, in Conference on Robot Learning (CoRL) (2017). 37. A. Yamaguchi, C. G. Atkeson, Combining finger vision and optical tactile sensing: Reducing and handling errors while cutting vegetables, in 2016 IEEE-RAS 16th International Conference on Humanoid Robots (2016). 38. B. Huang, Y. Wang, X. Yang, Y. Luo, Y. Li, 3D-ViTac: Learning Fine-Grained Manipulation with Visuo-Tactile Sensing, in 8th Annual Conference on Robot Learning (2024). 39. C. Shultz, C. Harrison, Flat Panel Haptics: Embedded Electroosmotic Pumps for Scalable Shape Displays, in Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems (2023). 40. H. Sakoe, S. Chiba, Dynamic programming algorithm optimization for spoken word recogni-tion. IEEE Transactions on Acoustics, Speech, and Signal Processing 26 (1), 43–49 (1978). 41. A. Mandlekar, et al. , What Matters in Learning from Offline Human Demonstrations for Robot Manipulation, in Proceedings of the 5th Conference on Robot Learning (2022), pp. 1678–1690. 42. S. Belkhale, Y. Cui, D. Sadigh, Data Quality in Imitation Learning, in Thirty-seventh Confer-ence on Neural Information Processing Systems (NeurIPS) (2023). 43. Materials and methods are available as supplementary material. 26 44. V. van Polanen, W. M. Bergmann Tiest, A. M. L. Kappers, Target Contact and Exploration Strategies in Haptic Search. Scientific Reports 4 (2014). 45. D. F. Collins, K. M. Refshauge, G. Todd, S. C. Gandevia, Cutaneous Receptors Contribute to Kinesthesia at the Index Finger, Elbow, and Knee. Journal of Neurophysiology 94 (3), 1699–1706 (2005). 46. U. Proske, S. C. Gandevia, The Proprioceptive Senses: Their Roles in Signaling Body Shape, Body Position and Movement, and Muscle Force. Physiological Reviews 92 (4), 1651–1697 (2012). 47. S. Yue, et al. , How to Leverage Diverse Demonstrations in Offline Imitation Learning, in 
+
+International Conference on Machine Learning (2024), pp. 58037–58067. 48. H. R. Walke, et al. , BridgeData V2: A Dataset for Robot Learning at Scale, in Proceedings of The 7th Conference on Robot Learning , vol. 229 (2023), pp. 1723–1736. 49. S. G. Hart, L. E. Staveland, Development of NASA-TLX (Task Load Index): Results of Em-pirical and Theoretical Research, in Human Mental Workload , vol. 52, pp. 139–183 (1988). 
+
+# Acknowledgments 
+
+The authors thank Matthew Elwin, Carl Moore, and Rodney Roberts for their guidance on this project. The authors also thank Yufeng Yang, Andrew Pavlovic, and Alyssa Chen for their contri-butions to the leader-follower device used in this work. Finally, the authors thank Joe Mullenbach, Craig Schultz, Gabriel Beutel, Joshua Jung, and German Espinosa of Fluid Reality for providing the tactile displays that were essential to these experiments. 
+
+Funding: This material is based upon work supported by the Air Force Office of Scientific Re-search under award number FA9550-23-F-0014 in the amount of $136,000 and the National Science Foundation under Grants NRI-2221571 and 2330040 (HAND Engineering Research Center). 27 Author contributions: RK, GR, and JEC conceived the study and formulated the central research idea. RK built the experimental hardware. RK and GR designed the experiments. RK conducted the participant studies and performed the data analysis. RK, GR, and JEC interpreted the results and wrote and edited the manuscript. 
+
+Competing interests: The authors report no competing interests. 
+
+## Supplementary materials 
+
+Materials and Methods Supplementary Text Fig. S1 Tables S1 to S19 Algorithm S1 28 Supplementary Materials for The Missing Touch: Spatially Distributed Tactile Feedback Brings Teleoperation Closer to Human Dexterity 
+
+Rohan Kota, Gregory Reardon, J. Edward Colgate ∗
+
+> ∗Corresponding author. Email: colgate@northwestern.edu
+
+This PDF file includes: 
+
+Materials and Methods Supplementary Text Figure S1 Tables S1 to S19 Algorithm S1 S1 Materials and Methods 
+
+Mapping algorithm from vision-based tactile sensor to cutaneous shape display 
+
+We used a vision-based tactile sensor (GelSight Mini) to measure local contact deformation and converted it into actuation commands for a cutaneous shape display. Raw sensor images were processed and mapped to localized inflation patterns using Algorithm S1. In our experiments, we used 𝑟 = 10, 𝑇 noise floor = 800, and 𝑇 contact = 1, 200. An overview of the mapping is shown in Fig. S1. 
+
+Algorithm S1 Tactile Sensor to Cutaneous Actuator Mapping Capture reference frame 𝐼 0
+
+while True do 
+
+Capture frame 𝐼 𝐼 d ← 𝐼 − 𝐼 0
+
+𝐼 d ← Grayscale (𝐼 d)
+
+𝐼 d ← GaussianBlur (𝐼 d)
+
+if ∥𝐼 d ∥𝐹 > 𝑇 noise floor then 
+
+𝐼 d ← OtsuThreshold (𝐼 d)
+
+else 
+
+𝐼 d ← 0𝑚 ×𝑛 
+
+end if for each tactile pixel 𝑖 with parameters (𝑥 𝑖 , 𝑦 𝑖 , 𝑟 ) do 
+
+𝐸 𝑖 ← 𝐼 d [𝑥 𝑖 − 𝑟 : 𝑥 𝑖 + 𝑟, 𝑦 𝑖 − 𝑟 : 𝑦 𝑖 + 𝑟 ]
+
+if ∥𝐸 𝑖 ∥𝐹 > 𝑇 contact then 
+
+Inflate pixel 𝑖 
+
+else 
+
+Deflate pixel 𝑖 
+
+end if end for end while Experimental setup and data collection 
+
+Participants completed tasks using a 2-DoF leader-follower telemanipulation system. Cutaneous feedback was provided via a spatially programmable fingertip display, comprising 32 independently inflatable elastic domes with a center-to-center pitch of 3 mm. Kinesthetic force feedback was delivered through position-position bilateral control, capable of rendering end-effector stiffnesses of 9.4 N/mm in the vertical direction and 2.2 N/mm in the horizontal direction. The cutaneous S2 feedback condition was varied across the trials ( Off , 1D , 2D , Full ), whereas kinesthetic feedback was active during all trials. In the button task, to make it more difficult for participants to memorize the positions of the two buttons, button locations were randomly alternated between two spatial configurations across trials. The inter-button spacing was 1 cm in both configurations, while the button array was translated 5.8 cm along the x-axis between layouts. Prior to the teleoperated trials, participants performed the same task directly using the index finger of their dominant hand, and the recorded trajectories served as baselines for later comparison. For the baseline measurements, the finger was mounted to the follower device using a 3D printed fixture and Velcro strap that positioned the finger in roughly the same location as the GelSight Mini. Participants were also blindfolded during the baseline trials to match the absence of visual feedback in teleoperated conditions. For the button discrimination task, each participant completed 12 direct-manipulation trials (3 repetitions per button and per button layout). For the peg-rolling task, each participant completed 6 direct-manipulation repetitions of the peg-rolling task using their bare finger. 
+
+Trajectory preprocessing and alignment 
+
+For the button task, direct-manipulation and teleoperated trajectories were spatially aligned prior to analysis. Direct trajectories were shifted such that their endpoints coincided with the mean button-press location across corresponding teleoperated trials (matched by target button and button location). All trajectories were then truncated to a common starting position (x = 92 mm) to reduce variability due to differences in initial finger placement. For visualization in Fig. 2B, x-coordinates were offset by 92 mm so that all trajectories originated at 0 mm. 
+
+Behavioral metrics and similarity analysis 
+
+We quantified similarity between teleoperated and direct-manipulation trajectories using 2-D dy-namic time warping (DTW). For each teleoperated trial, DTW distances were computed to all corresponding direct-manipulation trials (matched by target button and button location where ap-plicable), and the resulting values were averaged to obtain a single DTW distance per trial. S3 Peg-rolling task metrics. For the peg-rolling task, in addition to computing the DTW distance between teleoperated and natural trajectories, we segmented trajectories into strokes, slips, loop-backs, and miscellaneous motions (Fig. 3B). A stroke was defined as a continuous period of contact between the fingertip and the peg. Segments in which the participant continued to move past the peg were omitted from stroke length calculations. Additionally, the final stroke in either direction was occasionally short because the peg was near the end. Therefore, final strokes shorter than 10 mm were excluded to reduce boundary effects. When counting the number of slips, a slip was defined as rolling past the peg and making contact with the surface beneath it. Contact with the surface was operationally defined as the fingertip descending below a y-coordinate of 9 mm after rolling past the peg. Overshoot without surface contact was not counted as a slip. 
+
+Inter-trial variability analysis. In addition to using DTW distance to measure the deviation of teleoperated movements from natural human behaviors, we measured consistency within teleoper-ation datasets by computing the DTW distances between all pairs of teleoperated trials. We first computed the pairwise DTW distances between trajectories within each participant and feedback condition. For the button task, comparisons were restricted to trials with the same target button and button location (4 combinations). This yielded 12 pairwise comparisons per participant per condition, averaged for Fig. 5D. Then, the trials from all participants were combined to produce an aggregated dataset for each feedback condition, and DTW distances were computed between all pairs of trials in the aggregated datasets. Pairwise comparisons across participants yielded 630 distances per combination and feedback condition, or 2,520 distances per feedback condition (Fig. 5F). For the peg-rolling task, 66 pairwise comparisons were computed per participant per feedback condition and averaged for Fig. 5E. Pairwise comparisons within the aggregated datasets (i.e., across participants) yielded 7,140 distances per feedback condition (Fig. 5G). 
+
+## Supplementary Text 
+
+Statistical results 
+
+Tables S1–S19 contain the statistics and p-values for all metrics reported in the manuscript. All reported p-values were adjusted for multiple comparisons using the Holm–Bonferroni correction. S4 Button discrimination task. In the button discrimination task, Full spatially distributed cu-taneous feedback reduced the mean overshoot and number of switchbacks compared to the 
+
+2D (overshoot, 𝑊 = 0.0, 𝑝 adj < 0.001; switchbacks, 𝑊 = 0.0, 𝑝 adj < 0.001), 1D (over-shoot, 𝑊 = 0.0, 𝑝 adj < 0.001; switchbacks, 𝑊 = 4.5, 𝑝 adj = 0.004), and Off (overshoot, 
+
+𝑊 = 0.0, 𝑝 adj < 0.001; switchbacks, 𝑊 = 9.0, 𝑝 adj = 0.007) conditions (Tables S1 and S2). For DTW distance, the ANOVA revealed a highly significant main effect of Feedback Condition (𝐹 (3, 572 ) = 25 .119 , 𝑝 < 0.001; Fig. 2D). The post-hoc pairwise comparisons found a significant difference between the Off condition and the 1D condition ( 𝐹 (1, 572 ) = 26 .821 , 𝑝 adj < 0.001), the 2D condition ( 𝐹 (1, 572 ) = 47 .100 , 𝑝 adj < 0.001), and the Full condition ( 𝐹 (1, 572 ) =
+
+64 .471 , 𝑝 adj < 0.001), suggesting that all levels of cutaneous feedback meaningfully improved task naturalness (Table S3). Furthermore, while no significant difference was found between 1D 
+
+and 2D cutaneous feedback ( 𝐹 (1, 572 ) = 2.836 , 𝑝 adj = 0.186), the highly localized, Full feedback produced significantly lower DTW distances than the 1D feedback ( 𝐹 (1, 572 ) = 8.125 , 𝑝 adj =
+
+0.014). No other comparisons were significant. Wilcoxon signed-rank tests on the per-participant standard deviation of DTW distance (Fig. 2E) showed significantly lower variability in the Full 
+
+condition than in the 2D (𝑊 = 11 .0, 𝑝 adj = 0.013), 1D (𝑊 = 0.0, 𝑝 adj < 0.001) and Off 
+
+(𝑊 = 0.0, 𝑝 adj < 0.001) conditions (Table S4). For task completion times, the ANOVA revealed a highly significant main effect of Feedback Condition ( 𝐹 (3, 572 ) = 26 .598 , 𝑝 < 0.001; Fig. 2F). The post-hoc pairwise coefficient tests indicated that completion times were significantly reduced compared to the Off condition for the 1D (𝐹 (1, 572 ) = 36 .784 , 𝑝 adj < 0.001), 2D (𝐹 (1, 572 ) = 45 .621 , 𝑝 adj < 0.001) and Full 
+
+(𝐹 (1, 572 ) = 69 .188 , 𝑝 adj < 0.001) conditions (Table S5). The difference between the 1D and 
+
+Full conditions did not reach significance after correction ( 𝐹 (1, 572 ) = 5.076 , 𝑝 = 0.025 , 𝑝 adj =
+
+0.074). Similarly to DTW distance, the difference in completion times between the 1D and 2D 
+
+conditions ( 𝐹 (1, 572 ) = 0.475 , 𝑝 adj = 0.491), and the 2D and Full conditions ( 𝐹 (1, 572 ) =
+
+2.445 , 𝑝 adj = 0.237) were not significant. Wilcoxon signed-rank tests comparing the per-participant standard deviation of completion time revealed a significant difference between Full feedback and the 2D (𝑊 = 4.0, 𝑝 adj = 0.003), 1D (𝑊 = 6.0, 𝑝 adj = 0.003), and Off (𝑊 = 0.0, 𝑝 adj < 0.001) conditions (Table S6). Finally, the per-participant mean inter-trial DTW distance was significantly lower for the Full 
+
+S5 condition when compared to trials where no cutaneous feedback was received ( 𝑊 = 0.0, 𝑝 adj <
+
+0.001; Table S16). Across all trials, the Mann-Whitney U tests revealed that the inter-trial DTW distances were significantly lower for the Full condition than the 2D (𝑈 = 2548888 .0, 𝑝 adj <
+
+0.001), 1D (𝑈 = 2525668 .0, 𝑝 adj < 0.001), and Off (𝑈 = 1235360 .0, 𝑝 adj < 0.001) conditions (Table S18). 
+
+Peg rolling task. In the peg-rolling task, Full spatially distributed cutaneous feedback increased the mean stroke length and reduced the number of strokes and slips off the peg compared to the 2D (stroke length, 𝑊 = 53 .0, 𝑝 adj = 0.004; stroke count, 𝑊 = 6.0, 𝑝 adj = 0.014; slips, 
+
+𝑊 = 8.0, 𝑝 adj = 0.039), 1D (stroke length, 𝑊 = 54 .0, 𝑝 adj = 0.004; stroke count, 𝑊 = 3.0, 𝑝 adj =
+
+0.010; slips, 𝑊 = 1.5, 𝑝 adj = 0.018), and Off (stroke length, 𝑊 = 55 .0, 𝑝 adj = 0.003; stroke count, 
+
+𝑊 = 1.0, 𝑝 adj = 0.006; slips, 𝑊 = 5.0, 𝑝 adj = 0.039) conditions (Tables S7–S9). For DTW distance, the ANOVA revealed a highly significant main effect of Feedback Con-dition ( 𝐹 (3, 476 ) = 18 .16 , 𝑝 < 0.001; Fig. 3E). Similarly to the button discrimination task, post-hoc pairwise comparisons found a significant difference between the Off condition and the 
+
+2D (𝐹 (1, 476 ) = 14 .861 , 𝑝 adj < 0.001) and Full (𝐹 (1, 476 ) = 51 .071 , 𝑝 adj < 0.001) con-ditions (Table S10). Although no significant difference was found between 1D and 2D cuta-neous feedback ( 𝐹 (1, 476 ) = 2.794 , 𝑝 adj = 0.095) or 1D and no ( Off ) cutaneous feedback (𝐹 (1, 476 ) = 4.767 , 𝑝 adj = 0.059), the highly localized, Full feedback produced significantly lower DTW distances than the 2D feedback ( 𝐹 (1, 476 ) = 10 .833 , 𝑝 adj = 0.003) and 1D feedback (𝐹 (1, 476 ) = 24 .632 , 𝑝 adj < 0.001). Wilcoxon signed-rank tests on the per-participant standard deviation of DTW distance revealed significantly lower variability in the Full condition than in the 
+
+2D (𝑊 = 0.0, 𝑝 adj = 0.003), 1D (𝑊 = 3.0, 𝑝 adj = 0.005), and Off (𝑊 = 0.0, 𝑝 adj = 0.003) conditions (Fig. 3F; Table S11). For task completion times, the ANOVA revealed a highly significant main effect of Feedback Condition ( 𝐹 (3, 476 ) = 40 .727 , 𝑝 < 0.001; Fig. 3G). Post-hoc pairwise coefficient tests indi-cated that completion times were significantly reduced compared to the Off condition for the 2D 
+
+(𝐹 (1, 476 ) = 24 .969 , 𝑝 adj < 0.001) and Full (𝐹 (1, 476 ) = 104 .059 , 𝑝 adj < 0.001) conditions, but not for the 1D condition ( 𝐹 (1, 476 ) = 2.533 , 𝑝 adj = 0.112; Table S12). The completion times for the 
+
+Full condition were also significantly faster than those of the 2D (𝐹 (1, 476 ) = 27 .082 , 𝑝 adj < 0.001) S6 and 1D conditions ( 𝐹 (1, 476 ) = 74 .124 , 𝑝 adj < 0.001). The 2D condition also led to significantly faster completion times than the 1D condition ( 𝐹 (1, 476 ) = 11 .597 , 𝑝 adj = 0.001). Wilcoxon signed-rank tests on the per-participant standard deviation of completion time revealed signif-icantly lower variability in the Full condition than in the 2D (𝑊 = 0.0, 𝑝 adj = 0.003), 1D 
+
+(𝑊 = 0.0, 𝑝 adj = 0.003), and Off (𝑊 = 0.0, 𝑝 adj = 0.003) conditions (Fig. 3H; Table S13). Finally, the per-participant mean inter-trial DTW distance was significantly lower for the Full 
+
+condition when compared to each of the other feedback conditions ( 𝑊 = 0.0, 𝑝 adj = 0.003; Table S17). Across all trials, the Mann-Whitney U tests revealed that the inter-trial DTW distances were significantly lower for the Full condition than the 2D (𝑈 = 9220395 .0, 𝑝 adj < 0.001), 1D 
+
+(𝑈 = 4593005 .0, 𝑝 adj < 0.001), and Off (𝑈 = 4261698 .0, 𝑝 adj < 0.001) conditions (Table S19). S7 A B C DFigure S1 : Mapping from vision-based tactile sensor to cutaneous shape display. (A) The vision-based tactile sensor makes contact with objects in the environment. ( B) The vision-based tactile sensor outputs a 320 × 240 RGB image. ( C) A mapping algorithm converts the raw RGB sensor image into a pixel inflation pattern (solid blue circles) that mirrors the pixel layout of the cutaneous shape display (blue circles). ( D) The corresponding pixels on the cutaneous shape display are inflated. e
+
+Table S1 : Button Discrimination Task: Overshoot Distance. Pairwise comparisons of partici-pants’ mean overshoot distance between the Full condition and the 2D , 1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+Table S2 : Button Discrimination Task: Number of Switchbacks. Pairwise comparisons of participants’ mean number of switchbacks between the Full condition and the 2D , 1D , and Off 
+
+conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑊 = 4.5
+
+𝑝 = 0.004 ∗∗ 
+
+𝑊 = 9.0
+
+𝑝 = 0.007 ∗∗ 
+
+S8 Table S3 : Button Discrimination Task: Trajectory Naturalness (DTW Distance). Pairwise comparisons of DTW distance (normalized by each participants’ mean DTW distance across all trials) between all six feedback-condition pairs. Statistics are from two-tailed coefficient tests. 
+
+2D 1D Off Full 𝐹 (1, 572 ) = 1.361 
+
+𝑝 = 0.244 
+
+𝐹 (1, 572 ) = 8.125 
+
+𝑝 = 0.014 ∗
+
+𝐹 (1, 572 ) = 64 .471 
+
+𝑝 < 0.001 ∗∗∗ 
+
+2D 𝐹 (1, 572 ) = 2.836 
+
+𝑝 = 0.185 
+
+𝐹 (1, 572 ) = 47 .100 
+
+𝑝 < 0.001 ∗∗∗ 
+
+1D 𝐹 (1, 572 ) = 26 .821 
+
+𝑝 < 0.001 ∗∗∗ 
+
+Table S4 : Button Discrimination Task: Variability in Trajectory Naturalness Pairwise com-parisons of within-participant standard deviation of DTW distance between the Full condition and the 2D , 1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 11 .0
+
+𝑝 = 0.013 ∗
+
+𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+Table S5 : Button Discrimination Task: Completion Time. Pairwise comparisons of task com-pletion time (normalized by each participants’ mean completion time across all trials) between all six feedback-condition pairs. Statistics are from two-tailed coefficient tests. 
+
+2D 1D Off Full 𝐹 (1, 572 ) = 2.445 
+
+𝑝 = 0.237 
+
+𝐹 (1, 572 ) = 5.076 
+
+𝑝 = 0.074 
+
+𝐹 (1, 572 ) = 69 .188 
+
+𝑝 < 0.001 ∗∗∗ 
+
+2D 𝐹 (1, 572 ) = 0.475 
+
+𝑝 = 0.491 
+
+𝐹 (1, 572 ) = 45 .621 
+
+𝑝 < 0.001 ∗∗∗ 
+
+1D 𝐹 (1, 572 ) = 36 .784 
+
+𝑝 < 0.001 ∗∗∗ 
+
+Table S6 : Button Discrimination Task: Variability in Completion Time. Pairwise comparisons of within-participant standard deviation of completion time between the Full condition and the 2D ,
+
+1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 4.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 6.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+S9 Table S7 : Peg Rolling Task: Slip Frequency. Pairwise comparisons of participants’ mean number of slips per trial between the Full condition and the 2D , 1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 8.0
+
+𝑝 = 0.039 ∗
+
+𝑊 = 1.5
+
+𝑝 = 0.018 ∗
+
+𝑊 = 5.0
+
+𝑝 = 0.039 ∗
+
+Table S8 : Peg Rolling Task: Stroke Length. Pairwise comparisons of participants’ mean stroke length between the Full condition and the 2D , 1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 53 .0
+
+𝑝 = 0.004 ∗∗ 
+
+𝑊 = 54 .0
+
+𝑝 = 0.004 ∗∗ 
+
+𝑊 = 55 .0
+
+𝑝 = 0.003 ∗∗ 
+
+Table S9 : Peg Rolling Task: Number of Strokes. Pairwise comparisons of participants’ mean number of strokes between the Full condition and the 2D , 1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 6.0
+
+𝑝 = 0.014 ∗
+
+𝑊 = 3.0
+
+𝑝 = 0.010 ∗
+
+𝑊 = 1.0
+
+𝑝 = 0.006 ∗∗ 
+
+Table S10 : Peg Rolling Task: Trajectory Naturalness (DTW Distance). Pairwise comparisons of DTW distance (normalized by each participants’ mean DTW distance across all trials) between all six feedback-condition pairs. Statistics are from two-tailed coefficient tests. 
+
+2D 1D Off Full 𝐹 (1, 476 ) = 10 .833 
+
+𝑝 = 0.003 ∗∗ 
+
+𝐹 (1, 476 ) = 24 .632 
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝐹 (1, 476 ) = 51 .071 
+
+𝑝 < 0.001 ∗∗∗ 
+
+2D 𝐹 (1, 476 ) = 2.794 
+
+𝑝 = 0.095 
+
+𝐹 (1, 476 ) = 14 .861 
+
+𝑝 < 0.001 ∗∗∗ 
+
+1D 𝐹 (1, 476 ) = 4.767 
+
+𝑝 = 0.059 
+
+Table S11 : Peg Rolling Task: Variability in Trajectory Naturalness. Pairwise comparisons of within-participant standard deviation of DTW distance between the Full condition and the 2D , 1D ,and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 3.0
+
+𝑝 = 0.005 ∗∗ 
+
+𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+S10 Table S12 : Peg Rolling Task: Completion Time. Pairwise comparisons of task completion time (normalized by each participants’ mean completion time across all trials) between all six feedback-condition pairs. Statistics are from two-tailed coefficient tests. 
+
+2D 1D Off Full 𝐹 (1, 476 ) = 27 .082 
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝐹 (1, 476 ) = 74 .124 
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝐹 (1, 476 ) = 104 .059 
+
+𝑝 < 0.001 ∗∗∗ 
+
+2D 𝐹 (1, 476 ) = 11 .597 
+
+𝑝 = 0.001 ∗∗∗ 
+
+𝐹 (1, 476 ) = 24 .969 
+
+𝑝 < 0.001 ∗∗∗ 
+
+1D 𝐹 (1, 476 ) = 2.533 
+
+𝑝 = 0.112 
+
+Table S13 : Peg Rolling Task: Variability in Completion Time. Pairwise comparisons of within-participant standard deviation of completion time between the Full condition and the 2D , 1D , and 
+
+Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+Table S14 : Button Discrimination Task: Questionnaire Responses. Pairwise comparisons of post-experiment questionnaire responses between adjacent feedback conditions ( Off vs. 1D , 1D vs. 
+
+2D , and 2D vs. Full ). Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+Off −→ 1D 1D −→ 2D 2D −→ Full Q1 𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑊 = 0.0
+
+𝑝 = 0.016 ∗
+
+𝑊 = 7.5
+
+𝑝 = 0.094 
+
+Q2 𝑊 = 59 .0
+
+𝑝 = 0.022 ∗
+
+𝑊 = 51 .0
+
+𝑝 = 0.022 ∗
+
+𝑊 = 25 .0
+
+𝑝 = 0.047 ∗
+
+Q3 𝑊 = 78 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑊 = 41 .0
+
+𝑝 = 0.031 ∗
+
+𝑊 = 28 .0
+
+𝑝 = 0.117 
+
+Q4 𝑊 = 62 .5
+
+𝑝 = 0.010 ∗
+
+𝑊 = 28 .0
+
+𝑝 = 0.016 ∗
+
+𝑊 = 21 .5
+
+𝑝 = 0.141 S11 Table S15 : Peg Rolling Task: Questionnaire Responses. Pairwise comparisons of post-experiment questionnaire responses between adjacent feedback conditions ( Off vs. 1D , 1D vs. 
+
+2D , and 2D vs. Full ). Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+Off −→ 1D 1D −→ 2D 2D −→ Full Q1 𝑊 = 6.0
+
+𝑝 = 0.266 
+
+𝑊 = 2.5
+
+𝑝 = 0.059 
+
+𝑊 = 6.0
+
+𝑝 = 0.250 
+
+Q2 𝑊 = 21 .0
+
+𝑝 = 0.047 ∗
+
+𝑊 = 40 .5
+
+𝑝 = 0.047 ∗
+
+𝑊 = 30 .5
+
+𝑝 = 0.047 ∗
+
+Q3 𝑊 = 15 .0
+
+𝑝 = 0.063 
+
+𝑊 = 36 .0
+
+𝑝 = 0.012 ∗
+
+𝑊 = 25 .0
+
+𝑝 = 0.063 
+
+Q4 𝑊 = 10 .0
+
+𝑝 = 0.125 
+
+𝑊 = 15 .0
+
+𝑝 = 0.094 
+
+𝑊 = 18 .5
+
+𝑝 = 0.125 
+
+Table S16 : Button Discrimination Task: Per-Participant Inter-Trial Trajectory Variability. 
+
+Pairwise comparisons of participants’ mean inter-trial DTW distance between the Full condition and the 2D , 1D , and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 19 .0
+
+𝑝 = 0.065 
+
+𝑊 = 15 .0
+
+𝑝 = 0.065 
+
+𝑊 = 0.0
+
+𝑝 < 0.001 ∗∗∗ 
+
+Table S17 : Peg Rolling Task: Per-Participant Inter-Trial Trajectory Variability. Pairwise com-parisons of participants’ mean inter-trial DTW distance between the Full condition and the 2D , 1D ,and Off conditions. Statistics are from one-tailed Wilcoxon signed-rank tests. 
+
+2D 1D Off Full 𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+𝑊 = 0.0
+
+𝑝 = 0.003 ∗∗ 
+
+Table S18 : Button Discrimination Task: Aggregated Inter-Trial Trajectory Variability. Pair-wise comparisons of all pairwise inter-trial DTW distances between the Full condition and the 2D ,
+
+1D , and Off conditions. Statistics are from one-tailed Mann-Whitney U tests. 
+
+2D 1D Off Full 𝑈 = 2548888 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑈 = 2525668 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑈 = 1235360 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+S12 Table S19 : Peg Rolling Task: Aggregated Inter-Trial Trajectory Variability. Pairwise compar-isons of all pairwise inter-trial DTW distances between the Full condition and the 2D , 1D , and Off 
+
+conditions. Statistics are from one-tailed Mann-Whitney U tests. 
+
+2D 1D Off Full 𝑈 = 9220395 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑈 = 4593005 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+𝑈 = 4261698 .0
+
+𝑝 < 0.001 ∗∗∗ 
+
+S13
