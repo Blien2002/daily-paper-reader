@@ -1,0 +1,212 @@
+Title: SpectraTac: A Compact Camera-Free Optical Tactile Sensor with Distributed Color Sensing
+
+URL Source: https://arxiv.org/pdf/2608.30368v1
+
+Published Time: Tue, 01 Sep 2026 02:10:04 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+> 1
+
+# SpectraTac: A Compact Camera-Free Optical Tactile Sensor with Distributed Color Sensing 
+
+Hao Wu 1, Student Member, IEEE, Haotian Guo 1, Yu Feng 1, Member, IEEE, Yutong Wang 1,Yanzhe Wang 2, Jianshu Zhou 1, Member, IEEE 
+
+Abstract —Tactile sensing is essential for physical interaction in robotics and human–machine systems. However, combining rich tactile information with compact hardware, low cost, and low computational overhead remains challenging. This work presents SpectraTac, a compact, camera-free optical tactile sensor that combines active red–green–blue (RGB) illumination with spatially distributed color sensing. Contact deforms a compliant transparent elastomer and modulates its internal light field, producing spatially differentiated changes in color and intensity. Three distributed color sensors capture these responses as low-dimensional spatio-spectral features, avoiding cameras, imag-ing optics, and high-dimensional image processing. The device measures 19.2 mm in diameter and 4 mm in height, with a material cost below USD 5. A data-driven decoding framework simultaneously estimates three-dimensional (3D) force and the contact region from the optical measurements. For 3D force prediction, the sensor achieved mean absolute errors (MAEs) of 0.161, 0.164, and 0.429 N along the x-, y-, and z-axes, respectively. The nine-region contact-classification accuracy was 99.9%. We further evaluated real-time 3D force tracking and contact-region-based human–machine interaction through an interactive control task. These results indicate that distributed color-resolved optical sensing offers a compact, low-cost alternative to camera-based tactile sensing for robotics, wearable sensing, and interactive systems. 
+
+Index Terms —Tactile sensing, optoelectronic sensor, force es-timation, robotic perception, human–machine interaction. 
+
+I. I NTRODUCTION 
+
+# TACTILE perception provides direct information about contact, force, deformation, surface properties, and slip during physical interaction in robotics and human–machine systems. These quantities cannot always be inferred reliably from vision alone. Tactile sensing is therefore increasingly important for robotic grippers [1]–[3] and dexterous hands [4], [5], where local contact feedback can improve grasp stability and adaptability during manipulation. A wide range of tactile sensors based on piezoresistive, capacitive, piezo-electric, magnetic, and optical transduction have consequently been developed [6]–[9]. Despite substantial progress, combin-ing mechanical compliance, rich tactile information, compact packaging, low computational requirements, and straightfor-ward integration remains challenging. Optical tactile sensing has attracted particular attention because deformation of a compliant medium can be converted 
+
+Hao Wu and Haotian Guo contributed equally to this work. This work was supported in part by the National University of Singapore under the NUS Start-up Grant (FY2026). 1. Department of Mechanical Engineering, National University of Singapore, Singapore. 2. Department of Mechanical Engineering, Zhejiang University, Hangzhou, China. Correspond-ing author: Jianshu Zhou (e-mail: jianshuzhou@nus.edu.sg). 
+
+Fig. 1. Prototype of the proposed compact camera-free optical tactile sensor. 
+
+into measurable optical signals. Camera-based sensors such as GelSight reconstruct contact geometry and force from images of a deformable elastomer [10], while biomimetic sensors such as TacTip infer contact from the displacement of internal markers [11]. Subsequent designs, including GelSlim and DIGIT, have improved compactness and robustness for robotic manipulation [12], [13]. Recent work has further explored multimodal sensing of soft robotic systems, leveraging visual observations and the deformation response of compliant struc-tures to infer interaction forces and states [14]. Nevertheless, image-based tactile sensing requires a camera, imaging optics, sufficient optical path length, and dedicated image acquisition and processing. These requirements increase sensor size, data bandwidth, and computational demand. Camera-free optoelectronic sensing provides an alternative approach by directly measuring deformation-induced changes in light propagation. Zhao et al. demonstrated stretchable op-tical waveguides in which mechanical deformation modulates transmitted optical intensity, enabling curvature, elongation, and force sensing in a soft prosthetic hand [15]. Piacenza et al. 
+
+embedded multiple light emitters and photodetectors within a transparent elastomeric layer. They used spatially overlapping light-transport signals to infer contact location and normal force over a multicurved robotic finger [16]. Optical encoding can further increase the information carried by a limited number of detector channels. Bai et al. introduced stretch-able distributed fiber-optic sensors incorporating chromatic arXiv:2608.30368v1 [cs.RO] 31 Aug 2026 2    
+
+> Fig. 2. Structure, working principle, and fabrication of the proposed camera-free optical tactile sensor. (a) Exploded view of the structural components. (b) Top view of the printed circuit board (PCB), showing the alternating arrangement of RGBC sensors and RGB LEDs. Components of the same type are spaced at 120 ◦intervals, whereas adjacent emitters and sensors are separated by 60 ◦. (c) Schematic of contact-induced modulation of internal light propagation. (d) Fabrication of the elastomeric layers and final assembly.
+
+patterns. The combined effects of absorption and frustrated total internal reflection distinguished the location, magnitude, and mode of deformation [17]. More recently, light direction and intensity have been jointly used to estimate 3D force and displacement in a compact tactile sensing architecture [18]. Optical-blocking structures have also enabled sensitive force measurements using simple light-emitting diode (LED)– photodiode arrangements for robotic grasping [19]. Together, these studies show that deformation-induced changes in optical transport can provide tactile information without full-field imaging. The spectral dimension of light offers another way to increase tactile information density without substantially in-creasing sensor size. Unlike broadband intensity measure-ments, color-resolved optical responses provide multiple sens-ing channels for the same mechanical deformation. Yan et al. 
+
+developed soft, stretchable optical fibers containing gradient-colored segments. Their approach used wavelength-dependent attenuation and multiwavelength referencing for multipoint bending and pressure sensing [20]. Lee et al. combined intensity-based optical waveguide sensing with colored re-gions. Changes in chromaticity distinguished local pressure at different positions while maintaining low computational com-plexity [21]. These studies show that color-resolved optical signals provide a richer compact representation than a single broadband intensity measurement, without requiring high-dimensional image acquisition. However, active multicolor il-lumination combined with spatially distributed color receivers remains underexplored in fingertip-scale tactile devices. In this work, we present SpectraTac, a compact, camera-free optical tactile sensor (Fig. 1) that combines active RGB illumi-nation with three spatially distributed color sensors. Contact-induced deformation modulates the internal light field within a compliant, transparent polydimethylsiloxane (PDMS) layer. This modulation generates spatially differentiated changes in color and intensity. The resulting low-dimensional spatio-spectral representation is decoded to estimate 3D force and the contact region without image acquisition or process-ing. The main contributions are threefold. First, we intro-duce a fingertip-scale, camera-free architecture that converts deformation-induced changes in internal light propagation into distributed color-resolved signals. Second, we develop an active spatio-spectral sensing scheme that combines RGB illumination with three red, green, blue, and clear (RGBC) sensors. The scheme encodes both force and contact-region in-formation. Third, we integrate the compliant sensing medium, illumination, and color-detection electronics into a compact, readily manufacturable platform for robotics, wearable sens-ing, and human–machine interfaces. II. S ENSOR DESIGN 
+
+A. Structural Design 
+
+The proposed tactile sensor uses a compact, camera-free optical architecture comprising a transparent PDMS sensing layer, a light-blocking layer, three RGBC sensors, and three RGB illumination units, as shown in Fig. 2(a). All optical components are integrated into a fingertip-scale cylindrical structure measuring 19.2 mm in diameter and 4 mm in height. This compact structure facilitates integration into robotic plat-forms and human–machine interfaces. A key feature of the sensor is the alternating circumfer-ential arrangement of three RGBC sensors and three RGB illumination units. As shown in Fig. 2(b), components of the same type are symmetrically spaced at 120 ◦ intervals. 3
+
+Adjacent alternating units are therefore separated by 60 ◦. This distributed configuration senses contact-induced deformation from multiple directions and generates spatially differentiated optical responses. The transparent PDMS layer serves as both the compliant sensing medium and the optical propagation medium. RGB light propagates through the elastomer by internal reflection and scattering, with total internal reflection occurring when the critical-angle condition is satisfied. An opaque black elastomeric layer covers the sensing surface, suppresses ambient light and stray reflections, and deforms with the underlying PDMS. 
+
+B. Working Principle 
+
+Upon contact, elastomer deformation changes the local interface geometry, incidence angles, and optical path lengths, as illustrated in Fig. 2(c). These changes redistribute the internal light field through variations in reflection, scattering, attenuation, and leakage. Owing to the distributed emitter– receiver arrangement, the three RGBC sensors produce distinct responses to different contact locations and loading conditions. Each sensor measures red, green, blue, and clear channels, and the response of the ith sensor is expressed as 
+
+si = [ Ri, G i, B i, C i]T , (1) where Ri, Gi, Bi, and Ci represent the measured red-, green-, blue-, and clear-channel intensities, respectively. Combining the outputs from the three spatially distributed sensors yields 
+
+x = sT1 , sT2 , sT3
+
+T , (2) The resulting vector forms a compact spatio-spectral repre-sentation of the contact-induced optical response. The sensing mechanism combines spectral intensity infor-mation with spatially distributed responses. Applied forces deform the compliant optical medium and alter internal light propagation, producing characteristic intensity variations across the RGBC channels. The magnitude and pattern of these variations encode contact-induced deformation, while differences among the three sensors capture its spatial asym-metry. These complementary responses can therefore be de-coded to estimate force magnitude, loading direction, and contact position. Unlike camera-based visuotactile sensors, the proposed sensor directly samples the deformation-modulated optical field using three miniature RGBC sensors. The alter-nating 60 ◦ emitter–receiver arrangement provides directional optical diversity without imaging optics, representing tactile information in a compact form factor. 
+
+C. Fabrication 
+
+The sensor was fabricated using commercially available, low-cost components and a simple molding process, as out-lined in Fig. 2(d). Three VEML3328 RGBC sensors were selected as the optical receivers because of their compact size and multichannel sensing capability. The transparent sensing layer was formed from PDMS by mixing the base and curing agent at a 12:1 ratio, providing optical transparency and mechanical compliance. The opaque shielding layer was prepared by mixing Ecoflex 00-30 at a 1:1 ratio and adding black silicone pigment. This layer suppressed ambient light and unwanted external reflections. After molding and curing, the elastomeric layers were assembled with the sensing and illumination components to form the complete device. The use of inexpensive commercial components and straightforward fabrication kept the total material cost below USD 5 per sensor, supporting scalable, low-cost fabrication. III. T ACTILE SIGNAL REPRESENTATION AND DECODING 
+
+A. Ground-Truth Acquisition and Calibration 
+
+During calibration, a six-axis force/torque (F/T) sensor was used as the reference for mapping optical measurements to tactile states. As shown in Fig. 3(a), the tactile sensor was mounted on the reference F/T sensor, and controlled contacts were applied to the sensing surface. The outputs of the three RGBC sensors were recorded synchronously with the corresponding six-axis F/T measurements. The reference mechanical state is represented as 
+
+yF = [ Fx, F y , F z , M x, M y , M z ]T ∈ R6, (3) where Fx, Fy , and Fz denote the orthogonal force compo-nents, and Mx, My , and Mz denote the corresponding torques. In addition to the continuous six-axis F/T measurements, each contact sample was assigned a discrete label corre-sponding to one of nine representative regions on the sensing surface. These labels enabled simultaneous contact-region classification. Each training sample comprises an optical measurement vector, a continuous F/T target, and a discrete contact-region label. The dataset is defined as 
+
+D =
+
+n 
+
+x(n), y(n) 
+
+> F
+
+, y(n)
+
+> L
+
+o Nn=1 
+
+, (4) where N is the total number of samples, x(n) ∈ R12 is the optical measurement vector, y(n) 
+
+> F
+
+∈ R6 is the corresponding six-axis F/T vector, and y(n) 
+
+> L
+
+∈ {− 1, 1, . . . , 9} is the contact-region label. Labels 1–9 correspond to the nine contact re-gions, whereas −1 indicates that no valid region annotation is available. Samples labeled −1 were retained for continuous F/T regression but excluded from the contact-region classi-fication loss. In total, approximately 60,000 samples were collected over 50 minutes at 20 Hz. This protocol provided high acquisition throughput and a short calibration time. 
+
+B. Physically Motivated Feature Representation and Normal-ization 
+
+The sensor produces a 12-dimensional raw optical measure-ment vector xraw = [ sT 
+
+> 1
+
+, sT 
+
+> 2
+
+, sT 
+
+> 3
+
+]T ∈ R12 , and the decoding model estimates the six-axis mechanical state yF ∈ R6.To preserve the physical meaning of the measurements, feature expansion is applied directly to the raw optical intensi-ties before statistical normalization. The 12-dimensional vector 
+
+xraw is expanded into a 33-dimensional feature representation 4 
+
+> Fig. 3. Data acquisition, decoding framework, and experimental evaluation. (a) Calibration setup using a reference six-axis F/T sensor. (b) Multitask learning pipeline that expands 12-dimensional raw optical signals into 33-dimensional features for F/T estimation and contact-region classification. (c) Training loss curves. (d) Coefficient of determination ( R2) for the six predicted mechanical components. (e) Absolute-error distributions for the 3D forces. (f) Confusion matrix for nine-region classification. (g) Predicted forces and torques versus their ground-truth values.
+
+xenh ∈ R33 comprising two physically motivated feature groups: 1) Clear-normalized chromaticity ratios : To decouple spectral shifts from broadband intensity attenuation, the color ratios for each sensor i ∈ { 1, 2, 3} are computed as 
+
+ci =
+
+ Ri
+
+Ci + ϵ , Gi
+
+Ci + ϵ , Bi
+
+Ci + ϵ
+
+T
+
+, (5) where ϵ = 10 −5 is a small positive regularization constant used to prevent division by zero under low-light conditions. 2) Pairwise sensor differences : To represent the optical-flux asymmetry induced by tangential shear forces and multiaxis moments, pairwise differences between the distributed sensors are defined as 
+
+∆sij = si − sj , (i, j ) ∈ { (1 , 2) , (2 , 3) , (3 , 1) }. (6) The complete 33-dimensional feature vector is formed by concatenating these feature groups: 
+
+xenh = [ xT
+
+> raw
+
+, cT 
+
+> 1
+
+, cT 
+
+> 2
+
+, cT 
+
+> 3
+
+, ∆sT
+
+> 12
+
+, ∆sT
+
+> 23
+
+, ∆sT
+
+> 31
+
+]T . (7) The resulting vector is standardized by z-score normalization across the training samples, yielding the network input ˜x =(xenh − μenh ) ⊘ σenh .For the ground-truth mechanical targets yF , conventional mean-centering would map the resting-state reference to a nonzero normalized value. We therefore apply a zero-anchored scaling transformation: 
+
+˜yF,j = yF,j 
+
+σF,j 
+
+, j = 1 , . . . , 6, (8) where σF,j denotes the standard deviation of the jth F/T com-ponent, computed exclusively from the training set. Because no mean subtraction is applied, the zero-force and zero-torque reference remains at zero in the normalized target space. 
+
+C. Shared-Backbone Multitask Learning and Masked Opti-mization 
+
+As shown in Fig. 3(b), a shared-backbone residual mul-tilayer perceptron (ResMLP) processes the 33-dimensional feature vector. The shared latent representation branches into a six-axis F/T regression head and a nine-class contact-region classification head. The classification head converts the logits 5     
+
+> Fig. 4. Real-time force estimation and human–machine interaction. (a) Dynamic manual contact applied to the sensor. (b) Tracking of 3D forces ( Fx,Fy,and Fz) during repeated short contacts. (c) Tracking of 3D forces during sustained loads of different durations. In (b) and (c), solid blue lines show the predictions, and dashed red lines show the ground truth. (d) Real-time control of a Snake game. The nine contact regions are mapped to directional commands (up, down, left, and right), with the central region serving as the neutral state.
+
+into probabilities using a softmax function and selects the predicted contact region using the argmax operator. To handle partially annotated data, the region label set includes −1 for samples without reliable contact-region anno-tations. We define the masked multitask objective as Ltotal =
+
+LF + LL and optimize it using a One-Cycle learning-rate schedule. The corresponding training-loss curves are shown in Fig. 3(c). The F/T regression head minimizes a component-weighted L1 loss, which assigns larger relative weights to the in-plane force components and smaller weights to the torque components after target scaling: 
+
+LF = 16N
+
+> N
+
+X
+
+> i=1 6
+
+X
+
+> j=1
+
+wj |˜yF,i,j − ˆyF,i,j |, (9) where w = [1 , 1, 0.5, 0.1, 0.1, 0.2] T corresponds to 
+
+[Fx, F y , F z , M x, M y , M z ]T . These coefficients prioritize selected components after target scaling and do not represent unit conversions. The contact-region classification head uses a masked cross-entropy loss LL. Samples with yL = −1 are excluded from the classification loss but retained for F/T regression. 
+
+D. Decoding Performance 
+
+The proposed representation and multitask learning (MTL) framework enabled simultaneous estimation of continuous forces and discrete contact regions. On the unseen test set, the model achieved R2 > 0.91 for all six mechanical components, as summarized in Fig. 3(d). The component-weighted L1 loss, together with zero-anchored target scaling, reduced baseline drift. The MAEs were below 0.2 N for the in-plane shear forces ( Fx and Fy ) and below 0.5 N for the normal force (Fz ). The corresponding absolute-error distributions are shown in Fig. 3(e). For all three rotational axes, both the MAE and root-mean-square error (RMSE) were at most 0.004 N · m. Figure 3(g) summarizes the overall regression performance. The masked classification head achieved a contact-region classification accuracy of 99.9%. The remaining misclassifi-cations occurred between adjacent regions, as shown by the confusion matrix in Fig. 3(f). IV. A PPLICATION AND DEMONSTRATION 
+
+We evaluated the sensor in two representative applications. The first assessed real-time 3D force estimation under continu-ously varying contact, whereas the second used contact-region classification for human–machine interaction through a tactile game interface. Both demonstrations used the same compact optical architecture to provide continuous force information and discrete contact-region information. 
+
+A. Real-Time Three-Dimensional Force Estimation 
+
+Real-time 3D force estimation ( ˆF = [ ˆFx, ˆFy , ˆFz ]T ) was evaluated by applying continuously varying loads to the sens-ing surface (Fig. 4(a)). The trained model processed the dis-tributed RGBC measurements, and its predictions were com-pared with simultaneously acquired reference F/T readings. As shown in Fig. 4(b) and (c), the predicted forces closely tracked the reference signals across the dynamic loading profiles. Figure 4(b) shows the response to repeated short contacts, whereas Fig. 4(c) shows stable tracking under sustained loads. By avoiding high-dimensional image processing, the proposed approach reduces computational overhead and supports con-tinuous force feedback for robotic manipulation. 
+
+B. Contact-Region-Based Human–Machine Interaction 
+
+Beyond force estimation, the sensor served as a tactile interface in an interactive Snake game (Fig. 4(d)). The nine classification regions were mapped to directional commands. The central region served as a neutral state, while the pe-ripheral regions were grouped into four directions (up, down, left, and right). To avoid accidental triggers, commands were executed only when the normal force exceeded 1.0 N. During the interaction, a user pressed different peripheral areas of the sensing surface. The classification head contin-uously processed the distributed optical responses to predict the corresponding contact region. Predictions within one of the four designated zones were mapped to directional commands that steered the Snake in real time. Unlike conventional me-chanical buttons or touchscreens, the proposed interface relied 6
+
+on deformation-induced optical responses within a compliant sensing surface, thereby preserving its mechanical flexibility. This demonstration extends the sensing architecture beyond robotic force perception. The same low-dimensional optical signals supported continuous physical-state estimation and dis-crete interaction commands, suggesting potential applications in robotic control, handheld interfaces, and human–machine interaction systems. V. C ONCLUSION 
+
+This work presents SpectraTac, a compact, camera-free optical tactile sensor that encodes contact-induced deformation through distributed changes in color and intensity. Without im-age acquisition, its low-dimensional spatio-spectral representa-tion supports accurate 3D force estimation and contact-region classification. The results establish distributed optoelectronic sensing as a compact alternative to camera-based tactile sen-sors for robotics and human–machine interaction. Future work will focus on improving spatial resolution, force decoupling, dynamic tactile perception, and long-term robustness. Direct optical readout may also enable the detection of dynamic events, such as slip and vibration, and support closed-loop tactile interaction. REFERENCES [1] H. Guo, H. Wu, Y. Wang, Y. Xue, T.-W. Wong, T. Li, and H. Dong, “Enabling tunable stiffness, adhesive grasping, and interaction-driven reconfiguration: a shape-memory-polymer-enhanced fin-ray gripper,” 
+
+Soft Robotics , vol. 12, no. 6, pp. 766–776, 2025. [2] J. Zhou, J. Shu, T. Pan, P. Zhu, J. An, H. Zhang, J. Huang, U. Kaur, X. Ma, and M. Tomizuka, “Everything-grasping gripper: A universal gripper with synergistic suction–grasping capabilities for cross-scale and cross-state manipulation,” Soft Robotics , vol. 13, no. 2, pp. 178–189, 2026. [3] J. Zhou, J. Huang, Q. Dou, P. Abbeel, and Y. Liu, “A dexterous and compliant (dexco) hand based on soft hydraulic actuation for human-inspired fine in-hand manipulation,” IEEE Transactions on Robotics ,vol. 41, pp. 666–686, 2024. [4] H. Wu, Y. Wang, Y. Feng, J. Liu, J. Li, J. Zhou, and H. Dong, “Dexlink hand: A compact, affordable, 16-dof linkage-driven hand with human-like dexterity,” arXiv preprint arXiv:2606.17418 , 2026. [5] H. Wu, Y. Wang, Y. Feng, Y. Li, J. Guo, J. Liu, and J. Zhou, “Sylink hand: A synergy-inspired linkage-driven anthropomorphic hand for human-like dexterity,” arXiv preprint arXiv:2606.14250 , 2026. [6] Y. Wang, H. Guo, H. Wu, and H. Dong, “Flexible robotic hand harnesses large deformations for full-coverage human-like multimodal haptic perception,” Nature Communications , vol. 17, no. 1, p. 458, 2025. [7] Y. Feng, Q. Wang, Y. Liu, J. Li, S. Hou, X. Yang, Z. Li, Y. Yi, M. Chen, G. Zhang et al. , “A soft mechanoluminescent skin for high-resolution optical tactile sensing in human–machine interaction,” 
+
+Advanced Science , p. e75507, 2026. [8] Y. Feng, Y. Zhang, Y. Liu, G. Zhang, X. Yu, J. Zhou, and W. J. Li, “A bioinspired soft magneto-ciliary tactile sensor for direction-sensitive interaction sensing,” IEEE Transactions on Instrumentation and Measurement , 2026. [9] Y. Wang, H. Wu, H. Guo, and H. Dong, “Gelsight flexiray: Breaking planar limits by harnessing large deformations for flexible, full-coverage multimodal sensing,” arXiv preprint arXiv:2411.18979 , 2024. [10] W. Yuan, S. Dong, and E. H. Adelson, “Gelsight: High-resolution robot tactile sensors for estimating geometry and force,” Sensors , vol. 17, no. 12, p. 2762, 2017. [11] B. Ward-Cherrier, N. Pestell, L. Cramphorn, B. Winstone, M. E. Gian-naccini, J. Rossiter, and N. F. Lepora, “The tactip family: Soft optical tactile sensors with 3d-printed biomimetic morphologies,” Soft robotics ,vol. 5, no. 2, pp. 216–227, 2018. [12] E. Donlon, S. Dong, M. Liu, J. Li, E. Adelson, and A. Rodriguez, “Gelslim: A high-resolution, compact, robust, and calibrated tactile-sensing finger,” in 2018 IEEE/RSJ International Conference on Intel-ligent Robots and Systems (IROS) . IEEE, 2018, pp. 1927–1934. [13] M. Lambeta, P.-W. Chou, S. Tian, B. Yang, B. Maloon, V. R. Most, D. Stroud, R. Santos, A. Byagowi, G. Kammerer et al. , “Digit: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation,” IEEE Robotics and Automation Letters , vol. 5, no. 3, pp. 3838–3845, 2020. [14] Y. Wang, H. Wu, Z. Zheng, and H. Dong, “Relaxation-aware multimodal sensing of soft gripper driven by structure-perception-learning,” arXiv preprint arXiv:2608.26622 , 2026. [15] H. Zhao, K. O’brien, S. Li, and R. F. Shepherd, “Optoelectronically innervated soft prosthetic hand via stretchable optical waveguides,” 
+
+Science robotics , vol. 1, no. 1, p. eaai7529, 2016. [16] P. Piacenza, K. Behrman, B. Schifferer, I. Kymissis, and M. Ciocarlie, “A sensorized multicurved robot finger with data-driven touch sensing via overlapping light signals,” IEEE/ASME Transactions on Mechatronics ,vol. 25, no. 5, pp. 2416–2427, 2020. [17] H. Bai, S. Li, J. Barreiros, Y. Tu, C. R. Pollock, and R. F. Shepherd, “Stretchable distributed fiber-optic sensors,” Science , vol. 370, no. 6518, pp. 848–852, 2020. [18] O. Leslie, D. C. Bulens, P. M. Ulloa, and S. J. Redmond, “A tactile sensing concept for 3-d displacement and 3-d force measurement using light angle and intensity sensing,” IEEE Sensors Journal , vol. 23, no. 18, pp. 21 172–21 188, 2023. [19] L. Mo, Y. Li, J. Xia, S. Fu, Y.-F. Zhang, Y. Yang, T. Ren, C. Wu, and Y. Chen, “A compact, cost-effective, and highly sensitive optical blocking structure (obs) tactile sensor for enhanced robotic grasping,” 
+
+IEEE/ASME Transactions on Mechatronics , vol. 30, no. 6, pp. 5777– 5788, 2025. [20] X. Yan, X. Yan, T. Zhang, M. Chen, Y. Luo, Z. Wang, Z. Qian, Z. Shang, T. Zhang, L. Wei et al. , “Soft and stretchable optical fibers with gradient color coding for multipoint bending and tactile perception in dexterous hands,” ACS sensors , vol. 10, no. 7, pp. 4832–4840, 2025. [21] E. Lee, S. Kim, and Y.-L. Park, “Multimodal soft optical waveguide sensor with microstructured core-cladding interface for human-robot interaction,” npj Robotics , vol. 3, no. 1, p. 25, 2025.
