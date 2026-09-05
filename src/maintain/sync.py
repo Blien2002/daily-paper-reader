@@ -523,6 +523,14 @@ def upsert_papers(
         nonlocal uploaded
         if not chunk:
             return
+        # PostgREST 要求批内字段一致；省略的可选字段不能补 null，以免覆盖旧 PDF。
+        field_groups: Dict[frozenset[str], List[Dict[str, Any]]] = {}
+        for row in chunk:
+            field_groups.setdefault(frozenset(row), []).append(row)
+        if len(field_groups) > 1:
+            for group in field_groups.values():
+                _upsert_with_split(group, depth)
+            return
         try:
             used_attempt = _post_chunk(chunk)
             uploaded += len(chunk)
