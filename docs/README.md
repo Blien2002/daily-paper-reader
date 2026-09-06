@@ -1,94 +1,116 @@
-<div class="dpr-home-notice-card">
-  <h3 class="dpr-home-notice-title">🚀 Start Here</h3>
-  <ul class="dpr-home-notice-list">
-    <li><a href="#/tutorial/README">使用教程</a></li>
-  </ul>
+<div class="dpr-home-notice-card dpr-home-panel">
+  <div class="dpr-home-notice-header dpr-home-panel-header">
+    <h3 class="dpr-home-notice-title">公告与更新</h3>
+    <a class="dpr-home-notice-tutorial" href="#/tutorial/README">使用教程 <span aria-hidden="true">›</span></a>
+  </div>
+  <div class="dpr-home-notice-entry">
+    <time class="dpr-home-notice-date" datetime="2026-09-05">09.05</time>
+    <div>
+      <strong class="dpr-home-notice-entry-title">CVPR 2026 已更新</strong>
+      <span class="dpr-home-notice-entry-summary">已收录 CVPR 2026 官方 Open Access 论文 4,042 篇，可在会议检索中查看。EMNLP 2026 预计于 10 月中下旬更新，具体以官方论文集开放时间为准。</span>
+    </div>
+  </div>
+  <div class="dpr-home-notice-entry">
+    <time class="dpr-home-notice-date" datetime="2026-08-28">08.28</time>
+    <div>
+      <strong class="dpr-home-notice-entry-title">区间日报可正常点开</strong>
+      <span class="dpr-home-notice-entry-summary">长时间窗日报会挂在结束日那天的日历格上，此前点击没有反应，现在可以正常展开查看。</span>
+    </div>
+  </div>
+  <div class="dpr-home-notice-entry">
+    <time class="dpr-home-notice-date" datetime="2026-07-20">07.20</time>
+    <div>
+      <strong class="dpr-home-notice-entry-title">反馈功能上线</strong>
+      <span class="dpr-home-notice-entry-summary">新增反馈功能，欢迎大家踊跃反馈各种建议，我们会第一时间查看并协调处理。</span>
+    </div>
+  </div>
+  <div class="dpr-home-site-stats" data-dpr-site-stats hidden aria-live="polite">
+    <span>今天有 <strong class="dpr-home-site-stat-value" data-dpr-daily-readers>--</strong> 人在看论文</span>
+    <span class="dpr-home-site-stat-separator" aria-hidden="true">·</span>
+    <span>昨天有 <strong class="dpr-home-site-stat-value" data-dpr-yesterday-readers>--</strong> 人在看论文</span>
+    <span class="dpr-home-site-stat-separator" aria-hidden="true">·</span>
+    <span>已有 <strong class="dpr-home-site-stat-value" data-dpr-fork-count>--</strong> 人加入 Daily Paper Reader</span>
+    <span class="dpr-home-history">
+      <button type="button" class="dpr-home-history-trigger" data-dpr-history-trigger aria-label="查看最近 14 天阅读趋势"><span aria-hidden="true">🔍</span></button>
+      <span class="dpr-home-history-popover" data-dpr-history-popover role="tooltip">
+        <span class="dpr-home-history-header">近 14 天阅读趋势</span>
+        <span class="dpr-home-history-meta">
+          <span data-dpr-history-range>--</span>
+          <span>峰值 <strong data-dpr-history-peak>--</strong></span>
+        </span>
+        <span class="dpr-home-history-chart" data-dpr-history-chart></span>
+      </span>
+    </span>
+  </div>
 </div>
 
-## 每次日报
-- 最新运行日期：2026-09-03
-- 运行时间：2026-09-03 23:10:12 UTC
-- 运行状态：成功
-- 本次总论文数：20
-- 精读区：8
-- 速读区：12
+<div class="dpr-home-dashboard-grid">
+<section class="dpr-home-dashboard-card dpr-home-report-card">
+  <div class="dpr-home-dashboard-header">
+    <div>
+      <span class="dpr-home-dashboard-kicker">2026-09-06</span>
+      <h3 class="dpr-home-dashboard-title">今日汇总</h3>
+    </div>
+    <strong class="dpr-home-dashboard-count">共 34 篇</strong>
+  </div>
+  <dl class="dpr-home-dashboard-stats">
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>22</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+  </dl>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-06 22:30:02 UTC<br>状态：成功</p>
+</section>
+<section class="dpr-home-dashboard-card dpr-home-brief-card">
+  <div class="dpr-home-dashboard-header">
+    <div>
+      <span class="dpr-home-dashboard-kicker">合并后生成</span>
+      <h3 class="dpr-home-dashboard-title">今日简报</h3>
+    </div>
+    <strong class="dpr-home-dashboard-count">AI</strong>
+  </div>
+  <div class="dpr-home-dashboard-body">
+<p>今日共生成 34 篇推荐（精读 22 篇，速读 12 篇）</p>
+<p>精读：《PAVE: Predictive Alignment and Value-Guided Evolution for World-Action Policies》（10.0/10）, 《Scaling Bimanual Household Manipulation from 1,500 hours of Demonstrations to On-Policy Corrections》（10.0/10）</p>
+<p>速读：《Zeva: In-Context Causal Learning for Generalizable Embodied Manipulation》（8.0/10）, 《SUN: Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies》（8.0/10）, 《A Wearable Pneumatic Device for Continuous, Closed-Loop, Bidirectional Tactile Interaction》（8.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+  </div>
+</section>
+<section class="dpr-home-dashboard-card dpr-home-deep-card">
+  <div class="dpr-home-dashboard-header">
+    <div>
+      <span class="dpr-home-dashboard-kicker">今日累计</span>
+      <h3 class="dpr-home-dashboard-title">精读推荐</h3>
+    </div>
+    <strong class="dpr-home-dashboard-count">22 篇</strong>
+  </div>
+  <div class="dpr-home-dashboard-body">
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PAVE: Predictive Alignment and Value-Guided Evolution for World-Action Policies">PAVE: Predictive Alignment and Value-Guided Evolution for World-Action Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="Scaling Bimanual Household Manipulation from 1,500 hours of Demonstrations to On-Policy Corrections">Scaling Bimanual Household Manipulation from 1,500 hours of Demonstrations to On-Policy Corrections</span></li><li><span class="dpr-home-dashboard-paper-title" title="AdaVLA: Adaptive Step Flow Matching for Training-free Acceleration of Vision-Language-Action Models">AdaVLA: Adaptive Step Flow Matching for Training-free Acceleration of Vision-Language-Action Models</span></li></ul>
+  </div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>20</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+</section>
+<section class="dpr-home-dashboard-card dpr-home-skim-card">
+  <div class="dpr-home-dashboard-header">
+    <div>
+      <span class="dpr-home-dashboard-kicker">今日累计</span>
+      <h3 class="dpr-home-dashboard-title">速读推荐</h3>
+    </div>
+    <strong class="dpr-home-dashboard-count">12 篇</strong>
+  </div>
+  <div class="dpr-home-dashboard-body">
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Zeva: In-Context Causal Learning for Generalizable Embodied Manipulation">Zeva: In-Context Causal Learning for Generalizable Embodied Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="SUN: Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies">SUN: Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Wearable Pneumatic Device for Continuous, Closed-Loop, Bidirectional Tactile Interaction">A Wearable Pneumatic Device for Continuous, Closed-Loop, Bidirectional Tactile Interaction</span></li></ul>
+  </div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>10</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+</section>
+</div>
 
-### 今日简报（AI）
-- 今日共生成 20 篇推荐（精读 8 篇，速读 12 篇）
-- 精读：《Riemann-1.0: An Embodied World Action Model for Physical AI》（10.0/10）, 《Zero-WAM: In-Context World-Action Modeling from Human Videos for Open-Ended Task Generalization》（9.0/10）
-- 速读：《One-Shot Learning from Demonstration of Contact-Rich Robotic Manipulation by Identifying Physical Interactions》（8.0/10）, 《Decoupling Planning and Control for Instructable Agents》（8.0/10）, 《Plan Along the Way: Event-Triggered Foundation-Model Planning for TAMP Execution in Partially Observable Manipulation》（8.0/10）
-- 这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。
-- 详情：[/202609/03/README](/202609/03/README)
-
-### 精读区论文标签
-1. [Riemann-1.0: An Embodied World Action Model for Physical AI](/202609/03/2608.27033v1-riemann-10-an-embodied-world-action-model-for-physical-ai)  
-   标签：评分：10.0/10、query:vla
-   evidence：统一策略与仿真的具身智能世界动作模型
-2. [Zero-WAM: In-Context World-Action Modeling from Human Videos for Open-Ended Task Generalization](/202609/03/2608.26103v1-zero-wam-in-context-world-action-modeling-from-human-videos-for-open-ended-task-generalization)  
-   标签：评分：9.0/10、query:vla
-   evidence：从人类视频上下文进行世界-动作建模以执行未见过的操纵任务
-3. [Zero-WAM: In-Context World-Action Modeling from Human Videos for Open-Ended Task Generalization](/202609/03/2608.26103v2-zero-wam-in-context-world-action-modeling-from-human-videos-for-open-ended-task-generalization)  
-   标签：评分：9.0/10、query:vla
-   evidence：基于人类视频的因果视频-动作模型，实现零样本跨任务操作
-4. [Training-Free Action Correction for VLA Model Failures via Language Feedback](/202609/03/2608.29967v1-training-free-action-correction-for-vla-model-failures-via-language-feedback)  
-   标签：评分：9.0/10、query:vla
-   evidence：使用任务级语言反馈对VLA动作输出进行免训练校正
-5. [LightNav-0: Eliciting VLM Spatial Intelligence for Generalist Embodied Navigation](/202609/03/2608.30935v1-lightnav-0-eliciting-vlm-spatial-intelligence-for-generalist-embodied-navigation)  
-   标签：评分：9.0/10、query:vla
-   evidence：LightNav-0利用VLM空间智能实现通用具身导航
-6. [ZimaBlue: Evolving Generalizable World Action Models through Scalable Video Pre-training](/202609/03/2609.00188v1-zimablue-evolving-generalizable-world-action-models-through-scalable-video-pre-training)  
-   标签：评分：9.0/10、query:vla
-   evidence：通过可扩展视频预训练学习通用世界动作模型
-7. [Latent Cluster Analysis for Vision-Language-Action Models](/202609/03/2609.02634v1-latent-cluster-analysis-for-vision-language-action-models)  
-   标签：评分：9.0/10、query:vla
-   evidence：VLA模型GR00T N1.5的潜在聚类分析用于可解释性
-8. [HINT: Human-Intent Inception for Long-Horizon Robot Manipulation](/202609/03/2609.02653v1-hint-human-intent-inception-for-long-horizon-robot-manipulation)  
-   标签：评分：9.0/10、query:vla
-   evidence：面向VLA长程操作与人类意图对齐的智能体框架
-
-### 速读区论文标签
-1. [One-Shot Learning from Demonstration of Contact-Rich Robotic Manipulation by Identifying Physical Interactions](/202609/03/2608.24741v1-one-shot-learning-from-demonstration-of-contact-rich-robotic-manipulation-by-identifying-physical-interactions)  
-   标签：评分：8.0/10、query:tf
-   evidence：使用混合位置-力控制器建模物理交互
-2. [Decoupling Planning and Control for Instructable Agents](/202609/03/2608.26788v1-decoupling-planning-and-control-for-instructable-agents)  
-   标签：评分：8.0/10、query:vla
-   evidence：结合VLM规划器与世界模型控制器实现语言可指令智能体
-3. [Plan Along the Way: Event-Triggered Foundation-Model Planning for TAMP Execution in Partially Observable Manipulation](/202609/03/2608.28075v1-plan-along-the-way-event-triggered-foundation-model-planning-for-tamp-execution-in-partially-observable-manipulation)  
-   标签：评分：8.0/10、query:vla
-   evidence：部分可观测操作中事件触发的基座模型规划用于任务与运动规划
-4. [AnyWorld: Factorized Egocentric World Models for Cross-Embodiment Generalization](/202609/03/2608.29242v1-anyworld-factorized-egocentric-world-models-for-cross-embodiment-generalization)  
-   标签：评分：8.0/10、query:vla
-   evidence：从第一人称视频中学习跨具身世界模型以支持机器人学习
-5. [Rapid On-Robot Learning for Dynamic Manipulation Skills: Robot Juggling](/202609/03/2608.26800v1-rapid-on-robot-learning-for-dynamic-manipulation-skills-robot-juggling)  
-   标签：评分：7.0/10、query:vla
-   evidence：双臂动态操作技能的在线学习方法
-6. [Contact-Guided Exploration for Non-Prehensile Locomanipulation with Multi-Critic RL](/202609/03/2608.28140v1-contact-guided-exploration-for-non-prehensile-locomanipulation-with-multi-critic-rl)  
-   标签：评分：7.0/10、query:vla
-   evidence：基于RL的接触引导探索非抓取移动操作
-7. [ChainSplat: A Physics-Inspired Screw-Theoretic Model for Learning Deformable Linear Object Dynamics from Multi-View RGB Videos](/202609/03/2608.28570v1-chainsplat-a-physics-inspired-screw-theoretic-model-for-learning-deformable-linear-object-dynamics-from-multi-view-rgb-videos)  
-   标签：评分：7.0/10、query:vla
-   evidence：物理启发的螺旋理论模型，从RGB视频学习可变形线性物体动力学
-8. [Agri-Sim: Agricultural Simulation Platform for Embodied Intelligence Evaluation in Greenhouse Robotics](/202609/03/2608.29100v1-agri-sim-agricultural-simulation-platform-for-embodied-intelligence-evaluation-in-greenhouse-robotics)  
-   标签：评分：7.0/10、query:vla
-   evidence：用于农业机器人具身智能评估的仿真平台
-9. [Generative Action-Chunk Sampling for Adaptive Stiffness Control in Physical Human-Robot Collaboration](/202609/03/2608.25284v1-generative-action-chunk-sampling-for-adaptive-stiffness-control-in-physical-human-robot-collaboration)  
-   标签：评分：6.0/10、query:tf
-   evidence：利用外部关节力矩估计进行人机协作中的自适应刚度控制
-10. [Leveraging Inter-object Affordances for Efficient Planning in Contact-rich Tasks](/202609/03/2608.25641v1-leveraging-inter-object-affordances-for-efficient-planning-in-contact-rich-tasks)  
-   标签：评分：6.0/10、query:vla
-   evidence：面向接触丰富机器人操作的任务与运动规划，利用物体可供性
-11. [STEP: State-Aware Task Estimation and Planning with Multi-Modal LLMs for Human-Robot Collaboration](/202609/03/2608.27225v1-step-state-aware-task-estimation-and-planning-with-multi-modal-llms-for-human-robot-collaboration)  
-   标签：评分：6.0/10、query:vla
-   evidence：利用多模态大模型进行状态感知任务规划以支持人机协作操纵
-12. [Iron: Intent-Aligned and Retrospective Dual Learning Framework for Enhancing Generalist Virtual Agents](/202609/03/2608.27866v1-iron-intent-aligned-and-retrospective-dual-learning-framework-for-enhancing-generalist-virtual-agents)  
-   标签：评分：6.0/10、query:vla
-   evidence：面向具身虚拟智能体的双重学习框架，对齐多模态大模型意图与GUI动作
-
-
-<div class="dpr-home-promo-card">
-  <h3 class="dpr-home-promo-title">💬 社区与支持</h3>
-  <ul class="dpr-home-promo-list">
-    <li>欢迎 Star / Fork / Issue / PR</li>
-    <li>QQ群：583867967（欢迎交流，已有：1151人）</li>
-  </ul>
+<div class="dpr-home-promo-card dpr-home-panel">
+  <div class="dpr-home-panel-header">
+    <h3 class="dpr-home-promo-title">社区与支持</h3>
+  </div>
+  <p class="dpr-home-promo-copy">欢迎通过 Star、Fork、Issue 或 PR 一起完善 Daily Paper Reader。</p>
+  <div class="dpr-home-promo-meta">
+    <span>QQ群 <strong>583867967</strong></span>
+    <span class="dpr-home-promo-separator" aria-hidden="true">·</span>
+    <span>已有 <strong>1,491</strong> 人参与交流</span>
+  </div>
 </div>

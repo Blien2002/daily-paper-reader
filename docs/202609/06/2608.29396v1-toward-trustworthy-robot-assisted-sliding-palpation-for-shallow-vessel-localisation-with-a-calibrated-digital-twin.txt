@@ -1,0 +1,310 @@
+Title: Toward Trustworthy Robot-Assisted Sliding Palpation for Shallow Vessel Localisation with a Calibrated Digital Twin
+
+URL Source: https://arxiv.org/pdf/2608.29396v1
+
+Published Time: Tue, 01 Sep 2026 01:07:12 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Toward Trustworthy Robot-Assisted Sliding Palpation for Shallow Vessel Localisation with a Calibrated Digital Twin 
+
+Piotr Blaszyk , Wen Fan , Kaizhong Deng , Daniel Elson , and Dandan Zhang 
+
+Imperial College London, UK 
+
+Abstract. Reliable localisation of shallow subsurface vessels matters for safe robot-assisted venous access and vessel-aware manipulation, but collecting diverse tactile data on physical hardware is costly, slow, and can degrade soft vision-based tactile sensors. We present a robot-assisted sliding-palpation framework in which a calibrated digital twin generates labelled tactile sequences, reducing dependence on real-world data col-lection. The twin models sensor–vessel contact, is calibrated against real palpation trajectories by Bayesian-optimisation-based domain adapta-tion, and is randomised over sliding direction and contact conditions. A spatio-temporal graph neural network trained on simulated marker trajectories performs per-node vessel classification and yields a human-verifiable top-view localisation map through 2D-to-3D-to-2D geomet-ric projection. Using three datasets (Sim, Silicone, and Meat, the lat-ter a raw-meat phantom with vessel models at nominal depths of 0-30 mm) we evaluate four [train] →[test] models: Sim →Sim, Sim →Silicone, Sim →Meat, and Meat →Silicone. The calibrated twin, validated on four canonical interactions, yields a simulated-to-real marker-alignment MAE of 0.50 mm at the point of deepest contact. After reprojection onto a 1 mm top-view grid, with each model’s decision threshold set to favour few false alarms over high sensitivity, predicted vessel pixels lie on av-erage 1.05-5.49 mm from the nearest true vessel pixel across the four models (1.05-1.31 mm for all but Sim →Meat, whose larger domain shift marks the current limit of simulation transfer). These results demon-strate progress toward trustworthy tactile palpation through calibrated simulation, interpretable localisation, and transparent reporting of cross-domain degradation. Code, model weights, and data are publicly avail-able on GitHub and Zenodo. 1
+
+Keywords: tactile palpation · medical robotics · graph neural networks  
+
+> 1
+
+We give Zenodo DOIs here, as they are permanent. Simulation and learning code [10]: 
+
+https://doi.org/10.5281/zenodo.21958186 . Robot control code [9]: https:// doi.org/10.5281/zenodo.21958190 . Datasets and model weights [8]: https:// doi.org/10.5281/zenodo.21958107 .arXiv:2608.29396v1 [cs.RO] 29 Aug 2026 2 P. Blaszyk et al. 
+
+# 1 Introduction  
+
+> Fig. 1: The working principle of the ViTacTip sensor used in this work. This figure was inspired by the work of Fan et al. [15].
+
+Shallow blood vessel detection is an important capability in robot-assisted minimally invasive surgery (RAMIS), where it helps prevent accidental vessel injury during manipulation and tissue interaction [33]. It is also essential for clinical procedures such as catheterisation for intravenous injections [24], blood sampling, and interventional treatments including cardiac stenting [30]. In on-cology applications, the spatial distribution of vasculature surrounding a tumour is a key factor when determining electrode placement for irreversible electropo-ration [23]. Vessel detection is supported by several imaging modalities. Magnetic reso-nance imaging (MRI) and computed tomography (CT) can map vessels at high resolution and depth but are expensive and, for CT, expose the patient to radia-tion. Ultrasound (US) is the clinical gold standard for intra-operative detection of shallow and deep vessels [22]; near-infrared imaging (NIR) is common in phle-botomy for superficial vessels [31]; and optical coherence elastography (OCE) is an emerging approach with finer resolution than either [19]. All rely on spe-cialised imaging equipment. Their cost is a key limitation: NIR and US probes cost a few thousand dollars (e.g., $1,800 [3] and $4,800 [4]), and commercial ophthalmic optical coherence tomography (OCT) probes were reported at $40,000–$150,000 in 2021 [37]. They also need specialised maintenance, infrastructure, and trained operators, which hinders deployment in resource-constrained settings, particularly in low- and Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 3 
+
+> Fig. 2: Vessel-detection pipeline. Domain adaptation calibrates the sensor Young’s modulus and sensor–vessel contact stiffness, while domain randomisation varies the sliding direction and sensor–vessel contact parameters. Training data are generated using the DiffTactile-based digital twin, and an ST-GNN performs per-node binary classification on the marker graph (magenta: vessel; cyan: no vessel). Robot kinematics are then used to project these predictions into a top-view vessel map (white: predicted vessel). Real ViTacTip trajectories collected on the silicone vascular phantom (Real Scenario #1) and the raw-meat phantom (Real Scenario #2) provide labelled tactile videos for evaluating the ST-GNN.
+
+middle-income countries [38], motivating lower-cost approaches to shallow vessel detection. Vision-based tactile sensors (VBTSs) provide a compact and comparatively low-cost approach to high-resolution tactile perception. By imaging the defor-mation of a compliant sensing surface during contact, VBTSs can capture rich information about local geometry and contact mechanics [5, 25, 40]. Fig. 1 illus-trates the operating principle of one such sensor, the ViTacTip [15]. A key prac-tical advantage of VBTSs is their affordability. Commercial devices such as the GelSight Mini and DIGIT cost approximately $500 and $350, respectively [1, 2], while laboratory-built designs can reduce fabrication costs further. For example, MagicTac reports a minimum manufacturing cost of only £4.76 [16]. In compar-ison, point-of-care ultrasound systems typically cost several thousand pounds, and conventional cart-based systems can cost tens of thousands of pounds [32]. Ultrasound remains an established modality for vascular access and offers direct imaging of subsurface anatomy at substantially greater depths [26]. However, for the localisation of shallow subsurface vessels, the substantially lower hardware cost, compact form factor, and ease of robotic integration of VBTSs motivate their investigation as a complementary sensing modality. 4 P. Blaszyk et al. 
+
+Beyond their cost advantage, VBTSs provide a high degree of sensing versa-tility. The rich visual information generated by contact-induced deformation can be used to infer a range of tactile quantities, including surface geometry, contact location, force, and slip [17]. Recent developments further demonstrate the po-tential to integrate multiple sensing modalities within a single compact robotic end-effector. For example, MagicGripper combines tactile, visual, and proximity sensing to support diverse contact-rich manipulation tasks [14]. This multifunc-tionality enables a common sensing platform to support different perception and manipulation objectives through task-specific processing and inference, without requiring dedicated hardware for each function. Such flexibility is particularly valuable for compact and resource-constrained robotic systems and further mo-tivates the use of VBTSs for robot-assisted palpation. In the intended clinical workflow, an end-effector-mounted VBTS performs a brief tactile pre-scan of the skin to localise superficial vessels before any invasive action. The resulting vessel map can support automated venous access tasks, such as intravenous cannulation and blood sampling, or vessel-aware manipula-tion during RAMIS. By presenting the localisation result as a human-verifiable top-view map, the framework retains clinician oversight and enables confirma-tion of vessel location before needle insertion or instrument interaction. Vessel detection from VBTS deformation patterns typically needs learning-based models, and hence a large and diverse dataset spanning the contact con-ditions met during palpation. Collecting it on physical hardware is slow and labour-intensive, and the soft elastomer and delicate optics can degrade under repeated interaction. Digital twins (DTs) address this by simulating tactile in-teractions at scale without physical wear [13], generating common and rare con-tact scenarios with automatic ground-truth labels and greater diversity, which can improve generalisation over limited real datasets [29]. Two complementary strategies mitigate the sim-to-real gap: domain adaptation, which aligns DT pa-rameters with their real-world counterparts, and domain randomisation, which adds variability to approximate real conditions [41]. To the best of our knowledge, this study is the first to combine a VBTS with sliding palpation and a DT for shallow vessel detection, and asks how accurately and reliably shallow vessels can be localised from VBTS deformation observed while sliding across them. The main contributions of this work are as follows: 
+
+– We formulate shallow-vessel localisation from continuous robot-executed slid-ing palpation using a vision-based tactile sensor, enabling spatially continu-ous sensing along the scanning trajectory. 
+
+– We develop and calibrate a digital twin of sensor–vessel interaction and use domain-randomised simulation to train a spatio-temporal graph neural net-work (ST-GNN) for per-node vessel segmentation without silicone-phantom training data. 
+
+– We evaluate sim-to-real transfer across two physical experimental domains: a silicone vascular phantom and a raw-meat phantom containing tubular vessel surrogates at nominal depths of  0–30 mm , including explicit analy-Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 5
+
+Table 1: Comparison of related work: part 1 
+
+Project Target Sensor Palpation Approach BP Train Test MiniTac [27] T VBTS T M n/a R P, EV 
+
+DIGIT Pinki [12] T VBTS T M n/a R P, EV 
+
+Bewley et al. [7] T VBTS T EE n/a R P
+
+Beasley et al. [6] BV Capacitive S EE Y n/a P, IV 
+
+Hampson et al. [20] BV Tactile array T EE Y n/a P
+
+3D CNN [11] BV NIR none EE N R IV 
+
+Ours BV VBTS S EE N DT P, M 
+
+Abbreviations: target (T = tumour, BV = blood vessel), palpation (T = tapping, S = sliding), approach (M = modular, EE = end-to-end), BP = use blood pulsation data (N = no, Y = yes), train set (R = real-world data, DT = digital twin), test set (P = synthetic phantom, EV = ex-vivo human tissue, IV = in-vivo human tissue, M = raw meat phantom) 
+
+Table 2: Comparison of related work: part 2 
+
+Project Model Accuracy [%] Error [mm] MiniTac [27] MLP, SVM 100 n/a 
+
+DIGIT Pinki [12] RN18, VMAE 98, 100 n/a 
+
+Bewley et al. [7] LR, GKDE 95, 70 1
+
+Beasley et al. [6] MMD, THR, LR n/a 1.3 
+
+Hampson et al. [20] MM, GC n/a 0.2, 0.6, 6.0 
+
+3D CNN [11] 3D CNN 87 n/a 
+
+Ours a ST-GNN n/a 1.1, 1.2, 5.5, 1.3 
+
+Abbreviations: RN18 = ResNet-18; VMAE = VideoMAE; LR = linear re-gression; GKDE = Gaussian kernel density estimation; MMD = min-max de-tection; THR = thresholding; MM = mathematical model; GC = Gaussian curve; ST-GNN = spatio-temporal graph neural network.  
+
+> a
+
+Mean L2 error of the top-view vessel map (Table 4), for Sim →Sim, Sim →Silicone, Sim →Meat, Meat →Silicone in that order. 
+
+sis of performance degradation under the larger domain shift, seed-to-seed variability, and a temporal-window ablation. 
+
+– We transform tactile predictions using robot kinematics into a human-verifiable top-view vessel map, evaluated per pixel on all three datasets, that can pro-vide spatial input for subsequent robot planning. 
+
+# 2 Related work 
+
+2.1 Vision-based Tactile Sensors for Tactile Palpation 
+
+Tables 1 and 2 summarise related studies on VBTS-based tumour palpation (whose stiffness-variation principle mirrors vessel localisation) and on vessel de-tection with other modalities. The ‘error’ column is the mean error for related works and, for ours, the mean distance from each predicted vessel pixel to the nearest true pixel of the top-view map. Beasley et al. [6] also slide, but stop for 6 P. Blaszyk et al. 
+
+4 s at each collection point; the remaining works tap. MiniTac [27] and DIGIT Pinki [12] are modular (map sensor image to deformation, then classify), whereas Bewley et al. [7] classify end-to-end on a Voronoi graph of the markers. 
+
+2.2 Digital Twin-based Data Augmentation 
+
+Digital twins (DTs), high-fidelity virtual replicas in which sensing, dynamics, and interaction are simulated, have become an effective source of large-scale train-ing data for robotic perception [39]. For tactile sensing they yield large, diverse contact datasets without the cost and hardware wear of physical experiments; combining physics-based simulation with data-driven models reproduces contact deformation and sensor noise well enough to approximate physical tactile sen-sors [42] and to label data across many interaction conditions [29]. DT-based generation is commonly paired with sim-to-real techniques [41]: domain adapta-tion aligns simulated and real sensor characteristics, while domain randomisation adds controlled variability in textures, lighting, dynamics, and sensor parame-ters [28]. 
+
+# 3 Methods 
+
+3.1 Justification of Choices Choice of VBTS for Vessel Detection We select the ViTacTip [15] for its compact combination of vision and tactile sensing: a transparent elastomeric “see-through” skin over a biomimetic marker structure lets the internal camera ob-serve surface features while the markers track local strain and shear during slid-ing. Its reported low pose/force error and strong fine-texture discrimination [15] suit sliding palpation, where local deformation and shear reveal shallow-vessel stiffness variations, and the visual channel aids ground-truth identification of vessel locations. 
+
+Choice of GNNs for Tactile Perception For marker-based VBTSs, graph neural networks (GNNs) have proven effective for tactile perception [18]: the markers form a grid whose displacements encode surface deformation, mapping naturally to a graph with markers as nodes and spatial neighbourhoods as edges. Relative to CNNs, GNNs model inter-marker dependencies more explicitly and perform better on marker-based tactile tasks [18]. 
+
+3.2 System Overview 
+
+Fig. 2 illustrates the pipeline. We build a DT on DiffTactile [36] comprising a rigid phantom with a single rigid vessel inclusion and a soft-body (FEM) VBTS, with a camera model mapping 3D marker positions to a synthetic marker im-age. Domain adaptation fits the sensor’s Young’s modulus and the sensor–vessel contact stiffness by Bayesian optimisation on a real sliding trajectory (Sec. 3.4); Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 7                                    
+
+> Table 3: Temporal-window ablation: Sim →Silicone trained with a clip of Lframes. Ar-rows give the desirable direction; bold marks the best value per column and underline the runner-up. L= 5 is used throughout the rest of this manuscript
+> LFG IoU ↑AP ↑
+> 10.114 ±0.002 0.209 ±0.005
+> 30.197 ±0.006 0.201 ±0.001
+> 50.238 ±0.001 0 .324 ±0.001
+> 70.214 ±0.029 0.311 ±0.006
+> L= clip length in frames; FG IoU = foreground (vessel-present) IoU at threshold 0.5; AP = average precision (chance level 0.11). Mean ±standard deviation over three training seeds, on the Silicone test set.
+
+the fitted twin is validated against four real trajectories (press, slide, twist-x, twist-z) by the marker-position error at deepest contact. We then generate 500 simulated sliding trajectories (250 with and 250 with-out the vessel), the Sim dataset of Sec. 4.1, to train a deep spatio-temporal GNN (ST-GNN) for binary per-node vessel classification on the marker graph (Fig. 3) [34]. Each sample is a 5-frame clip (window length chosen by the ablation in Table 3); training applies deep supervision on all markers of all five frames, testing uses only the central frame. Every model is trained under five random seeds; the precision–recall curves report mean ± standard deviation, while the tabulated statistics and the top-view maps use the instance with the highest average precision on its test set. The trained ST-GNN is evaluated on Silicone (ten annotated videos of straight-line sliding across a vessel), from which we also produce a top-view vessel map, and on Meat. 
+
+3.3 Digital Twin Construction 
+
+The digital twin is a physics simulation, built on the Taichi-based DiffTactile [36] soft-body simulator and its VBTS interfaces, that replicates sensor–vessel con-tact and renders synthetic marker positions matching the real sensor, yielding automatically labelled palpation sequences. Only the sensor is deformable: the 
+
+ViTacTip (Fig. 2) is modelled with the finite element method (FEM) from a simplified gmsh CAD model, with one homogeneous material replacing the real sensor’s two and the 127 biomimetic tips omitted to reduce meshing and sim-ulation cost. The vessel and the phantom are rigid bodies, the vessel static beneath the phantom surface. Only the sensor–vessel contact pair is enabled; the sensor–phantom pair is disabled, so the phantom’s particles are present for visualisation only and do not affect the simulation. Contact is a penalty-based spring-damper formulation driven by signed distance functions (SDFs); in the sensor–vessel pair only the normal stiffness kn and normal damping cn are non-zero, while the tangential stiffness kt and Coulomb friction coefficient μ are zero for simplicity, so the vessel pushes on the sensor but never drags it. This works 8 P. Blaszyk et al. 
+
+because the inertia of the deformable dome, combined with its finite elastic coupling to the rigid sensor base, shows up as bending during sensor accelera-tion, producing marker displacements that align well with real data despite the disabled sensor–phantom pair. A fisheye camera model projects simulated 3D markers to image space. 
+
+3.4 Domain Adaptation and Randomisation 
+
+Domain adaptation fits two parameters by Bayesian optimisation (BO) over the black-box simulator: the sensor’s Young’s modulus E and the sensor–vessel normal stiffness kn (Poisson’s ratio, cn, kt and μ are fixed). Each BO iteration re-plays two simulated slides: a vessel-absent one, scored by the mean absolute error (MAE) between simulated and real marker positions at deepest contact of a real slide on the silicone phantom, normalised by three inter-marker spacings, and a vessel-present one, rewarded for sufficient sensor deformation on vessel contact (the sensor’s height above the vessel relative to the vessel-free run). The objec-tive is their difference, searched by five random draws and five acquisition steps. The fitted configuration is validated, without further fitting, against four canon-ical real trajectories (press, twist-z, twist-x, slide) by the same MAE. Domain randomisation varies, per simulated trajectory, the sliding direction ( ±15 ◦ about the nominal crossing direction) and the sensor–vessel kn ∈ [5 × 10 3, 5 × 10 4] N/m and cn ∈ [0 , 100] N s/m; this kn range predates the final calibration and, by oversight, was not re-centred on the fitted value (Sec. 5.1) for want of another collection run, though the Sim data still look realistic on inspection. 
+
+# 4 Experiments 
+
+4.1 Dataset Definitions 
+
+We use three datasets, referred to throughout by these names: Sim , generated in the digital twin; Silicone , collected on the simpler silicone phantom with shallow vessels; and Meat , collected on the more challenging meat phantom with vessels at varying depths. From these we train and evaluate four models, denoted [train dataset] →[test dataset]: Sim →Sim , an in-domain model tested on held-out simulated data; Sim →Silicone and Sim →Meat , which measure sim-to-real transfer to each physical phantom; and Meat →Silicone , a real-data baseline against Sim →Silicone. The Sim →* models share the same training recipe and data and differ only in the test set. 
+
+4.2 Common Phantom Designs 
+
+Tactile localisation phantoms replicate local stiffness variations. Studies of tu-mour palpation typically embed a steel ball bearing in a silicone phantom [27], varying inclusion depth (1–7 mm) [27], diameter (2–12 mm) [12], and tapping force (1–8 N) [7], sometimes validating on ex-vivo tissue with healthy and can-cerous regions [27]. Vessel detection instead uses phantoms mimicking compliant Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 9 
+
+> (a) (b)
+
+Fig. 3: (a) ST-GNN architecture. Raw node features (marker, global) and edge features (spatial, temporal, global-spatial, global-temporal) are projected to a shared embed-ding space and processed by 3 GINE (graph isomorphism network with edge support) convolution layers, each in a residual unit with dropout and batch normalisation, giving a 3-hop receptive field. The input and all 3 layer representations are concatenated by skip connections (late fusion) and an MLP head outputs one classification value per marker node. (b) Graph entity types and raw input features. Each frame has marker nodes and one global node; within a frame markers connect via spatial edges and to the global node via global-spatial edges; across adjacent frames each marker connects to itself via temporal edges and the global nodes via global-temporal edges. 10 P. Blaszyk et al.       
+
+> (a) (b) (c) (d)
+> Fig. 4: Alignment between simulated (red) and real (green) marker positions after domain adaptation for four canonical interactions, each shown at the point of deepest contact: (a) press, (b) twist about the z-axis, (c) twist about the x-axis, and (d) slide.
+
+vessels in soft tissue, e.g., silicone with heat-shrink tubing [6] or latex tubing in foam [20], with occasional in-vivo validation on superficial vessels such as the temporal, carotid, or radial arteries [11] or the dorsalis pedis artery [21]. None of the analysed works uses a raw-meat phantom. Meat’s 10-layer stacked design allows the inclusion depth and type to be varied without fabricating multiple phantoms. Compared with the silicone phantom, the layered raw-pork substrate provides a more mechanically complex test domain and exhibited qual-itatively lower sliding resistance during our experiments. 
+
+4.3 Common Evaluation Metrics 
+
+VBTS tumour detection usually forms a sensor deformation map and trains a classifier on it [27], most commonly tumour vs. no tumour [7, 12, 27]; Bewley et al. [7] also classify tumour diameter (2–10 mm) and depth (1–5 mm) under varying normal force (1–8 N). Vessel detection reports n-pixel accuracy (fraction of trials with prediction–truth distance ≤ n pixels) [11], absolute x-axis error [6], and predicted vs. true vessel lines in the xy -plane [6]; pressure maps, akin to deformation maps, are common in the wider palpation literature [35]. We omit the intermediate deformation representation and predict vessel location directly from video, the end-to-end paradigm of Bewley et al. [7]; the modular alternative of MiniTac [27] and DIGIT Pinki [12] is more interpretable, since its intermediate output can be checked against static indenter presses with accurate ground truth. 
+
+4.4 Meat Phantom 
+
+The phantom comprised a stack of 10 raw pork medallions, each approximately 5 mm thick. We conducted 10 single-run trials: seven with a single straw, compris-ing a metal straw placed beneath n ∈ { 0, 1, 2, 3, 4, 6} medallions, corresponding to nominal depths of 0, 5, 10, 15, 20, and 30 mm, and a silicone straw placed beneath two medallions; two trials with multiple vessels, using two and three metal straws beneath two medallions; and one control trial on the bare stack. Because the stacked tissue layers can deform and compress, these values repre-sent nominal rather than exact vessel depths. The robot slid the sensor over the phantom (Fig. 2). The vessel surrogates were either metal straws (6 mm OD) Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 11    
+
+> (a) (b) (c)
+> Fig. 5: (a),(b) Example Silicone video frame with 2 vessels, (a) without and (b) with annotations: large red/green circles are manually annotated points and the small-circle line is the vessel centreline from a manually specified orientation. (c) Meat ground-truth labels (red: vessel present, green: absent) from robot kinematics; note the minor misalignment with the actual metal straw.
+
+or silicone straws (8 mm OD), both open-ended and air-filled at atmospheric pressure. Ground-truth straw locations were derived by combining robot kine-matics with the sensor video. This automated labelling procedure simplifies data annotation but introduces a small localisation error, as illustrated in Fig. 5(c). 
+
+# 5 Results and Analysis 
+
+5.1 Domain Adaptation 
+
+This calibration of the digital twin precedes the training of any model. Over the ten BO iterations the marker misalignment on the vessel-absent slide reached at most 94.3 px (an acquisition step towards a very soft sensor); the adopted configuration ( E = 881 kPa, kn = 9 .5 × 10 4 N/m), which maximises the joint objective, achieves 12.4 px, and the misalignment on the four validation trajec-tories is of the same order (Fig. 4; mean 0.50 mm). Simulated and real markers thus align to within a small fraction of the inter-marker spacing, the accuracy the downstream ST-GNN needs. 
+
+5.2 Semantic Segmentation 
+
+Fig. 6 shows the threshold-free precision–recall curves over five training seeds, and the upper half of Table 4 the per-marker statistics of each model’s best-of-five instance, pooled once over every central frame of every test trial. Three trends stand out. First, marker-level vessel classification is hard even in domain: Sim →Sim has by far the highest AP yet a foreground IoU comparable to the transfer models (and below Sim →Silicone’s), because the vessel occupies a thin minority of nodes and the ∼2 mm marker spacing limits boundary resolution; per-node IoU is thus a diagnostic of local discrimination, and localisation is judged by the geometric aggregation of Sec. 5.3. Second, Sim →Meat degrades more than Sim →Silicone (lower AP and IoU), consistent with the larger gap be-tween the simulated silicone-like phantom and layered raw meat. Third, on the 12 P. Blaszyk et al. 0.00 0.25 0.50 0.75 1.00             
+
+> Mean decision threshold random model (precision = positive rate) 0.0 0.5 1.0 0.00 0.25 0.50 0.75 1.00 Precision Sim→ Sim 0.0 0.5 1.0 Sim→ Silicone 0.0 0.5 1.0 Sim→ Meat 0.0 0.5 1.0 Meat→ Silicone Recall
+> (a) (b) (c) (d)
+
+Fig. 6: (a)–(d) Precision–recall curves on the test sets, over five training seeds per model: the thick line is the mean curve and the shaded band is ±1 standard deviation across seeds. 
+
+shared Silicone test set Sim →Silicone matches or slightly beats Meat →Silicone on average (AP 0.32 ± 0.00 vs. 0.30 ± 0.04 over seeds, Fig. 6; foreground IoU 0.24 vs. 0.16 for the best instances) with far lower seed-to-seed variance, which we attribute to Sim’s exact labels and much larger size (500 trajectories vs. 139 clips); Meat →Silicone’s seed spread (AP 0.26–0.35, its best instance edg-ing Sim →Silicone in Table 4) is itself a caution against comparing single-seed numbers. 
+
+Temporal window. Table 3 shows that a single frame is clearly insufficient: the vessel signature is a temporal change in marker motion, not a static pattern. Performance rises with context up to five frames, while seven is slightly worse and markedly less stable across seeds; five frames is therefore used throughout. 
+
+5.3 2D →3D →2D Semantic Segmentation Reprojection 
+
+To obtain a top-view vessel map, each central-frame per-node prediction is lifted onto the sensor-tip plane through the fisheye camera model, moved into the world frame with the sensor pose from robot kinematics (Silicone, Meat) or the simulator (Sim), and dropped onto a 1 mm/pixel grid of the phantom (the 2D →3D →2D projection); a pixel’s score is the highest probability of any marker that landed on it, and the ground truth follows the same route from the per-node labels. Meat’s ten trials are identical straight slides and share one grid (the sensor is assumed to rest undeformed on the meat); for Sim, whose published dataset lacks poses, one extra vessel-present slide was simulated with poses recorded. Maps are scored per pixel (Table 4), including the mean distance ¯d from each predicted pixel to the nearest true pixel. The decision threshold is not fixed but chosen per model as the most sensitive one that keeps map precision at or above 0.9, i.e. recall is maximised subject to few false alarms, because in venipuncture assistance a missed vessel merely prompts a further scan whereas a reported vessel that is not there is costly. Since the ground truth is a set of marker points rather than a filled vessel, a Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 13    
+
+> (a) (b)
+> (c) (d)
+> Fig. 7: Vessel localisation maps (2D →3D →2D geometric projection; 1 ×1 mm per pixel; green: TP, blue: FP, red: FN, black: TN). (a) Sim →Sim, one simulated slide across the single vessel; the sensor slides horizontally across the vertical vessel. (b) Sim →Meat on the trial with two metal straws beneath two medallions; the sensor slides horizontally across the vertical straws. (c) Sim →Silicone and (d) Meat →Silicone on the silicone phantom, which has four vessel inclusions: five vertical slides are performed, side by side, across the roughly horizontal vessels, against the video-annotation ground truth. Each model is thresholded at its own operating point (Sec. 5.3).
+
+predicted pixel counts as correct within 3 mm of a true pixel for this choice only; all reported statistics use exact-pixel agreement. Three models reach this operating point; Sim →Meat cannot (its map precision peaks at 0.87) and is shown at its F1-optimal threshold instead. Each model is its best-of-five seed instance by AP. The maps (Fig. 7) confirm the marker-level picture. In domain (Sim →Sim) predictions trace the vessel closely; on Silicone the simulation-trained and meat-trained models behave alike, clustering tightly around the vessels ( ¯d ≈ 1.2–1.3 mm) while covering only part of their length; on Meat many predictions fall well away from the straws ( ¯d = 5 .5 mm), although the straws themselves are recovered and the shallower ones are visibly localised. Despite the low per-node IoU, geometric aggregation therefore yields a usable localisation on the silicone phantom and in simulation, while the meat phantom exposes the limits of the current transfer. 
+
+# 6 Discussion 
+
+6.1 Comparison with Baselines 
+
+Table 2 shows that our method performs comparably to the baselines, though no direct comparison is possible: we use different phantoms, evaluate per pixel 14 P. Blaszyk et al. 
+
+Table 4: Segmentation statistics of the best-of-five instance of each model, pooled once over all its test data: per marker in video-frame space (threshold 0.5) and per pixel on the top-view map (chosen operating point). Arrows give the desirable direc-tion; per column and within each space, bold marks the best value and underline the runner-up (counts are not highlighted, as the test sets differ in size)                                                                                                    
+
+> Model TP ↑FP ↓FN ↓TN ↑MCC ↑F1 ↑Prec. ↑Rec. ↑FG IoU ↑BG IoU ↑AP ↑¯d↓
+> Video-frame space (per marker)
+> Sim →Sim 3569 15169 38 66949 0.39 0.32 0.19 0.99 0.19 0.81 0.50 n/a Sim →Silicone 909 2070 818 11443 0.30 0.39 0.31 0.53 0.24 0.80 0.33 n/a Sim →Meat 1493 7134 317 18869 0.29 0.29 0.17 0.82 0.17 0.72 0.23 n/a Meat →Silicone 1600 8448 127 5065 0.20 0.27 0.16 0.93 0.16 0.37 0.35 n/a
+> Top-view map space (per pixel)
+> Sim →Sim 157 178 41 2726 0.58 0.59 0.47 0.79 0.42 0.93 0.71 1.05
+> Sim →Silicone 592 750 752 15906 0.40 0.44 0.44 0.44 0.28 0.91 0.42 1.21 Sim →Meat †1359 4843 220 68938 0.41 0.35 0.22 0.86 0.21 0.93 0.30 5.49 Meat →Silicone 626 700 718 15956 0.43 0.47 0.47 0.47 0.31 0.92 0.45 1.31
+
+FG/BG IoU: foreground (vessel present) / background IoU; AP: average precision (threshold-free); ¯d: mean L2 distance (mm) from each predicted vessel pixel to the nearest true vessel pixel. †F1-optimal threshold (precision ≥ 0.9 not reachable). 
+
+of a reprojected map rather than per trial, and localise rather than classify, so the vessel-detection works are the most suitable comparators and we do not report map accuracy (the grid is overwhelmingly vessel-free, so accuracy would be dominated by true negatives). The mean distance from a predicted vessel pixel to the nearest true one is 1.0–1.3 mm for all models but Sim →Meat, comparable to the ∼1 mm mean errors of competing methods, whereas Sim →Meat’s 5.5 mm is closer to the 6 mm one of them reports under difficult conditions. 
+
+6.2 Sliding Speed 
+
+During the collection of Meat the robot slid at ∼10 mm/s with apparently low friction (lubricated phantom, raw meat), so higher speeds (e.g., 40 mm/s) should be feasible without damage or loss of quality, though this needs investigation. 
+
+6.3 Limitations 
+
+First, Silicone uses a simplified phantom with visible vessels, and both Silicone and Meat cover a limited set of trajectories; future work will target more realis-tic vascular phantoms and a wider range of interactions. Second, the ViTacTip ’s 
+
+∼2 mm marker spacing bounds spatial resolution; finer sensing could help for very shallow or closely spaced vessels. Third, the DT needs a real-to-simulation calibration step, whose scalability and automation are future work. Fourth, the map operating point is chosen on the test data and the maps use the best-of-five seed instance, so those figures are optimistic by construction; only the seed-averaged metrics are free of this. Finally, beyond the temporal-window ablation and seed sweeps we do not isolate the contributions of the ST-GNN, domain adaptation, domain randomisation, and sliding vs. tapping via controlled abla-tions. Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 15 
+
+# 7 Conclusions and Future Work 
+
+This work presents a proof-of-concept toward trustworthy robot-assisted slid-ing palpation for shallow-vessel localisation using a vision-based tactile sensor and a calibrated digital twin. The twin is fitted to a real sliding interaction by Bayesian optimisation and validated on four real interactions (marker-alignment MAE 0.50 mm), then used to generate domain-randomised tactile sequences for training a spatio-temporal graph neural network whose per-node predictions robot kinematics turn into an interpretable top-view vessel map. Sim →Silicone, trained without any Silicone data, reaches an average precision of 0.32 (chance 0.11, mean over five seeds) and, at a conservative map operating point, places predicted vessel pixels on average 1.2 mm from the nearest annotated vessel pixel; Sim →Meat degrades to 5.5 mm and cannot reach that operating point, so fine marker-level classification and cross-tissue generalisation remain unre-solved. Trustworthiness is thus meant in a limited, task-specific sense (physical calibration, explicit sim-to-real evaluation, seed variability, per-pixel localisation statistics and a human-verifiable output), not clinical safety or readiness for au-tonomous intervention. The digital twin is currently an offline data generator; a natural next step is a task-specific tactile world model that predicts future tactile observations and vessel-map updates conditioned on candidate motions, enabling uncertainty-aware closed-loop palpation that abstains on low-confidence predictions. Broader evaluation should cover repeated trials, held-out calibration trajectories, varying forces and speeds, branching vessels and non-planar surfaces, and more anatomi-cally representative phantoms with compliant, fluid-filled vessels, before carefully controlled human studies under appropriate ethical approval. 
+
+# AI use 
+
+The authors used Claude (Fable, Anthropic) as an assistive tool in preparing this manuscript: to improve the conciseness and clarity of the writing, correct typographical errors, address reviewer comments, and assist in producing Fig. 1. All AI-assisted output was reviewed, verified, and edited by the authors, who take full responsibility for the content, accuracy, and integrity of the final manuscript. 
+
+# References   
+
+> 1. DIGIT Tactile Sensor - GelSight — gelsight.com. https://www.gelsight.com/ product/digit-tactile-sensor/ , [Accessed 15-09-2025] 2. GelSight Mini System - GelSight — gelsight.com. https://www.gelsight.com/ product/gelsight-mini-system/ , [Accessed 15-09-2025] 3. Lite 2.0 Vein Finder Vein Illuminator for IV Access Phlebotomy — hellovein.co.uk.
+> https://hellovein.co.uk/product/lite2-0/ , [Accessed 15-09-2025] 4. SonoBook 8 Linear Button Probe | Ultrasound Transducers — economed.co.uk.
+> https://www.economed.co.uk/products/sonobook- 8- linear- button- probe ,[Accessed 15-09-2025]
+
+16 P. Blaszyk et al. 5. Abad, A.C., Ranasinghe, A.: Visuotactile sensors with emphasis on gelsight sensor: A review. IEEE Sensors Journal 20 (14), 7628–7638 (2020) 6. Beasley, R., Howe, R.: Tactile tracking of arteries in robotic surgery. In: Pro-ceedings 2002 IEEE International Conference on Robotics and Automation (Cat. No.02CH37292). ROBOT-02, vol. 4, p. 3801–3806. IEEE (Aug 2002). https: //doi.org/10.1109/robot.2002.1014309 , http://dx.doi.org/10.1109/ROBOT. 2002.1014309 
+
+7. Bewley, J., Jenkinson, G.P., Tzemanaki, A.: Optical-tactile sensor for lump detec-tion using pneumatic control. Frontiers in Robotics and AI 8, 672315 (Jul 2021). 
+
+https://doi.org/10.3389/frobt.2021.672315 , https://www.frontiersin. org/articles/10.3389/frobt.2021.672315/full 
+
+8. Blaszyk, P.: shallow-vessel-palpation-dataset. Zenodo (2026). https://doi.org/ 10.5281/zenodo.21958107 , https://zenodo.org/records/21958107 
+
+9. Blaszyk, P., Fan, W., Deng, K., Elson, D., Zhang, D.: shallow-vessel-palpation-robot-control: DOBOT Magician E6 control and synchronised tactile-video capture for robot-assisted sliding palpation. Zenodo (2026). https://doi.org/10.5281/ zenodo.21958190 , https://zenodo.org/records/21958190 
+
+10. Blaszyk, P., Fan, W., Deng, K., Elson, D., Zhang, D.: shallow-vessel-palpation-simulator-and-AI: a calibrated digital twin and spatio-temporal GNN for robot-assisted sliding palpation and shallow vessel localisation. Zenodo (2026). https: //doi.org/10.5281/zenodo.21958186 , https://zenodo.org/records/21958186 
+
+11. Chen, Q., Huang, Y., Zhu, X., Lu, H., Ji, Z., Yang, J., Luo, J.: Palpation localization of radial artery based on 3-dimensional convolutional neural net-works. EURASIP Journal on Image and Video Processing 2022 (1) (Jul 2022). 
+
+https://doi.org/10.1186/s13640-022-00587-5 , http://dx.doi.org/10.1186/ s13640-022-00587-5 
+
+12. Di, J., Dugonjic, Z., Fu, W., Wu, T., Mercado, R., Sawyer, K., Most, V.R., Kam-merer, G., Speidel, S., Fan, R.E., Sonn, G., Cutkosky, M.R., Lambeta, M., Calan-dra, R.: Using fiber optic bundles to miniaturize vision-based tactile sensors (2024). 
+
+https://doi.org/10.48550/ARXIV.2403.05500 , https://arxiv.org/abs/2403. 05500 
+
+13. Fan, W., Guo, X., Feng, E., Lin, J., Wang, Y., Liang, J., Garrad, M., Rossiter, J., Zhang, Z., Lepora, N., et al.: Digital twin-driven mixed reality framework for immersive teleoperation with haptic rendering. IEEE Robotics and Automation Letters 8(12), 8494–8501 (2023) 14. Fan, W., Li, H., Cong, Q., Zhang, D.: Magicgripper: A mini-magictac integrated gripper enabling multimodal perception in contact-rich manipulation. IEEE Trans-actions on Automation Science and Engineering 22 , 24311–24332 (2025) 15. Fan, W., Li, H., Si, W., Luo, S., Lepora, N., Zhang, D.: Vitactip: Design and ver-ification of a novel biomimetic physical vision-tactile fusion sensor (2024). https: //doi.org/10.48550/ARXIV.2402.00199 , https://arxiv.org/abs/2402.00199 
+
+16. Fan, W., Li, H., Zhang, D.: Magictac: A novel high-resolution 3d multi-layer grid-based tactile sensor. In: 2024 IEEE International Conference on Robotics and Au-tomation (ICRA). pp. 388–394. IEEE (2024) 17. Fan, W., Li, H., Zhang, D.: Crystaltac: Vision-based tactile sensor family fabricated via rapid monolithic manufacturing. Cyborg and Bionic Systems 6, 0231 (2025) 18. Fan, W., Yang, M., Xing, Y., Lepora, N.F., Zhang, D.: Tac-vgnn: A voronoi graph neural network for pose-based tactile servoing (2023). https://doi.org/ 10.48550/ARXIV.2303.02708 , https://arxiv.org/abs/2303.02708 Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 17 19. Gao, T., Liu, S., Wang, A., Tang, X., Fan, Y.: Vascular elasticity measurement of the great saphenous vein based on optical coherence elastography. Journal of Biophotonics 16 (2) (Sep 2022). https://doi.org/10.1002/jbio.202200245 ,
+
+http://dx.doi.org/10.1002/jbio.202200245 
+
+20. Hampson, R., Lawley, A., Dobie, G.: Phantom study of arterial localization using tactile sensor array and a normal vs. shear pulse pressure propagation method. In: 2023 45th Annual International Conference of the IEEE Engineer-ing in Medicine and Biology Society (EMBC). p. 1–4. IEEE (Jul 2023). https: //doi.org/10.1109/embc40787.2023.10340678 , http://dx.doi.org/10.1109/ embc40787.2023.10340678 
+
+21. Hou, S., Chen, X., Assi, D.S., Feng, Y., Wong, C.K., Tian, J., Li, J., Yu, X., Guan, B., Zhu, X., Yu, X., Li, X., Roy, V.A.L., Shen, J., Li, W.J.: Tactile-transparent wearable sensor for clinician-friendly pulse wave velocity monitoring and cardiovas-cular risk profiling. ACS Nano (Sep 2025). https://doi.org/10.1021/acsnano. 5c11375 , http://dx.doi.org/10.1021/acsnano.5c11375 
+
+22. Kho, Y.Y., Ooi, C.C., Too, C.W., Ma, V.C., Abu Bakar, R., Lim, C.Y., Tang, P.Y., Oh, C.C.: Advanced multimodal ultrasound for pre-operative assessment of skin tumours: A case series. Ultrasound 33 (2), 130–138 (May 2025). https: //doi.org/10.1177/1742271X241289021 , https://journals.sagepub.com/doi/ 10.1177/1742271X241289021 
+
+23. Kos, B., Voigt, P., Miklavcic, D., Moche, M.: Careful treatment planning enables safe ablation of liver tumors adjacent to major blood vessels by percutaneous irreversible electroporation (ire). Radiology and Oncology 49 (3), 234–241 (Aug 2015). https://doi.org/10.1515/raon- 2015- 0031 , http://dx.doi.org/10. 1515/raon-2015-0031 
+
+24. Koskinopoulou, M., Acemoglu, A., Penza, V., Mattos, L.S.: Dual robot collabora-tive system for autonomous venous access based on ultrasound and bioimpedance sensing technology. In: 2023 IEEE International Conference on Robotics and Au-tomation (ICRA). pp. 4648–4653 (2023). https://doi.org/10.1109/ICRA48891. 2023.10160848 
+
+25. Lambeta, M., Chou, P.W., Tian, S., Yang, B., Maloon, B., Most, V.R., Stroud, D., Santos, R., Byagowi, A., Kammerer, G., Jayaraman, D., Calandra, R.: Digit: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation (2020). https://doi.org/10.48550/ARXIV.2005.14679 ,
+
+https://arxiv.org/abs/2005.14679 
+
+26. Lamperti, M., Bodenham, A.R., Pittiruti, M., Blaivas, M., Augoustides, J.G., Elbarbary, M., Pirotte, T., Karakitsos, D., LeDonne, J., Doniger, S., Scoppet-tuolo, G., Feller-Kopman, D., Schummer, W., Biffi, R., Desruennes, E., Mel-niker, L.A., Verghese, S.T.: International evidence-based recommendations on ultrasound-guided vascular access. Intensive Care Medicine 38 (7), 1105–1117 (2012). https://doi.org/10.1007/s00134-012-2597-x 
+
+27. Li, W., Zhao, Z., Cui, L., Zhang, W., Liu, H., Li, L.A., Zhu, Y.: Minitac: An ultra-compact 8 mm vision-based tactile sensor for enhanced palpation in robot-assisted minimally invasive surgery. IEEE Robotics and Automation Letters 9(12), 11170–11177 (Dec 2024). https://doi.org/10.1109/LRA.2024.3487516 , https: //ieeexplore.ieee.org/document/10737431/ 
+
+28. Ma, S., Flanigan, K.A., Bergés, M.: Bridging the reality gap in digital twins with context-aware, physics-guided deep learning (2025). https://doi.org/10.48550/ ARXIV.2505.11847 , https://arxiv.org/abs/2505.11847 18 P. Blaszyk et al. 29. Mazumder, A., Sahed, M., Tasneem, Z., Das, P., Badal, F., Ali, M., Ahamed, M., Abhi, S., Sarker, S., Das, S., Hasan, M., Islam, M., Islam, M.: Towards next generation digital twin in robotics: Trends, scopes, challenges, and future. Heliyon 
+
+9(2), e13359 (Feb 2023). https://doi.org/10.1016/j.heliyon.2023.e13359 ,
+
+http://dx.doi.org/10.1016/j.heliyon.2023.e13359 
+
+30. Moussa Pacha, H., Alahdab, F., Al-khadra, Y., Idris, A., Rabbat, F., Darmoch, F., Soud, M., Zaitoun, A., Kaki, A., Rao, S.V., Kwok, C.S., Mamas, M.A., Alraies, M.C.: Ultrasound-guided versus palpation-guided radial artery catheterization in adult population: A systematic review and meta-analysis of randomized controlled trials. American Heart Journal 204 , 1–8 (Oct 2018). https://doi.org/10.1016/ j.ahj.2018.06.007 , http://dx.doi.org/10.1016/j.ahj.2018.06.007 
+
+31. Pan, C.T., Francisco, M.D., Yen, C.K., Wang, S.Y., Shiue, Y.L.: Vein pattern locating technology for cannulation: A review of the low-cost vein finder prototypes utilizing near infrared (nir) light to improve peripheral subcutaneous vein selection for phlebotomy. Sensors 19 (16), 3573 (Aug 2019). https://doi.org/10.3390/ s19163573 , http://dx.doi.org/10.3390/s19163573 
+
+32. Patlan-Rosales, P.A., Krupa, A.: Automatic palpation for quantitative ultrasound elastography by visual servoing and force control. In: 2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). pp. 2357–2362. IEEE (2016) 33. Penza, V., De Momi, E., Enayati, N., Chupin, T., Ortiz, J., Mattos, L.S.: Envisors: Enhanced vision system for robotic surgery. a user-defined safety volume tracking to minimize the risk of intraoperative bleeding. Frontiers in Robotics and AI 4
+
+(May 2017). https://doi.org/10.3389/frobt.2017.00015 , http://dx.doi.org/ 10.3389/frobt.2017.00015 
+
+34. Sahili, Z.A., Awad, M.: Spatio-temporal graph neural networks: A survey. arXiv preprint arXiv:2301.10569 (2023) 35. Sanderson, R.W., Fang, Q., Curatolo, A., Adams, W., Lakhiani, D.D., Ismail, H.M., Foo, K.Y., Dessauvagie, B.F., Latham, B., Yeomans, C., Saunders, C.M., Kennedy, B.F.: Camera-based optical palpation. Scientific Reports 10 (1) (Sep 2020). https://doi.org/10.1038/s41598-020-72603-5 , http://dx.doi.org/ 10.1038/s41598-020-72603-5 
+
+36. Si, Z., Zhang, G., Ben, Q., Romero, B., Xian, Z., Liu, C., Gan, C.: Difftactile: A physics-based differentiable tactile simulator for contact-rich robotic manipulation (2024). https://doi.org/10.48550/ARXIV.2403.08716 , https://arxiv.org/ abs/2403.08716 
+
+37. Song, G., Jelly, E.T., Chu, K.K., Kendall, W.Y., Wax, A.: A review of low-cost and portable optical coherence tomography. Progress in Biomedical Engineering 
+
+3(3), 032002 (May 2021). https://doi.org/10.1088/2516-1091/abfeb7 , http: //dx.doi.org/10.1088/2516-1091/abfeb7 
+
+38. Tran, V.T., Ravaud, P.: Frugal innovation in medicine for low resource settings. BMC Medicine 14 (1) (Jul 2016). https://doi.org/10.1186/s12916-016-0651-1 ,
+
+http://dx.doi.org/10.1186/s12916-016-0651-1 
+
+39. Yao, J.F., Yang, Y., Wang, X.C., Zhang, X.P.: Systematic review of digital twin technology and applications. Visual Computing for Industry, Biomedicine, and Art 6(1) (May 2023). https://doi.org/10.1186/s42492-023-00137-4 , http: //dx.doi.org/10.1186/s42492-023-00137-4 
+
+40. Yuan, W., Dong, S., Adelson, E.: Gelsight: High-resolution robot tactile sensors for estimating geometry and force. Sensors 17 (12), 2762 (Nov 2017). https://doi. org/10.3390/s17122762 , http://dx.doi.org/10.3390/s17122762 Robot-Assisted Sliding Palpation for Shallow Vessel Localisation 19 41. Zhao, W., Queralta, J.P., Westerlund, T.: Sim-to-real transfer in deep reinforce-ment learning for robotics: a survey (2020). https://doi.org/10.48550/ARXIV. 2009.13303 , https://arxiv.org/abs/2009.13303 
+
+42. Zia, M.S., Anjum, A., Liu, L., Conway, A., Rios, A.P.: Physics encoded blocks in residual neural network architectures for digital twin models (2024). https: //doi.org/10.48550/ARXIV.2411.11497 , https://arxiv.org/abs/2411.11497
