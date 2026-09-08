@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-06</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-08</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 34 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 23 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>22</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>11</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-06 22:30:02 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-08 23:04:00 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 34 篇推荐（精读 22 篇，速读 12 篇）</p>
-<p>精读：《PAVE: Predictive Alignment and Value-Guided Evolution for World-Action Policies》（10.0/10）, 《Scaling Bimanual Household Manipulation from 1,500 hours of Demonstrations to On-Policy Corrections》（10.0/10）</p>
-<p>速读：《Zeva: In-Context Causal Learning for Generalizable Embodied Manipulation》（8.0/10）, 《SUN: Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies》（8.0/10）, 《A Wearable Pneumatic Device for Continuous, Closed-Loop, Bidirectional Tactile Interaction》（8.0/10）</p>
+<p>今日共生成 23 篇推荐（精读 11 篇，速读 12 篇）</p>
+<p>精读：《ZimaBlue: Evolving Generalizable World Action Models through Scalable Video Pre-training》（9.0/10）, 《Evaluating Multimodal LLMs as Generalist Vision-Language-Action Agents for Drone Control: Commanding, Approaching, Tracking and Searching》（9.0/10）</p>
+<p>速读：《Potential-Guided Particle Steering for Negation-Constrained Dexterous Grasping》（8.0/10）, 《ADAPT: Agile Diffusion Action Priors for Robust and Steerable Online Text-Driven Humanoid Control》（8.0/10）, 《Real-Time Dynamics-Based Torque-Sampling MPPI for Compliant and Force Aware Manipulation》（8.0/10）</p>
 <p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
@@ -81,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">22 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PAVE: Predictive Alignment and Value-Guided Evolution for World-Action Policies">PAVE: Predictive Alignment and Value-Guided Evolution for World-Action Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="Scaling Bimanual Household Manipulation from 1,500 hours of Demonstrations to On-Policy Corrections">Scaling Bimanual Household Manipulation from 1,500 hours of Demonstrations to On-Policy Corrections</span></li><li><span class="dpr-home-dashboard-paper-title" title="AdaVLA: Adaptive Step Flow Matching for Training-free Acceleration of Vision-Language-Action Models">AdaVLA: Adaptive Step Flow Matching for Training-free Acceleration of Vision-Language-Action Models</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ZimaBlue: Evolving Generalizable World Action Models through Scalable Video Pre-training">ZimaBlue: Evolving Generalizable World Action Models through Scalable Video Pre-training</span></li><li><span class="dpr-home-dashboard-paper-title" title="Evaluating Multimodal LLMs as Generalist Vision-Language-Action Agents for Drone Control: Commanding, Approaching, Tracking and Searching">Evaluating Multimodal LLMs as Generalist Vision-Language-Action Agents for Drone Control: Commanding, Approaching, Tracking and Searching</span></li><li><span class="dpr-home-dashboard-paper-title" title="World-Coherent Decoding: Self-Verifying Test-Time Planning for World Action Models">World-Coherent Decoding: Self-Verifying Test-Time Planning for World Action Models</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>20</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>10</strong></span><span class="dpr-home-dashboard-tag">tf <strong>1</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -97,9 +97,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Zeva: In-Context Causal Learning for Generalizable Embodied Manipulation">Zeva: In-Context Causal Learning for Generalizable Embodied Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="SUN: Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies">SUN: Persistent Programs For Language-Grounded Control-to-Learning-to-Real Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Wearable Pneumatic Device for Continuous, Closed-Loop, Bidirectional Tactile Interaction">A Wearable Pneumatic Device for Continuous, Closed-Loop, Bidirectional Tactile Interaction</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Potential-Guided Particle Steering for Negation-Constrained Dexterous Grasping">Potential-Guided Particle Steering for Negation-Constrained Dexterous Grasping</span></li><li><span class="dpr-home-dashboard-paper-title" title="ADAPT: Agile Diffusion Action Priors for Robust and Steerable Online Text-Driven Humanoid Control">ADAPT: Agile Diffusion Action Priors for Robust and Steerable Online Text-Driven Humanoid Control</span></li><li><span class="dpr-home-dashboard-paper-title" title="Real-Time Dynamics-Based Torque-Sampling MPPI for Compliant and Force Aware Manipulation">Real-Time Dynamics-Based Torque-Sampling MPPI for Compliant and Force Aware Manipulation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>10</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>11</strong></span><span class="dpr-home-dashboard-tag">tf <strong>1</strong></span></div>
 </section>
 </div>
 
