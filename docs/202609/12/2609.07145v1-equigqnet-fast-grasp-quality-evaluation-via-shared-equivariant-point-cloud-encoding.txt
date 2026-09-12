@@ -1,0 +1,436 @@
+Title: EquiGQNet: Fast Grasp Quality Evaluation via Shared Equivariant Point Cloud Encoding
+
+URL Source: https://arxiv.org/pdf/2609.07145v1
+
+Published Time: Wed, 09 Sep 2026 02:40:43 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+> 1
+
+# EquiGQNet: Fast Grasp Quality Evaluation via Shared Equivariant Point Cloud Encoding 
+
+Sungwon Seo 1 , Jaeseog Won 2 , Jiyou Shin 1 , Youngjin Seo 2 ,Hyunjun Kim 2 , Seokmin Yoon 2 , Tuan Luong 1, and Hyungpil Moon 1,2∗
+
+Abstract —Planning six-degree-of-freedom (6-DoF) grasps for unseen objects in cluttered tabletop scenes from a single-view depth image requires accurate and efficient evaluation of diverse grasp candidates. Existing early-fusion methods capture local object geometry relative to each grasp candidate but repeatedly encode the scene, whereas late-fusion methods reuse a shared scene representation but may lose this grasp-relative local geom-etry. We propose EquiGQNet, an efficient 6-DoF grasp quality evaluator that combines the strengths of both approaches. For grasp orientation, EquiGQNet replaces the early-fusion operation of rotating and re-encoding the point cloud for each grasp candi-date with an SO(3)-equivariant encode-once-then-rotate scheme, yielding grasp-aligned geometric features from a shared scene encoding. For grasp translation, Mid-level Action Fusion (MAF) injects the grasp position into intermediate features before global aggregation, retaining local geometry relative to each candidate. We evaluate EquiGQNet in two grasp planning pipelines: Cross-Entropy Method (CEM)-based continuous grasp search and candidate ranking with a pretrained generative planner. In sim-ulation, EquiGQNet achieves grasping performance comparable to the early-fusion baseline and substantially outperforms late fusion on objects with complex geometry and limited graspable regions, while reducing CEM planning time from 3.31 s to 0.48 s, a 6.9 × speedup over early fusion. In real-world household-object decluttering, EquiGQNet achieves a 95.2% grasp success rate and 230 picks per hour, versus 153 and 170 for early- and late-fusion baselines. Code is available at https://equigqnet.github.io/. 
+
+Index Terms —Grasping, Deep Learning in Grasping and Manipulation 
+
+I. I NTRODUCTION 
+
+# RELIABLE robotic grasping of unseen objects requires selecting an appropriate six-degree-of-freedom (6-DoF) grasp pose from limited observations. In this work, we con-sider the problem of planning 6-DoF grasps with a parallel-jaw gripper for unseen objects in cluttered tabletop scenes using a point cloud obtained from a single-view depth image. Recent learning-based grasp planning methods have achieved strong performance on objects with relatively simple and regular 
+
+This work was supported by the Robot Industrial Technology Development Program(RS-2024-00444054, Development of low-cost, high-performance visual sensor technology integrated with AI semiconductors and AI algo-rithms designed for robots) funded by the Ministry of Trade Industry & Energy(MOTIE, Korea). This research was supported by the Brain Pool program funded by the Ministry of Science and ICT through the National Research Foundation of Korea (RS-2025-15002974). (Corresponding author: Hyungpil Moon.) 
+
+1: The authors are with the Faculty of Mechanical Engineering, Sungkyunkwan University, Suwon 16419, South Korea (e-mail: ssw0536@g.skku.edu; danny384@g.skku.edu; luongtuan@g.skku.edu; hyungpil@skku.edu) 
+
+2: The authors are with the Faculty of Intelligent Robotics, Sungkyunkwan University, Suwon 16419, South Korea (e-mail: jaeseogwon@g.skku.edu; soh2879@g.skku.edu; hyunjun.1104@g.skku.edu; yosmon@g.skku.edu; hyungpil@skku.edu) 
+
+Fig. 1. Overview of EquiGQNet. The left shows two different grasps of the same object. The two branches on the right show the point cloud rotated into each grasp frame, i.e., canonicalized, and processed by the equivariant encoder. By SO(3) equivariance, the relative rotation between the two canonicalized point clouds induces the same rotation between their corresponding features, allowing the feature for one grasp to be obtained from the other without an additional encoder pass. 
+
+shapes [1]–[6]. However, reliable grasp planning remains challenging for objects with complex geometry [7]. For such objects, successful grasps may occupy only narrow regions of the 6-DoF grasp space, making it important to explore diverse grasp candidates and evaluate them accurately. The ability to evaluate many candidates both quickly and accurately is therefore critical to overall grasp planning performance. Existing methods can be broadly divided into those that predict grasps at a set of spatial anchors in the scene and those that can directly evaluate arbitrary 6-DoF grasp poses. Scene-anchored grasp methods predict grasp poses which are associated with spatial anchors, such as pixels, points, or voxels [1]–[3], [8], [9]. These methods achieve computational efficiency by encoding the scene only once and using local geometric information at the location corresponding to each candidate. However, because their grasp predictions are tied to a set of spatial anchors, these methods may miss valid grasps between sampled locations. A further limitation is that they cannot directly evaluate arbitrary candidates in the continuous 6-DoF pose space. This restricts their applicability to grasp planning pipelines in which grasp candidates are generated independently and subsequently evaluated and ranked. In contrast, some methods directly evaluate arbitrary 6-DoF grasp poses [6], [10]–[13]. These methods can be categorized into early- and late-fusion approaches, depending on the stage at which the grasp pose is introduced. Late-fusion methods first encode the point cloud into a shared global feature and incorporate each candidate’s position and orientation only at arXiv:2609.07145v1 [cs.RO] 7 Sep 2026 2                 
+
+> Fig. 2. EquiGQNet architecture. A crop is encoded once into shared equivariant scene features. For each grasp candidate gj= ( Rj,tj), the shared features are aligned to the grasp coordinate frame using the inverse rotation R⊤
+> jand the aligned translation aij (Eqs. (6)–(7)). The grasp-aligned features are then fused with aij through MAF for grasp quality and collision prediction. Here, ×denotes matrix multiplication, and ⊕denotes feature concatenation.
+
+the final prediction stage [6], [10]. However, because the scene is encoded before the grasp pose is introduced, the extracted features may not explicitly capture local geometry relative to the gripper. This limitation can be particularly consequential for irregular objects with small graspable regions, where grasp success depends strongly on local geometry. Early-fusion methods address this issue by introducing the grasp pose before encoding the point cloud [11]–[13]. For example, they may transform the scene point cloud into the coordinate frame of each grasp candidate [11], or jointly encode object points with gripper reference points transformed according to the candidate pose [12]. This allows the encoder to process object geometry relative to the gripper’s position and orientation and thus extract information such as whether the object lies between the fingers or whether nearby surfaces cause collisions. However, every new grasp candidate requires reconstructing the input and running the entire encoder again, resulting in substantial computational cost when evaluating many candidates or performing iterative optimization. We therefore seek a grasp evaluator that can accept arbitrary 6-DoF poses, exploit geometric information specific to each grasp as in early fusion, and still reuse a single point cloud encoding across many candidates. To this end, we propose EquiGQNet , a 6-DoF grasp evalu-ation model that captures object geometry relative to each can-didate grasp while reusing a single point cloud encoding across candidates. As illustrated in Fig. 1, EquiGQNet handles grasp rotation and translation differently. For rotation, EquiGQNet retains the early-fusion treatment of grasp orientation by rotating the point cloud according to each candidate grasp orientation before encoding. SO(3) equivariance allows the same grasp-oriented features to be obtained by rotating a single shared encoding, avoiding candidate-wise re-encoding. For translation, Mid-level Action Fusion (MAF) incorporates the grasp position at intermediate feature layers before local geometric information is lost through global aggregation. Together, these designs allow EquiGQNet to evaluate each grasp using object geometry relative to the gripper, as in early-fusion methods, without candidate-wise scene re-encoding. Our main contributions are as follows:  
+
+> •
+
+We propose EquiGQNet , a 6-DoF grasp evaluator that captures object geometry relative to each grasp while reusing one scene encoding across candidates, avoiding repeated encoding in early fusion.  
+
+> •
+
+SO(3)-equivariant feature rotation reproduces grasp-oriented scene features from a shared encoding, avoiding candidate-wise rotation and re-encoding of the point cloud, while MAF introduces grasp position before global aggregation to preserve local geometry around the grasp.  
+
+> •
+
+We evaluate EquiGQNet in CEM-based continuous grasp search and generative-model-based candidate ranking. Experiments show reduced evaluation and planning time while maintaining strong performance, particularly on unseen objects with complex geometry and limited gras-pable regions. The rest of this paper is organized as follows. Sec. II presents the EquiGQNet architecture, including equivariant feature alignment and Mid-level Action Fusion. Sec. III evaluates grasp performance and computational efficiency through simulation, ablation studies, and real-world experi-ments. Sec. IV concludes the paper. II. METHOD As illustrated in Fig. 2, EquiGQNet encodes a local point-cloud crop once into shared SO(3) -equivariant features. For each grasp candidate, these features are rotated according to its orientation and fused with its position through MAF before global aggregation. Let an observed scene be represented by a point cloud 
+
+P = {pn}Nn=1 , where pn ∈ R3. A 6-DoF grasp pose is represented as g = ( R, t) ∈ SE(3) , where R ∈ SO(3) and 
+
+t ∈ R3 denote the gripper orientation and position, respec-tively. Our goal is to predict grasp robustness q ∈ [0 , 1] , which reflects grasp success under perturbations, while separately predicting collision probability. We adopt the column vector convention for 3-D rotations, v′ = Rv , while storing vector-valued feature channels as rows. Accordingly, V ∈ RC×3
+
+transforms as V 7 → VR ⊤.3
+
+A. SO(3)-Equivariant Scene Encoder 
+
+Our scene encoder represents each object’s local geometry with SO(3) -equivariant vector features by encoding an object-centered crop once and reusing its features across grasp candidates. 
+
+1) Point Cloud Crop: Rather than processing the entire observed scene, EquiGQNet constructs a local point cloud around each crop center. Let ci ∈ R3 denote the center of the i-th crop, and let rc denote the crop radius. The network input is defined as 
+
+¯Pi = {pn − ci | pn ∈ P , ∥pn − ci∥2 ≤ rc} . (1) Here, Ni = | ¯Pi| denotes the number of points in the i-th crop, such that ¯Pi ∈ RNi×3. This crop centered local representation excludes distant scene geometry, while retaining the spatial context needed to evaluate nearby grasp candidates. 
+
+2) Gated Vector Neurons: Vector Neurons (VN) [14] repre-sent each feature channel as a 3-D vector to preserve rotational equivariance. Inspired by GVP-style vector gating [15], our lightweight Gated Vector Neurons (GVN) replace VN-ReLU’s sign-based half-space truncation [14] with smooth multiplica-tive gates from batch-normalized channel-wise inner products and a learned sigmoid. Given V ∈ RC×3, GVN computes 
+
+K = WK V, Q = WQV,
+
+g = σ Wg BN  diag( KQ ⊤) ,
+
+GVN( V) = g ⊙ K.
+
+(2) where WK , W Q ∈ RC′×C and Wg ∈ RC′×C′
+
+are learned weight matrices, BN( ·) denotes batch normalization, and σ(·)
+
+is the sigmoid function. The projected vector features are 
+
+K, Q ∈ RC′×3, while diag( KQ ⊤) ∈ RC′
+
+contains the inner products between their corresponding channels. The operator 
+
+⊙ denotes channel-wise scalar multiplication over the 3-D vector dimension. Thus, GVN preserves SO(3) equivariance while providing a lightweight gated nonlinearity: 
+
+GVN  VR ⊤ = GVN( V)R⊤, ∀R ∈ SO(3) . (3) 
+
+3) Equivariant EdgeConv Encoder: We encode ¯Pi using an Equivariant EdgeConv Encoder adapted from the dynamic graph architecture of VN-GCNN [14], [16]. We use ¯Pi directly as the initial vector features, F(0) prop ,i = ¯Pi. The encoder consists of L successive EdgeConv levels, indexed by l ∈{1, . . . , L }, where a k-nearest-neighbor graph is dynamically recomputed from the propagated vector features at each level. Omitting crop index i, let fn denote the vector feature of point n. For each point n and its neighbor m ∈ N (l) 
+
+> n
+
+, we form an edge feature, apply GVN, and mean-pool over the neighborhood: 
+
+∆f (l−1)  
+
+> nm
+
+= f (l−1) prop ,m − f (l−1) prop ,n ,
+
+h(l) 
+
+> nm
+
+= GVN (l) h 
+
+∆f (l−1)  
+
+> nm
+
+, f (l−1) prop ,n 
+
+i 
+
+,
+
+h
+
+f (l)equiv ,n , f (l)prop ,n 
+
+i
+
+= MeanPool m∈N (l)
+
+> n
+
+
+
+h(l)
+
+> nm
+
+
+
+.
+
+(4) Here, N (l) 
+
+> n
+
+denotes the dynamically constructed k-nearest-neighbor set of point n at encoder level l.Restoring the crop index i, the resulting features are 
+
+F(l)equiv ,i ∈ RNi×C(l)equiv ×3 and F(l)prop ,i ∈ RNi×C(l)prop ×3, where 
+
+C(l)equiv and C(l)prop denote the respective numbers of vector feature channels. The equivariant feature F(l)equiv ,i is retained for alignment and fusion for each grasp candidate, whereas 
+
+F(l)prop ,i is propagated to the next EdgeConv layer. Because all EdgeConv operations preserve rotational equiv-ariance, both outputs remain SO(3) -equivariant: 
+
+EdgeConv (l) 
+
+F(l−1) prop ,i R⊤
+
+= EdgeConv (l) 
+
+F(l−1) prop ,i 
+
+
+
+R⊤,
+
+(5) 
+
+∀R ∈ SO(3) . Both features are independent of the grasp candidate and are therefore computed only once for each point cloud crop. 
+
+4) Grasp Frame Feature Alignment: For grasp gj =(Rj , tj ), its pose relative to the crop center is (Rj , tj − ci).Expressing the scene in the grasp coordinate frame therefore corresponds to applying its inverse transform, (R⊤ 
+
+> j
+
+, −R⊤ 
+
+> j
+
+(tj −
+
+ci)) . Accordingly, the cached equivariant feature at level l is aligned with the grasp orientation as 
+
+F(l)canon ,ij = F(l)equiv ,i Rj . (6) By Eq. (5), under our row-vector convention, right multipli-cation by Rj yields the same feature as rotating the crop into the grasp frame by R⊤ 
+
+> j
+
+and re-encoding it. Thus, rotating the cached feature is equivalent to first transforming the point cloud crop into the grasp-oriented frame and then re-encoding it. The crop origin expressed in the grasp frame is 
+
+aij = −R⊤ 
+
+> j
+
+(tj − ci) . (7) 
+
+B. Mid-level Action Fusion 
+
+After orientation alignment, grasp-dependent translation aij 
+
+must interact with local geometry; appending it only after global aggregation, as in late fusion, discards per-point spatial information before this interaction. We propose Mid-level Action Fusion (MAF), which injects the grasp translation into the canonical scene features at multiple encoder levels before global aggregation. At level l, aij is broadcast across crop points and fused point-wise with the canonical feature using MixConv: 
+
+F(l) 
+
+> ij
+
+= MixConv (l) h 
+
+F(l)canon ,ij ; 1Ni a⊤
+
+> ij
+
+i 
+
+, (8) where F(l)canon ,ij ∈ RNi×C(l)equiv ×3 and 1Ni a⊤ 
+
+> ij
+
+∈ RNi×3
+
+broadcasts aij over all points in crop i and is treated as an additional 3-D vector channel, yielding an Ni ×(C(l)equiv +1) ×3
+
+input to MixConv . The aligned vector components are flattened along the channel dimension before MixConv . The resulting 
+
+F(l) 
+
+> ij
+
+thus contains information from both the geometry of crop 
+
+i and the translation of candidate j.The fused features from all encoder levels are concatenated along the channel dimension and projected using a point-wise linear layer, followed by max–mean aggregation: 
+
+Hij = Linear 
+
+
+
+[F(l) 
+
+> ij
+
+]Ll=1 
+
+
+
+,
+
+hglobal  
+
+> ij
+
+=
+
+"
+
+max  
+
+> n
+
+Hij,n ; 1
+
+NiNiX
+
+> n=1
+
+Hij,n 
+
+#
+
+.
+
+(9) 4
+
+Fusing the translation before aggregation preserves spatial information relative to the grasp position across multiple receptive-field scales. The pooled feature is then passed through a lightweight MLP to predict grasp robustness ˆqij 
+
+and collision probability ˆcij .III. E XPERIMENTS 
+
+A. Training Data and Implementation Details 1) Synthetic Training Data: We build a synthetic grasp dataset from IPA-3D1K [17], which mainly contains reg-ular retail objects, and the more diverse and complex Thingi10K [18]. For training, we randomly sample 500 ob-jects from IPA-3D1K and Thingi10K with a 6:4 ratio. For validation, we use an additional disjoint set of 100 objects sampled with the same ratio. Following the object-to-gripper scale convention commonly used in grasping benchmarks [19], meshes whose middle spatial extent exceeds the maximum gripper opening of 80 mm are uniformly scaled such that their middle extent falls between 0.5 and 0.8 times the gripper opening. We generate cluttered scenes in PyBullet [20] by dropping between 1 and 12 objects into the workspace and allowing them to settle under physics. In total, 5,000 training scenes and 1,000 validation scenes are generated from the corresponding object splits. For each object instance in a scene, we sample 100 grasp candidates using the antipodal and approach-based sampling schemes of [21]. We construct the candidate set with 50% collision-free antipodal grasps, 25% antipodal grasps with collisions allowed, and 25% approach-based grasps with collisions allowed. This mixture exposes the evaluator to diverse grasp configurations, including stable, unstable, and geometrically infeasible candidates. We define grasp robustness as the empirical success rate over 25 physics trials, with success defined as lifting the object by at least 0.15 m, under independent Gaussian perturbations to translation ( σ = 2 .5 mm ), orientation ( σ = 1 ◦), object density ( σ = 200 kg /m3, clipped to [500 , 2000] kg /m3), and lateral friction ( σ = 0 .1, clipped to [0 .1, 1.0] ), with spinning friction varied proportionally to lateral friction; grasps in collision are assigned a robustness of zero; cf. [22], [23]. The resulting training and validation sets contain approximately 2.5 million and 0.6 million grasps, respectively, with roughly 20% positive and 80% negative samples in both sets using a robustness threshold of 0.5. For rendering, the camera is placed at a nominal distance of 1.0 m from the scene, with uniform distance perturbation of ±0.25 m . Its nominal viewing direction is tilted by 20 ◦
+
+from the downward direction, with an additional uniform perturbation of ±15 ◦. The resulting depth observations are converted to point clouds and used as network inputs. 
+
+2) Training Details: Unless otherwise specified, we train all models for five epochs using AdamW with an initial learning rate of 10 −3, weight decay of 10 −2, and learning-rate decay of 0.95 every 0.2 epoch. EquiGQNet uses four equivariant EdgeConv levels with k = 20 , one retained equivariant channel per level, propagated widths [10 , 10 , 21] , and MAF widths [30 , 30 , 63 , 126] , followed by a 512-D projection and  
+
+> Fig. 3. Simulation object sets used for grasp evaluation: IPA-3D1K [17], Thingi10K [18], and scaled Dex-Net adversarial objects [23].
+
+a 512 –256 MLP head. We use a crop radius of rc = 0 .1 m 
+
+and resample each crop to 1024 points using Farthest Point Sampling (FPS) for larger crops and sampling with replace-ment for smaller ones. Crop centers are object-mask centroids perturbed by uniform noise of up to 0.02 m ; after cropping, we apply zero-mean Gaussian translation augmentation with 
+
+σ = 0 .005 m . We optimize L = Lq + λLc with λ = 1 , where 
+
+Lq and Lc are BCE losses for the robustness score q ∈ [0 , 1] 
+
+as a soft target and the collision label c ∈ { 0, 1} indicating gripper–scene intersection, respectively. No class reweighting or resampling is used. All training and simulation experiments use an AMD Ryzen 7 7700 CPU and an NVIDIA RTX 3090 Ti GPU. 
+
+B. Simulation Evaluation Protocol 
+
+We evaluate all grasps in PyBullet on three geometrically distinct object sets, shown in Fig. 3. We randomly select 20 IPA-3D1K objects and curate 20 geometrically challenging Thingi10K objects, excluding bulky primitive-like shapes that admit a wide range of valid grasp placements. All objects are disjoint from the training and validation splits. We additionally evaluate on the Dex-Net adversarial objects [23]. These objects were originally evaluated using an ABB YuMi gripper with an approximately 50 mm opening. Because our gripper has an 
+
+80 mm maximum opening, we uniformly scale the objects by a factor of 1.6 to preserve the relative object-to-gripper scale [19]. We consider both isolated-object and cluttered settings. In the isolated setting, each test object is placed with a random pose and evaluated for 100 grasp trials. For IPA-3D1K and Thingi10K, we additionally generate 100 cluttered scenes per dataset, each containing five objects. Objects that leave the valid workspace are removed, and a cluttered episode is terminated after two consecutive failed grasp attempts, following the protocol used by OrbitGrasp [3]. We report grasp success rate (GSR) in both settings and declutter rate (DR) for cluttered scenes. The Dex-Net adversarial set is evaluated only in the isolated setting due to its larger object scale, which makes consistent cluttered-scene construction difficult within the fixed workspace. 
+
+C. Grasp Planning Pipelines 
+
+A grasp evaluator does not itself generate candidate poses, so we evaluate arbitrary-pose evaluators under two comple-mentary planning strategies. Although the evaluator accepts arbitrary continuous 6-DoF poses, both strategies impose a 45 ◦
+
+approach-angle constraint, as detailed below. For evaluators 5
+
+TABLE I COMPARISON OF GRASP EVALUATION METHODS ACROSS DIFFERENT SEARCH STRATEGIES 
+
+Search Strategy Evaluation Method Shared Scene Encoding IPA-3D1K Thingi10K Dex-Net Adv. Planning Time (s) (Nq = 5 )Isolated Object Cluttered Isolated Object Cluttered Isolated Object GSR (%) GSR (%) DR (%) GSR (%) GSR (%) DR (%) GSR (%) Continuous refinement with CEM EquiGQNet ✓ 100 ± 0.1 99 .8 ± 0.2 95 .2 ± 0.9 89 .5 ± 2.8 86 .0 ± 1.6 92 .2 ± 1.4 95 .3 ± 1.0 0.478 
+
+PointNetGPD [11] × 99 .9 ± 0.1 97 .9 ± 0.7 92 .2 ± 1.3 92 .9 ± 2.6 91 .0 ± 1.4 92 .8 ± 1.5 94 .7 ± 1.9 3.308 
+
+GraspGen Disc. [6] ✓ 98 .9 ± 0.9 94 .1 ± 1.2 91 .6 ± 1.8 81 .4 ± 3.5 71 .1 ± 2.3 69 .2 ± 3.5 81 .2 ± 3.6 0.254 
+
+Samples from GraspGen Gen. ∗ [6] EquiGQNet ✓ 97 .8 ± 2.1 97 .3 ± 1.0 93 .6 ± 1.1 84 .8 ± 4.1 83 .0 ± 1.9 87 .2 ± 2.3 94 .8 ± 1.9 0.349 
+
+PointNetGPD [11] × 97 .5 ± 2.2 94 .7 ± 1.3 88 .6 ± 1.6 86 .7 ± 3.8 85 .0 ± 1.8 87 .0 ± 1.9 94 .2 ± 1.9 0.561 
+
+GraspGen Disc. [6] ✓ 97 .5 ± 2.3 97 .1 ± 0.9 92 .2 ± 1.2 80 .3 ± 4.2 75 .7 ± 2.2 77 .4 ± 2.7 80 .1 ± 4.6 0.357 
+
+Scene-anchored grasp methods EdgeGrasp ∗ [2] ✓ 89 .9 ± 3.5 76 .1 ± 2.2 73 .4 ± 2.5 62 .5 ± 5.4 55 .6 ± 2.5 48 .4 ± 3.6 69 .5 ± 4.9 0.466 
+
+OrbitGrasp ∗ [3] ✓ 97 .4 ± 1.7 94 .9 ± 1.2 89 .6 ± 1.5 81 .6 ± 3.1 76 .3 ± 1.9 75 .8 ± 2.9 78 .0 ± 3.9 2.331     
+
+> ∗denotes the use of a pretrained model.
+> Bold and underlined values indicate the best and second-best results within each search strategy, respectively. For GSR and DR, ±denotes the cluster bootstrap standard error (20,000 resamples), with objects as clusters for isolated-object evaluation and scenes for cluttered evaluation.
+
+TABLE II ABLATION STUDY OF EQUI GQN ET 
+
+Method Fusion Method Encoder Shared Scene Encoding IPA-3D1K Thingi10K Dex-Net Adv. Planning Time (s) (Nq = 5 )Rotation Translation Isolated Object Cluttered Isolated Object Cluttered Isolated Object GSR (%) GSR (%) DR (%) GSR (%) GSR (%) DR (%) GSR (%) (a) global global DGCNN ✓ 98 .2 ± 0.8 91 .4 ± 1.2 87 .4 ± 2.0 74 .1 ± 4.2 60 .1 ± 2.3 57 .2 ± 3.5 66 .6 ± 4.4 0.211 
+
+(b) canon. global DGCNN × 98 .3 ± 0.7 96 .8 ± 0.9 92 .0 ± 1.1 75 .8 ± 4.4 63 .2 ± 2.1 63 .8 ± 3.1 89 .0 ± 2.7 7.199 
+
+(c) canon. MAF DGCNN × 99 .8 ± 0.3 99 .4 ± 0.4 96 .2 ± 0.8 88 .7 ± 2.9 85 .6 ± 1.8 89 .0 ± 2.0 97 .0 ± 1.0 7.222 
+
+(d) canon. canon. DGCNN × 99 .7 ± 0.3 99 .6 ± 0.3 95 .0 ± 0.9 89 .1 ± 2.8 84 .8 ± 1.7 87 .2 ± 2.1 98 .5 ± 0.8 6.998 
+
+(e) canon. MAF VN-DGCNN ✓ 99 .7 ± 0.3 99 .2 ± 0.4 96 .0 ± 0.9 85 .0 ± 3.3 80 .2 ± 1.7 85 .0 ± 2.3 95 .2 ± 1.3 0.481 
+
+EquiGQNet canon. MAF GVN-DGCNN ✓ 100 .0 ± 0.1 99 .8 ± 0.2 95 .2 ± 0.9 89 .5 ± 2.8 86 .0 ± 1.6 92 .2 ± 1.4 95 .3 ± 1.0 0.478 
+
+(f) global global GVN-DGCNN ✓ 70 .2 ± 1.9 42 .0 ± 3.1 29 .2 ± 3.3 45 .3 ± 3.3 24 .4 ± 2.5 14 .6 ± 2.2 34 .2 ± 3.0 0.227 
+
+(g) canon. global GVN-DGCNN ✓ 89 .3 ± 2.5 77 .7 ± 2.2 76 .6 ± 3.2 61 .8 ± 5.0 37 .7 ± 2.9 26 .4 ± 3.2 60 .8 ± 4.0 0.230 
+
+(h) MAF MAF DGCNN ✓ 99 .6 ± 0.4 97 .9 ± 0.7 94 .2 ± 1.2 84 .2 ± 3.4 72 .5 ± 2.0 75 .6 ± 3.0 93 .8 ± 2.0 0.498    
+
+> Bold and underlined values indicate the best and second-best results within each comparison sector, respectively. For GSR and DR, ±denotes the cluster bootstrap standard error (20,000 resamples), with objects as clusters for isolated-object evaluation and scenes for cluttered evaluation.
+
+Fig. 4. Grasp robustness maps for an IPA-3D1K object (top) and a Dex-Net adversarial object (bottom). For a fixed grasp orientation and height, grasp quality is evaluated over a dense grid of planar translations. Columns show the object height map, ground-truth (GT) robustness, predictions from ablation variants (a)–(h) in Table II, PointNetGPD [11], our retrained GraspGen discriminator, and the official pretrained GraspGen discriminator (GraspGen ∗) [6]. Methods that incorporate grasp information before global aggregation produce more spatially localized quality landscapes, particularly for the challenging adversarial geometry. 
+
+that predict collision probability, candidates are ranked by 
+
+ˆq(1 − ˆc). To characterize the computational cost of processing multiple local regions, we denote by Nq the number of point cloud crops (local scene queries) evaluated per observation, distinct from the number of grasp candidates scored within each crop. 
+
+Continuous refinement with CEM: We consider continuous refinement using CEM initialized with image-based antipodal grasp sampling [23]. For each object detected by Unseen Object Instance Segmentation (UOIS) [24], we construct a local point cloud crop centered at the centroid of its masked point cloud and sample 256 initial grasp candidates per crop. Because the antipodal sampler produces top-down grasps, we perturb their orientations using local 3-D axis–angle noise with a 15 ◦ per-axis standard deviation. CEM operates on a standardized 9-D pose representation consisting of translation and the first two columns of the rotation matrix, with sampled rotations projected back to SO (3) by Gram–Schmidt orthonor-malization. We run 10 CEM iterations with 128 candidates per iteration and retain the top 25% as elites, resulting in up to 1,536 grasp evaluations per local query. Candidates violating the 45 ◦ approach-angle constraint or lying outside the crop radius rc are assigned zero quality. 
+
+Samples from a pretrained generative model: We evaluate the learned evaluators as scorers for a generative grasp planner. We use the pretrained GraspGen generator [6], which takes an object-segmented point cloud as input, to produce 1,024 candidate grasps per object. In simulation, the generator input is constructed using ground-truth instance masks provided by the simulator. From these 1,024 candidates, those exceeding 6
+
+(a) 
+
+(b)     
+
+> Fig. 5. Planning latency. (a) Planning time versus the number of query points
+> Nq. (b) Latency per query point versus the number of grasps Ngscored at a single query point, including per-query preprocessing.
+
+45 ◦ tilt constraint are removed, and the remaining grasps are scored by the evaluator under test. The highest-scoring candidate is selected for execution. 
+
+D. Comparison with Baseline Methods in Simulation 
+
+Baselines: We compare EquiGQNet with both arbitrary-pose grasp evaluators and scene-anchored grasp methods. Point-NetGPD [11] serves as an early-fusion baseline, explicitly transforming scene geometry into each candidate grasp frame before encoding. We train PointNetGPD on our dataset while retaining its original gripper-region input convention and grasp quality prediction formulation. As a late-fusion baseline, we train the GraspGen discriminator [6] using the same object-centered crop pipeline and training data as EquiGQNet, with an initial learning rate of 10 −4 for training stability; the dis-criminator predicts both grasp quality and collision probability. For a broader comparison of grasping performance, we additionally include EdgeGrasp [2] and OrbitGrasp [3] using their publicly available pretrained models. As scene-anchored grasp methods, they evaluate grasps tied to sampled scene locations rather than arbitrary 6-DoF poses and are not re-trained on our dataset; their results therefore serve as broader end-to-end pipeline references rather than controlled evaluator comparisons. For OrbitGrasp, we use the same UOIS-based object-centered queries as in the CEM pipeline described in Sec. III-C. EdgeGrasp instead operates without object-instance segmentation and evaluates local neighborhoods around 32 approach points selected by farthest-point sampling (FPS), corresponding to Nq = 32 .
+
+Results: The simulation results across the different planning strategies are summarized in Table I. EquiGQNet consistently outperforms the late-fusion GraspGen discriminator on objects with challenging geometry, while achieving grasping perfor-mance comparable to the early-fusion PointNetGPD. At the same time, EquiGQNet avoids the high cost of candidate-wise scene encoding: at Nq = 5 , it reduces CEM planning time from 3.308 s for PointNetGPD to 0.478 s, corresponding to a 
+
+6.9× speedup.                                      
+
+> TABLE III VALIDATION PERFORMANCE OF GRASP -QUALITY PREDICTORS .Method Acc. (%) AP (%) AUROC (%) (a) 86.78 71.57 91.60 (b) 89.03 78.82 93.93 (c) 91.37 85.98 96.24 (d) 91.82 87.12 96.61
+> (e) 91.23 85.79 96.27
+> EquiGQNet 91.23 85.70 96.27
+> PointNetGPD [11] 91.09 84.17 95.99 GraspGen Disc. [6] 88.35 76.89 93.32 (f) 84.56 62.56 88.53 (g) 85.89 67.75 90.09 (h) 90.39 83.12 95.38
+> Methods (a)–(h) are defined in Table II. Ground-truth robustness is binarized at 0.5; accuracy additionally thresholds the predicted score at 0.5, whereas AP and AUROC are computed from the continuous predicted scores.
+> Bold and underlined values indicate the best and second-best results within each comparison sector, respectively.
+
+The computational scaling with the number of local queries 
+
+Nq and grasps per query Ng is shown in Fig. 5. For a fair comparison between the CEM-based and generative pipelines, we report planning latency without UOIS-based instance seg-mentation, which takes 54.7 ms on average. EquiGQNet scales more favorably with Nq than PointNetGPD by reusing the scene representation (Fig. 5(a)), and the gap increases with 
+
+Ng (Fig. 5(b)). EdgeGrasp and OrbitGrasp remain nearly flat because preprocessing accounts for over 90% of their per-query latency. On the Thingi10K cluttered setting, increasing CEM it-erations from 3 to 10 improves GSR/DR by 1.6/3.4 pp at an additional 0.208 s, while increasing GraspGen candidates from 256 to 1024 improves GSR/DR by 6.1/6.8 pp at an additional 0.175 s. We therefore use 10 CEM iterations and 1024 candidates in the main experiments. 
+
+E. Ablation Study in Simulation 
+
+We ablate how grasp rotation and translation interact with scene features, as summarized in Table II. All variants use the same CEM-based refinement pipeline. Here, global de-notes late fusion after global pooling, canon. denotes early-fusion scene encoding in the grasp frame, and MAF fuses the corresponding grasp pose component with scene features before aggregation. Variant (h) uses the same standardized 9-D pose representation as CEM. Following VN [14], the DGCNN variants use the same network depth and number of channels per layer as their equivariant counterparts, with C
+
+scalar channels corresponding to C vector channels ( C × 3). 
+
+Effect of Early Scene–Grasp Fusion: Variants (a)–(d) pro-gressively introduce scene–grasp interaction earlier in the network. While global late fusion in (a) is efficient, it performs poorly on challenging geometries; candidate-wise canonical-ization in (b)–(d) substantially improves performance, but requires repeated scene encoding and approximately 7 s of planning time. Within this setting, the translation fusion stage is particularly important. With identical rotation canonical-ization and DGCNN encoders, replacing global translation 7 
+
+> Fig. 6. Real-world experimental setup and cluttered test objects. (a) Robot and camera setup. (b) Twelve household objects. (c) Twelve 1.6 ×-scaled Dex-Net adversarial objects [23].
+
+fusion in (b) with MAF in (c) improves Thingi10K cluttered GSR/DR from 63.2/63.8% to 85.6/89.0%, with essentially unchanged planning time. Moreover, (c) performs comparably to canonicalizing both rotation and translation in (d), showing that pre-aggregation translation fusion recovers most of the benefit of full pose canonicalization without the additional translation-specific scene re-encoding. These results show that early scene–grasp interaction is beneficial, and that MAF provides an effective way to introduce translation-dependent geometric interaction before global aggregation. 
+
+Efficient Pose Conditioning with Shared Encoding: Al-though (c) achieves strong performance, candidate-wise canon-icalization requires re-encoding the scene for every grasp, resulting in 7.222 s of planning time. In contrast, equivariant feature reuse in (e) and EquiGQNet enables candidate-specific rotation alignment from a shared scene encoding, reducing planning time to 0.481 and 0.478 s, respectively. Moreover, replacing VN-DGCNN with GVN-DGCNN maintains compa-rable performance and inference cost while increasing training throughput from 5.45 to 7.45 iter/s. An alternative way to retain shared scene encoding is (h), which replaces the explicit rotation canonicalization of (c) with rotation MAF. However, (h) suffers a substantial performance drop, indicating that explicit alignment is more effective for rotation conditioning. Likewise, replacing the translation MAF of EquiGQNet with global fusion in (g) leads to a large performance degradation. Notably, the fully global GVN-DGCNN variant (f) also performs substantially worse than its DGCNN counterpart (a), while adding rotation alignment in (g) improves over (f) but still yields relatively weak performance. These results suggest that simply applying global late fusion to shared equivariant features is insufficient, and that grasp-dependent interaction before global aggregation is important. Overall, effective shared encoding requires ex-plicit rotation alignment together with translation fusion before global aggregation. 
+
+Grasp Quality Prediction Analysis: We analyze the grasp quality prediction quantitatively on the validation set and qualitatively using grasp robustness maps. EquiGQNet closely matches the strongest candidate-wise canonicalization variants                
+
+> TABLE IV EXPERIMENTAL RESULTS OF DIFFERENT GRASP EVALUATION METHODS .Method Household Objects Dex-Net Adv. GSR (%) DR (%) MPPH GSR (%) DR (%) MPPH EquiGQNet 95.2
+> (120/126)
+> 100
+> (120/120) 230 93.8
+> (120/128)
+> 100
+> (120/120) 206
+> PointNetGPD [11] 94.8
+> (109/115)
+> 90.8
+> (109/120) 153 94.4
+> (118/125)
+> 98.3
+> (118/120) 135 GraspGen Disc. [6] 77.1
+> (84/109)
+> 70.0
+> (84/120) 170 66.7
+> (56/84)
+> 46.7
+> (56/120) 125 GSR = successful grasps/attempts; DR = removed/initial objects.
+> Bold and underlined values indicate the best and second-best results for each metric within each object set, respectively.
+
+while retaining shared scene encoding, performs comparably to PointNetGPD, and consistently outperforms the GraspGen discriminator (Table III). These results show that it retains most of the predictive benefit of candidate-wise canonicaliza-tion while substantially reducing planning cost by reusing the scene encoding. To examine how fusion strategies affect the spatial distri-bution of predicted grasp quality, we fix the grasp orientation and height and evaluate quality over a dense grid of planar translations. The ground-truth and predicted quality maps for an IPA-3D1K object and a Dex-Net adversarial object are compared in Fig. 4. Variants (a), (b), (f), and (g), as well as the GraspGen discriminator, produce relatively diffuse quality maps, particularly on the adversarial geometry. In contrast, methods that incorporate both grasp rotation and translation before global aggregation produce more localized high-quality regions that better match the ground truth. This difference is particularly important for objects with narrow graspable regions, where diffuse predictions can create spurious maxima and lead to incorrect grasp selection. To examine whether GraspGen’s on-generator training al-leviates the diffuse predictions, we additionally visualize the official pretrained discriminator (GraspGen ∗). Although it pro-duces more localized predictions than our retrained baseline on the simpler object, both remain diffuse on the adversarial ge-ometry, suggesting that late grasp-pose incorporation remains limiting even with on-generator training. 
+
+Effect of Collision Probability in Grasp Scoring: Using 
+
+ˆq alone instead of ˆq(1 − ˆc) changes GSR by at most 0.5 percentage points across all simulation settings, indicating only a marginal benefit from explicitly using collision probability in grasp scoring, as collision is already reflected in the robustness target. 
+
+F. Real-World Experiments 
+
+We evaluate the grasping pipeline using a Doosan Robotics M1013 with a custom 80 mm parallel-jaw gripper and afixed eye-to-hand Zivid Two camera (Fig. 6). All methods in Table IV use the same CEM-based continuous refine-ment as in simulation, differing only in the grasp evaluator. Each run starts with 12 objects and terminates after two consecutive failed attempts, with collision-induced emergency stops counted as failures. We perform ten decluttering runs 8
+
+per method and object set. We report GSR, DR, and mean picks per hour (MPPH), measured from image acquisition through pick-and-place completion and return to the ready pose. EquiGQNet achieves grasp success comparable to Point-NetGPD while attaining the highest MPPH on both object sets. The GraspGen discriminator shows a larger performance drop than in simulation, particularly on the Dex-Net adversarial objects. IV. C ONCLUSION 
+
+We presented EquiGQNet , an efficient grasp quality eval-uator that reuses SO(3) -equivariant scene features across ar-bitrary 6-DoF poses while retaining local geometry relative to each grasp through explicit orientation alignment and pre-aggregation translation fusion (MAF). This avoids the repeated scene encoding required by candidate-wise early fusion and substantially outperforms global late fusion on challenging geometries, producing more localized quality landscapes that matter when valid grasps occupy narrow regions, while achiev-ing the highest real-world throughput at comparable suc-cess rates. Two limitations remain. Despite shared encoding, EquiGQNet remains about 1.9× slower in CEM planning than pure global late fusion (0.478 s vs. 0.254 s at five local scene queries), motivating lighter equivariant backbones and fusion modules. In addition, while EquiGQNet supports arbitrary 6-DoF grasp evaluation, our experiments focus on tabletop settings with a 45 ◦ approach-angle constraint. Extending the evaluation to environments requiring side approaches, such as shelves or bins, remains future work. REFERENCES [1] X. Zhu, D. Wang, O. Biza, G. Su, R. Walters, and R. Platt, “Sample efficient grasp learning using equivariant models,” in Proc. Robot.: Sci. Syst. (RSS) , 2022. [2] H. Huang, D. Wang, X. Zhu, R. Walters, and R. Platt, “Edge Grasp Network: A graph-based SE(3)-invariant approach to grasp detection,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2023, pp. 3882–3888. [3] B. Hu et al. , “OrbitGrasp: SE(3)-equivariant grasp learning,” in Proc. Conf. Robot Learn. (CoRL) , 2024, pp. 2456–2474. [4] M. Sundermeyer, A. Mousavian, R. Triebel, and D. Fox, “Contact-GraspNet: Efficient 6-DoF grasp generation in cluttered scenes,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2021, pp. 13 438–13 444. [5] B. Lim, J. Kim, J. Kim, Y. Lee, and F. C. Park, “EquiGraspFlow: SE(3)-equivariant 6-DoF grasp pose generative flows,” in Proc. Conf. Robot Learn. (CoRL) , 2024, pp. 5067–5086. [6] A. Murali et al. , “GraspGen: A diffusion-based framework for 6-DOF grasping with on-generator training,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2026. [7] M. Danielczuk, A. Balakrishna, D. Brown, and K. Goldberg, “Ex-ploratory grasping: Asymptotically optimal algorithms for grasping challenging polyhedral objects,” in Proc. Conf. Robot Learn. (CoRL) ,2021, pp. 377–393. [8] M. Breyer, J. J. Chung, L. Ott, R. Siegwart, and J. Nieto, “Volumetric grasping network: Real-time 6-DOF grasp detection in clutter,” in Proc. Conf. Robot Learn. (CoRL) , 2021, pp. 1602–1611. [9] Z. Jiang, Y. Zhu, M. Svetlik, K. Fang, and Y. Zhu, “Synergies between affordance and geometry: 6-DoF grasp detection via implicit represen-tations,” in Proc. Robot.: Sci. Syst. (RSS) , 2021. [10] J. Yamada, A. Murali, A. Mandlekar, C. Eppner, I. Posner, and B. Sun-daralingam, “Grasp-mpc: Closed-loop visual grasping via value-guided model predictive control,” arXiv preprint arXiv:2509.06201 , 2025. [11] H. Liang et al. , “PointNetGPD: Detecting grasp configurations from point sets,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2019, pp. 3629–3635. [12] A. Mousavian, C. Eppner, and D. Fox, “6-DOF GraspNet: Variational grasp generation for object manipulation,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2019, pp. 2901–2910. [13] S. Jauhri, I. Lunawat, and G. Chalvatzaki, “Learning any-view 6-DoF robotic grasping in cluttered scenes via neural surface rendering,” in 
+
+Proc. Robot.: Sci. Syst. (RSS) , 2024. [14] C. Deng, O. Litany, Y. Duan, A. Poulenard, A. Tagliasacchi, and L. J. Guibas, “Vector Neurons: A general framework for SO(3)-equivariant networks,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV) , 2021, pp. 12 180–12 189. [15] B. Jing, S. Eismann, P. Suriana, R. J. L. Townshend, and R. O. Dror, “Learning from protein structure with geometric vector perceptrons,” in 
+
+Proc. Int. Conf. Learn. Represent. (ICLR) , 2021. [16] Y. Wang, Y. Sun, Z. Liu, S. E. Sarma, M. M. Bronstein, and J. M. Solomon, “Dynamic graph CNN for learning on point clouds,” ACM Trans. Graph. , vol. 38, no. 5, pp. 146:1–146:12, 2019. [17] J. Lindermayr et al. , “IPA-3D1K: A large retail 3D model dataset for robot picking,” in Proc. IEEE/RSJ Int. Conf. Intell. Robots Syst. (IROS) ,2023, pp. 11 404–11 411. [18] Q. Zhou and A. Jacobson, “Thingi10K: A dataset of 10,000 3D-printing models,” arXiv preprint arXiv:1605.04797 , 2016. [19] D. Morrison, P. Corke, and J. Leitner, “EGAD! an evolved grasping anal-ysis dataset for diversity and reproducibility in robotic manipulation,” 
+
+IEEE Robot. Autom. Lett. , vol. 5, no. 3, pp. 4368–4375, 2020. [20] E. Coumans and Y. Bai, “PyBullet, a Python module for physics simu-lation for games, robotics and machine learning,” 2016–2021, software. [21] C. Eppner, A. Mousavian, and D. Fox, “A billion ways to grasp: An evaluation of grasp sampling schemes on a dense, physics-based grasp data set,” in Proc. Int. Symp. Robot. Res. (ISRR) , 2019, pp. 890–905. [22] J. Weisz and P. K. Allen, “Pose error robust grasping from contact wrench space metrics,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) ,2012, pp. 557–562. [23] J. Mahler et al. , “Dex-Net 2.0: Deep learning to plan robust grasps with synthetic point clouds and analytic grasp metrics,” in Proc. Robot.: Sci. Syst. (RSS) , 2017. [24] C. Xie, Y. Xiang, A. Mousavian, and D. Fox, “Unseen object instance segmentation for robotic environments,” IEEE Trans. Robot. , vol. 37, no. 5, pp. 1343–1359, 2021.

@@ -1,0 +1,238 @@
+Title: Zero-Shot Sim-to-Real Contact-Rich Assembly via Proprioception-Anchored Cross-Modal Pretraining
+
+URL Source: https://arxiv.org/pdf/2609.07534v1
+
+Published Time: Wed, 09 Sep 2026 02:40:41 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Zero-Shot Sim-to-Real Contact-Rich Assembly via Proprioception-Anchored Cross-Modal Pretraining 
+
+Yuhan Wang 1, Yurou Chen 2, Hongye Jiang 1, and Wenzhao Lian 1,* 
+
+Fig. 1: Overview of the PACE pipeline. A privileged-state expert collects simulated demonstrations containing images, force/torque (F/T) measurements, proprioception, and privileged states. The multimodal encoder is pretrained through proprioceptive anchoring and auxiliary objectives. An asymmetric actor–critic policy is then trained on frozen encoder features and deployed directly on a real robot. 
+
+Abstract — Contact-rich assembly remains challenging be-cause it requires submillimeter spatial accuracy and reliable interpretation of forces during sustained contact. Although simulation-based reinforcement learning offers a scalable train-ing paradigm, discrepancies in visual observations, contact dynamics, and force/torque (F/T) measurements often limit policy transfer. We observe that proprioception is comparatively consistent across domains because calibrated joint positions and consistently computed joint velocities align closely between simulation and hardware. Based on this observation, we present PACE (Proprioception-Anchored Cross-Modal Encoder), which supervises temporal visual and F/T representations by pre-dicting proprioceptive state transitions. Static domain-specific factors, including lighting, texture, and sensor bias, contain little information about joint motion; the proposed objective therefore encourages the encoder to suppress these factors while retaining task-relevant motion cues. Policies trained on frozen PACE features are deployed on hardware without real-world fine-tuning or object-pose tracking. Across four contact-rich assembly tasks, PACE attains an average real-world success rate of 93.3% and only a 2.7-percentage-point sim-to-real drop, meanwhile remaining robust to perturbations that substantially degrade pose-based and learned-fusion baselines. 
+
+Index Terms — contact-rich assembly, multimodal represen-     
+
+> 1Shanghai Jiao Tong University. 2CoreNetic.ai. *Corresponding author.
+
+tation learning, reinforcement learning, sim-to-real transfer 
+
+I. I NTRODUCTION 
+
+Contact-rich assembly remains a fundamental challenge in robot learning. Unlike pick-and-place or tabletop re-arrangement, assembly often involves submillimeter clear-ances, so even small misalignments can cause jamming or failure. Vision alone is therefore insufficient in many settings: successful compliant alignment requires both fine-grained spatial information and accurate interpretation of contact forces. Simulation-based reinforcement learning (RL) provides a scalable approach to acquiring these skills. In a common paradigm, a privileged-state policy is trained in simulation, where ground-truth poses and contact states are available, and is then deployed using object poses estimated by an external perception module [1], [2]. This decoupled design creates a brittle perception–control interface. For assemblies with submillimeter clearances, millimeter-scale pose errors caused by lighting variation, or calibration drift can lead to control errors from which the policy cannot recover. arXiv:2609.07534v1 [cs.RO] 7 Sep 2026 Existing approaches address this gap in three principal ways. Domain randomization [3], [4] varies visual and phys-ical parameters during training, but residual discrepancies may remain large relative to assembly tolerances. Domain adaptation aligns feature distributions across domains [5], [6], but requires real-robot data. System identification [7] calibrates simulation parameters against hardware and is often costly and task-specific. More generally, rendered im-ages, simulated contact dynamics, and synthetic force/torque (F/T) measurements differ systematically from their real-world counterparts. Policies that depend on these signals may therefore fail on hardware even when the commanded robot trajectories are closely matched across domains. To address domain discrepancies in visual and F/T signals, we train an encoder to produce representations that are less sensitive to domain-specific nuisance factors. Our key observation is that proprioceptive measurements are substan-tially more consistent across simulation and hardware than visual or F/T measurements. By requiring temporal visual and F/T features to predict proprioceptive state transitions, the training objective encourages the encoder to suppress static, domain-specific information and preserve the physical motion associated with those transitions. Proprioception thus serves as a cross-domain anchor : it provides a supervisory signal that is available in both simulation and hardware, enabling feature transfer without domain adaptation. We instantiate this approach as PACE , a Proprioception-
+
+Anchored Cross-modal Encoder. Each modality-specific stream applies a learnable, per-dimension, zero-sum temporal kernel initialized to compute a first-order difference. The kernel suppresses static offsets and extracts a compact mo-tion code. During pretraining, a cycle-consistency objective anchors these codes to proprioception, while auxiliary objec-tives encourage complementary information across modali-ties. We then freeze the encoder, train an RL policy on its features, and deploy the resulting policy on hardware without adaptation. We evaluate PACE on four contact-rich assembly tasks with complementary challenges: PegInsert and GearMesh from the Factory benchmark, and JointAssemble (a square plug with rotational constraints) and KnobTighten (a knob-and-socket task with sloped contact geometry and increased reliance on F/T feedback) from the AutoMate dataset. Across these tasks, PACE achieves a 93.3% average real-world success rate, with an average sim-to-real decrease of 2.7 percentage points. Pose-based and learned-fusion baselines exhibit substantially larger decreases on hardware. The main contributions of this work are as follows:  
+
+> •
+
+We introduce proprioceptive anchoring , which uses proprioceptive state-transition prediction to promote domain-invariant visual and F/T representations without real-robot training data.  
+
+> •
+
+We propose learnable, zero-sum temporal differencing 
+
+to suppress static offsets, together with cross-modal masked reconstruction to encourage complementary representations.  
+
+> •
+
+We demonstrate zero-shot sim-to-real deployment on four contact-rich assembly tasks from the Factory and AutoMate benchmarks, achieving a 93.3% average real-world success rate and a 2.7-percentage-point average decrease from simulation. II. R ELATED WORK 
+
+A. Contact-Rich Robotic Assembly 
+
+Classical assembly methods rely on engineered com-pliance [8], [9], hybrid force–position control [10], or impedance control [11]; these approaches often require task-and geometry-specific design. Reinforcement learning has also been applied to contact-rich manipulation in simulation and on hardware [12]–[14]. The Factory benchmark [15] provides standardized assembly tasks in Isaac Gym, with privileged simulation states used as policy inputs in reported experiments. For hardware deployment, IndustReal [1] com-bines Mask R-CNN object detection with AprilTag-based camera calibration to estimate planar part poses (x, y, θ )
+
+for a proximal policy optimization (PPO) policy. Under tight clearances, however, estimation errors propagate di-rectly to the controller. FORGE [16] and CoRMA [17] demonstrate that force-guided exploration can improve ro-bustness in contact-rich tasks, although neither method uses vision. AutoMate [2] scales to 100 assembly geometries and demonstrates zero-shot transfer to hardware, but its policies also rely on perception-initialized pose estimates. Residual RL methods [18] initialize policies through behavior cloning from real human demonstrations before refinement in simu-lation and therefore require real-robot data. By comparison, PACE enables pixel-to-action transfer without an external pose estimator or object tracker. 
+
+B. Sim-to-Real Transfer 
+
+Bridging the simulation-to-reality gap remains a central challenge in robot learning. Domain randomization [3], [4], [19], [20] samples visual and physical parameters during training. Although it can produce robust policies, residual errors may remain unacceptable at submillimeter tolerances. Domain adaptation aligns feature distributions across do-mains [5], [6], but requires real-robot data. System identifica-tion [7] calibrates simulation parameters to match hardware and is typically costly and task-specific. A third paradigm is asymmetric training, in which the critic or teacher receives privileged information while the actor or student receives only deployable observations [21], [22]. Our encoder-guided RL method follows this design: the actor receives encoder features, whereas the critic also observes privileged simulation state. In contrast to methods that rely on RL alone to learn invariant features, PACE pretrains the encoder explicitly for cross-domain consistency. PACE is complementary to these paradigms. Temporal differencing suppresses static offsets, and proprioceptive anchoring encourages the features to encode physical motion rather than domain-specific appearance. C. Representation Learning for Robotic Manipulation 
+
+General-purpose visual encoders, including R3M [23], VIP [24], and VC-1 [25], are trained on large-scale datasets but are not designed specifically for the fine-grained spatial reasoning required in submillimeter assembly. DINOv2 [26] is a self-supervised vision transformer [27] that exhibits spatial correspondence; we use it as a frozen visual back-bone. Our cross-modal reconstruction objective draws on masked autoencoding [28] and contrastive representation learning [29]–[31]. Multimodal policies commonly use feature concatena-tion [32], [33] or cross-attention [34]. Tactile-only ap-proaches [35], [36] show that force sensing can support insertion when combined with a suitable search strategy, but provides limited information for initial alignment, where vision remains important. Dynamics-aware pretraining is more closely related to our setting. DynaMo [37] uses forward and inverse dynamics ob-jectives for visuomotor control but considers only visual ob-servations. AFRO [38] extends dynamics-aware pretraining to 3-D point clouds through feature differencing and inverse consistency. Although AFRO also uses temporal differences, it does not ground them in proprioception. MSDP [39] jointly pretrains visual, F/T, and proprioceptive representations through masked autoencoding and cross-sensor prediction and is the closest prior work to PACE. Whereas MSDP uses a shared transformer and a reconstruction objective, PACE uses modality-specific pathways, separate auxiliary losses, and proprioceptive anchoring. AugInsert [34] fuses vision and force through Perceiver IO but relies on behavior cloning without dynamics pretraining. Large vision–language–action models [40], [41] and diffusion policies [42] emphasize broad task coverage; PACE targets representations of fine-grained dynamics required for submillimeter assembly. PACE differs from prior multimodal pretraining in three respects. First, it uses a separate temporal kernel for each modality and fuses the streams only at the bottleneck. Second, it applies structured auxiliary supervision: a spatial alignment objective supervises the visual stream, while an engagement objective supervises both streams. Third, cross-modal masked reconstruction with stop-gradient discourages redundant representations. This modular design also supports stream-level ablations that quantify the contribution of force sensing when visual information is limited. Recent studies use proprioception as a comparatively reli-able signal in other contexts. KiVi [43] treats proprioception as a stable locomotion backbone when visual observations degrade, and TNavRL [44] relates noisy visual streams to proprioceptive states through cross-modal transformers for zero-shot navigation. PACE instead uses proprioceptive-transition prediction as a direct supervisory signal to filter domain-specific information from visual and F/T representa-tions. III. P ROBLEM FORMULATION 
+
+We consider quasi-static contact-rich assembly . Given a grasped object and a target receptacle, the robot must complete the assembly within a task-specific positional tol-erance δ ∈ [0 .1, 1.0] mm. At each time step t, the observa-tions comprise images ILt and IRt from two wrist-mounted cameras, a six-axis F/T measurement Ft, joint positions 
+
+qt ∈ R7, joint velocities ˙qt ∈ R7, and the previous action 
+
+at−1 ∈ R6. The action at ∈ R6 specifies an end-effector pose increment (∆ x, ∆y, ∆z, ∆θroll , ∆θpitch , ∆θyaw ) under impedance control. Because the controller fixes roll and pitch to maintain an upright gripper, the effective action space is four-dimensional: (∆ x, ∆y, ∆z, ∆θyaw ).Let s denote the physical state. We consider three sources of the sim-to-real gap: 1) Visual observation gap : Psim (I | s)̸ = Preal (I | s),owing to differences between rendered and real camera observations. 2) F/T sensing gap : Psim (F | s)̸ = Preal (F | s), owing to differences between simulated and real F/T sensor characteristics. 3) Physical interaction gap : Psim (s′ | s, a)̸ = Preal (s′ |
+
+s, a), owing to differences in contact mechanics and robot–environment interactions. Domain randomization is used during large-scale RL training to mitigate the physical interaction gap. We define the proprioceptive observation as pt =[qt; ˙ qt] ∈ R14 . In contrast to visual and F/T measurements, proprioception is represented in a common joint coordinate system in simulation and on hardware. We therefore model the proprioceptive observation distributions as approximately aligned: 
+
+Psim (pt | st) ≈ Preal (pt | st). (1) Hardware joint positions are obtained from calibrated joint encoders, and joint velocities in both domains are computed by finite differencing joint positions at the control frequency. The shared joint coordinate system and consistent velocity computation provide a common cross-domain reference de-spite residual noise, latency, and quantization. We therefore use proprioception as a cross-domain anchor. Our objective is to learn an encoder ϕ : ( ILt , IRt , Ft, pt) 7 →
+
+zt ∈ R256 , where zt = [ zvt ; zft ] retains task-relevant informa-tion while suppressing domain-specific nuisance factors. We then train a policy π(at | zt, pt, at−1) entirely in simulation and evaluate it on hardware. Throughout this paper, zero-shot sim-to-real transfer refers to deploying a simulation-trained policy on hardware without real-world policy adaptation. IV. M ETHOD 
+
+PACE consists of two stages. First, we pretrain an encoder to predict domain-consistent physical quantities, thereby re-ducing the sensitivity of its features to domain-specific ob-servations. Second, we freeze the encoder, train an RL policy on the resulting features, and deploy the policy directly on hardware. Fig. 1 summarizes the complete pipeline, including expert data collection, encoder pretraining, policy learning, and deployment, while Fig. 2 details the encoder architecture. Fig. 2: PACE encoder architecture. A frozen visual backbone followed by attention pooling extracts per-frame visual features, while an F/T multilayer perceptron (MLP) extracts per-frame force features. Stream-specific temporal kernels aggregate the preceding T features into forward motion codes αv+ 
+
+> t
+
+and αf + 
+
+> t
+
+; negated inputs produce backward codes αv− 
+
+> t
+
+and αf − 
+
+> t
+
+.Each stream combines its current feature, motion code, and proprioception pt to produce a latent representation. 
+
+A. Expert Demonstrations 
+
+For each task, we train a privileged-state PPO policy [45] in Isaac Lab [46]. The policy observes ground-truth poses, velocities, and contact states and we train it using the default Factory domain-randomization settings [15] until it achieves near-perfect success. We roll out the stochastic expert to collect 300 trajectories per task. At each time step, we record images from both wrist cameras, a short history of wrist F/T measurements, joint positions and velocities, the executed action, and a binary engagement label obtained from simulated contact detection. We partition the resulting dataset into training and validation sets using an 80:20 split. 
+
+B. Encoder Architecture 
+
+Each modality follows the same temporal-differencing pipeline: encoding each frame, buffering the preceding T
+
+features, extracting a motion code with a learnable temporal kernel, and fusing the result with proprioception to produce the stream output. The temporal kernel is a per-dimension depthwise 1-D convolution initialized to approximate a first-order difference, [−1, 1, 0, . . . ]. On every forward pass, we subtract the per-channel mean of the weights to enforce an exactly zero-sum kernel. This constraint removes constant offsets, such as static appearance components or sensor bias, from the motion code and retains temporal changes in the visual and force signals. For the visual stream, a frozen backbone encodes images from both wrist cameras. Learned attention pooling and cross-view fusion then produce the per-frame feature vt.From the preceding T visual features, the temporal kernel extracts a forward motion code αv+ 
+
+> t
+
+that represents object motion, gripper approach, and contact-induced deflection. The stream output zvt combines vt, αv+ 
+
+> t
+
+, and proprioception 
+
+pt; absolute appearance is excluded from the motion path-way. For the force stream, a multilayer perceptron (MLP) encodes a recent window of six-axis F/T measurements into a compact feature ft, from which a separate temporal kernel extracts the force-dynamics code αf + 
+
+> t
+
+. The output zft
+
+combines ft, αf + 
+
+> t
+
+, and pt, suppressing static sensor bias in the motion code while retaining contact transients. 
+
+C. Multi-Objective Dynamics Pretraining 
+
+We pretrain the encoder on the collected demonstrations using three complementary objectives. All losses operate on the latent features, and the visual backbone remains frozen. 
+
+Proprioceptive Anchoring. This objective promotes cross-domain invariance. Given the motion codes 
+
+(αv+ 
+
+> t
+
+, αf + 
+
+> t
+
+) and the proprioceptive state K steps earlier, a lightweight dynamics head predicts the proprioceptive innovation ∆pt = pt − pt−K and adds it to the earlier state. Predicting the innovation rather than the absolute state precludes the trivial solution of copying pt−K , which would leave the motion codes unconstrained. Cycle consistency is imposed by re-extracting motion codes from negated temporal differences and using the same head to predict the earlier state: 
+
+αv+ 
+
+> t
+
+= gv (∆ vt), αf + 
+
+> t
+
+= gf (∆ ft), (2) 
+
+ˆpt = pt−K + MLP( αv+ 
+
+> t
+
+⊕ αf + 
+
+> t
+
+⊕ pt−K ), (3) 
+
+ˆpt−K = ˆ pt + MLP(ˆ pt ⊕ αv− 
+
+> t
+
+⊕ αf − 
+
+> t
+
+). (4) The dynamics loss penalizes the smooth-L1 error in both directions, with the backward branch imposing cycle consistency on the learned motion representation. The two directions share a single prediction head, and gradients through the forward prediction are stopped before the back-ward prediction is computed. Backward motion codes are recomputed from negated temporal differences, e.g., αv− 
+
+> t
+
+=
+
+gv (−∆vt). Domain-specific appearance and static sensor offsets provide little information about proprioceptive transi-tions. Minimizing the loss therefore encourages the temporal representations to encode the physical motion associated with these transitions. Task-Related Supervision. We train two prediction heads using state labels that are readily available in simulation. Conditioned on the visual representation and previous action, the spatial alignment head predicts the normalized planar vector from the end effector to the target keypoint; for JointAssemble, it additionally regresses the yaw error. The spatial alignment loss Lalign uses a cosine loss on the planar direction whenever the target displacement has a well-defined direction and a smooth-L1 loss on yaw when applicable. The engagement head takes both stream representations as input and predicts whether the held part is engaged with the fixed receptacle; it is trained using the binary cross-entropy loss 
+
+Leng . These heads provide complementary supervision for spatial alignment and contact engagement, respectively. 
+
+Cross-Modal Reconstruction. To discourage redundant stream representations, we apply masked autoencoding in the feature space. We uniformly mask half of the dimensions in the concatenated vector [zvt , zft , pt] and use a shallow MLP to reconstruct the complete vector. The reconstruction loss includes the visible dimensions, and the target is de-tached from the computation graph. Gradients therefore pass through the reconstructor to the visual and force pathways but not through the target. Locally correlated dimensions can be recovered within a modality, whereas the remaining information must be inferred across modalities. This objec-tive consequently encourages the two pathways to encode complementary information; its contribution is evaluated by the ‘w/o Masked Reconstruction’ ablation in Table I. 
+
+Pretraining Procedure. The total pretraining loss is a weighted sum of the three objectives. We apply color jitter, blur, and cropping to the images, and add annealed Gaussian noise to the F/T measurements to approximate real sensor noise. We train the encoder with early stopping for a max-imum of 100 epochs. The four loss weights and ablation configurations are provided in the accompanying material. 
+
+D. Policy Training and Deployment 
+
+We freeze the pretrained encoder and use its features as observations for RL policy training. The encoder runs online at every simulation step and maintains the same temporal feature buffers used during pretraining. We employ an asymmetric actor–critic architecture: the actor observes only the latent features, proprioception, and the previous action, whereas the critic also receives privileged simulation state for value estimation. Thus, the actor depends only on observations available during deployment. We train all RL policies for 200 iterations in Isaac Lab using the same pol-icy architecture, hyperparameters, and domain-randomization settings, thereby isolating the effect of the observation rep-resentation. For deployment, we transfer the frozen encoder and policy to the robot without parameter updates or real-world training data. Camera images and F/T measurements undergo the same preprocessing used in simulation, and the encoder updates its temporal buffers online. The policy commands incremental end-effector poses through Cartesian impedance control [11]. Before evaluation, we perform a one-time 
+
+Fig. 3: Robot setup and representative scenes for the four assembly tasks. hardware configuration shared across tasks: we zero the F/T sensor, fix the wrist-camera mounts and exposure settings, set a fixed end-effector frame offset, and tune the impedance gains for the robot. No policy or encoder parameters are updated on real-world data. V. E XPERIMENTAL SETUP 
+
+A. Tasks and Evaluation 
+
+We evaluate PACE on four contact-rich assembly tasks that span complementary geometric and contact-sensing chal-lenges. Two tasks are adapted from the Factory bench-mark [15]. PegInsert requires insertion of a 16-mm peg into a receptacle with approximately 0.1-mm radial clearance and primarily tests fine visual alignment. GearMesh requires a 30-mm-diameter gear to mesh with adjacent fixed gears and tests contact-sensitive translational alignment. The other two tasks are drawn from the AutoMate dataset [2]. JointAssemble (ID 00471) uses a 2×1×3.3-cm square plug that requires both translational and yaw alignment during insertion. Its auxiliary spatial alignment head therefore predicts planar direction and yaw error. 
+
+KnobTighten (ID 00855) uses a 3.7×3.7×6.5-cm knob and a sloped socket whose contact geometry increases the importance of F/T feedback during engagement. Fig. 3 shows the robot setup and representative scenes for all four tasks. All experiments use a Franka FR3 manipulator equipped with two 224 × 224 -pixel wrist-mounted RGB cameras [47] and a six-axis wrist F/T sensor. At 15 Hz, the policy controls three-dimensional position and yaw, yielding a four-degree-of-freedom (4-DoF) action space; the controller fixes roll and pitch. An episode is successful if the assembly reaches the target pose within the task-specific tolerance. In simulation, we evaluate each task over 100 episodes with domain randomization and report the mean success rate and standard deviation over three random seeds. For real-robot evaluation, we deploy one fixed checkpoint for each method—task pair. We conduct 30 consecutive trials for each method–task pair, randomizing the initial gripper and target poses before every trial. After each trial, we record the outcome and randomize the setup for the subsequent trial. Success is determined from the final pose and contact conditions rather than subjective assessment. B. Baselines 
+
+We compare PACE against three baselines representing privileged-state control, direct policy learning from un-adapted sensor features, and learned multimodal fusion. 
+
+Pose-Based PPO. This baseline uses the privileged-state PPO policy described in Sec. IV. In simulation, the policy receives ground-truth object poses, keypoint relations, and contact variables. During deployment, the policy weights remain fixed, and unavailable geometric quantities are re-placed with estimates from an external perception module following IndustReal [1]. Object detection and AprilTag-based camera calibration provide planar part poses (x, y, θ ).This baseline represents a conventional modular deployment in which errors at the perception–control interface contribute to the sim-to-real performance decrease. 
+
+No-Pretrain RL. The actor receives the concatenation of frozen DINOv2 visual features, the F/T history, propri-oception, and the previous action. This baseline omits task-specific encoder pretraining, proprioceptive anchoring, and masked reconstruction. We initialize the policy randomly and train it with PPO using the same RL budget as PACE. The comparison evaluates whether generic visual features and raw multimodal observations are sufficient to learn transferable assembly policies. 
+
+AugInsert. We implement AugInsert using a Perceiver IO architecture [48]. DINOv2 patch tokens and F/T embeddings receive modality-specific positional encodings and are fused through cross-attention [34]. The model is first trained via behavior cloning using the expert demonstrations collected for PACE and is then fine-tuned with PPO under the same RL budget. All methods use the same expert data, RL budget, and real-robot evaluation protocol. This baseline evaluates whether behavior-cloning initialization and cross-attention-based multimodal fusion are sufficient for robust sim-to-real transfer. 
+
+C. Ablations 
+
+We evaluate four ablations to quantify the contributions of proprioceptive anchoring, force information, visual infor-mation, and masked latent reconstruction. Unless otherwise stated, the data, optimization settings, policy architecture, and RL budget remain fixed. 
+
+Without Proprioceptive Anchoring ( Ldyn ). This variant sets the weight of Ldyn to zero while retaining the spatial alignment, engagement, and reconstruction objectives. It measures the contribution of proprioceptive-transition pre-diction to cross-domain transfer. 
+
+Without the Force Stream. We remove the force rep-resentation, such that the policy observes [zvt , pt, at−1].This variant measures the contribution of F/T information, particularly in tasks involving meshing, rotational mismatch, or force-sensitive engagement with sloped geometry. 
+
+Without the Visual Stream. We remove the visual repre-sentation, such that the policy observes [zft , pt, at−1]. This variant evaluates whether force and proprioception alone provide sufficient spatial information for initial alignment. 
+
+Fig. 4: Cross-domain feature alignment along a representa-tive pair of matched simulation and hardware trajectories. PACE features exhibit higher cosine similarity than the corresponding unadapted representations, particularly for F/T signals during contact. 
+
+Without Masked Reconstruction ( Lrecon ). This variant sets the weight of Lrecon to zero while retaining pro-prioceptive anchoring and privileged auxiliary supervision. It measures the effect of masked latent reconstruction on nominal transfer and robustness to real-world perturbations. VI. R ESULTS AND ANALYSIS 
+
+A. Zero-Shot Sim-to-Real Transfer 
+
+Table I reports the simulated and real-robot success rates. In simulation, Pose-Based PPO achieves near-perfect success because it observes ground-truth poses. The variant without the visual stream, in contrast, attains only 5–9% success, indicating that F/T sensing and proprioception alone do not provide sufficient information for initial alignment. No-Pretrain RL produces both low mean success rates and high variability across seeds; for example, it achieves 56 .3±19 .6%on PegInsert. Generic backbone features combined with raw F/T and proprioceptive observations therefore do not support reliable policy learning across the four geometries. With behavior-cloning initialization, AugInsert attains an average simulated success rate of 86.7%, compared with 51.2% for No-Pretrain RL and 96.0% for PACE. The ∆ columns quantify the sim-to-real performance drop. PACE attains an average ∆ of 2.7 pp across the four tasks. By comparison, the success rate of Pose-Based PPO drops by an average of 18.9 pp when pose estimates replace ground-truth states on hardware, indicating substantial sensitivity to the perception–control interface. No-Pretrain RL exhibits the largest average decrease (43.7 pp), showing that the policy transfers poorly when exposed to real-world observations. AugInsert exhibits a similarly large decrease of 18.4 pp. These results indicate that cross-modal fusion and behavior-cloning initialization alone do not provide the invariance achieved by proprioceptive anchoring. We further examine cross-domain feature alignment. For this analysis, each 7-DoF joint trajectory recorded in sim-ulation is replayed on the real robot at 15Hz, and the resulting simulation and hardware features are paired frame by frame. Fig. 4 shows one trajectory pair. Across simulation TABLE I: Zero-shot sim-to-real transfer. Sim: mean success rate (%) ± standard deviation over three seeds, with 100 episodes per seed. Real: success rate (%) over 30 trials using one checkpoint per method. The half-widths of the 95% Wilson confidence intervals range from 8 to 16 percentage points (pp). ∆ = Sim − Real (pp; lower is better). “—” denotes methods not evaluated on hardware.                                                                                                                                   
+
+> PegInsert GearMesh JointAsm KnobTight
+> Sim Real ∆Sim Real ∆Sim Real ∆Sim Real ∆Avg Real Avg ∆
+> Pose-Based PPO 97.7 ±1.583.3 14.3 96.7 ±1.580.0 16.7 95.3 ±0.673.3 22.0 96.0 ±1.073.3 22.7 77.5 18.9 AugInsert 92.3 ±1.576.7 15.7 85.3 ±4.570.0 15.3 85.3 ±1.566.7 18.7 84.0 ±3.060.0 24.0 68.3 18.4 No-Pretrain RL 56.3 ±19 .613.3 43.0 53.3 ±25 .76.7 46.7 39.3 ±16 .06.7 32.7 56.0 ±15 .43.3 52.7 7.5 43.7
+> PACE (Full) 97.3 ±1.296.7 0.7 95.7 ±1.293.3 2.3 95.3 ±1.590.0 5.3 95.7 ±1.293.3 2.3 93.3 2.7
+> w/o Ldyn 92.7 ±2.370.0 22.7 92.0 ±3.653.3 38.7 89.3 ±4.070.0 19.3 91.3 ±2.570.0 21.3 65.8 25.5 w/o Force Stream 94.3 ±2.186.7 7.7 84.3 ±1.570.0 14.3 79.3 ±4.076.7 2.7 80.7 ±2.570.0 10.7 75.8 8.8 w/o Masked Reconstruction 92.0 ±2.686.7 5.3 91.7 ±4.586.7 5.0 92.3 ±2.183.3 9.0 91.7 ±2.186.7 5.0 85.8 6.1 w/o Visual Stream 9.0 ±5.6——8.7 ±7.5——5.0 ±2.6——9.3 ±1.5————
+
+and hardware, PACE visual features remain more closely aligned than frozen DINOv2 features throughout the task, while PACE force features remain more closely aligned than unprocessed F/T measurements during contact. Across five matched trajectory pairs for each of the four tasks, the mean frame-wise cosine similarities within the contact window are 0.91 ± 0.08 and 0.64 ± 0.23 for the PACE visual and force features, respectively. The corresponding values are 0.69 ± 0.08 for DINOv2 features and 0.23 ± 0.20 for unprocessed F/T measurements (95% confidence intervals over trajectory pairs). These measurements show stronger cross-domain alignment in the PACE representations. The ablations identify the contribution of each component. Removing the dynamics loss increases the average ∆ from 2.7 to 25.5 pp, the largest increase among the ablations, while reducing simulated success by only 4.7 pp. This result identifies proprioceptive anchoring as the principal contrib-utor to cross-domain transfer. Removing the force pathway produces the largest decrease in simulated success (11.3 pp), with the largest effects on GearMesh, JointAssemble, and KnobTighten. In these tasks, contact sensing helps resolve ambiguous meshing and orientation mismatches and detect surface engagement, all of which are difficult to infer from vision alone. Removing cross-modal masked reconstruction decreases simulated success by 4.1 pp and increases the average ∆ from 2.7 to 6.1 pp. The contribution of masked reconstruction under real-world disturbances is examined further in Fig. 5. 
+
+B. Real-World Robustness Under Perturbations 
+
+We evaluate real-robot robustness on GearMesh under four perturbations: a change in lighting, a 2-cm lateral camera shift, a static 2-N bias added to the F/T measurements, and a change in background appearance. The comparison includes PACE, Pose-Based PPO, AugInsert, and the variant without masked reconstruction. Each method is evaluated over 20 trials per condition, with the unperturbed setting as the reference. As shown in Fig. 5, PACE achieves 100% success in the unperturbed, lighting, and background conditions, and 90% under both the camera shift and F/T bias. The success 
+
+Fig. 5: Robustness to real-world perturbations on GearMesh. Each success rate is measured over 20 trials under changes in lighting, camera position, F/T bias, or background. PACE maintains 90–100% success across all conditions. rate of Pose-Based PPO drops from 90% in the reference condition to 10% under the camera shift, whereas that of AugInsert drops from 90% to 35% under the F/T bias. Removing masked reconstruction reduces performance un-der each perturbation, with the largest decreases under the lighting and background changes. These results indicate that proprioceptive anchoring and masked reconstruction jointly improve robustness to visual and F/T perturbations. VII. D ISCUSSION 
+
+The results show complementary roles for the main com-ponents of PACE. Removing the dynamics loss causes the largest transfer degradation, indicating that proprioceptive anchoring is the primary contributor to cross-domain gen-eralization. The modality ablations show that vision is nec-essary for initial spatial alignment, whereas F/T sensing is particularly important for tasks involving meshing or other force-sensitive contact geometries. Masked reconstruction primarily improves robustness to appearance and sensor perturbations. Temporal differencing further complements these components by suppressing static offsets in the visual and F/T signals. VIII. C ONCLUSION 
+
+We presented PACE, a proprioception-anchored cross-modal encoder for zero-shot sim-to-real transfer in contact-rich assembly. Across four tasks from the Factory and Auto-Mate benchmarks, policies trained on frozen PACE features transfer to hardware with substantially less performance degradation than policies based on pose estimates or learned multimodal fusion, while remaining robust to visual and sensor perturbations. The ablations highlight the complementary roles of the main components: proprioceptive anchoring promotes cross-domain generalization, vision supports spatial alignment, F/T sensing resolves contact-sensitive interactions, and masked reconstruction improves robustness when individual obser-vations become unreliable. More broadly, the results support the use of a comparatively stable sensor modality to super-vise representations learned from modalities that are subject to larger domain shifts. REFERENCES [1] B. Tang, M. A. Lin, I. Akinola, et al. , “Industreal: Transferring contact-rich assembly tasks from simulation to reality,” in Proc. RSS , 2023. [2] B. Tang et al. , “Automate: Specialist and generalist assembly policies over diverse geometries,” in Proc. RSS , 2024. [3] J. Tobin et al. , “Domain randomization for transferring deep neural networks from simulation to the real world,” in Proc. IROS , 2017. [4] OpenAI et al. , “Solving Rubik’s cube with a robot hand,” 
+
+arXiv:1910.07113 , 2019. [5] E. Tzeng et al. , “Adversarial discriminative domain adaptation,” in 
+
+Proc. CVPR , 2017. [6] K. Bousmalis et al. , “Using simulation and domain adaptation to improve efficiency of deep robotic grasping,” in Proc. ICRA , 2018. [7] Y. Chebotar et al. , “Closing the sim-to-real loop: Adapting simulation randomization with real world experience,” in Proc. ICRA , 2019. [8] D. E. Whitney, “Quasi-static assembly of compliantly supported rigid parts,” ASME J. Dynamic Systems, Measurement, and Control , 1982. [9] M. T. Mason, “Compliance and force control for computer controlled manipulators,” IEEE Trans. Systems, Man, and Cybernetics , 1981. [10] M. H. Raibert and J. J. Craig, “Hybrid position/force control of manipulators,” ASME J. Dynamic Systems, Measurement, and Control ,1981. [11] N. Hogan, “Impedance control: An approach to manipulation,” ASME J. Dynamic Systems, Measurement, and Control , 1985. [12] S. Levine, C. Finn, T. Darrell, and P. Abbeel, “End-to-end training of deep visuomotor policies,” JMLR , 2016. [13] T. P. Lillicrap, J. J. Hunt, A. Pritzel, et al. , “Continuous control with deep reinforcement learning,” in Proc. ICLR , 2016. [14] D. Kalashnikov, A. Irpan, P. Pastor, et al. , “Scalable deep reinforce-ment learning for vision-based robotic manipulation,” in Proc. CoRL ,2018. [15] Y. Narang, K. Storey, I. Akinola, et al. , “Factory: Fast contact for robotic assembly,” in Proc. RSS , 2022. [16] M. Noseworthy et al. , “Forge: Force-guided exploration for robust contact-rich manipulation under uncertainty,” IEEE RA-L , 2025. [17] Y. Wang et al. , “Corma: Contrastive rma for contact-rich meta-adaptation,” arXiv:2026 , 2026. [18] L. Ankile, A. Simeonov, I. Shenfeld, M. Torne, and P. Agrawal, “From imitation to refinement – residual RL for precise assembly,” in Proc. ICRA , 2025, arXiv:2407.16677. [19] X. B. Peng, M. Andrychowicz, W. Zaremba, and P. Abbeel, “Sim-to-real transfer of robotic control with dynamics randomization,” in Proc. ICRA , 2018. [20] B. Mehta, M. Diaz, F. Golemo, et al. , “Active domain randomization,” in Proc. CoRL , 2020. [21] L. Pinto, M. Andrychowicz, P. Welinder, et al. , “Asymmetric actor critic for image-based robot learning,” in Proc. RSS , 2018. [22] A. Kumar, Z. Fu, D. Pathak, and J. Malik, “RMA: Rapid motor adaptation for legged robots,” in Proc. RSS , 2021. [23] S. Nair, A. Rajeswaran, V. Kumar, C. Finn, and A. Gupta, “R3M: A universal visual representation for robot manipulation,” in Proc. CoRL ,2022. [24] Y. J. Ma, S. Sodhani, D. Jayaraman, et al. , “VIP: Towards universal visual reward and representation via value-implicit pre-training,” in 
+
+Proc. RSS , 2023. [25] A. Majumdar et al. , “Where are we in the search for an artificial visual cortex for embodied intelligence?” in Proc. NeurIPS , 2023. [26] M. Oquab, T. Darcet, T. Moutakanni, et al. , “Dinov2: Learning robust visual features without supervision,” arXiv:2304.07193 , 2023. [27] A. Dosovitskiy, L. Beyer, A. Kolesnikov, et al. , “An image is worth 16x16 words: Transformers for image recognition at scale,” Proc. ICLR , 2021. [28] K. He, X. Chen, S. Xie, et al. , “Masked autoencoders are scalable vision learners,” in Proc. CVPR , 2022. [29] T. Chen, S. Kornblith, M. Norouzi, and G. Hinton, “A simple frame-work for contrastive learning of visual representations,” in Proc. ICML ,2020. [30] J.-B. Grill, F. Strub, F. Altch´ e, et al. , “Bootstrap your own latent: A new approach to self-supervised learning,” in Proc. NeurIPS , 2020. [31] K. He, H. Fan, Y. Wu, et al. , “Momentum contrast for unsupervised visual representation learning,” in Proc. CVPR , 2020. [32] M. A. Lee et al. , “Making sense of vision and touch: Self-supervised learning of multimodal representations for contact-rich tasks,” in Proc. RSS , 2019. [33] I. Guzey et al. , “See to touch: Learning tactile dexterity through visual incentives,” in Proc. CoRL , 2023. [34] M. Diaz et al. , “AugInsert: Learning robust visual-force policies via data augmentation for object assembly tasks,” in Proc. IROS , 2025. [35] S. Dong et al. , “Tactile-RL for insertion: Generalization to objects of unknown geometry,” in Proc. ICRA , 2021. [36] S. Kim and A. Rodriguez, “Active extrinsic contact sensing: Applica-tion to general peg-in-hole insertion,” in Proc. ICRA , 2022. [37] Z. Cui et al. , “DynaMo: In-domain dynamics pretraining for visuo-motor control,” in Proc. NeurIPS , 2024. [38] Q. Liang, B. Cai, M. Lai, et al. , “AFRO: Bootstrap dynamic-aware 3D visual representation for scalable robot learning,” in Proc. CVPR ,2026. [39] R. Krohn et al. , “Self-supervised multisensory pretraining for contact-rich robot reinforcement learning,” IEEE RA-L , 2026. [40] A. Brohan, N. Brown, J. Carbajal, et al. , “RT-2: Vision-language-action models transfer web knowledge to robotic control,” 
+
+arXiv:2307.15818 , 2023. [41] A. Padalkar, A. Pooley, A. Jain, et al. , “Open X-embodiment: Robotic learning datasets and RT-X models,” Proc. ICRA , 2024. [42] C. Chi, S. Feng, Y. Du, et al. , “Diffusion policy: Visuomotor policy learning via action diffusion,” in Proc. RSS , 2023. [43] P. Li, H. Li, Y. Ma, L. Chang, X. Yang, R. Yu, S. Liao, Y. Zhang, Y. Cao, Q. Zhu, and G. Sartoretti, “KiVi: Kinesthetic-visuospatial integration for dynamic and safe egocentric legged locomotion,” in 
+
+Proc. IROS , 2026. [44] F. Huang, H. Mou, and Q. Li, “TNavRL: Cross-modal transformer for humanoid visual navigation,” IEEE RA-L , vol. 11, no. 5, pp. 5374– 5381, 2026. [45] J. Schulman, F. Wolski, P. Dhariwal, et al. , “Proximal policy optimiza-tion algorithms,” arXiv:1707.06347 , 2017. [46] M. Mittal, P. Roth, J. Tigue, et al. , “Isaac lab: A GPU-accelerated sim-ulation framework for multi-modal robot learning,” arXiv:2511.04831 ,2025. [47] O. Spector and D. D. Castro, “InsertionNet – a scalable solution for insertion,” IEEE RA-L , vol. 6, no. 3, pp. 5509–5516, 2021. [48] A. Jaegle, S. Borgeaud, J.-B. Alayrac, et al. , “Perceiver IO: A general architecture for structured inputs & outputs,” in Proc. ICLR , 2022.
