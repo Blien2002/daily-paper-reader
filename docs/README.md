@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-12</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-13</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 25 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>13</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-12 21:45:46 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-13 21:24:49 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日精读13篇、速读12篇，聚焦机器人操作与世界-动作模型。</p>
-<p>最值得看：GE-Act 2.0 用预训练与缩放构建世界-动作模型，“学习用想象力”提出进度条件未来利用，均获9.0分。</p>
-<p>建议普通读者从这两篇精读切入，再跟进 MEMOBench 的过程级记忆基准和 3DWay 的3D一致航点，了解机器人操控的泛化与记忆趋势。</p>
+<p>今日共生成 19 篇推荐（精读 7 篇，速读 12 篇）</p>
+<p>精读：《OpenWAM: An Open, Modular Exploration Towards Systematic World-Action Model Pretraining》（10.0/10）, 《FolDeX: A Physical-World Benchmark for Long-Horizon Robotic Manipulation of Deformable Objects》（9.0/10）</p>
+<p>速读：《FOCI Policy: Focus on Object-Centric Interactions for Relational Manipulation Policies》（8.0/10）, 《Modality-Decoupled Federated Learning for Privacy-Preserving Embodied Intelligence in 6G》（8.0/10）, 《GTA-2: A Multi-VLM Framework for Synthesizing Robot Manipulation Skills via Grounded Task Axes》（8.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">13 篇</strong>
+    <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="GE-Act 2.0: Pretraining and Scaling a World-Action Model for Robotic Manipulation">GE-Act 2.0: Pretraining and Scaling a World-Action Model for Robotic Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Learning to Use Imagination: Progress-Conditioned Future Utilization for World Action Models">Learning to Use Imagination: Progress-Conditioned Future Utilization for World Action Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="OpenWAM: An Open, Modular Exploration Towards Systematic World-Action Model Pretraining">OpenWAM: An Open, Modular Exploration Towards Systematic World-Action Model Pretraining</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="OpenWAM: An Open, Modular Exploration Towards Systematic World-Action Model Pretraining">OpenWAM: An Open, Modular Exploration Towards Systematic World-Action Model Pretraining</span></li><li><span class="dpr-home-dashboard-paper-title" title="FolDeX: A Physical-World Benchmark for Long-Horizon Robotic Manipulation of Deformable Objects">FolDeX: A Physical-World Benchmark for Long-Horizon Robotic Manipulation of Deformable Objects</span></li><li><span class="dpr-home-dashboard-paper-title" title="DUET-DINO: Simultaneous Cross-View World Modeling for Latent Planning in Robot Manipulation">DUET-DINO: Simultaneous Cross-View World Modeling for Latent Planning in Robot Manipulation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>11</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>7</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -96,7 +97,7 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MEMOBench: A Process Level Memory Benchmark for Robotic Manipulation">MEMOBench: A Process Level Memory Benchmark for Robotic Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Measuring Language Transfer in Robot Policies: Adding Greek to a Cosmos3 Vision-Language-Action Policy">Measuring Language Transfer in Robot Policies: Adding Greek to a Cosmos3 Vision-Language-Action Policy</span></li><li><span class="dpr-home-dashboard-paper-title" title="3DWay: Generalizing Robot Manipulation via 3D Consistent Waypoints">3DWay: Generalizing Robot Manipulation via 3D Consistent Waypoints</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="FOCI Policy: Focus on Object-Centric Interactions for Relational Manipulation Policies">FOCI Policy: Focus on Object-Centric Interactions for Relational Manipulation Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="Modality-Decoupled Federated Learning for Privacy-Preserving Embodied Intelligence in 6G">Modality-Decoupled Federated Learning for Privacy-Preserving Embodied Intelligence in 6G</span></li><li><span class="dpr-home-dashboard-paper-title" title="GTA-2: A Multi-VLM Framework for Synthesizing Robot Manipulation Skills via Grounded Task Axes">GTA-2: A Multi-VLM Framework for Synthesizing Robot Manipulation Skills via Grounded Task Axes</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>11</strong></span><span class="dpr-home-dashboard-tag">tf <strong>1</strong></span></div>
 </section>
