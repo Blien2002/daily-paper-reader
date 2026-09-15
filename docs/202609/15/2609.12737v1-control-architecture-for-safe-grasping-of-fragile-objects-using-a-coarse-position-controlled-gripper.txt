@@ -1,0 +1,1405 @@
+Title: 2609.12737v1.pdf
+
+URL Source: https://arxiv.org/pdf/2609.12737v1
+
+Published Time: Mon, 14 Sep 2026 00:55:33 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+Control  Architecture for Safe Grasping of Fragile Objects 
+
+# Using a Coarse Position-Controlled Gripper 
+
+Marko Pavlic,  Moritz Geier,  Timo Markert,  and Darius Burschka 
+
+Abstract — Robots  are  increasingly used in unstructured 
+
+environments.  The need for them to safely grasp unknown 
+
+objects  without  damaging them becomes  crucial.  Humans 
+
+achieve this by sensing and quickly responding by adjusting 
+
+their grasping force.  Similarly,  effective grasp acquisition in 
+
+robots requires compliant interaction strategies that can adapt 
+
+to uncertain object properties and adjust to any instabilities 
+
+during manipulation. 
+
+We present  a geometry-aware force/torque-based contact 
+
+estimation method for a coarse position-controlled gripper, 
+
+combined with an adaptive admittance controller for safe grasp 
+
+acquisition.  The desired contact forces are estimated online to 
+
+keep stable contact with objects of unknown properties.  This 
+
+enables compliant and stable grasps while avoiding excessive 
+
+forces.  Experiments  with objects  of  different  sizes,  shapes, 
+
+stiffnesses,  and weights show that the proposed algorithm not 
+
+only prevents slippage but also applies minimal  force to safely 
+
+grasp an object without causing excessive deformation. 
+
+I.  INTRODUCTION 
+
+Robotic grasping in unstructured environments remains 
+
+a challenging problem due to unknown or uncertain object 
+
+properties,  such as geometry,  material properties,  and contact 
+
+conditions.  But also because gripper hardware is often not 
+
+designed for these scenarios.  Humans can adapt quickly to 
+
+instability through tactile sensing and adjust  their grasp to 
+
+avoid dropping the object  while keeping it  intact.  Tactile 
+
+perception provides critical  information about  the object’s 
+
+physical properties and the contact state between the object 
+
+and the gripper.  However,  grasping force control is currently 
+
+mostly designed and adapted to specific,  well-defined use 
+
+cases.  Most existing approaches assume prior knowledge of 
+
+the object’s properties,  enabling the controller to be designed 
+
+for predictable interaction conditions. However, these methods 
+
+often struggle to generalize to unstructured environments, 
+
+where robots must  handle a wide variety of  objects with 
+
+unknown and potentially varying physical  characteristics. 
+
+In such scenarios,  there is a need for  more adaptive and 
+
+generalizable force control strategies. 
+
+While position-controlled grippers  are widely used in 
+
+industrial and research settings,  pure position tracking during 
+
+contact can lead to unstable grasps or excessive forces that 
+
+damage objects (see Figure 1).  Although these grippers can              
+
+> The authors acknowledge the financial support by the Munich Institute of
+> Robotics and Machine Intelligence (MIRMI).
+> Marko Pavlic, Moritz Geier and Darius Burschka are with the Machine
+> Vision and Perception Group, Chair of Robotics, Artificial Intelligence and
+> Real-time Systems, Technical University of Munich, Munich, Germany.
+> Timo Markert is with Resense GmbH, Klingenberg, Germany and with
+> the Semantic Information Systems Group, Osnabr ¨uck University, Osnabr ¨uck,
+> Germany.
+> Corresponding author: Marko Pavlic, marko.pavlic@tum.de .
+
+Standard Control  Proposed Control      
+
+> Fig. 1. Safe grasping of deformable objects. In industrial and research
+> settings, widely used position-controlled grippers perform badly on soft and
+> deformable objects. Our proposed control scheme uses force/torque (F/T)
+> sensors in the fingertips to calculate the minimum force required for a stable
+> grasp of any unknown object.
+
+limit the maximum grasp force through current control,  high-
+
+fidelity force control  is not  possible.  Therefore,  compliant 
+
+control  strategies on top of the internal  position controller 
+
+are essential for safe interaction with unknown objects. 
+
+A common approach to compliant interaction is admittance 
+
+control,  in which measured contact  forces  are  mapped 
+
+to motion commands  via a virtual  mass–spring–damper 
+
+system. However, selecting appropriate admittance parameters 
+
+typically requires prior knowledge of object  properties or 
+
+extensive tuning,  which limits  applicability in unknown 
+
+environments. 
+
+We  address  safe  grasp  acquisition  using  fingertip 
+
+force/torque (F/T)  sensing and online estimation of  the 
+
+desired minimal contact forces, combined with an admittance 
+
+controller that maps force commands to motion commands. 
+
+During grasp acquisition,  the robot must establish contact 
+
+safely while adapting its  compliance to unknown object 
+
+characteristics. This motivates the geometry-aware estimation 
+
+of contact  states and the online adaptation of the desired 
+
+grasping.  The latter is achieved by continuously monitoring 
+
+the tangential  force components,  which serve as primary 
+
+indicators of incipient slip. Once a grasp has been established, 
+
+the challenge shifts to maintaining it,  as contact conditions 
+
+may change due to object motion,  disturbances,  or internal 
+
+grasp adjustments. 
+
+> © 2026 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution to servers or lists, or reuse of any copyrighted component of this work in other works.
+
+Our contributions are summarized as follows: 
+
+1)  We propose a geometry-aware contact estimation method 
+
+using fingertip F/T sensing. 
+
+2)  We estimate the minimal  slip-preventing grasp force 
+
+from tangential contact forces instead of relying on prior 
+
+knowledge of object properties. 
+
+3)  We  develop an adaptive  control  strategy for  force-
+
+regulated grasping with a position-controlled gripper. 
+
+The rest  of  the paper  is organized as follows:  Sec.  II 
+
+discusses related work before the system design,  and the 
+
+proposed approach is explained in detail in Sec.  III,  followed 
+
+by the experiments and results in Sec.  IV.  Finally,  Sec.  V
+
+concludes with a summary and outlook on future directions. 
+
+II.  RELATED  WORK 
+
+Compliance control has been extensively studied as a key 
+
+mechanism for enabling safe and robust physical interaction in 
+
+robotic manipulation.  Sadun et al.  [1] provided a comprehen-
+
+sive overview of compliance control strategies, distinguishing 
+
+between passive and active approaches and highlighting their 
+
+respective advantages in handling contact uncertainty.  It was 
+
+mentioned that contact-state modeling is key to a controller’s 
+
+capability. Further explored by Sadun et al. in [  2], highlighted 
+
+the importance of friction modeling in compliant grasping. 
+
+These studies underscore that accurate interaction modeling 
+
+significantly influences force control performance. 
+
+Early work on compliant control focused on using low-cost 
+
+FSR sensors and simple force control  strategies.  Sadun et 
+
+al.  [3] implemented fingertip force sensing combined with 
+
+a proportional force control law layered on a PID position 
+
+controller.  Although effective in principle,  the study reports 
+
+performance degradation with low-cost  sensors,  leading to 
+
+noisy,  corrugated force signals. 
+
+Huynh  and  Kuo  [4] proposed  an  admittance-based 
+
+impedance controller  for  robotic grasping,  demonstrating 
+
+improved interaction stability via fuzzy-logic optimization. 
+
+Their approach shares the objective of controlling contact 
+
+behavior using a position-controlled gripper.  However,  con-
+
+troller performance remains dependent on rule-based tuning 
+
+and task-specific parameter selection,  such as knowledge of 
+
+the object’s weight and friction coefficient. 
+
+Operational-space compliance control has been investigated 
+
+by Jalani et al.  [5],  who introduced an Integral Sliding Mode 
+
+Control  framework for active hand compliance.  While the 
+
+controller parameters provide strong robustness,  they also 
+
+require tuning for specific object classes. 
+
+So,  in summary,  most  conventional  active compliance 
+
+frameworks rely on manually specified target forces,  knowl-
+
+edge of object properties,  or tuning dependency for specific 
+
+object  classes,  which limits  their  applicability to known 
+
+objects.  This  dependency motivates  different  approaches, 
+
+which seek to infer appropriate control behavior directly from 
+
+contact measurements, eliminating the need for object-specific 
+
+parameterization. 
+
+Several works regulate grasp force toward the minimum re-
+
+quired to prevent slippage. Ding et al. [ 7] and Al-Mohammed 
+
+et al.  [8] proposed adaptive control algorithms for grasping 
+
+unknown objects on a custom two-finger sensorized prototype, 
+
+using a single force-sensing resistor on one finger and laser-
+
+based optical slip sensor(s) on the other to adjust grasp force 
+
+in response to detected slip.  Ding et al.  demonstrated their 
+
+approach on genuinely delicate objects,  including empty 
+
+Styrofoam and paper  cups,  showing reduced deformation 
+
+compared to open-loop and hardware-limited grasping.  Al-
+
+Mohammed et  al.  extended this design to compensate for 
+
+rotational as well as translational slip,  but explicitly restrict 
+
+their method to objects of medium-to-high stiffness, excluding 
+
+highly deformable objects  by design.  O’Toole et  al.  [6]
+
+addressed a related problem using a fuzzy sliding-mode 
+
+controller combined with a disturbance observer,  validated 
+
+on both simulation and a physical test rig.  The authors note 
+
+that their observer requires low-pass filtering and is sensitive 
+
+to model–plant mismatch,  so its estimate is slow to converge, 
+
+and optimal performance is not guaranteed.  Sadun et al.  [2]
+
+instead take a model-based route with an explicit friction and 
+
+mass–spring–damper model,  validated only in simulation on 
+
+a single joint. 
+
+These approaches differ from the proposed one in how 
+
+contact  force is obtained and on what  hardware.  Ding et 
+
+al.  and Al-Mohammed et al.  rely on a single-point FSR on 
+
+only one finger together with dedicated slip sensors,  rather 
+
+than distributed force/torque sensing at every contact point; 
+
+Al-Mohammed et al.  further assume sufficient object rigidity, 
+
+an assumption our method does not  require.  Furthermore, 
+
+their regrasping controller is activated only upon detection 
+
+of a physical slip event,  whereas ours continuously updates 
+
+the desired grasp force based on tangential force feedback, 
+
+allowing it to act before slippage occurs rather than reactively 
+
+afterward. 
+
+The proposed method regulates the grasp using directly 
+
+measured,  high-precision force/torque at  each fingertip.  It 
+
+integrates  contact-state estimation,  geometry-aware force 
+
+distribution, and adaptive control. The desired grasping forces 
+
+are adjusted online solely based on measured interaction 
+
+signals,  enabling stable grasp acquisition of  objects with 
+
+unknown properties without manual parameter tuning,  while 
+
+running on a standard,  coarse-position-controlled industrial 
+
+gripper.  A direct experimental comparison with the related 
+
+works presented is not  feasible due to differing hardware 
+
+and sensing requirements;  instead,  Table I summarizes the 
+
+structural differences discussed above. 
+
+III.  FORCE  /T ORQUE  -B ASED  CONTACT  ESTIMATION AND 
+
+CONTROL 
+
+The goal of this research is to design an algorithm for safe 
+
+grasp acquisition of unknown objects,  despite the hardware 
+
+limitations of  widely used position-controlled grippers in 
+
+industry and research.  We want to apply the minimum force 
+
+needed to prevent the object from slipping while maintaining 
+
+the deformation constraint. For this, we use fingertip-mounted 
+
+F/T sensors. The framework pipeline combines signal filtering, 
+
+contact geometry estimation,  geometry-aware force distribu-
+
+tion, and adaptive admittance control to regulate contact forces TABLE I                                       
+
+> COMPARISON WITH RELATED FORCE -REGULATED GRASPING APPROACHES .
+> Method Platform Sensing Object assumptions Approach
+> O’Toole et al. [6] Simulation + custom test rig Carriage position; no force
+> sensor
+> None assumed Force inferred via observer;
+> slow to converge, sensitive to
+> model–plant mismatch
+> Sadun et al. [2] Simulation only (single joint) None (model-based) Explicit friction /mass–
+> spring–damper model
+> Model reference adaptive
+> compliance control
+> Ding et al. [7] Custom 2-finger prototype Single FSR (one finger) +
+> laser optical slip sensor (other
+> finger)
+> None assumed Adaptive regrasping triggered
+> after slip is detected
+> Al-Mohammed et al. [8] Custom 2-finger prototype Single FSR (one finger) +
+> two laser slip sensors (other
+> finger)
+> Medium–high stiffness (rigid-
+> ity assumption)
+> Switched adaptive control for
+> translational + rotational slip
+> Ours Commercial coarse position-
+> controlled gripper
+> F/T sensor at each fingertip None assumed Desired force from tangential-
+> force feedback
+> Gripper
+> Position
+> Control Position
+> Control
+> Gripper
+> Finger
+> Actuator
+
+𝑝 𝑝  𝑝 𝑝 
+
+𝑝 𝑝 
+
+Δ𝑝 
+
+> ++
+> +
+> Force Admittance
+> Controller
+> Force /
+> Torque
+> Sensor
+
+fn, 𝑝 
+
+> Contact
+> Estimator
+> −
+
+𝑝 
+
+F, τ 
+
+> Grasp Force
+> Estimator
+
+Fn
+
+Ft
+
+> −
+
+Δf  fn          
+
+> Fig. 2. Control framework. Proposed control architecture for adaptive
+> grasping of a variety of unknown objects. Based on fingertip F/T mea-
+> surements, the proposed system adapts the gripper’s position controller
+> commands. Highlighted in blue are the contributed modules.
+
+between the gripper and the object while avoiding damage 
+
+to the object. 
+
+A.  Control Framework 
+
+Figure 2 shows the complete control  framework for the 
+
+proposed adaptive grasp strategy designed in this work.  For 
+
+objects with unknown shape and size,  the position reference 
+
+pr is initially set to a fully closed position and updated upon 
+
+contact  with the object.  The F/T measurements from the 
+
+fingertips are fed into the Contact  Estimator to calculate 
+
+the contact  states  f n and  f t , which are further  processed 
+
+in the Grasp Force Estimator to derive the desired contact 
+
+force  f n,d  . Based on the force deviation,  the admittance 
+
+controller calculates the position compensation  ∆p for the 
+
+gripper,  which is added to the reference position  pr to adjust 
+
+the gripper position so that  the desired force is exerted on 
+
+the object. 
+
+B.  Signal Filtering 
+
+The measured wrench at the sensor frame is given by 
+
+w = F
+
+τ , (1) 
+
+where  F ∈ R3 is the contact force and  τ ∈ R3 is the torque 
+
+about the sensor origin.  These measurements are subject to 
+
+high-frequency noise, and to ensure reliable contact detection 
+
+and force estimation,  all raw signals are filtered using a low-
+
+pass filter prior to further processing.  Each component of the 
+
+measured force and torque vectors is filtered independently 
+
+using a Butterworth [  9] low-pass filter.  The Butterworth 
+
+filter was chosen for its maximally flat passband magnitude 
+
+response and absence of ripple,  both of which are desirable 
+
+for contact force estimation. 
+
+The cutoff frequency  f c is selected based on the expected 
+
+bandwidth of  contact  forces  during grasping [  10 ],  [11 ]. 
+
+Since grasp forces evolve relatively slowly compared to the 
+
+sensor sampling rate  f s = 1000 Hz  , a cutoff frequency of 
+
+f c = 50 Hz  was found to effectively suppress noise while 
+
+preserving contact  dynamics.  For  simplicity,  we will  not 
+
+distinguish between raw and filtered signals in the remainder 
+
+of this document and will treat all measurements as filtered 
+
+with the same low-pass filter. 
+
+C.  Geometry Constrained Contact Point Estimation 
+
+In our proposed approach,  neither the object mass nor the 
+
+friction coefficient is assumed to be known. Instead of relying 
+
+on an explicit contact model,  the grasping force is adapted 
+
+directly from measured contact interactions. 
+
+After contact  with the object  is established,  the wrench 
+
+measurements are used to estimate the contact point between 
+
+the fingertips and the object. 
+
+For contact state estimation,  not only are the six-axis F/T 
+
+measurements used,  but also the fingertip geometry model. 
+
+A hemispherical-shaped fingertip with radius  R is attached 
+
+to the F/T sensor.  Contact  is detected when the measured 
+
+force magnitude exceeds a threshold of  f th  . At initial contact, 
+
+torque measurements are typically noisy and unreliable due 
+
+to low force magnitudes.  In that situation,  the contact point 
+
+rc is approximated using a force-only estimate of the contact 
+
+normal  n and the projection of  it  onto the hemispherical 
+
+fingertip surface as 
+
+rc = −R  F
+
+∥F∥ = R n. (2) 
+
+Once the contact force exceeds a second predefined switch 
+
+threshold  f sw  , torque measurements  become sufficiently 
+
+informative to refine the contact localization.  In this case,  aFig.  3.  Contact state estimation.  Estimated contact states (contact point,    
+
+> normal and tangential force components) during interaction between fingertip
+> and object. Instead of relying on object properties, the grasping force is
+> adapted directly from measured contact interactions.
+
+particular solution can be obtained by 
+
+r0 = F × τ 
+
+∥F∥2 , (3) 
+
+However,  r0 represents only one point  along the line of 
+
+action of the force.  The true contact location lies along 
+
+r(λ) = r 0 + λF, (4) 
+
+with scalar  parameter  λ ∈ R . Since  contact  occurs 
+
+somewhere on the hemispherical fingertip of radius  R , the 
+
+contact point must satisfy 
+
+∥r(λ)∥2 = R 2. (5) 
+
+Substituting (4) into (5) yields in the quadratic equation 
+
+∥r0∥2 + 2 λ(r 0 · F) + λ 2∥F∥2 = R 2, (6) 
+
+Solving  (6)  produces  two candidate solutions  (λ1, λ 2)
+
+corresponding to the intersections of  the force line with 
+
+the spherical surface.  The physically valid contact point is 
+
+selected based on 
+
+rc = r(λ i ) s.t.  r(λ i )⊤F < 0 i {∈ 1, 2} (7) 
+
+which enforces that the measured force acts inward on the 
+
+hemispherical surface.  The contact normal is defined as the 
+
+outward surface normal at the estimated contact point, 
+
+n = rc
+
+∥rc ∥. (8) 
+
+Finally,  the measured force is decomposed into a normal 
+
+and tangential component as 
+
+f n = F ⊤n, ft = F − f  n n. (9) 
+
+The contact state estimation is visualized in Fig.  3. 
+
+We adopt a hard-finger point-contact model [ 12 ]. Physically, 
+
+the rubber cover forms a finite contact  patch (a soft-finger 
+
+contact); if the grasped object rotates about the contact normal, 
+
+the resulting torsional moment is measured by the F/T sensor 
+
+but is not represented in the hard-finger model,  and would 
+
+therefore be partially absorbed into the estimated contact 
+
+point and force components.  The cover thickness (  ≈ 1 mm  )
+
+is small relative to the fingertip radius (  R = 12 mm  ),  so the 
+
+resulting contact patch — and hence the torsional moment it 
+
+can transmit — is negligible compared to the resolved normal 
+
+and tangential forces. 
+
+D.  Slip–Driven Normal Force Adaptation 
+
+After contact with the object was established and a first 
+
+estimation of normal  and tangential  force is available,  the 
+
+lifting phase of the robot is initiated. In our proposed approach, 
+
+neither the object mass nor the friction coefficient is assumed 
+
+to be known.  Instead of relying on an explicit contact model, 
+
+the grasping force is adapted directly from measured contact 
+
+interactions. 
+
+Slip tendency is inferred from the temporal evolution of 
+
+the tangential force magnitude.  The tangential force rate is 
+
+estimated using a discrete derivative: 
+
+˙f t = ∥ft (k) −∥ ∥f t (k − 1) ∥
+
+∆t (10) 
+
+where  ∆t is the sampling time.  An increase in  ∥ft ∥ indicates 
+
+growing shear interaction between fingertip and object, which 
+
+typically precedes slipping.  Based on that,  a slowly varying 
+
+baseline normal  force  f n, 0 is  introduced to capture the 
+
+minimum force required so that  no slippage occurs.  The 
+
+baseline is updated according to 
+
+f n, 0 (k) = f n, 0 (k − 1) + k i ˙f t ∆t (11) 
+
+where  ki > 0 is an adaptation gain.  This mechanism 
+
+increases the baseline force when slip tendency is detected, 
+
+while remaining constant under steady-contact conditions. As 
+
+a fixed controller gain,  ki sets the rate of this adaptation and 
+
+does not  depend on the object’s mechanical  properties.  To 
+
+enforce minimal contact with the object,  the baseline force 
+
+is bounded  f n, 0 (k) ← max( f n, min  , f  n, 0 (k))  . The minimum 
+
+force  f n,min  required to maintain contact is determined by 
+
+the sensor noise level. 
+
+The  desired normal  force,  which is  supplied to the 
+
+admittance controller,  is then defined as 
+
+f n, d = f n, 0 + k s ∥ft ∥ (12) 
+
+where  ks > 0 is a proportional  scaling factor,  which 
+
+introduces a direct coupling between tangential loading and 
+
+grasping force.  This  term captures  slower  adaptation to 
+
+the additional  tangential  load by the object  weight  during 
+
+lifting,  before slippage occurs.  Like  ki , it is a fixed gain that 
+
+shapes the controller’s response rather  than encoding any 
+
+object-specific parameter.  To not overload the F/T sensor and the gripper actuators,  the desired normal  force is bounded 
+
+f n, d ← min( f n, max  , f  n, d ).
+
+The proposed force estimator,  therefore,  implements an 
+
+artificial load-force coupling mechanism that stabilizes contact 
+
+without  requiring estimation of  object  mass  or  friction 
+
+parameters. 
+
+E.  Adaptive Admittance Control 
+
+In this work, finger closure is regulated using an admittance 
+
+controller.  The generalized position variable  ∆p corresponds 
+
+to the incremental finger displacement command,  while inter-
+
+action forces are measured at the fingertips.  The admittance 
+
+dynamics are given by 
+
+M ¨∆p + D ˙∆p + K∆p = f n, d − f  n , (13) 
+
+where  M , D , and  K represent inertia, damping, and stiffness 
+
+parameters,  respectively.  f n is the measured normal contact 
+
+force from  (9)  and  f n, d is the desired normal force obtained 
+
+by  (12) . The admittance output  ∆p is an incremental com-
+
+mand applied to the current  finger position  pr , giving the 
+
+commanded position  pd = p r + ∆p . The gripper  accepts 
+
+positions on a discrete integer scale,  so  pd ∈ [0 , 255] and 
+
+correspondingly  ∆p ∈ [−255 , 255] , where positive values 
+
+close and negative values open the gripper.  The admittance 
+
+dynamics in  (13)  are implemented as an outer control loop 
+
+that generates a position reference for the gripper’s internal 
+
+position controller. 
+
+F.  Stability Analysis 
+
+As is standard in force-regulating admittance control,  we 
+
+model the local contact as an elastic spring and neglect the 
+
+environment mass and damping [  13 ], [ 8]. The normal force is 
+
+proportional to the normal indentation  δ ≥ 0 of the spherical 
+
+fingertip into the object, 
+
+f n = K e δ,  (14) 
+
+with  K e > 0 the (unknown,  bounded) contact stiffness.  The 
+
+admittance  (13)  commands motion  ∆p along the fixed gripper 
+
+closing direction  ez , whereas the estimated contact normal 
+
+n generally deviates from it by an angle  θ. The indentation 
+
+produced by a displacement  ∆p along  ez is its projection 
+
+onto the normal, 
+
+δ = ( n ⊤ez ) ∆p = n z ∆p,  nz := cos θ ∈ (0 , 1] , (15) 
+
+so that 
+
+f n = K e nz ∆p.  (16) 
+
+Following the timescale-separation methodology of  [8], 
+
+the saturated force-reference law  (12)  is slow relative to the 
+
+admittance (13) and acts as a constant compliance set-point 
+
+f n, d for the inner loop; the objective is convergence of  ∆p
+
+to its rendered equilibrium,  not force tracking,  since  K > 0
+
+leaves an intended steady-state offset. 
+
+Substituting (16) into (13) yields the inner closed loop 
+
+M ¨∆p + D ˙∆p + ( K + K e nz ) ∆p = f n, d , (17) 
+
+with  M, D > 0 , K ≥ 0 , and unique equilibrium  ∆p 
+
+> ⋆
+
+=
+
+f n, d /(K + K e nz ). With the error  e ≜ ∆p − ∆p 
+
+> ⋆
+
+and the 
+
+energy function 
+
+V = 1 
+
+> 2
+
+M ˙e 2 + 1 
+
+> 2
+
+(K + K e nz ) e2 ≥ 0, (18) 
+
+differentiation along (17) gives 
+
+˙V = − D ˙ e 2 ≤ 0. (19) 
+
+As  V is positive definite and radially unbounded with  ˙V ≤ 0 ,
+
+the standard Barbalat/LaSalle argument [  8] yields  (e, ˙e) →
+
+(0 , 0) ; hence  ∆p → ∆p 
+
+> ⋆
+
+and the contact force settles to the 
+
+rendered value  f 
+
+> ⋆
+> n
+
+= K e n z    
+
+> K+Kenz
+
+f n, d f≤ n, d , whose intrinsic 
+
+offset bounds the applied force for any object stiffness and 
+
+thereby protects fragile grasps. 
+
+The result  holds for every  K e nz > 0 . This positivity is 
+
+guaranteed,  since the contact is unilateral and is established 
+
+by the closing motion itself,  so a contact  can only form 
+
+and be loaded on the leading hemisphere of the spherical 
+
+fingertip,  for which  nz = cos θ > 0. A larger  K e only raises 
+
+the admittance bandwidth  ωadm  = p (K + K e nz )/M  , so 
+
+the stiffest object  K e, max  is the binding case for the timescale 
+
+separation;  M is sized so that  ωadm  (K e, max  ) ω≪ pos , the 
+
+internal position-controller bandwidth. 
+
+IV.  EXPERIMENTS AND  RESULTS 
+
+All experiments are conducted on a bimanual manipulation 
+
+platform shown in Fig.  4.  One of the Franka arms carries a 
+
+position-controlled Robotiq 3-Finger Gripper,  which can set 
+
+rough force limits from ( 15 N − 60 N ). We equip the grippers’ 
+
+fingertips with Resense HEX21 6-axis F/T sensors in order 
+
+to measure interaction forces directly at the point of contact. 
+
+The fingertip integration is inspired by [  14 ],  where a similar 
+
+hardware setup is used to estimate physical  properties of 
+
+unknown objects.  The F/T sensors provide three-dimensional 
+
+force and torque measurements in the local  sensor frame. 
+
+To establish a human-finger-like contact with the object,  an 
+
+aluminium-sphere fingertip was designed and coated with a 
+
+thin layer of rubber to provide additional  friction.  As test 
+
+objects, we used common, delicate, and deformable household 
+
+items of varying weights,  and we also tested the framework 
+
+with stiff  objects to demonstrate the proposed approach’s 
+
+versatility. 
+
+The control  parameters for the proposed framework are 
+
+listed in Table II and were tuned once for the proposed system 
+
+and held constant across all experiments and object types. 
+
+A.  Safe Grasp Acquisition with Unknown Objects 
+
+As discussed in Section II,  a direct experimental compari-
+
+son with prior adaptive grasping methods is not meaningful 
+
+here,  as each depends on different  actuation and sensing 
+
+hardware, which was compared and summarized in Table I. In 
+
+a first experiment, we compared the gripper’s internal grasping 
+
+control with the proposed framework on the same actuation 
+
+platform,  so that the comparison reflects the combined effect 
+
+of  the proposed sensing and control  framework against 
+
+the  gripper’s  default  capability.  The  gripper  provides  a
+
+coarse position controller with contact  detection based on Fig.  4.  Robot setup.  The grasping trials are conducted on a bimanual  manipulation system comprising two Franka robotic arms.  One arm carries a                                   
+
+> Robotiq 3-Finger Gripper instrumented with miniature 6-axis F/T sensors integrated directly into the fingertips for contact force measurement. AOverview
+> of the robot setup with a representative subset of the grasped objects. BDetailed view of the gripper end-effector highlighting the integrated miniature
+> sensors and cable routing. CClose-up of the instrumented robot fingertips featuring integrated Resense HEX21 6-axis F/T sensors, custom-designed adapter
+> parts, and rigid hemispherical fingertips. DCAD rendering of the Robotiq 3-Finger Adaptive Gripper equipped with sensorized fingertips.
+> TABLE II
+> CONTROLLER PARAMETERS
+> Symbol Description Value
+> kiSlip adaptation gain 3.0
+> ksTangential force coupling gain 3.0
+> fmin Minimum normal force 0.6
+> fmax Maximum normal force 40.0
+> MVirtual mass (admittance) 0.7
+> KVirtual stiffness (admittance) 30.0
+> DVirtual damping (admittance) 100.0
+> ∆tOuter (admittance) control sampling time 0.001
+> ∆tint Internal (position) control sampling time 0.01
+
+# Standard Control  Proposed Control     
+
+> Fig. 5. Comparison between standard and adaptive control. Different
+> delicate objects being grasped with the gripper’s internal controller (left)
+> compared to the proposed grasping algorithm (right).
+
+force estimates derived from motor current  measurements. 
+
+This built-in contact detection has a minimum configurable 
+
+threshold of  15 N ; we therefore set it to this lowest possible 
+
+value.  The gripper  was  closed until  object  contact  was 
+
+detected.  We compared grasping performance on deformable 
+
+objects between the gripper’s own contact detection (referred 
+
+to as Standard Control  in this section)  and our  proposed 
+
+controller ( Proposed Control ).  Fig.  5 shows the visual result 
+
+for two objects and clearly reveals the deformation of the test 
+
+objects during the grasp with the Standard Control , whereas 
+
+the Proposed Control  stops at  the object’s shape without 
+
+noticeable deformation. 
+
+The measured normal forces  f n from a single finger are 
+
+depicted in Fig.  6 and confirm the visual observations.  The 
+
+forces under Standard Control settle slightly above the set 
+
+value of  15 N , consistent with the gripper estimating contact 
+
+force from motor  current,  which is less accurate than a 
+
+calibrated F/T sensor.  Crucially,  even at its lowest achievable 
+
+threshold,  this force level exceeds what delicate deformable 
+
+objects,  such as  paper  cups,  plastic bottles,  or  sponges, 
+
+can withstand,  resulting in visible damage.  In contrast,  the 
+
+Proposed Control regulates the grasp well below this floor 
+
+on the same actuation,  using feedback from the fingertip F/T 
+
+sensors. 
+
+These results demonstrate that the limitation is not merely 
+
+a matter of tuning but is inherent to the standard current-based 
+
+contact detection for this class of coarse position-controlled 
+
+grippers: without additional sensors or prior knowledge of the 
+
+object’s mechanical  properties,  such grippers cannot  grasp 
+
+delicate,  deformable objects without  damaging them.  The 
+
+proposed framework overcomes this limitation on the same 
+
+actuation platform by combining fingertip F/T sensing with 
+
+an admittance controller. 
+
+B.  Force Adaptation During Lift 
+
+In the second experiment,  the proposed adaptive force 
+
+control during object lifting is investigated.  When initiating 
+
+a grasp of  an object,  we assume the object  is supported, Fig.  6.  Contact force comparison.  Three different  deformable objects      
+
+> (plastic bottle, paper cup, and sponge) are grasped with the gripper’s internal
+> controller (standard) and the proposed adaptive grasping algorithm. The
+> graph shows the applied grasping forces, which are an order of magnitude
+> smaller for the proposed control.
+> lift
+> position
+> step
+> Fig. 7. Lifting deformable objects. Measured normal forces during the
+> lifting of different deformable objects with varying weights.
+
+and close the gripper  until  contact  is detected,  at  which 
+
+point the adaptive force control is automatically activated and 
+
+exerts a minimum force of  f min  = 0 .6 N . During lifting, 
+
+the adaptive controller framework continuously observes F/T 
+
+measurements and adapts to any slippage or a tangential force 
+
+increase due to weight,  successfully grasping the object with 
+
+minimal required force. 
+
+When lifting deformable objects,  it is necessary to keep 
+
+the applied force to a minimum to avoid damaging the object. 
+
+In Fig.  7,  the measured normal forces during the lifting of 
+
+different  objects are compared.  After  establishing contact 
+
+at  ≈ 0.5 s , the lift  event  starts at  ≈ 5.0 s . Since all  the 
+
+deformable objects under investigation are very light when 
+
+empty,  there is little deviation from the initial contact force 
+
+when lifting them,  which is shown by the dashed lines.  The 
+
+initial contact force is already sufficient to lift it successfully. 
+
+The gripper’s  response becomes  more pronounced when 
+
+additional weight is applied, requiring it to exert greater force 
+
+on the objects.  This was achieved by filling the paper cup 
+
+and plastic bottle with water and adding weights in the carton 
+
+box.  The measured normal forces for these experiments are 
+
+shown in solid lines and clearly show the force adjustments 
+
+due to the increased weight.  The paper cup and plastic bottle    
+
+> lift
+> slip
+> position
+> step
+> Fig. 8. Lifting stiff objects. Measured normal forces during the lifting of
+> stiff objects with varying weights. The same control parameters that perform
+> well for deformable objects also work well for stiff objects.
+
+were only minimally deformed during this experiment, which 
+
+we considered acceptable given the relatively small contact 
+
+areas between the fingers and the objects.  It has to be noted 
+
+that the plastic bottle was kept open during the experiment 
+
+to make deformation easier and the task more challenging. 
+
+To demonstrate that the same controller parameters also 
+
+work for  other  objects,  the same experiments  were also 
+
+performed for  rigid objects.  The measured normal  forces 
+
+are depicted in Fig.  8.  The dashed lines again indicate that 
+
+the object is empty during the lift,  and the solid lines show 
+
+the experiment with an added weight (  480 g) to the coffee 
+
+container and the steel mug filled with water.  Both objects 
+
+were lifted successfully,  with the steel mug showing a slight 
+
+slip after some time,  which was corrected by increasing the 
+
+force without dropping the cup. 
+
+In both Fig.  7 and Fig.  8,  the measured normal  force 
+
+shows a stepwise profile. This results from the gripper’s coarse 
+
+position resolution described in Section III-E, so each position 
+
+increment produces a discrete jump in contact force rather 
+
+than a continuous evolution.  The force steps become more 
+
+pronounced for stiffer objects, since a fixed position increment 
+
+translates into a larger force change at higher contact stiffness. 
+
+The brief force transient before each step settles reflects the 
+
+viscoelastic response of  the rubber  fingertip cover,  which 
+
+introduces compliance and damping at the contact. 
+
+Nevertheless,  the proposed control  scheme successfully 
+
+grasps objects of varying physical properties without requiring 
+
+prior knowledge of their characteristics or controller retuning. 
+
+Furthermore,  the approach prevents damage to deformable 
+
+objects during grasping.  The applied force need not match 
+
+f n, d exactly:  since no object  parameters are assumed,  it 
+
+suffices that the force falls within the object’s safe range,  as 
+
+confirmed by the absence of visible deformation across all 
+
+tested objects. 
+
+C.  Force Adaptation During Disturbance 
+
+In the last experiment,  our adaptive force controller was 
+
+tested against disturbances that occurred after a safe grasp was 
+
+established.  We tested again on deformable and stiff objects. 
+
+Fig.  9 visualizes the events executed while the gripper held Fig.  9.  Disturbance events.  Images showing which disturbance events 
+
+are used for  the experiments to test  if  the controller  is able to react  to 
+
+disturbances. 
+
+> event
+> more weight
+> stopped pull
+
+Fig.  10.  Disturbance during grasping.  Measured normal  forces when 
+
+disturbances act on initially safely grasped objects. 
+
+the object,  including pouring water into a steel cup, dropping 
+
+weights into a stiff coffee container,  and human interaction 
+
+with a carton box.  The measured normal forces during this 
+
+experiment are shown in Fig.  10.  Since the tested objects are 
+
+very light,  the force required to lift them initially is very low. 
+
+At  ≈ 1.5 s the event is executed and leads to a rise of the 
+
+exerted force on the objects to prevent them from slipping. In 
+
+all tests, the object was successfully prevented from dropping 
+
+out of the grasp.  No visual movement due to slippage was 
+
+noticeable during the continuous pour of water into the cup or 
+
+during the pulling of the paper box.  Only when dropping the 
+
+weights in the coffee container was slippage visible before 
+
+the container was ”caught” again. 
+
+V.  CONCLUSION 
+
+This paper addressed the problem of sensitive grasping 
+
+using generic grasping hardware.  We presented a sensing 
+
+and control framework for safe robotic grasping and stable 
+
+grasp maintenance. The system explores the minimal grasping 
+
+forces required for a stable grasp of fragile and deformable 
+
+objects and continuously analyzes contact relations with the 
+
+object through our finger geometry design to maintain a stable 
+
+grasp under varying load conditions. 
+
+A geometry-aware F/T-based contact  estimation method 
+
+is combined with an admittance controller to improve the 
+
+grasp capabilities of  a standard coarse-position-controlled 
+
+gripper. The analysis of the contact point position on the finger, 
+
+together with the normal  and tangential  force components, 
+
+enables the computation of the desired grasping force without 
+
+knowledge of the object’s physical properties. 
+
+We achieved compliant,  stable grasp acquisition with our 
+
+approach that  limits contact  forces to prevent  damage to 
+
+the manipulated object.  The experiments showed that  the 
+
+controller can safely and stably grasp objects with different 
+
+shapes,  stiffnesses,  and friction coefficients.  Furthermore,  the 
+
+system can respond to disturbances by adjusting the contact 
+
+force to maintain a stable grasp. 
+
+REFERENCES 
+
+[1]  A. S. Sadun, J. Jalani, and J. A. Sukor, “AN OVERVIEW OF ACTIVE 
+
+COMPLIANCE CONTROL FOR A ROBOTIC HAND,” I SSN , vol. 11, 
+
+no.  20,  2016. 
+
+[2]  A. S. Sadun, J. Jalani, and J. A. Sukor, “Adaptive friction compensation 
+
+for hand grasping and compliant control,” in 2015 IEEE International 
+
+Conference on Advanced Intelligent Mechatronics (AIM) , (Busan, South 
+
+Korea),  pp.  365–370,  IEEE,  July 2015. 
+
+[3]  A.  S.  Sadun,  J.  Jalani,  J.  Abdul Sukor,  and F.  Jamil,  “Force control for 
+
+a 3-Finger Adaptive Robot Gripper by using PID controller,” in 2016 
+
+2nd IEEE International Symposium on Robotics and Manufacturing 
+
+Automation (ROMA) , (Ipoh,  Malaysia),  pp.  1–6,  IEEE,  Sept.  2016. 
+
+[4]  B.-P.  Huynh and Y.-L.  Kuo,  “Optimal Fuzzy Impedance Control for 
+
+a Robot Gripper Using Gradient Descent Iterative Learning Control 
+
+in Fuzzy Rule Base Design,” Applied Sciences , vol.  10,  p.  3821,  May 
+
+2020. 
+
+[5]  J. Jalani, N. Mahyuddin, G. Herrmann, and C. Melhuish, “Active robot 
+
+hand compliance using operational space and Integral Sliding Mode 
+
+Control,” in 2013 IEEE/ASME International Conference on Advanced 
+
+Intelligent Mechatronics , (Wollongong,  NSW),  pp.  1749–1754,  IEEE, 
+
+July 2013. 
+
+[6]  M.  D.  O’Toole,  K.  Bouazza-Marouf,  D.  Kerr,  and M.  Vloeberghs, 
+
+“Robust contact force controller for slip prevention in a robotic gripper,” 
+
+Proceedings of the Institution of Mechanical Engineers, Part I: Journal 
+
+of  Systems and Control  Engineering , vol.  224,  no.  3,  pp.  275–288, 
+
+2010. 
+
+[7]  Z.  Ding,  N.  Paperno,  K.  Prakash,  and A.  Behal,  “An Adaptive Control-
+
+Based Approach for 1-Click Gripping of Novel Objects Using a Robotic 
+
+Manipulator,” IEEE Transactions  on Control  Systems  Technology ,
+
+vol.  27,  pp.  1805–1812,  July 2019. 
+
+[8]  M.  Al-Mohammed,  R.  Adem,  and A.  Behal,  “A Switched Adaptive 
+
+Controller for Robotic Gripping of Novel Objects With Minimal Force,” 
+
+IEEE Transactions on Control Systems Technology , vol.  31,  pp.  17–26, 
+
+Jan.  2023. 
+
+[9]  S.  Butterworth,  “On the Theory of Filter Amplifiers,” Experimental 
+
+Wireless & the Wireless Engineer , vol.  7,  pp.  536–541,  Oct.  1930. 
+
+[10]  R.  S.  Johansson and J.  R.  Flanagan,  “Coding and use of tactile signals 
+
+from the fingertips in object  manipulation tasks,” Nature Reviews 
+
+Neuroscience , vol.  10,  pp.  345–359,  May 2009. 
+
+[11]  J.  M.  Romano,  K.  Hsiao,  G.  Niemeyer,  S.  Chitta,  and K.  J.  Kuchen-
+
+becker,  “Human-inspired robotic grasp control  with tactile sensing,” 
+
+IEEE Transactions on Robotics , vol.  27,  no.  6,  pp.  1067–1079,  2011. 
+
+[12]  J.  K.  Salisbury and B.  Roth,  “Kinematic  and force  analysis  of 
+
+articulated mechanical hands,” Journal of Mechanisms Transmissions 
+
+and Automation in Design , vol.  105,  pp.  35–41,  1983. 
+
+[13]  C.  Liu and Z.  Li,  “Force tracking smooth adaptive admittance control 
+
+in unknown environment,” Robotica , vol.  41,  no.  7,  p.  1991–2011, 
+
+2023. 
+
+[14]  M.  Pavlic,  T.  Markert,  S.  Matich,  and D.  Burschka,  “Robotscale: 
+
+A framework for adaptable estimation of static and dynamic object 
+
+properties with object-dependent  sensitivity tuning,” in 2023 32nd 
+
+IEEE International  Conference on Robot  and Human Interactive 
+
+Communication (RO-MAN) , pp.  668–674,  2023.
