@@ -1,0 +1,358 @@
+Title: Atomic Motion Coordinate for Language-Steerable and Force-Responsive Manipulation
+
+URL Source: https://arxiv.org/pdf/2609.15012v1
+
+Published Time: Tue, 15 Sep 2026 01:53:30 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Atomic Motion Coordinate for Language-Steerable and Force-Responsive Manipulation 
+
+Jiaqi Zhai, Jingkai Zhao, Chen Yang, Siyuan Ma, Yutian Zhang, Liwen Yang, Qinglian Wu, Weiqi Fan, Yifei Wang, Yi Zheng, Chenxi Gu, Dong Wei †, Wei Zhang †
+
+Abstract — Can changing only the language instruction redi-rect a vision-language-action (VLA) policy’s end effector, or does the visually driven motion prior dominate? We present AMC (Atomic Motion Coordinate), a geometry-grounded co-ordinate for steerable and force-responsive manipulation. Each arm owns thirteen signed translation, rotation, and hold atoms grounded from text and forward kinematics with vision with-held, and the coordinate is injected into every action-expert block via a cross-attention residual. Contact history modulates the same coordinate through a bounded spherical residual that is recomputed from a fixed nominal latent to regenerate only the unexecuted horizon suffix. Across 7,520 offline horizon interven-tions, opposite-atom separation reaches 92.5/83.1% (single/dual) versus 39.1/24.0% for LA4VLA-style. Across 50 real-robot trials per task, AMC raises out-of-distribution (OOD) fruit progress from 60.5% to 87.8%; force adaptation raises Plug/Vase from 59.0/71.6% to 78.5/75.2%. 
+
+I. INTRODUCTION Generalist vision–language–action (VLA) policies such as OpenVLA, π0, and π0.5 turn an instruction and a camera stream into continuous control, and they succeed on a widen-ing range of manipulation tasks [1], [2], [3]. The language channel itself, however, is rarely measured. Demonstrations tightly correlate what is said, what is seen, and what is done, so a policy can reach a high success rate while treating the instruction as a weak prior on an otherwise visually driven routine. VIP shows that policies more readily acquire task targets from visual specifications than from text, and proposes sparse point flows as a more learnable instruction channel [4]. Rather than replacing language, we ask what it controls. With the same observation and robot state, does changing only the instruction move the predicted end effector in the requested direction rather than continue the demonstrated motion? 
+
+Answering this requires a matched protocol in which observation, robot state, and every inference setting are frozen and only the prompt varies. Under such a proto-col a fine-tuned π0.5 does respond—pretraining supplies common-object semantics and our demonstrations supply ac-tion support—but counterfactual trajectories can stay weakly separated, or bend through the native-task direction before di-verging. Responsiveness is present; directional reliability and compositionality are not. Existing remedies act on the data, through counterfactual relabeling, or on the representation, by steering internal activations, yet the instruction remains an implicit condition whose motor meaning is left unnamed [5], [6], [7], [8], [9]. 
+
+> †Co-corresponding authors.
+
+We therefore give language an explicit destination. AMC (Fig. 1) inserts a bilateral motion coordinate between the planner and the continuous action expert. Each arm owns a spherical codebook of thirteen named atoms: signed transla-tions, signed rotations, and hold. The coordinate is trustwor-thy because of how it is grounded. A first phase withholds all RGB and exposes only atomic text and normalized joint state, so the only route to predicting the masked 50-step action flow and its low-frequency structure is the atom named in the prompt. Atom identity is anchored to forward-kinematics (FK) geometry and cannot be explained away by object appearance. Once vision is restored, each arm emits a motion latent whose direction stays aligned with this coordinate while a bounded tangent component restores scene-specific detail. The ordered right/left pair is read by all 18 action-expert blocks through an independent, zero-initialized cross-attention path, leaving the unmodified self-attention and flow-time conditioning intact so that in-domain competence is preserved by construction. The planner it-self outputs neither atoms nor weights: via a fixed prompt template, it selects a subtask from the predefined subtask vocabulary given the current visual observation. The low-level policy maps that subtask and observation to per-arm motion directions, each trained to align with FK-grounded atoms, which the action expert uses as explicit conditioning when generating the trajectory. Contact-rich phases need feedback faster than a semantic model can supply, and we express that feedback in the same coordinate instead of a parallel one. A shared encoder converts one second of wrench and state history into 30 slow tokens and the newest post-anchor samples into 10 fast tokens; the nominal zM , augmented with the current real-time chunking (RTC) phase [10], queries this memory to produce a bounded tangent update on the unit sphere. Each update regenerates only the unexecuted suffix of the current 50-step horizon and is recomputed from the same fixed zM
+
+rather than accumulated, so the atom that named the motion remains the anchor throughout contact. Two boundaries scope our claim: we do not argue that a strong baseline ignores language, nor that an explicit coordinate can ground concepts absent from both pretraining and robot data. Throughout this paper, OOD denotes held-out recombinations of known targets, orders, and scene configu-rations. Within that scope, AMC raises opposite-atom separa-tion from 39.1/24.0% to 92.5/83.1% for single/dual prompts over 7,520 matched offline interventions from recorded real-robot states, while retaining closed-loop competence that arXiv:2609.15012v1 [cs.RO] 14 Sep 2026 steering-oriented baselines substantially lose. Our contributions are:  
+
+> •
+
+A geometry-supervised, intervenable language– motion interface. Because task success alone cannot isolate language’s local motor effect, we introduce a per-arm coordinate grounded by FK-derived geometry and atomic text with vision withheld, then reuse it under full observation as a named site for inspection and intervention.  
+
+> •
+
+A bounded update anchored in the same repre-sentation. For contact-rich execution, wrench and state history revise the unexecuted suffix through a spherical residual recomputed from one fixed nominal coordinate, preserving the motion anchor without accumulating correction drift.  
+
+> •
+
+Validation across three separated capability regimes. 
+
+Paired prompt interventions, held-out recombinations of known concepts, and contact-rich robot trials separately test directional following, compositional execution, and force adaptation. II. RELATED WORK 
+
+A. Language-Conditioned VLA and Latent Actions 
+
+OpenVLA predicts discretized actions from a vision-language backbone, whereas π0 and π0.5 attach a con-tinuous flow action expert to a pretrained vision-language model (VLM) [1], [2], [3], continuing the broader use of chunked, receding-horizon prediction in ACT and Diffusion Policy [11], [12]. Action abstractions have been learned by residual vector quantization, frequency-domain tokenization, and visual future prediction [13], [14], [15], and LARY argues that semantic decodability and physical reconstruction must be scored separately [16]. Our codebook differs in origin: it begins from an embodiment-specific geometric vocabulary rather than a learned token inventory, while the deployed policy still emits continuous trajectories. Closest to us, LA4VLA removes vision during language– action pretraining, then returns to conventional full-observation VLA training [6]. It changes the curriculum but retains no fixed FK-derived dictionary, per-arm intervention variable, or contact-update site. We instead ground signed geometric axes, preserve their coordinates under full observa-tion, and expose them directly to the action expert. Residual Semantic Steering (RSS) [17] combines Monte Carlo Syntac-tic Integration with Residual Affordance Steering to amplify language over a vision-only prior, but operates at the action-distribution level without a named per-arm coordinate. CAST and CofactVLA use counterfactual relabeling [5], [18]; other work steers internal activations or filters plans through latent-aligned VLM verification [7], [8]. None of these methods exposes a fixed, per-arm FK-grounded coordinate shared by language intervention and force adaptation. 
+
+B. Hierarchical Planning and Fast Contact Feedback 
+
+Hierarchical policies ground language into executable skills and revise plans across stages [19], [20]. We keep completed-state information in a compact recursive summary from Qwen3.5-4B [21], a boundary-rate planner rather than a controller: only its subtask reaches the motor policy. On the contact side, RDP, ForceVLA, and FAVLA pair a slow visuomotor route with faster tactile or force condi-tioning [22], [23], [24], AT-VLA and T-Rex route native-rate signals through specialized action paths [25], [26], and predictive models forecast tactile evolution before revising actions [27], [28]. FACTR shows that visually dominant poli-cies can underutilize force without an explicit force-attending curriculum [29]. We instead place the force correction in the same spherical space as language, recomputed at every update from one fixed nominal latent. III. METHOD AMC consists of three functional components, whose low-level representation is trained progressively through atomic grounding, full-observation continuation, and force-adaptation stages. A planner turns the global task into one executable subtask at a time (Sec. III-A). A per-arm atomic coordinate is grounded from language and proprioception with vision withheld, then reused under full observation to condition every depth of the action expert (Sec. III-B–III-D). A spherical force update revises that coordinate during contact without displacing its semantic anchor (Sec. III-E). 
+
+A. Hierarchy and Action Interface 
+
+The low-level policy observes three RGB images It, an active subtask Uj , and dual-arm state 
+
+st = [ qLt , g Lt , q Rt , g Rt ] ∈ R16 . (1) It predicts H = 50 actions at 30 Hz through the 32-D π0.5
+
+interface; the first 16 coordinates control the two seven-DoF arms and grippers, and the remaining coordinates preserve base-checkpoint compatibility. At each 1 Hz tick, the upper loop receives global task 
+
+G, the current observation Oj , previous memory Mj−1, and previous subtask Uj−1. Qwen3.5-4B emits 
+
+(Mj , U j ) ∼ pψ (· | G, O j , M j−1, U j−1). (2) 
+
+Mj is a compact cross-frame temporal anchor recording completed events and persistent object state; Uj is either the previous subtask carried forward or a new one issued when the current visual evidence warrants a transition. Only 
+
+Uj is passed to the low-level policy. Qwen3.5-4B is used without task-specific supervised fine-tuning (SFT); a fixed prompt template constrains its output to the predefined subtask vocabulary. The action expert retains the standard 
+
+π0.5 conditional flow-matching target [3]. One subtask typically spans several 50-step horizons; during training each arm–horizon receives either a strict single/dual atomic target or, when no strict atom is supported, a weighted Top-5 FK target used only in the full-observation stage. A subtask is thereby realized as a sequence of per-horizon targets in the motor representation (Sec. III-B). At inference, given Uj , images, and state, the low-level Q1/Q3 heads predict per-arm directions aligned with the codebook; the resulting motor latent is an inspectable coordinate that force can later revise (Sec. III-E). Qwen3.5-4B Planner   
+
+> subtask: Grasp the yellow pear.
+> Action Expert layer ×18
+> 8-head Self-Atten + FFN 2-head Cross-Atten ...
+> tangent composer
+> pre-trained VLM SigLIP + Gemma
+> Key/Value
+> pre-trained VLM SigLIP + Gemma
+> atomic prompt +state
+> masked action flow
+> (a) Vision-free atomic grounding (b) Inherited Pi 0.5
+> S: dual-arm state
+> shared temporal Transformer
+> 30 slow tokens 10 recent force tokens 120 samples latest 40 samples
+> Cross-Atten
+> Query Key/Value
+> (d) Force branch
+> global task: Sort the fruits ...
+> Qwen3.5-4B Planner
+> visual correction language grounding language grounding
+> (c) Atomic branch
+
+Fig. 1. AMC overview. (a) Vision-free atomic grounding maps an atomic prompt and normalized robot state to text-grounded unit directions daT , where 
+
+a ∈ { R, L } denotes the right or left arm; sk is the temperature-scaled cosine similarity between daT and atom k. (b) The inherited π0.5 backbone: camera observations and dual-arm state feed a frozen VLM; every action-expert layer retains its eight-head self-attention path and adds an independent two-head cross-attention route. (c) Atomic branch: the planner supplies the current subtask Uj ; language grounding and visual correction compose zR,L M via the tangent composer. (d) A shared temporal encoder supplies 30 slow and 10 recent force–state tokens; a cross-attention adapter yields the force correction 
+
+∆zF , which is spherically composed with zM to produce zexec .
+
+B. An Atomic Vocabulary Fixed by Forward Kinematics 
+
+The vocabulary must be immune to the correlation we are trying to break, so we derive every label from measured geometry and never from the subtask text. For each arm a ∈{L, R },
+
+A = {± x, ±y, ±z, ±rx, ±ry , ±rz , hold }. (3) We compute end-effector motion in the base frame with the deployment URDF and a 0.20-m tool-center-point (TCP) off-set, and take horizon-level labels from the signed translation and the spatial rotation log of RhR⊤ 
+
+> 0
+
+. A horizon dominated by one component receives a single positive atom. Two components that can occur together, such as a diagonal reach, receive a weighted Top-2 label, since forcing such a horizon onto one axis would teach the codebook a direction the arm never took. Top-2 weighted labels are used in the vision-free grounding stage; during full-observation training, an arm without a strict single- or dual-atom target instead uses the five largest FK-derived gate weights as a normalized mixture target, without assigning it an unsupported discrete atom. Because all labels come from FK, object-aware phrasing cannot move them. Each arm owns a normalized 512-D dictionary 
+
+Ea = {ea 
+
+> 1
+
+, . . . , e a
+
+> 13
+
+}, eak ∈ S511 . (4) Here, daT denotes the text-grounded unit direction for arm 
+
+a ∈ { R, L }. For positives P and all other atoms N , ρk =(daT )⊤eak, and sk = ρk/τ a is its temperature-scaled cosine similarity to atom k, with τa = 0 .10 . The sample-wise multi-positive Two-Way loss is 
+
+La 
+
+> 2way
+
+= softplus[LSE p∈P (−sp) + LSE n∈N (sn)] . (5) The two log-sum-exp terms push the weakest positive up and the strongest negative down within the same sample, so a dual-motion horizon can keep both of its atoms; a softmax objective over a single label would instead force the two to compete. For FK mixture weights wp ≥ 0 with P 
+
+> p∈P
+
+wp =1, we define uaP =  P  
+
+> p∈P
+
+wpeap
+
+/ P 
+
+> p∈P
+
+wpeap and 
+
+La 
+
+> Top2
+
+= 1 − (daT )⊤uaP . This weighted-cosine term aligns a single or dual direction with its normalized FK code mixture. 
+
+C. Vision-Free Atomic Grounding 
+
+Withholding vision is the point of this phase, not asimplification. A policy that can see the scene may satisfy an atomic prompt by replaying whatever motion that scene usually elicits, leaving the atom no independent meaning. We therefore supply only the atomic prompt and the normalized robot state, discretized into the pretrained VLM prefix: withholding vision removes the direct scene shortcut and forces the atomic instruction to disambiguate the desired motion direction given the current state. The Q1 and Q3 heads emit unit directions dRT , d LT that condition the same action expert used at deployment. We mask the horizon flow loss to the labeled arm’s joints, leaving grippers, the opposite unlabeled arm, and padding coordinates untargeted, so a direction is never credited for motion it did not name. To suppress 30-Hz action noise while preserving coarse motion, the flow matching target for the labeled arm is replaced by a discrete cosine transform (DCT-II) low-frequency reconstruction: Ca = D0: K−1Y a with K = 3 (DC term and two lowest non-DC modes [14]) extracts three low-frequency coefficients; the length-50 reconstruction ˜Y a =
+
+D⊤
+
+> 0: K−1
+
+Ca then replaces the raw flow target. Gripper and unlabeled channels remain masked. This gives LDCT FM , and the complete grounding objective is 
+
+LT = LDCT FM + 0 .10 X
+
+> a
+
+La 
+
+> 2way
+
++ 0 .10 X
+
+> a
+
+La
+
+> Top2
+
+. (6) Thus atom identity is tied to both a 50-step physical action and its compact low-frequency structure, without image features explaining the label. The codebooks are frozen after 25k updates. 
+
+D. Full-Observation Motion Latent 
+
+A coordinate that only encodes a signed axis would discard everything the scene contributes, so the full-observation latent carries both. With all images and the current subtask restored, Q1/Q3 predict right- and left-arm directions and Q2/Q4 predict their tangent details. A direction query yields 
+
+daM ∈ S511 ; a detail query yields four bounded coefficients 
+
+ca = tanh( Wcha
+
+> detail
+
+). We project four learned seeds into the tangent plane of daM and orthonormalize them into Ba
+
+> ⊥
+
+. Let 
+
+raM = 0 .5 P4 
+
+> k=1
+
+cakBa 
+
+> ⊥,k
+
+and define the bounded spherical update 
+
+S(b, r ; θmax ) = cos θ b + sin θ br⊥,θ = θmax tanh( ∥r⊥∥/θ max ),r⊥ = ( I − bb ⊤)r. (7) Here b ∈ S511 and br⊥ = r⊥/ ∥r⊥∥ when ∥r⊥∥ > 0; for 
+
+r⊥ = 0 , we set br⊥ = 0 , so that θ = 0 and S(b, r ; θmax ) = b.The full-observation coordinate is zaM = S(daM , r aM ; π/ 4) ∈
+
+S511 . A 20 ◦ free-cone hinge, weighted by 0.005, penalizes only geodesic rotation beyond the free cone. Thus full-observation contextual detail can shape the trajectory without changing latent norm, while the hard 45 ◦ cap prevents an unbounded departure from the grounded direction. The ordered pair [zRM , z LM ] conditions every action-expert block through a separate two-head cross-attention residual: 
+
+Hℓ ← Hℓ + CA ℓ
+
+ Hℓ, [zRM , z LM ] , ℓ = 1 , . . . , 18 . (8) Its output projection is zero-initialized. The unmodified self-attention, feed-forward blocks, and flow-time AdaRMS re-main unchanged. During final stabilization, the direction component is replaced by its stopped-gradient teacher (dT for atomic labels, frozen Top-5 mixture for compound); the tangent detail remains freely predicted from the full observation. At inference, no teacher substitution is applied. The flow objective alone does not guarantee strong uti-lization of the coordinate: the pretrained action expert can initially reduce the loss while largely bypassing the zero-initialized cross-attention path. We therefore add a matched counterfactual pass: a second run replaces one supervised arm direction with a hard-negative codebook atom outside that arm’s positive support, holding every other input and the flow time fixed. With per-arm flow losses ℓcorr and ℓwrong ,
+
+Lcf = [ m + ℓcorr − ℓwrong ]+ , m = 2 × 10 −3. (9) The wrong direction must therefore reconstruct the demon-stration strictly worse than the correct one by a margin m;once that gap holds, the hinge is inactive and the term stops competing with the flow objective. The final continuation weights it at 0.10, alongside the full flow loss, cosine alignment between the predicted daM and its stopped-gradient teacher direction, and Top-5 weighted-cosine supervision. 
+
+E. Force-Responsive Latent Modulation 
+
+Each wrist provides a calibrated six-axis wrench at 120 Hz. Per arm, non-overlapping groups of four consecu-tive force–state samples are projected into 512-D tokens (120 Hz →30 Hz), then passed through a shared two-layer temporal transformer and an arm-specific projection. The newest 120 raw samples yield 30 slow tokens F a 
+
+> slow
+
+∈
+
+R30 ×512 ; at RTC offset i ∈ { 0, 10 , 20 , 30 , 40 }, at most 40 post-anchor samples yield 10 fast tokens F a, (i)fast ∈ R10 ×512 .The two paths share encoder weights but are concatenated only at the cross-attention step. Before learning the action correction, B1 pre-trains this encoder with an auxiliary single-layer GRU decoder: the transformer compresses slow force–state history into per-arm tokens; the GRU decodes them into future force increments, shaping the encoder so its slow tokens carry contact-predictive structure. The GRU is absent at deployment; in B2, the VLM backbone and the B1 force temporal encoder are frozen, while the action expert and force adapters are optimized jointly. zaM plus a sinusoidal RTC-phase embedding ϕi forms a query over the full 30+10 token memory. A two-head cross-attention adapter and zero-initialized output produce one direct 512-D correction: 
+
+qa, (i) = LN( Wq zaM + ϕi), (10) 
+
+∆za, (i) 
+
+> F
+
+= Wo swish 
+
+
+
+Wh CA 2(qa, (i), [F a
+
+> slow
+
+; F a, (i)fast ]) 
+
+
+
+,
+
+(11) 
+
+za, (i)exec = S(zaM , ∆za, (i) 
+
+> F
+
+; π/ 4) . (12) The force update uses a 20 ◦ penalty-free cone, a 45 ◦ hard spherical cap, and a hinge weight of 0.005, matching the visual spherical update. Each update is recomputed from the same nominal zM rather than added to the previously corrected latent. Recursive accumulation would compound corrections and drift from the named atom; recomputing from a fixed anchor bounds total deviation to one residual. The ordered [zR
+
+> exec
+
+, z L
+
+> exec
+
+] pair replaces the nominal pair in Eq. (8) for every action block. Training samples one offset per example; the pre-offset prefix is zero-loss and remaining steps are uniformly super-vised. At deployment all five offsets refine the same rollout: the prefix is hard-clamped and only the suffix is regener-ated [10]. The correction runs every ten actions ( ≈3 Hz), not at 120 Hz. TABLE I TRAINING SCHEDULE . AE: ACTION EXPERT ; AQ: ATOMIC QUERIES ;MA: MOTION ADAPTER ; FE: FORCE ENCODER ; FA: FORCE ADAPTER .BOTH RECIPES USE 25 K GROUNDING AND 25 K POST -GROUNDING UPDATES .Stage Objective Trainable Steps                      
+
+> zTgrounding Masked flow + atomic AE + AQ + CB 25k
+> zMfull observation Flow + latent alignment AE + MA 25k / 20k †
+> Force-enabled recipe only
+> B1 force representation Future wrench FE + Pred. 5k B2 force adaptation RTC suffix flow AE + FA 5k †
+> CB: codebook; Pred.: training-only prediction head. †Force-enabled recipe: 20k zM+5k B2 =25k post-grounding AE updates. B1 does not update the AE.
+
+F. Training and Model Size 
+
+Table I summarizes the staged objectives. The codebooks are frozen after zT grounding. The force-free atomic policy and matched baselines use 25k full-observation updates on boundary-aligned 50-step horizons; the force-enabled recipe branches from a 20k full-observation checkpoint. B1 trains the temporal force encoder through future-wrench prediction, whereas B2 freezes the VLM and encoder and trains the action expert and force adapter jointly. All stages use 8 ×H800 GPUs, global batch size 256, and cosine annealing. The zT /z M stages use peak lr 2.5×10 −5
+
+(minimum 2.5×10 −6; 1000 warmup steps); B1/B2 use peak lr 10 −4 (minimum 10 −5; 300 warmup steps). The gap in Table II is not a causal force estimate: Table III isolates the route by varying only force content within one checkpoint. The deployed atomic and force routes add 34.56M and 12.40M parameters, totaling 46.96M (1.40% over the 3.353B 
+
+π0.5 backbone); the DCT-based target construction and B1 future-wrench predictor are training-only. IV. EXPERIMENTS 
+
+A. Platform, Data, and Four Task Families 
+
+Experiments use a CR1 dual-arm platform with two seven-DoF arms, two grippers, a base camera, two wrist cameras, and a six-axis force/torque sensor at each wrist. RGB, state, and actions are recorded at 30 Hz; wrench is recorded at 120 Hz. FK annotation, evaluation, and visualization use the same URDF and 0.20-m TCP. The unified training corpus contains 2,375 episodes and 3.07M valid 30-Hz training samples across cabinet, drawer, fruit, mixed manipulation, screwdriver, plug, and vase domains. Normalization statistics use the training split only. On a single RTX 4090, atomic-only inference takes 117.4 ms; the force adapter runs in 118.7 ms in the slow loop (full suffix) and 45.5 ms in the fast loop (partial suffix), both within the 333 ms ten-action window at 30 Hz. Figure 2 shows the four evaluation families. Multi-fruit sorting measures per-subtask execution under manually se-lected subtask prompts, with fruit positions randomized across familiar configurations. Drawer retrieval and plug insertion (hereafter Plug ; Table II) requires opening the drawer, grasping and reorienting the power adapter, aligning the connector, and completing a contact-rich insertion, with execution subtasks supplied by the Qwen3.5-4B planner. 
+
+OOD fruit ordering uses the same manual-prompt protocol with unseen fruit placement and target-box positions. Biman-ual vase wiping (Table II) alternates stabilization, rotation, and sustained wiping contact, with subtasks supplied by the Qwen3.5-4B planner. 
+
+B. Baselines and Metrics 
+
+We compare six policies: fine-tuned π0.5, matched repro-ductions of LA4VLA [6] and ForceVLA [23], an adapta-tion of RSS [17] to our real-robot setting, our force-free AMC, and AMC + Force. All reproductions use the same three-view RGB observations, 16-D dual-arm state, 32-D action interface, and evaluation protocol; training subsets are matched to each method’s evaluated task families. For real-robot task progress, LA4VLA and RSS are evaluated only on fruit tasks; ForceVLA only on Plug and Vase. The primary robot metric is mean normalized task progress. Each method is evaluated in 50 trials per task. If trial i earns si out of the task’s prespecified maximum 
+
+S, its progress is 100 si/S . Plug progress uses four one-point macro-stages: opening the drawer, establishing the grasp on the adapter, aligning the connector, and completing insertion. The planner may issue multiple finer-grained ex-ecution subtasks within each scored stage. Vase uses five points: two for rotation (one per half-turn, stabilization subsumed), two for wiping (one per half-clean), and one for returning the vase. Scoring and termination conditions are fixed across methods. For fruit tasks, a human operator supplies the execution-subtask prompt at each boundary; for Plug and Vase, Qwen3.5-4B generates subtask prompts automatically. The two column groups therefore measure distinct capabilities and are not pooled. Atomic steerability follows the matched protocol of Sec. IV-D. Without task-specific SFT, Qwen3.5-4B is evaluated on 500 Vase and 500 Plug semantic-boundary cases; at each, the planner is queried at 1 Hz with the updated observation, its memory anchor, and the previous subtask. A case succeeds if the correct next subtask appears immediately or within five queries; success is 94.6% (Vase) and 92.4% (Plug). These are boundary-level scores. 
+
+C. Closed-Loop Task Progress 
+
+Table II separates three capability regimes. In familiar fruit manipulation, fine-tuned π0.5 already responds to subtask changes; AMC preserves this while improving progress from 82.7% to 88.9%. The margin widens in held-out conditions (60.5% to 87.8%). RSS and LA4VLA-style both apply language steering yet reach only 54.5%/39.1% and 60.7%/40.4%, both below fine-tuned π0.5. LA4VLA im-proves pair separation (Table IV) but not closed-loop ex-ecution, suggesting interference with the pretrained prior. RSS achieves lower fruit progress in our adaptation; its simulation-only validation means this reflects a hardware-transfer gap, not a general failure of RSS. This separates two (a) Multi-fruit sorting (b) Drawer retrieval and plug insertion (c) OOD fruit ordering (d) Bimanual vase wiping 
+
+Fig. 2. Real-robot setups for the four experiment families. The two fruit scenes differ: (a) measures per-subtask execution under human-provided prompts with randomized familiar positions; (c) uses the same protocol with unseen fruit placement and target-box positions. TABLE II MEAN NORMALIZED TASK PROGRESS (%) OVER 50 TRIALS PER REPORTED METHOD –TASK PAIR ON THE FOUR REAL -ROBOT SETUPS IN FIG . 2. COLUMNS ARE GROUPED BY THE CAPABILITY UNDER TEST AND ARE NOT POOLED INTO A SINGLE AVERAGE ; “–” DENOTES AN UNTESTED METHOD –TASK PAIR .Language and generalization Contact execution Method Fruit / multi-sort Fruit target/order (OOD) Plug (4-point) Vase (5-point) Fine-tuned π0.5 82.7 60.5 55.0 65.2 RSS 54.5 39.1 – –LA4VLA-style 60.7 40.4 – –ForceVLA – – 30.0 40.4 AMC 88.9 87.8 59.0 71.6 AMC + Force – – 78.5 75.2 
+
+TABLE III MATCHED FORCE -ROUTE ABLATION ON 50 P LUG /V ASE TRIALS . RMSE 
+
+> IS SUFFIX
+
+-LENGTH WEIGHTED . L OWER IS BETTER .Force condition Joint (rad) TCP (mm) Route disabled 0.0581 21.01 Shifted force history 0.0459 19.41 Matched force history 0.0349 15.27 
+
+properties a single metric conflates: moving with language, and remaining executable. On contact-rich Plug and Vase, AMC + Force improves progress from 59.0% to 78.5% and 71.6% to 75.2%. In our matched reproduction, ForceVLA substantially underper-forms fine-tuned π0.5, suggesting its force-routing adaptation disrupts the pretrained prior under our setting. The matched force-content ablation below isolates the contribution of the force route. Table III fixes all variables except force content; matched history reduces 14-joint/TCP RMSE by 39.9/27.3% vs. dis-abled and 24.0/21.3% vs. a time-shifted surrogate. 
+
+D. Atomic Steering 
+
+This experiment isolates what closed-loop progress cannot answer. We cluster standardized 14-D joint states (grippers excluded) and, within each cluster, retain single- and com-patible dual-atom modes supported by at least five demon-strations. The filter is outcome-agnostic, selecting on source support and never on whether a policy succeeds. This retains 1,880 cluster–mode conditions across 948 recorded states (830 single-atom and 1,050 compatible dual-atom). Evaluat-ing these with four policies yields 7,520 matched horizon-50 predictions (3,320 single + 4,200 dual). Each prediction uses a recorded observation and state; FK maps joints to TCP 
+
+TABLE IV MATCHED HORIZON -50 ATOMIC STEERING AT 10 MM /2◦ (%). A LL METHODS RECEIVE 25 K FULL -OBSERVATION UPDATES ; SEE TABLE I
+
+> FOR THE FULL TRAINING SCHEDULE
+
+.Method Atoms Absolute vs. Empty Pair sep. Fine-tuned π0.5 Single 50.5 18.3 18.1 Dual 37.1 6.9 8.1 LA4VLA-style Single 52.9 31.7 39.1 Dual 37.9 13.2 24.0 RSS Single 52.6 39.2 60.7 Dual 26.2 9.7 22.5 AMC Single 80.2 74.5 92.5 
+
+Dual 57.9 39.1 83.1 
+
+but no action executes. Observation, state, normalization, sampler, and initial flow noise are held fixed across policies; only the prompt varies. Each atom is compared against the Empty condition (same images and state, empty prompt) and, where supported, its opposite sign. A translation or rotation intervention succeeds only when the horizon-50 endpoint moves in the requested signed base-frame direction by more than the threshold, and a dual-atom intervention only when both requested components pass. Pair separation is a relative criterion: the two signed-atom endpoints must be ordered correctly and differ by more than the threshold, without either needing to clear it alone (Table IV). The 10 mm/ 2◦ threshold is a noise gate; admitted motions are several times larger (mean 55.5 mm, 20 .2◦). Vs. Empty isolates language contribution from the motion prior: fine-tuned π0.5 reaches only 18.3/6.9%, LA4VLA-style 31.7/13.2%, and RSS 39.2/9.7%. RSS achieves higher single pair separation than LA4VLA (60.7% vs. 39.1%) yet falls (a) +x / −x · Right arm                                                      
+
+> −150 −100 −50 050 100
+> Controlled Δ x(mm)
+> 050
+> Δy (mm)
+> (b) +y/−y·Right arm
+> −150 −100 −50 050 100
+> Controlled Δ y(mm)
+> −50 0
+> Δx (mm)
+> (c) +z/−z·Left arm
+> −150 −100 −50 050 100 150
+> Controlled Δ z(mm)
+> 050
+> Δx (mm)
+> (d) +rx/−rx·Left arm
+> 025 50
+> Horizon step
+> −10 010
+> Signed Δ rx (deg)
+> (e) +ry/−ry·Right arm
+> 025 50
+> Horizon step
+> −10 010
+> Signed Δ ry (deg)
+> (f) +rz/−rz·Left arm
+> 025 50
+> Horizon step
+> 010
+> Signed Δ rz (deg)
+> Native subtask Empty +axis atom −axis atom
+
+Fig. 3. Matched same-axis single-atom steering. Each panel fixes the source observation and state. The top row shows the complete 50-step TCP path in a base-frame plane, with the controlled component on the horizontal axis; the bottom row shows the corresponding signed rotation angle at every horizon step. Black dots mark the shared start, and arrowheads mark each trajectory endpoint and its time direction. Panels (a)–(f) use marker insertion, apple grasp, power-strip hold, switch press, chili placement, and solder-coil placement states, respectively; Empty is the no-atom baseline: the same images and state are provided but the prompt is empty. (a) Left arm (b) Right arm 
+
++x −x +y −y +z −z +rx −rx +ry −ry +rz −rz hold  
+
+> single atom compatible dual
+
+Fig. 4. Q1 geometry in independently fitted per-arm t-SNE spaces. Each panel overlays 900 single-atom samples (colored circles with local covariance regions) and 900 compatible-dual samples (two-tone circles; fill marks the component closer in original 512-D cosine geometry and the edge marks the other). The embeddings are used only for qualitative neighborhood visualization. 
+
+below it in task progress (Table II)—higher offline separation does not imply executability on hardware. AMC closes both gaps: 74.5/39.1% vs. Empty and 92.5/83.1% pair separation (single/dual). Fine-tuned π0.5’s Absolute (50.5/37.1%) reflects native trajectories that already move in the requested direction; the low vs. Empty rate confirms language adds little con-trol beyond this prior. LA4VLA raises pair separation by strengthening language-to-direction binding, but this separa-tion is substantially weakened after full-observation training; AMC explicitly preserves it through a frozen FK-anchored codebook and teacher-alignment objective. RSS amplifies language at the action-distribution level, reaching 60.7% single pair separation, but provides no independent per-arm coordinate: both requested directions share one residual signal. The 22.5% dual score is consistent with interference between the two directions. AMC’s Single–Dual gap (92.5% vs. 83.1%) is expected: dual success requires both compo-nents to simultaneously clear the threshold. All twelve displayed directional atoms satisfy both abso-lute and matched-Empty criteria, with mean controlled-axis endpoints of 61.4 mm and 14 .1◦; aggregate results come only from the support-filtered, state-balanced sweep defined above. E. Latent-Space Analysis 
+
+Figure 4 visualizes 900 single-atom and 900 compatible-dual daM directions per arm. In the original 512-D space, the target atom is Top-1 for every single sample, and the exact target pair forms the Top-2 set for 99.1%/99.7% of right/left dual samples. Mean angles to the target code are 4.96 ◦/6.37 ◦
+
+for single and, relative to the normalized weighted Top-2 target, 14 .91 ◦/11 .84 ◦ for dual directions. Mean pairwise codebook separation is 94 .61 ◦/94 .66 ◦, indicating that the dictionaries do not collapse. Steering strength is not symmetric: the single-atom sweep produces 1,100 left- and 2,220 right-arm predictions across four policies; AMC’s left/right translation (rotation) gains are 17.8/28.5 mm ( 13 .9◦/17 .3◦), an asymmetry that may reflect the right-arm-dominant teleoperation distribution. V. LIMITATIONS AND CONCLUSION The thirteen atoms encode dominant base-frame motion, not grasp types, affordances, or complete symbolic programs; object-centric vocabularies may suit other tasks, and FK labels inherit calibration error. The method cannot ground concepts absent from both pretraining and demonstrations. The training-only dT teacher stabilizes zM , while force conditioning modulates a joint-space generator rather than a hybrid force–position controller. Planner reliability is mea-sured at subtask boundaries rather than end to end. Within these limits, AMC converts existing semantic and action support into named per-arm motion coordinates consumed throughout the action expert and revised by a bounded, non-accumulating contact update. This yields di-rectional, compositional language control and force feedback in the same interpretable representation—a useful interface for auditing and steering pretrained generalist policies. REFERENCES [1] M. J. Kim, K. Pertsch, S. Karamcheti et al. , “OpenVLA: An open-source vision-language-action model,” in Proceedings of The 8th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 270. PMLR, 2025, pp. 2679–2713. [2] K. Black, N. Brown, D. Driess et al. , “ π0: A vision-language-action flow model for general robot control,” in Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, Jun. 2025. [3] K. Black, N. Brown, J. Darpinian et al. , “ π0.5: A vision-language-action model with open-world generalization,” in Proceedings of The 9th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 305. PMLR, 2025, pp. 17–40. [4] Z. Li, L. Ren, J. Yang et al. , “VIP: Vision instructed pre-training for robotic manipulation,” arXiv preprint arXiv:2410.07169 , 2024. [5] C. Glossop, W. Chen, A. Bhorkar, D. Shah, and S. Levine, “CAST: Counterfactual labels improve instruction following in vision-language-action models,” arXiv preprint arXiv:2508.13446 , 2025. [6] T. Lin, Y. Du, Y. Mao et al. , “LA4VLA: Learning to act without seeing via language-action pretraining,” arXiv preprint arXiv:2606.27295 ,2026. [7] B. H¨ aon, K. C. Stocking, I. Chuang, and C. Tomlin, “Mechanistic interpretability for steering vision-language-action models,” in Pro-ceedings of The 9th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 305. PMLR, 2025, pp. 2743– 2762. [8] Y. Wu, T. Tian, G. Swamy, and A. Bajcsy, “From foresight to forethought: VLM-in-the-loop policy steering via latent alignment,” in Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, Jun. 2025. [9] Y. Fang et al. , “When vision overrides language: Evaluating and mitigating counterfactual failures in vision-language-action models,” 
+
+arXiv preprint arXiv:2602.17659 , 2026. [10] K. Black, A. Z. Ren, M. Equi, and S. Levine, “Training-time ac-tion conditioning for efficient real-time chunking,” arXiv preprint arXiv:2512.05964 , 2025. [11] T. Z. Zhao, V. Kumar, S. Levine, and C. Finn, “Learning fine-grained bimanual manipulation with low-cost hardware,” in Proceedings of Robotics: Science and Systems , Daegu, Republic of Korea, Jul. 2023. [12] C. Chi, S. Feng, Y. Du, Z. Xu, E. Cousineau, B. C. M. Burchfiel, and S. Song, “Diffusion policy: Visuomotor policy learning via action diffusion,” in Proceedings of Robotics: Science and Systems , Daegu, Republic of Korea, Jul. 2023. [13] S. Lee, Y. Wang, H. Etukuru, H. J. Kim, N. M. M. Shafiullah, and L. Pinto, “Behavior generation with latent actions,” in Proceedings of the 41st International Conference on Machine Learning , ser. Pro-ceedings of Machine Learning Research, vol. 235, 2024, pp. 26 991– 27 008. [14] K. Pertsch, K. Stachowicz, B. Ichter et al. , “FAST: Efficient action tokenization for vision-language-action models,” in Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, Jun. 2025. [15] S. Ye, J. Jang, B. Jeon et al. , “Latent action pretraining from videos,” in 
+
+The Thirteenth International Conference on Learning Representations ,2025. [16] D. Nie, F. Chen, Q. Lv, J. Kuang, X. Li, X. Cao, and X. Cai, “LARY: A latent action representation yielding benchmark for generalizable vision-to-action alignment,” arXiv preprint arXiv:2604.11689 , 2026. [17] Z. Zhan, Y. Chen, J. Zhou, Q. Lyu, H. Liu, K. Wang, L. Lin, and G. Wang, “Stable language guidance for vision–language–action models,” in Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics , San Diego, CA, USA, 2026. [18] Y. Zhang, Y. Wu, H. Duan, and J. Han, “CofactVLA: Deconfounding vision-language-action models via counterfactual intervention,” arXiv preprint arXiv:2608.04396 , 2026. [19] M. Ahn, A. Brohan, N. Brown, Y. Chebotar et al. , “Do as i can, not as i say: Grounding language in robotic affordances,” in Proceedings of The 6th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 205. PMLR, 2023, pp. 287–318. [20] Y. Feng, J. Han, Z. Yang, X. Yue, S. Levine, and J. Luo, “Reflective planning: Vision-language models for multi-stage long-horizon robotic manipulation,” in Proceedings of The 9th Conference on Robot Learn-ing , ser. Proceedings of Machine Learning Research, vol. 305. PMLR, 2025, pp. 2038–2062. [21] Qwen Team, “Qwen3.5-4B,” Hugging Face model card, 2026. [22] H. Xue, J. Ren, W. Chen et al. , “Reactive diffusion policy: Slow-fast visual-tactile policy learning for contact-rich manipulation,” in 
+
+Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, Jun. 2025. [23] J. Yu, H. Liu, Q. Yu et al. , “ForceVLA: Enhancing VLA models with a force-aware MoE for contact-rich manipulation,” in Advances in Neural Information Processing Systems , vol. 38, 2025. [24] Y. Li, P. Tang, W. Zhang et al. , “FAVLA: A force-adaptive fast-slow VLA model for contact-rich robotic manipulation,” arXiv preprint arXiv:2602.23648 , 2026. [25] X. Li, M. Cai, J. Xu, J. Zhu, H. Fan, Y. Shen, G. Ren, and H. Dong, “AT-VLA: Adaptive tactile injection for enhanced feedback reaction in vision-language-action models,” arXiv preprint arXiv:2605.07308 ,2026. [26] D. Niu, Z. Liu, Z. Wang, B. Shao, Z.-H. Yin, A. Pai, Y. Sharma, S. Saravalle et al. , “T-Rex: Tactile-reactive dexterous manipulation,” 
+
+arXiv preprint arXiv:2606.17055 , 2026. [27] J. Zhou, F. Hong, Y. Li et al. , “TouchWorld: A predictive and reactive tactile foundation model for dexterous manipulation,” arXiv preprint arXiv:2607.07287 , 2026. [28] S. Zhang, X. Zhang, Y. Shen, J. Deng, Y. Gao, S. Zhang, Y. Zhang, K. Long, J. Wu, J. Pan, Y. Li, and Y. Zhang, “ReTouch: Empow-ering contact-rich dexterous manipulation with online-refined tactile prediction,” arXiv preprint arXiv:2608.01824 , 2026. [29] J. J. Liu, Y. Li, K. Shaw, T. Tao, R. Salakhutdinov, and D. Pathak, “FACTR: Force-attending curriculum training for contact-rich policy learning,” in Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, Jun. 2025.
