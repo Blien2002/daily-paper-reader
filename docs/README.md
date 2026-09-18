@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-17</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-18</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 30 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>18</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-17 22:24:04 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-18 21:45:41 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -70,8 +70,8 @@
   </div>
   <div class="dpr-home-dashboard-body">
 <p>今日共生成 30 篇推荐（精读 18 篇，速读 12 篇）</p>
-<p>精读：《World-Action Models for Robot Learning and Control: A Survey》（10.0/10）, 《SAVLA: Symmetry-Aware Vision-Language-Action Models for Robotic Manipulation》（10.0/10）</p>
-<p>速读：《StereoPatch: Patch-Aligned RGB-Depth Fusion for Spatial Perception in Robot Manipulation》（8.0/10）, 《MessyMem: Learning-from-Doing Memory for Mobile Manipulation》（8.0/10）, 《Bi-MoDe: Bilateral Control-based Imitation Learning via Modifier-Conditioned Decoding for Modulation of Execution Speed and Contact Intensity》（8.0/10）</p>
+<p>精读：《World-Action Models for Robot Learning and Control: A Survey》（10.0/10）, 《FluxVLA Engine: A One-Stop VLA Engineering Platform for Embodied Intelligence》（10.0/10）</p>
+<p>速读：《RAF-VLA: Representation Alignment with the Future for End-to-End Autonomous Driving》（8.0/10）, 《WeaveRL: Weaving Reconstruction into Scene-Aware Fabrics for Perceptive Reinforcement Learning》（8.0/10）, 《Dreaming the Sound of Contact: Leveraging Video and Audio Generation for Zero-Shot Force-Aware Manipulation and Data Generation》（8.0/10）</p>
 <p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
@@ -84,9 +84,9 @@
     <strong class="dpr-home-dashboard-count">18 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="World-Action Models for Robot Learning and Control: A Survey">World-Action Models for Robot Learning and Control: A Survey</span></li><li><span class="dpr-home-dashboard-paper-title" title="SAVLA: Symmetry-Aware Vision-Language-Action Models for Robotic Manipulation">SAVLA: Symmetry-Aware Vision-Language-Action Models for Robotic Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="TAO-Force: Unifying Force-Aware Perception and Fast-Slow Control for Contact-Rich Manipulation">TAO-Force: Unifying Force-Aware Perception and Fast-Slow Control for Contact-Rich Manipulation</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="World-Action Models for Robot Learning and Control: A Survey">World-Action Models for Robot Learning and Control: A Survey</span></li><li><span class="dpr-home-dashboard-paper-title" title="FluxVLA Engine: A One-Stop VLA Engineering Platform for Embodied Intelligence">FluxVLA Engine: A One-Stop VLA Engineering Platform for Embodied Intelligence</span></li><li><span class="dpr-home-dashboard-paper-title" title="Weave: Learning Whole-Body Dexterous Loco-Manipulation from Human-Object Interactions">Weave: Learning Whole-Body Dexterous Loco-Manipulation from Human-Object Interactions</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>13</strong></span><span class="dpr-home-dashboard-tag">tf <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>16</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -97,9 +97,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="StereoPatch: Patch-Aligned RGB-Depth Fusion for Spatial Perception in Robot Manipulation">StereoPatch: Patch-Aligned RGB-Depth Fusion for Spatial Perception in Robot Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="MessyMem: Learning-from-Doing Memory for Mobile Manipulation">MessyMem: Learning-from-Doing Memory for Mobile Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Bi-MoDe: Bilateral Control-based Imitation Learning via Modifier-Conditioned Decoding for Modulation of Execution Speed and Contact Intensity">Bi-MoDe: Bilateral Control-based Imitation Learning via Modifier-Conditioned Decoding for Modulation of Execution Speed and Contact Intensity</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="RAF-VLA: Representation Alignment with the Future for End-to-End Autonomous Driving">RAF-VLA: Representation Alignment with the Future for End-to-End Autonomous Driving</span></li><li><span class="dpr-home-dashboard-paper-title" title="WeaveRL: Weaving Reconstruction into Scene-Aware Fabrics for Perceptive Reinforcement Learning">WeaveRL: Weaving Reconstruction into Scene-Aware Fabrics for Perceptive Reinforcement Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Dreaming the Sound of Contact: Leveraging Video and Audio Generation for Zero-Shot Force-Aware Manipulation and Data Generation">Dreaming the Sound of Contact: Leveraging Video and Audio Generation for Zero-Shot Force-Aware Manipulation and Data Generation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>10</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>9</strong></span><span class="dpr-home-dashboard-tag">tf <strong>3</strong></span></div>
 </section>
 </div>
 
