@@ -1,0 +1,284 @@
+Title: MaskHarness-WAM: Instance-Grounded Harnessing for Long-Horizon Robot Manipulation
+
+URL Source: https://arxiv.org/pdf/2609.19974v1
+
+Published Time: Fri, 18 Sep 2026 00:57:19 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# MaskHarness-WAM: Instance-Grounded Harnessing for Long-Horizon Robot Manipulation 
+
+Zitai Huang 1,2,* , Taiyi Su 2,* , Jian Zhu 2, †, Jianjun Zhang 1,2 , Chong Ma 1,2 
+
+Tianbin Liu 2, Weiyi Lu 2, Yi Xu 2, ‡, Hanli Wang 1, ‡
+
+> 1
+
+Tongji University 2AIRC, Midea Group 
+
+> *
+
+Equal contribution †Project Leader ‡Corresponding authors Project Page: maskharness-wam.github.io 
+
+Abstract —Long-horizon robot manipulation requires not only stable local visuomotor control, but also continuous target track-ing and reliable task progress assessment throughout execu-tion. This challenge becomes particularly critical when multiple objects share identical appearances and must be manipulated in a prescribed order. In such scenarios, relying solely on a limited-horizon manipulation policy is often insufficient to determine which instance should be operated on and when the task should transition to the next stage. To address this challenge, we propose MaskHarness-WAM, an instance-grounded harness for long-horizon manipulation. The proposed system connects high-level task planning with low-level manipulation policies through target masks, while leveraging visual feedback for subtask scheduling and continuous execution. Since each subtask corresponds to a different target instance, the low-level policy requires a newly established initial target mask under the updated scene at each subtask transition. The harness continuously re-observes the environment, generates, and verifies the target mask at subtask boundaries, thereby updating the instance-level spatial condition provided to the low-level policy. Furthermore, the system advances the manipulation process by switching target instances according to the verified completion status of each subtask. Experiments on a real robot platform demonstrate that MaskHarness-WAM substantially outperforms limited-horizon policies on sequential multi-object manipulation, showing its effectiveness in extending local manipulation skills to reliable long-horizon execution. 
+
+Index Terms —robot manipulation, embodied harness, world action models 
+
+I. I NTRODUCTION 
+
+Reliable execution of long-horizon instructions remains a fundamental goal toward general-purpose robot manipulation. In real-world scenarios such as industrial assembly, warehouse fulfillment, and laboratory automation, robots are often re-quired to manipulate multiple objects with identical appear-ances in a prescribed order. For example, identical screws may need to be inserted into different holes sequentially, while visually indistinguishable test tubes must be transferred and inspected according to their sample identities. Although these objects share similar categories and visual appearances, they are not interchangeable within the task. Reliable execution of such procedures is therefore a critical step toward enabling robots to move beyond isolated skills and autonomously complete real-world workflows. 
+
+This work was completed while Zitai Huang was an intern at Midea AI Research Centers. 
+
+Recent advances in vision-language-action (VLA) models and world action models (WAM) have achieved significant progress in semantic understanding, action generation, and real-robot control [2]–[5]. These models demonstrate strong capabilities on local manipulation skills, such as grasping and placement. However, most existing policies are designed for a limited execution horizon. Their reliability often de-pends on clear target specifications and a stable task stage. This assumption does not hold for sequential tasks involving multiple visually identical objects. Category-level semantics alone cannot determine the correct target instance. Moreover, completing a local motion does not necessarily indicate a valid transition to the next task stage. An incorrect target assignment can directly lead to improper actions, while an incorrect progress estimation may propagate through subse-quent subtasks and cause cascading failures. Therefore, long-horizon sequential manipulation cannot be achieved by simply invoking local policies repeatedly. It requires an external man-agement mechanism that maintains target identity, tracks task progress, and coordinates policy execution through continuous visual feedback. Addressing the above challenges requires two complemen-tary capabilities. First, an embodied harness introduces task planning, state maintenance, outcome evaluation, and failure recovery beyond the low-level policy, allowing finite-horizon manipulation skills to be organized into feedback-driven long-horizon behaviors [6]–[12]. Second, visual prompts such as masks ground linguistic targets into specific pixel regions, pro-viding explicit spatial anchors for multiple visually identical instances and reducing the ambiguity introduced by category-level language descriptions [13]–[18]. However, long-horizon tasks cannot rely on a static visual prompt provided only at the beginning of execution. Once an instance is completed, both the scene state and the identity of the next target change. Therefore, the system must update the target mask for each subsequent subtask based on the current observation, ensuring that the visual condition remains consistent with the active manipulation instance. The harness not only determines how multiple local operations are organized and advanced, but also provides the runtime mechanism for updating visual conditions across subtasks. We propose MaskHarness-WAM , an instance-grounded har-ness for long-horizon sequential manipulation. The key idea is arXiv:2609.19974v1 [cs.RO] 17 Sep 2026 Task (a) Limited-Horizon Policy     
+
+> Strong local manipulation, but struggles with long-horizon task progression.
+> Current Observation tube 3 tube 1 tube 4 tube 2
+
+✓ ? × ×  
+
+> No explicit target identity / No task-state tracking
+> ✓strong single-step manipulation
+> ×fails at long-horizon task
+
+(b) MaskHarness-WAM   
+
+> Subtask 1: Tube 3
+> Task State: Current Target: 3 Completed: ∅
+> Execute Completion Feedback
+> Subtask 2: Tube 1
+> Task State: Current Target: 1 Completed: {3}
+> Subtask 3: Tube 4
+> Task State: Current Target: 4 Completed: {3, 1}
+> Subtask 4: Tube 2
+> Task State: Current Target: 2 Completed: {3, 1, 4}
+
+MaskHarness-WAM 
+
+> Planning
+> Instruction States
+
+Limited-Horizon Policy           
+
+> Execute Execute Execute
+> Completion Feedback Completion Feedback Completion Feedback
+> Target Mask Target Mask Target Mask Target Mask
+> Memory Evaluation Recovery Execution
+> Current Observation Instruction States
+> “Place test tubes in order [3, 1, 4, 2]”
+> Ambiguous target selection ?
+
+Evaluation      
+
+> Long-Horizon Performance
+> OOD & zero-shot generalization
+> Mixed scene Shape Shift Unseen Bread Color Shift unseen task scales generalization
+> Stronger Scaling Broader Generalization
+> subtask 1 subtask 2 subtask 3 subtask 4
+
+Fig. 1. (a) Given a long-horizon instruction, limited-horizon policies ( e.g. π0 [1] and Fast-WAM [2]) lack explicit instance identity and task-state tracking, leading to ambiguous target selection and failed stage transitions. (b) MaskHarness-WAM wraps the low-level policy with a task-level closed loop. It decomposes the instruction into ordered subtasks, maintains the current target and completed set, verifies a target mask before each execution, and advances only after completion is confirmed. (c) Evaluation shows improved long-horizon performance, together with stronger generalization under appearance shifts, scene-composition changes, geometry shifts, and zero-shot unseen-category transfer. 
+
+to augment a mask-conditioned world action model enhanced with instance-level grounding with an external closed-loop harness. MaskHarness-WAM consists of two tightly coupled components: a task-level harness and a mask-conditioned WAM policy with instance-level grounding. Given a language instruction, the harness decomposes the task into an ordered sequence of subtasks and maintains the execution state, includ-ing the active target instance and completed instances. Before each WAM invocation, the harness grounds the current target instance into an instance-level visual condition by generating and verifying a target mask from the current observation. Only verified masks are provided to the WAM, preventing incorrect target binding from propagating into action generation. The key insight of MaskHarness-WAM is to treat the target mask as a dynamic instance-level interface between task management and manipulation execution. Unlike approaches that provide a single visual prompt for an entire task, our harness updates the target condition at every subtask transition. The completion of one subtask triggers a new target selection and mask generation for the next stage, allowing the same low-level policy to operate on different instances throughout a long-horizon sequence. Conditioned on the verified mask, multi-view observations, robot state, and local instruction, the low-level policy generates a finite-horizon action chunk and executes it on the robot. The resulting observations are fed back to the harness for completion evaluation and task-state updates. By continuously alternating between target ground-ing, policy execution, and state transition, MaskHarness-WAM converts finite-horizon manipulation skills into reliable long-horizon behaviors over multiple identical objects. Our main contributions are summarized as follows: 
+
+• We introduce MaskHarness-WAM , a harness system that extends finite-horizon WAM policies to long-horizon se-quential manipulation without modifying the underlying policy. 
+
+• We propose an instance-grounded coordination mech-anism that dynamically updates and verifies subtask-level target masks, enabling reliable target switching and closed-loop task progression. 
+
+• We demonstrate the effectiveness of MaskHarness-WAM through extensive real-robot experiments, achieving task success rates of at least 84% across the main long-horizon manipulation settings, together with strong out-of-distribution and zero-shot generalization. II. R ELATED WORK 
+
+A. World Action Models and Visual Prompting 
+
+World action models incorporate visual dynamics priors into policy learning by jointly modeling future observations and robot actions, demonstrating strong capabilities in cross-task generalization, future-state representation, and action genera-tion [2]–[4], [19]–[27]. Existing approaches mainly improve the internal capabilities of these models through advances in video prediction, action modeling, and inference efficiency. MaskWAM [18] further introduces masks as both explicit inputs and prediction targets, where future-mask prediction provides semantic supervision over task-relevant regions and the first-frame mask establishes a precise spatial anchor for manipulation. Beyond world action models, structured visual prompts and intermediate representations have been widely explored to improve target grounding in robot manipulation. These representations include points, bounding boxes, and masks [13]–[17], as well as keypoints [28], [29], trajecto-ries [30], [31], object flows [32], and affordance represen-tations [33], [34]. These studies demonstrate that structured visual conditions can improve target awareness and spatial grounding for local manipulation policies. Different from approaches that modify model architectures or training objec-tives, MaskHarness-WAM focuses on how an harness system can verify, maintain, and update visual conditions throughout long-horizon execution. 
+
+B. Robot Task Planning and Harness Systems 
+
+Early language-driven robot systems explored moving high-level reasoning beyond continuous control. Language models can generate executable programs that coordinate perception and control interfaces [35]–[37], or select pretrained manipula-tion primitives and perform task planning with environmental feedback [38]–[41]. Building upon these ideas, embodied har-ness systems emphasize the role of an external runtime layer that connects perception, reasoning, and execution through tool or skill interfaces, while maintaining long-horizon feedback loops through persistent state, outcome evaluation, and failure recovery. Recent works have investigated several aspects of harness-based robot execution, including primitive-level invo-cation of frozen VLAs or WAMs, orchestration and transition across heterogeneous policies, scene-aware context and action termination evaluation, runtime criticism and recovery, skill and context evolution, and semantic action interfaces [6]–[12]. These studies collectively suggest that reliable long-horizon robot behavior depends not only on the capability of low-level policies, but also on how an external system organizes policy invocation and interprets execution outcomes. Following this harness paradigm, our work focuses on sequential manip-ulation of duplicate objects. MaskHarness-WAM addresses two key challenges in long-horizon manipulation: maintaining correct target identity and reliably advancing task progress across multiple execution stages. III. M ETHOD 
+
+A. Task and Problem Formulation 
+
+We study long-horizon robot manipulation tasks specified by complex language instructions, with a particular focus on sequential manipulation involving multiple duplicate objects. Here, duplicate objects refer to multiple instances belonging to the same object category that cannot be reliably distinguished solely by visual attributes such as color, size, or texture. Their identities must therefore be specified through spatial relations, such as “the leftmost object” or “the third object from the left”. Unlike single-step manipulation, these tasks require the robot to continuously operate on multiple instances according to a prescribed order. At each stage, the system must ground the spatial description in the instruction to the correct object instance and determine whether the current operation has been completed based on scene changes. Failure to do so may result in missed targets, repeated operations, or premature stage transitions. Therefore, the problem jointly involves instance-level spatial grounding and cross-stage temporal management. 
+
+B. Mask-Conditioned Policy 
+
+MaskHarness-WAM uses a mask-conditioned world action model as the low-level execution primitive. The policy takes multi-view RGB observations, robot proprioceptive states, a local manipulation instruction, and a target mask, and outputs a finite-horizon bimanual action chunk A1: H ∈ RH×14 , where 
+
+H denotes the action horizon and each action vector has 14 dimensions corresponding to the 7-DoF control of each of the two robot arms. Our focus is not to redesign the underlying WAM, but to enable its reliable reuse across long-horizon tasks by dynamically providing a verified instance-level target condition through the harness. 
+
+Mask Conditioning. The target mask serves as the visual grounding interface between the task-level harness and the low-level WAM. RGB observations and target masks are encoded with the same VAE, and their latent representations are concatenated along the channel dimension before being processed by the visual backbone. The mask is applied only to the head view, which provides a stable global view of all candidate objects, while the mask channels of the two wrist views are set to zero. This preserves the local geometric information from the wrist cameras while grounding target identity in a consistent global reference frame. For each subtask, the harness supplies a verified target mask from the initial observation. The same low-level policy can therefore be re-grounded to different object instances as the task progresses. Importantly, the mask-conditioned policy itself remains unchanged across subtasks; instance switching is handled entirely by the harness through online mask gener-ation, verification, and update. 
+
+Training. During training, the model jointly predicts robot ac-tions, future RGB states, and future target masks. Future-mask prediction provides object-centric supervision that encourages the visual representation to preserve information about the active target throughout robot-object interaction. Target masks used for training are generated with SAM3 [42]. The overall training objective is 
+
+L = Lrgb + Lmask + Lact , (1) where Lrgb supervises future visual prediction, Lmask super-vises future target-mask prediction, and Lact optimizes action generation. MaskHarness-WAM Visual-Guided Harness for Long-Horizon Manipulation 
+
+Subtask 1: object 3 
+
+MaskHarness: Closed-Loop Task Management 
+
+Subtask 2: object 1 Subtask 3: object 4 Subtask 4: object 2 
+
+Planning Memory Evaluation 
+
+> subtask 1 subtask 2 subtask n
+> INITIAL STATE INSTANCE ID CURRENT SUBTASK COMPLETED SET
+
+Recovery    
+
+> SAM3
+> T0T-1 TT+1
+
+Execution Policy Execution Guided by Target Mask 
+
+> “Pick up the rightmost piece of bread, then proceed the others one by one”
+> “order:[1,2,3,4]”
+
+Task Input 
+
+Current Observation 
+
+Video Expert Action Expert   
+
+> Task Instruction Current & Future RGB
+> &&
+> Cur. & Fut. Head Mask Observe
+> Action Predict Predict RGB&MASK
+> Action Predict
+
+Embodied Environment  
+
+> “Place tubes in order[3, 1, 4, 2]”
+> Task Instruction
+> Joint +gripper state
+> Noise Noise
+> CHANNEL CONCAT
+> States
+
+Video Expert Action Expert       
+
+> First Frame Mask
+> subtask 2 place the first test tube
+> Sam3
+> ins.
+> execute
+> overlay frame instruction
+> overlay Subtask begins Executing Completed Next subtask
+> Robot Execution Physical Effect
+> Fresh observation o t+1
+> Verified Mask M k
+> Mask-Guided Policy Execution Action Chunk A t
+> Action Predict Task Instruction States
+> Noise Training Pipeline Inference Pipeline
+> CONCAT
+> Aciton Chunk
+> Action Chunk A t
+> Noise
+
+Fig. 2. Framework of MaskHarness-WAM. Given a language instruction and current observations, the harness plans an ordered sequence of instance-specific subtasks and maintains the active target and execution history. At each subtask boundary, segmentation and visual verification establish a target mask for the low-level policy. Execution feedback determines whether to continue the current subtask or update the task state and switch targets; failed mask verification triggers re-observation and re-segmentation. The same policy is reused across successive targets (top). The lower panel shows joint RGB–mask–action training and action-only inference conditioned on the initial observation and target mask. 
+
+Inference. During real-robot execution, the policy directly predicts a finite-horizon action chunk from the current multi-view observations, proprioceptive state, local manipulation instruction, and the verified target mask from the initial frame. Future RGB observations and future masks are not explicitly generated at inference time. Instead, the target-aware represen-tation learned through future-mask supervision allows a single initial mask to serve as an instance-level anchor throughout the action chunk. As a result, real-robot execution requires only one target mask per policy invocation, without per-frame segmentation or explicit target tracking. 
+
+C. Harness System 
+
+MaskHarness-WAM introduces a task-level closed loop around the low-level manipulation policy. The harness handles task decomposition, state tracking, visual evaluation, recovery, and execution scheduling, while continuous robot actions are generated entirely by the reusable low-level policy. Its role is to determine which subtask should be executed, which object instance should be grounded, and when the system should advance to the next stage. This separation allows a finite-horizon manipulation policy to be composed into feedback-driven long-horizon execution. 
+
+1) Planning. Given a language instruction, the planner de-composes the task into an ordered sequence of subtasks. Each subtask contains a local manipulation instruction and a target instance specified by a spatial relation, such as “leftmost” or “third from the left.” This decomposition separates the global execution order from individual manipulation operations, al-lowing the same low-level policy to be reused across different target instances. 
+
+2) Memory. The harness maintains a compact execution state across subtask boundaries, including the initial state, current subtask, target instance ID, and the set of completed instances. The initial state records the visual observation at the beginning of the active subtask, while the instance ID identifies the current manipulation target. The harness additionally retains the verified target mask associated with the active subtask. Together, these states connect the language-specified task order with online visual observations and provide consistent context for target verification, completion assessment, and task transitions. 
+
+3) Evaluation. Each subtask is controlled by two visual gates: an entry gate for target verification and an exit gate for completion assessment. Both gates are implemented with a vision-language model. At the entry gate, the candidate target mask is overlaid on the full head-view image. The evaluator checks whether the highlighted region corresponds to the target instance specified by the current subtask. Only a verified mask is passed to the low-level policy, preventing incorrect instance grounding from propagating into action generation. At the exit gate, the evaluator compares the current obser-vation with the visual reference captured at the beginning of the subtask and determines whether the expected manipulation outcome has been achieved. If completion is not confirmed, the current subtask remains active. Once completion is ver-ified, the harness marks the current instance as completed and activates the next subtask. The task terminates after all subtasks have been completed. The two gates therefore answer two complementary questions: which instance should be manipulated and when should the task advance .
+
+4) Recovery. Target segmentation may fail because of oc-clusion, illumination changes, or densely arranged duplicate objects. If the entry gate rejects a candidate mask, the harness discards it and keeps the current task state unchanged. It then re-observes the scene, regenerates the target mask, and verifies it again before invoking the low-level policy. This recovery loop prevents incorrect target conditions from reaching the robot controller. The same conservative strategy is applied to task progres-sion. If the exit gate cannot verify completion, the harness remains at the current subtask and gathers new visual evidence rather than advancing prematurely. Recovery therefore protects both instance grounding and cross-stage task transitions. 
+
+5) Execution. Once the target mask is verified, the harness invokes the low-level policy with the current observation, robot state, local instruction, and target mask. The policy generates and executes a finite-horizon action chunk, after which the resulting observation is returned to the harness for completion evaluation. This forms a closed-loop process of target grounding, local execution, visual evaluation, and task transition, enabling the same low-level policy to support long-horizon sequential manipulation. IV. E XPERIMENTS 
+
+A. Experimental Setup 
+
+Tasks. We evaluate MaskHarness-WAM on a real ARX dual-arm 7-DoF robotic platform. The evaluation focuses on two sequential manipulation tasks: 1) block and 2) test-tube . For both tasks, the training set contains only 4-instance demon-strations. Each 4-instance task admits 24 possible execution orders. The training set covers 18 orders for blocks and 15 orders for test tubes, while the remaining orders are reserved for evaluation. At test time, we evaluate 3-, 4-, and 5-instance settings for both tasks, for a total of 6 sequential manipulation settings. Each setting is evaluated over 25 independent trials. The robot must follow the language-specified execution order and select the correct target among visually similar instances. The 3- and 5-instance settings evaluate generalization to task scales and execution horizons unseen during training. The 4-instance setting preserves the training task scale but uses unseen execution orders to evaluate generalization to novel task compositions. We further evaluate robustness under distribution shifts in object appearance, scene composition, and geometry. Finally, we evaluate zero-shot generalization to unseen tasks that are absent from the training set, without any task-specific demonstrations or additional fine-tuning. 
+
+Baselines. We compare MaskHarness-WAM with π0 [1], 
+
+Fast-WAM [2], and MaskWAM [18], which represent general VLA policies, world action models, and mask-conditioned WAMs, respectively. For π0 and Fast-WAM, we use their official open-source implementations. Since MaskWAM had not released its code at the time of our experiments, we reimplemented the method following the details provided in the original paper. All methods use the same robotic platform, RGB camera observations, initial scene distributions, and language instructions, and are evaluated under the same test settings. 
+
+Training and Inference Details. Each training segment con-tains 33 robot time steps, corresponding to an action prediction horizon of H = 32 . The model is trained with a continuous flow matching objective, using 1,000 flow matching time steps and a time shift parameter of 5.0. We optimize the model with AdamW, using an initial learning rate of 1 × 10 −4, weight decay of 0.01, cosine learning rate scheduling, bfloat16 mixed-precision training, and gradient clipping with a maximum norm of 1.0. Training is performed on 8 NVIDIA H20 96GB GPUs. During inference, we use 10 denoising steps, running on a single NVIDIA RTX 5090 32GB GPU. Target masks are generated by SAM3 [42]. The mask verification and subtask completion evaluation modules in the harness are both pow-ered by Qwen3.5 [43]. The two evaluation tasks use the same Qwen3.5, with different visual evidence and prompts. 
+
+Metrics. We use Success Rate (SR) and Progress Rate (PR) as evaluation metrics. A trial is counted as successful only when all subtasks are completed in the specified order. For the i-th trial, let Ki denote the number of subtasks and mi denote the length of the longest correct subtask prefix starting from the beginning of the sequence. The two metrics are defined as 
+
+SR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+I[mi = Ki] , PR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+mi
+
+Ki
+
+. (2) SR measures full-task success, while PR measures the fraction of subtasks completed in the correct order. Progress is defined by the longest correct prefix, so out-of-order operations and subtasks after the first error are not counted. 
+
+B. Main Results 
+
+Table I reports quantitative comparisons among the four methods across different instance scales. The block tasks focus on target selection and sequential control among visually similar instances, while the test tube tasks further evaluate these capabilities under a different object configuration with elongated geometries and tighter placement tolerances. Fig-ure 3 shows representative real-robot execution examples of both tasks. “Place the blue blocks in the designated locations in the left-to-right order 2-1-3-4.” “Sequentially place the four test tubes into the box according to the specified order, starting with the fourth test tube, followed by the second, then the third, and finally the first.” Fig. 3. Real-robot sequential manipulation. Top: four blue blocks are placed in the specified left-to-right index order 2–1–3–4. Bottom: four test tubes are placed into the box in the order 4–2–3–1. Each row shows successive frames from one execution, illustrating target switching and task progression under MaskHarness-WAM. TABLE I SEQUENTIAL MANIPULATION RESULTS (%). 
+
+Method 3 Instances 4 Instances 5 Instances SR PR SR PR SR PR 
+
+Cubes 
+
+π0 [1] 20.0 32.0 28.0 32.0 0.0 8.8 Fast-WAM [2] 24.0 28.0 12.0 16.0 0.0 4.0 MaskWAM [18] 56.0 72.0 8.0 31.0 4.0 23.2 
+
+MaskHarness-WAM 88.0 93.3 84.0 92.0 84.0 91.2 
+
+Test Tubes 
+
+π0 [1] 60.0 65.3 20.0 43.0 0.0 6.4 Fast-WAM [2] 16.0 21.3 0.0 3.0 4.0 5.6 MaskWAM [18] 8.0 45.3 8.0 42.0 0.0 21.6 
+
+MaskHarness-WAM 96.0 97.3 88.0 94.0 88.0 96.0 
+
+Across all six settings, MaskHarness-WAM achieves the highest SR and PR while maintaining stable performance across different instance scales. For block tasks, SR reaches 88.0%, 84.0%, and 84.0% under the 3-, 4-, and 5-instance settings, respectively; for test tube tasks, SR reaches 96.0%, 88.0%, and 88.0%. The lowest PR across the six settings is 91.2%. Performance therefore holds up under both task-scale variations and unseen execution orders. Fast-WAM and MaskWAM degrade clearly across task settings. Even in the four-instance setting, which matches the training task scale, their full-task success rates fall far below MaskHarness-WAM. Both methods achieve relatively high PR in some settings, which indicates that their low-level manipulation remains effective. Their failures instead come from target selection and task progression. Without an explicit mechanism for task-state maintenance and target-condition updating, they struggle to follow the specified order among visually similar instances. 
+
+π0 follows the specified order reasonably well in settings close to the training distribution. Its performance drops under unseen execution orders and varying instance scales, which indicates that its long-horizon generalization remains limited by the training distribution. 
+
+C. Out-of-Distribution Generalization 
+
+We further evaluate MaskHarness-WAM under out-of-distribution (OOD) visual conditions, where the task structure is preserved but the visual distribution differs from training. We consider three OOD settings. (1) Appearance Shift: the robot sequentially manipulates blocks with unseen colors, isolating changes in target appearance. (2) Scene Composition Shift: the robot manipulates bread objects in a mixed scene containing two blocks and two bread instances, introducing an unseen category composition together with distractors. (3) Appearance-and-Geometry Shift: the robot sequentially manipulates red cuboids among blue block distractors, jointly changing target color and geometry. The Appearance Shift setting is evaluated with 25 trials per method, while the other two settings use 12 trials per method. SR and PR are computed according to Eq. (2). In Table II, each entry is reported in the form SR/PR, where the value before the slash denotes SR and the value after the slash denotes PR. Representative scenes are shown in Fig. 4(a)–(c), and quantitative results are reported in Table II. 
+
+TABLE II OOD GENERALIZATION UNDER THREE TYPES OF VISUAL DISTRIBUTION SHIFT (SR/PR, %).               
+
+> OOD Setting π0Fast-WAM MaskWAM MaskHarness-WAM Appearance Shift 4.2/14.6 4.2/11.5 66.7/80.2 91.7/96.9 Scene Composition Shift 8.3/25.0 0.0/12.5 41.7/70.8 91.7/95.8 Appearance-and-Geometry Shift 0.0/16.7 41.7/54.2 58.3/79.2 83.3/83.3
+
+MaskHarness-WAM performs consistently well across all three OOD settings. Under Appearance Shift, it achieves 92.0% SR and 97.0% PR, showing that the instance-level mask condition remains effective when target appearance changes. Under Scene Composition Shift, MaskHarness-WAM completes 11 of 12 trials, achieving 91.7% SR and 95.8% PR. In comparison, MaskWAM, Fast-WAM, and π0 achieve (c) Appearance and Geometry Shift (b) Scene Composition Shift (a) Appearance Shift (d) Unseen Category: Bread Fig. 4. OOD and zero-shot generalization settings. (a) Appearance Shift: sequential manipulation of blocks with unseen colors. (b) Scene Composition Shift: sequential manipulation of bread objects in a mixed scene with block distractors. (c) Appearance and Geometry Shift: sequential manipulation of red cuboids among blue block distractors. (d) Zero-Shot Category Transfer: sequential manipulation of four bread instances without additional training on bread data. 
+
+41.7%/70.8%, 0.0%/12.5%, and 8.3%/25.0%, respectively. While MaskWAM preserves partial progress in several trials, it is less reliable in maintaining correct target selection and task progression through the full sequence. Under the more challenging Appearance-and-Geometry Shift, MaskHarness-WAM achieves 83.3% SR and 83.3% PR, compared with 58.3%/79.2% for MaskWAM, 41.7%/54.2% for Fast-WAM, and 0.0%/16.7% for π0. Overall, the mask-conditioned methods are more robust than the non-mask base-lines under visual distribution shifts, indicating the benefit of explicit instance-level spatial grounding. MaskHarness-WAM further improves over MaskWAM by coupling this grounding with closed-loop target switching and task-state management, leading to more reliable long-horizon execution across changes in appearance, scene composition, and geometry. 
+
+D. Zero-Shot Generalization 
+
+We further evaluate MaskHarness-WAM in two zero-shot settings without additional training or task-specific fine-tuning: Single-Step Transfer and Unseen-Category Transfer. In Single-Step Transfer, the robot must manipulate only the language-specified target among four candidate blocks and terminate immediately after completing the operation. This setting evaluates whether a policy trained on four-step sequential tasks can adapt to a single-step instruction with correct target selection and termination. Since the task contains only one subtask, SR and PR are identical. Each method is evaluated over 4 trials. In Unseen-Category Transfer, the robot must sequentially manipulate four bread instances in the language-specified or-der. Bread objects are never observed during training, making this setting a direct test of instance-level grounding and long-horizon execution on an unseen object category. Each method is evaluated over 25 trials. Figure 4(d) shows the Unseen-Category Transfer setting, and Table III reports the quantitative results.                 
+
+> TABLE III ZERO -SHOT GENERALIZATION UNDER SINGLE -S TEP TRANSFER AND
+> UNSEEN -C ATEGORY TRANSFER (SR/PR, %).
+> Zero-Shot Setting π0Fast-WAM MaskWAM MaskHarness-WAM Single-Step Transfer 0.0/0.0 0.0/0.0 0.0/0.0 100.0/100.0 Unseen-Category Transfer 0.0/4.2 4.2/12.5 16.7/34.4 68.0/77.0
+
+Under Single-Step Transfer, MaskHarness-WAM success-fully selects the specified target, completes the manipulation, and terminates correctly in all 4 trials, achieving 100.0% SR and PR. In contrast, none of the three baselines completes the task successfully. This result shows that the harness can adapt the execution structure from multi-step training tasks to a single-step instruction without additional training. Under Unseen-Category Transfer, MaskHarness-WAM achieves 68.0% SR and 77.0% PR, compared with 16.7%/34.4% for MaskWAM, 4.2%/12.5% for Fast-WAM, and 0.0%/4.2% for π0. Despite the complete absence of bread objects during training, MaskHarness-WAM maintains reliable instance grounding and ordered task progression across the four-step sequence. The large gap over MaskWAM further in-dicates that mask-based grounding alone is insufficient for reli-able long-horizon transfer; closed-loop task-state management is also critical for converting local manipulation capability into complete sequential execution. V. C ONCLUSION 
+
+We introduced MaskHarness-WAM , an instance-grounded harness that extends a mask-conditioned world action model to reliable long-horizon robot manipulation without modifying the underlying low-level policy. By combining subtask-specific target masks with task planning, state tracking, visual verifi-cation, recovery, and execution scheduling, the harness main-tains correct instance grounding and task progression across sequential manipulation stages. Extensive real-robot experi-ments on cube and test-tube tasks, including out-of-distribution and zero-shot settings, demonstrate that MaskHarness-WAM consistently improves long-horizon execution reliability, high-lighting the effectiveness of instance-grounded harnessing for extending finite-horizon manipulation policies to more general robotic tasks. REFERENCES [1] K. Black, N. Brown, D. Driess, A. Esmail, M. Equi, C. Finn, N. Fusai, L. Groom, K. Hausman, B. Ichter et al. , “ π0: A vision-language-action flow model for general robot control,” arXiv preprint arXiv:2410.24164 ,2024. [2] T. Yuan, Z. Dong, Y. Liu, and H. Zhao, “Fast-wam: Do world action models need test-time future imagination?” arXiv preprint arXiv:2603.16666 , 2026. [3] S. Ye, Y. Ge, K. Zheng, S. Gao, S. Yu, G. Kurian, S. Indupuru, Y. L. Tan, C. Zhu, J. Xiang et al. , “World action models are zero-shot policies,” 
+
+> arXiv preprint arXiv:2602.15922 , 2026.
+
+[4] M. Team, C. Xiang, F. Bao, H. Liu, H. Tan, H. Bi, J. Li, J. Liu, J. Pang, K. Jing et al. , “Motubrain: An advanced world action model for robot control,” arXiv preprint arXiv:2604.27792 , 2026. [5] T. Su, J. Zhu, T. Wang, Y. He, Z. Huang, J. Zhang, C. Ma, H. Wang, T. Zhang, M. Yin et al. , “Demavla: A vision-language-action founda-tion model for generalizable deformable manipulation,” arXiv preprint arXiv:2605.31286 , 2026. [6] Y. Zhang, H. Zhang, F. Gao, X. Li, Z. Liu, C. Zhu, J. Qiu, Y. Yan, J. Liu, W. Tang et al. , “Harness vla: Steering frozen vlas into reliable manipulation primitives via memory-guided agents,” arXiv preprint arXiv:2607.08448 , 2026. [7] Z. Gu, B. Zhu, T. Lin, G. Zhu, Y. Chen, K. Wang, T. Yuan, C. Zhao, Z. Li, P. Su et al. , “Harnesswam: Bridging prediction and deliberation in world action models,” arXiv preprint arXiv:2608.09516 , 2026. [8] J. Huang, Y. Hu, Z. Li, R. Qi, Y. Xiao, Z. Zhang, M. Coates, T. Cao, and Y. Zhang, “Roboharness: Memory-driven orchestration of heterogeneous robot policies for long-horizon planning,” arXiv preprint arXiv:2607.18060 , 2026. [9] Q. Wang, T. Wang, C. Li, S. Ban, Y. Chen, Y. Ge, J. Qin, C. Li, and W. Zhu, “Towards the harness of embodied agents,” arXiv preprint arXiv:2608.11246 , 2026. [10] X. Ding, L. Mi, M. Huang, Z. Wang, C. Zhang, Z. Hao, F. Chen, X. Li, Y. Zheng, Y. Guo et al. , “Zetta ζ: An efficient closed-loop embodied harness for self-evolving physical intelligence,” arXiv preprint arXiv:2608.16590 , 2026. [11] P. Wang, Z. Ma, Y. Chang, X. Luo, X. Yang, S. Feng, Y. Yang, and D. Li, “Self-evolving embodied agents via skill-harness evolution,” arXiv preprint arXiv:2608.11350 , 2026. [12] Y. Chen, Z. Bai, Z. Cao, W. Zeng, K. Q. Lin, Y. Lin, G. Liang, K. Y. Ma, Q. Huang, and M. Z. Shou, “Show-harness: Just a vlm agent can play robots,” arXiv preprint arXiv:2609.10522 , 2026. [13] A. Stone, T. Xiao, Y. Lu, K. Gopalakrishnan, K.-H. Lee, Q. Vuong, P. Wohlhart, S. Kirmani, B. Zitkovich, F. Xia et al. , “Open-world object manipulation using pre-trained vision-language models,” arXiv preprint arXiv:2303.00905 , 2023. [14] P. Sundaresan, S. Belkhale, D. Sadigh, and J. Bohg, “Kite: Keypoint-conditioned policies for semantic manipulation,” arXiv preprint arXiv:2306.16605 , 2023. [15] F. Liu, K. Fang, P. Abbeel, and S. Levine, “Moka: Open-world robotic manipulation through mark-based visual prompting,” arXiv preprint arXiv:2403.03174 , 2024. [16] H. Huang, X. Chen, Y. Chen, H. Li, X. Han, Z. Wang, T. Wang, J. Pang, and Z. Zhao, “Roboground: Robotic manipulation with grounded vision-language priors,” in 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . IEEE, 2025, pp. 22 540–22 550. [17] P. Li, Y. Wu, Z. Xi, W. Li, Y. Huang, Z. Zhang, Y. Chen, J. Wang, S.-C. Zhu, T. Liu et al. , “Controlvla: Few-shot object-centric adap-tation for pre-trained vision-language-action models,” arXiv preprint arXiv:2506.16211 , 2025. [18] H. Yu, H. Lin, J. Zhang, W. Zhang, C. Gu, H. Li, and P. Tan, “Maskwam: Unifying mask prompting and prediction for world-action models,” 
+
+arXiv preprint arXiv:2606.13515 , 2026. [19] Y. Du, S. Yang, B. Dai, H. Dai, O. Nachum, J. Tenenbaum, D. Schuur-mans, and P. Abbeel, “Learning universal policies via text-guided video generation,” Advances in neural information processing systems , vol. 36, pp. 9156–9172, 2023. [20] H. Wu, Y. Jing, C. Cheang, G. Chen, J. Xu, X. Li, M. Liu, H. Li, and T. Kong, “Unleashing large-scale video generative pre-training for visual robot manipulation,” in International Conference on Learning Representations , vol. 2024, 2024, pp. 10 641–10 662. [21] C.-L. Cheang, G. Chen, Y. Jing, T. Kong, H. Li, Y. Li, Y. Liu, H. Wu, J. Xu, Y. Yang et al. , “Gr-2: A generative video-language-action model with web-scale knowledge for robot manipulation,” arXiv preprint arXiv:2410.06158 , 2024. [22] H. Bharadhwaj, D. Dwibedi, A. Gupta, S. Tulsiani, C. Doersch, T. Xiao, D. Shah, F. Xia, D. Sadigh, and S. Kirmani, “Gen2act: Human video generation in novel scenarios enables generalizable robot manipulation,” 
+
+arXiv preprint arXiv:2409.16283 , 2024. [23] S. Zhou, Y. Du, J. Chen, Y. Li, D.-Y. Yeung, and C. Gan, “Robodreamer: Learning compositional world models for robot imagination,” arXiv preprint arXiv:2404.12377 , 2024. [24] C. Zhu, R. Yu, S. Feng, B. Burchfiel, P. Shah, and A. Gupta, “Unified world models: Coupling video and action diffusion for pretraining on large robotic datasets,” arXiv preprint arXiv:2504.02792 , 2025. [25] W. Zhang, H. Liu, Z. Qi, Y. Wang, X. Yu, J. Zhang, R. Dong, J. He, H. Wang, Z. Zhang et al. , “Dreamvla: a vision-language-action model dreamed with comprehensive world knowledge,” Advances in Neural Information Processing Systems , vol. 38, pp. 24 195–24 228, 2026. [26] T. Ma, J. Zheng, Z. Wang, C. Jiang, A. Cui, J. Liang, and S. Yang, “Dit4dit: Jointly modeling video dynamics and actions for generalizable robot control,” arXiv preprint arXiv:2603.10448 , 2026. [27] J. Zhang, J. Zhu, T. Su, C. Ma, Z. Huang, Y. Xu, and H. Wang, “Learning 4d geometric priors for inference-efficient world action models,” arXiv preprint arXiv:2607.05468 , 2026. [28] S. Haldar and L. Pinto, “Point policy: Unifying observations and actions with key points for robot manipulation,” arXiv preprint arXiv:2502.20391 , 2025. [29] W. Huang, C. Wang, Y. Li, R. Zhang, and L. Fei-Fei, “Rekep: Spatio-temporal reasoning of relational keypoint constraints for robotic manip-ulation,” arXiv preprint arXiv:2409.01652 , 2024. [30] J. Gu, S. Kirmani, P. Wohlhart, Y. Lu, M. G. Arenas, K. Rao, W. Yu, C. Fu, K. Gopalakrishnan, Z. Xu et al. , “Rt-trajectory: Robotic task generalization via hindsight trajectory sketches,” arXiv preprint arXiv:2311.01977 , 2023. [31] H. Bharadhwaj, R. Mottaghi, A. Gupta, and S. Tulsiani, “Track2act: Predicting point tracks from internet videos enables generalizable robot manipulation,” in European Conference on Computer Vision . Springer, 2024, pp. 306–324. [32] C. Wen, X. Lin, J. So, K. Chen, Q. Dou, Y. Gao, and P. Abbeel, “Any-point trajectory modeling for policy learning,” arXiv preprint arXiv:2401.00025 , 2023. [33] S. Bahl, R. Mendonca, L. Chen, U. Jain, and D. Pathak, “Affordances from human videos as a versatile representation for robotics,” in 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) . IEEE, 2023, pp. 01–13. [34] S. Nasiriany, S. Kirmani, T. Ding, L. Smith, Y. Zhu, D. Driess, D. Sadigh, and T. Xiao, “Rt-affordance: Affordances are versatile intermediate representations for robot manipulation,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2025, pp. 8249–8257. [35] J. Liang, W. Huang, F. Xia, P. Xu, K. Hausman, B. Ichter, P. Florence, and A. Zeng, “Code as policies: Language model programs for embod-ied control,” in 2023 IEEE International conference on robotics and automation (ICRA) . IEEE, 2023, pp. 9493–9500. [36] I. Singh, V. Blukis, A. Mousavian, A. Goyal, D. Xu, J. Tremblay, D. Fox, J. Thomason, and A. Garg, “Progprompt: Generating situated robot task plans using large language models,” arXiv preprint arXiv:2209.11302 ,2022. [37] W. Huang, C. Wang, R. Zhang, Y. Li, J. Wu, and L. Fei-Fei, “Voxposer: Composable 3d value maps for robotic manipulation with language models,” arXiv preprint arXiv:2307.05973 , 2023. [38] M. Ahn, A. Brohan, N. Brown, Y. Chebotar, O. Cortes, B. David, C. Finn, C. Fu, K. Gopalakrishnan, K. Hausman et al. , “Do as i can, not as i say: Grounding language in robotic affordances,” arXiv preprint arXiv:2204.01691 , 2022. [39] W. Huang, F. Xia, T. Xiao, H. Chan, J. Liang, P. Florence, A. Zeng, J. Tompson, I. Mordatch, Y. Chebotar et al. , “Inner monologue: Embod-ied reasoning through planning with language models,” arXiv preprint arXiv:2207.05608 , 2022. [40] K. Rana, J. Haviland, S. Garg, J. Abou-Chakra, I. Reid, and N. Suender-hauf, “Sayplan: Grounding large language models using 3d scene graphs for scalable robot task planning,” arXiv preprint arXiv:2307.06135 ,2023. [41] J. Zhu, J. Zhang, T. Su, T. Liu, Z. Wang, K. Xie, Z. Huang, C. Ma, Y. He, T. Wang et al. , “Dswam: A dual-system world action foundation model for fine-grained robot manipulation,” arXiv preprint arXiv:2607.04927 ,2026. [42] N. Carion, L. Gustafson, Y.-T. Hu, S. Debnath, R. Hu, D. Suris Coll-Vinent, C. Ryali, K. V. Alwala, H. Khedr, A. Huang et al. , “Sam 3: Segment anything with concepts,” in International conference on learning representations , vol. 2026, 2026, pp. 138 846–138 923. [43] A. Yang, A. Li, B. Yang, B. Zhang, B. Hui, B. Zheng, B. Yu, C. Gao, C. Huang, C. Lv et al. , “Qwen3 technical report,” arXiv preprint arXiv:2505.09388 , 2025.
