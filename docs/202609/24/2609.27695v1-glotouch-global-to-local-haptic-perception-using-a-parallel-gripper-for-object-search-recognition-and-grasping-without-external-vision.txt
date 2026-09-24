@@ -1,0 +1,312 @@
+Title: GLoTouch: Global-to-Local Haptic Perception Using a Parallel Gripper for Object Search, Recognition, and Grasping Without External Vision
+
+URL Source: https://arxiv.org/pdf/2609.27695v1
+
+Published Time: Thu, 24 Sep 2026 01:06:42 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# GLoTouch: Global-to-Local Haptic Perception Using a Parallel Gripper for Object Search, Recognition, and Grasping Without External Vision 
+
+Zonglin Li ∗, Wanruo Zhang †, Yiming Wang †, Kun Song ‡, Xinyi Zhou †, and Daolin Ma †
+
+> 1,∗
+
+Independent Researcher 2Shanghai Jiao Tong University 3The University of Hong Kong 
+
+Abstract — Perceiving objects in the environment is a fun-damental capability of autonomous robots. In dark or low-light environments, external cameras often fail to reliably perceive object positions and geometry; when visual sensing is unavailable, completing target search, recognition, and grasp-ing through touch alone becomes a key robot manipulation capability. This task must simultaneously address container-scale spatial exploration and object-scale fine-grained geometric perception, which is particularly challenging for low-degree-of-freedom parallel grippers. However, a unified framework remains lacking for connecting container-scale spatial explo-ration with object-scale fine-grained geometric perception and grasping. To address this challenge, we present GLoTouch, a global-to-local haptic perception and manipulation framework built on a parallel gripper. In the global stage, the gripper holds a passive long-reach probe, combining force measurements with known tool geometry to localize contacts and actively estimate candidate-object positions, coarse contours, and heights. In the local stage, the robot sets down the probe and uses the bilateral visuotactile sensors on the same gripper to directly acquire local haptic observations, which are matched against a given target 3-D model without object-specific training. We evaluate the framework in both simulation and real-robot experiments. Source code will be open-sourced. 
+
+I. INTRODUCTION Robot manipulation typically relies on external vision for object localization, recognition, and grasping. However, in dark warehouses, nighttime cargo areas, or poorly illumi-nated container environments, cameras may fail to capture usable images of the scene; object positions and geometry therefore become unreliable. In such settings, visual failure is not merely degraded perceptual accuracy but a boundary condition for the entire manipulation pipeline. Haptic percep-tion obtains information through physical contact and does not depend on external illumination, line of sight, or target appearance, providing a feasible route to target retrieval without visual observation [1]. This paper investigates how, given only the target object’s 3-D model and without external visual observation, a robot equipped with a parallel gripper can use touch alone to search for, recognize, and retrieve the corresponding target from a multi-object container. Contact-based target retrieval nevertheless presents three difficulties. First, haptic observations are inherently local: information becomes available only through physical inter-action, so the robot must actively explore a container-scale workspace [1], [2]. Second, every observation involves force exchange; pushing or rotating a light, movable object may change its pose, making previously acquired contacts difficult to reuse [3], [4]. Third, global search and local recognition impose different sensing requirements: the former requires long reach and sensitive collision detection, whereas the latter requires stable contact and spatially resolved local geometry [2], [5]. A parallel gripper provides stable bi-lateral contact and simple control, well suited for precise local recognition; extending this capability to container-scale search, however, requires an additional sensing strategy. Prior systems have demonstrated haptic search and re-trieval using multi-fingered hands and learned tactile policies, including TactoFind and TACTFUL [2], [5]. Slender tools and tactile whiskers can extend contact range during global exploration [6], [7], while active tactile methods select and aggregate local contacts for object recognition or geometric reconstruction [8]–[10]. These studies establish important foundations, but how to use a widely available, low-degree-of-freedom parallel gripper to perform both large-scale force-based search and high-resolution local tactile recognition remains less explored. GLoTouch bridges these two scales by temporarily attaching a probe to the gripper while retaining it for the final grasp. Specifically, GLoTouch is a global-to-local haptic frame-work built around the same parallel gripper (Fig. 1). During global search, a tool-geometry-aware exploration procedure temporarily holds a passive long-reach probe: contact mea-surements and known probe geometry support container-scale coverage while estimating candidate-object positions, contours, and heights. The robot then sets down the probe and uses the bilateral visuotactile fingertips to acquire structured local observations. A training-free, coarse-shape-conditioned matcher compares these observations directly with the given 3-D target model and drives recognition and grasping. In this way, one gripper connects large-scale force-based search to high-resolution haptic recognition while retaining its end-effector function for target retrieval. The main contributions of this work are as follows.  
+
+> •
+
+We present GLoTouch , a global-to-local haptic per-ception and manipulation framework that completes container-scale force-based search and object-scale tac-tile recognition with the same parallel gripper in dark or low-light scenes where external vision is unreliable.  
+
+> •
+
+Globally, probe-mediated force exploration estimates candidate object centers, contours, and heights; locally, a training-free finite-window STL matcher directly iden-tifies the target.  
+
+> •
+
+In simulation and real-robot experiments, end-to-end retrieval succeeds at 84.0% and 76.0% in five-object containers, validating tactile-only target retrieval. arXiv:2609.27695v1 [cs.RO] 23 Sep 2026 Target STL Card Workspace Card            
+
+> A Global Haptic Exploration BLocal Haptic Recognition
+> Probe Search Probe Contact Localization
+> Set Down Probe
+> Global candidate Cᵢ
+> command u_t reaction r_t support plane object-facing d_t
+> coverage path frontier candidates contact → trace
+> multi-direction contacts robust circle fit refined center c_i
+> Surrounding touch positioning Ranking & Retrieval
+> Finite-window STL Prediction
+> Stable Tactile Acquisition Fig. 1. GLoTouch pipeline. Given the target STL model and workspace, AGlobal Haptic Exploration performs coverage-driven probe search, tool-geometry-aware contact localization, and surrounding touch positioning to estimate a candidate object Ci. After the probe is set down, BLocal Haptic Recognition acquires stable tactile contacts, predicts finite-window support geometry from the target STL, and ranks candidates for retrieval. The ranking bars in Bare illustrative similarity scores; the implemented decision ranks candidates by matching loss, where lower is better (Sec. V).
+
+II. RELATED WORK 
+
+A. Tactile Object Search and Retrieval 
+
+When darkness or low illumination makes external vision unreliable, active touch provides an alternative route to object localization, discrimination, and target search [11], [12]. TactoFind [2] uses a three-fingered hand with GelSight 360 sensors to perform grid-based vertical probes and learned tactile representations for multi-object retrieval. TACTFUL [5] employs reinforcement learning on a multi-fingered robot to balance workspace coverage and local surface refinement. DexTouch [13] similarly demonstrates that learned tactile policies can coordinate object seeking and manipulation. Closest to our setting, STUCCO [3] retrieves a known-shape object without vision using a parallel-jaw gripper equipped with two soft-bubble tactile sensors, combining particle-filter state estimation with contact data association to track objects that repeated contacts move. These systems demonstrate that multi-object tactile re-trieval without external vision is feasible. TactoFind, TACT-FUL, and DexTouch rely on multi-fingered dexterous hands and learned tactile policies that may require substantial real-robot data. STUCCO shares our parallel-gripper hardware, but maintains explicit pose tracking and contact association as objects are pushed and rotated. In contrast, GLoTouch keeps the simple gripper while changing both components: a passive probe temporarily held by the gripper extends con-tact sensing to container-scale, coverage-driven search, and a training-free finite-window matcher compares structured bilateral tactile observations directly with the target STL in-stead of fusing tracked poses. One gripper therefore switches between probe-mediated exploration, local recognition, and grasping in dark or low-light settings without learned policies or per-object state estimation. 
+
+B. Tool-Mediated Exploration and Extrinsic Contact Sensing 
+
+Without external vision, the key bottleneck in global search is workspace coverage and remote contact sensing. Slender tools and compliant whiskers can reduce the swept cross section in an unknown workspace and extend contact sensing beyond locations directly reachable by the end effector [14]. Xiao et al. [6] combine compliant tactile whiskers with uncertainty-driven path planning for multi-object exploration; Zhao et al. [7] mount a multi-point tactile sensor at the tip of a tool rod and manipulate unknown objects in confined spaces. These studies show the value of tool-mediated contact, but the former requires a dedicated whisker mechanism and the latter an instrumented tool tip. A related body of work senses remote environmental contact from the response generated at the interface between a robot hand and a grasped object, including contact-point estimation for uncalibrated tools [15], transient contact de-tection via fingertip tactile signals [16], extrinsic contact estimation combining distributed tactile sensing with kine-matic constraints [17], and joint estimation of grasped-object motion and contact state [18]. Contact SLAM [19] further combines bilateral visuotactile measurements with a known tool model for probabilistic inference. These studies establish important foundations for sensing extrinsic contact through a grasped tool. GLoTouch uses an uninstrumented, passive spherical-tipped probe solely for global discovery and coarse geometric estimation; the same gripper then performs high-resolution local tactile recogni-tion and target grasping. 
+
+C. Active Tactile Geometry Acquisition and Object Recog-nition 
+
+After global candidate localization, local recognition must still recover discriminative object geometry within a limited contact region. Tactile geometry has long been used for object mapping, recognition, and localization [20], [21]. Because a single tactile observation covers only a limited sur-face region, active tactile recognition must select informative contact actions and aggregate local observations over time. Prior methods have explored object contours, probabilistic surface models, and continuous query path optimization [22]–[24], or construct object models from active contacts [25], [26]. TANDEM3D [8] jointly learns exploration and recognition modules to improve object discrimination; AcT-Explore [27] uses reinforcement learning to improve surface coverage and reconstruction completeness. FingerSLAM [9] jointly recovers object location and geometry through closed-loop state estimation; TouchSDF [10] completes a 3-D sur-face using a learned shape prior. SimPLE [28] demonstrates that high-resolution visuotactile feedback can support precise object localization and placement. These methods primarily address active view selection, observation fusion, or complete reconstruction, and generally assume that the robot already operates near the object of interest. For unconstrained objects in a container, repeated contact and regrasping introduce unknown translations and rotations between tactile observations [4], [29]. Directly fusing all tactile point clouds in a fixed world frame would introduce additional state-estimation and data-association problems. GLoTouch does not aim for complete reconstruction; it selects structured local actions according to the coarse con-tour estimated globally, extracts local tactile geometry and jaw support widths, and compares them directly with the geometry generated from the provided target model. III. PROBLEM FORMULATION AND SYSTEM OVERVIEW 
+
+A. Task Formulation 
+
+The intended deployment setting is a dark or low-light container in which external RGB cameras cannot reliably recover object identity, pose, or geometry, as illustrated in Fig. 2. The robot therefore receives no external camera observation during control; its sensing is restricted to propri-oception, wrist force–torque measurements, fingertip tactile imaging, and known model geometry. For experimental doc-umentation, the photographs shown in this paper are recorded  
+
+> Fig. 2. Task lighting setting: deployment is in darkness or low light; photographs are captured under temporary illumination for documentation only. The controller uses no external visual input.
+
+with temporary illumination, but this illumination is not used by the controller. Let B ⊂ R3 denote the interior workspace of a container and let O = {Oi}Ni=1 denote the physical objects inside it. Their planar locations, poses, and geometries are initially unknown to the robot, although the scene cardinality N is known. The input is a target geometry M⋆ represented as an STL triangle mesh. The task is to explore and locate the object O⋆ ∈ O corresponding to M⋆, identify it, and grasp and retrieve it from the container using touch alone. We assume that the container boundary and robot-to-container registration are known, the objects rest on the container floor, and each object can be reached from above. The objects may translate or rotate when contacted. Success requires the retrieved physical object to match the provided target mesh. 
+
+B. System Setup 
+
+The system consists of a seven-degree-of-freedom Flexiv robot arm, wrist six-axis force–torque sensing, and an Xense parallel gripper. The gripper can pick up a probe with no embedded sensor; environmental contact at its tip is inferred from wrist wrench measurements and robot kinematics. After global exploration, the gripper places the probe at a designated holder and becomes available for direct bilateral contact and grasping. At time t, the global stage observes the TCP transform 
+
+TBE,t ∈ SE (3) and the wrist force–torque wrench wt =[f T 
+
+> t
+
+, τ T 
+
+> t
+
+]T, used for contact detection and safety stopping. The local stage observes the left and right tactile depth maps DLt
+
+and DRt and the parallel-jaw aperture gt; the stable tactile depth and aperture measurements provide the local geometric observation used for model matching. 
+
+C. Global-to-Local Pipeline 
+
+Figure 1 summarizes the two scales of GLoTouch. At the container scale, the held probe moves at a fixed lateral sensing height and performs coverage-driven search; after detecting a contact, multi-directional probing estimates can-didate positions, contours, and heights. At the object scale, the gripper sets down the probe and sequentially contacts each candidate to acquire structured local haptic observa-tions. After all candidates are collected, the observations are matched against the target model and ranked by matching loss; the object with the lowest matching loss is then grasped and retrieved. (a) Wrist force response. (b) Top-down exploration map.      
+
+> Fig. 3. Global exploration and localization. (a) Wrist force magnitude; red arrows mark contact-triggered stops. (b) Exploration trajectory, contact points, estimated object centers, and fitted contours.
+
+IV. PROBE-MEDIATED GLOBAL HAPTIC EXPLORATION 
+
+A. Contact Detection and Active Retreat 
+
+Figure 3 shows a representative force response and the top-down exploration map. Before exploration, the wrist force– torque sensor is zeroed with the tool unloaded. A stationary interval provides a robust wrench baseline ¯w, and the online contact signal is the low-pass-filtered residual 
+
+∆wt = LPF( wt − ¯w). (1) Here wt is the measured wrist wrench and LPF denotes low-pass filtering. For a commanded planar motion direc-tion ut, a normal contact is declared when the opposing directional force and the total force or moment exceed their soft thresholds for a fixed number of consecutive samples. A separate set of absolute and residual wrench limits triggers an immediate hard stop. Soft thresholds preserve sensing sensitivity; hard stops retain an independent safety envelope. Upon detecting a normal contact, motion stops immedi-ately and the onset pose and wrench are retained. The probe retreats a short distance opposite to its approach; contour tracking begins after wrench and Cartesian velocity return to a stable interval. 
+
+B. Tool-Geometry-Aware Contact Localization 
+
+Let P be the known planar cross section of the held probe at the object-height band and let xE,t ∈ R2 be the planar TCP position at contact onset. The measured reaction direction in the base frame is 
+
+rt = ∆f Bt,xy 
+
+∥∆f Bt,xy ∥2
+
+. (2) where ∆f Bt,xy is the filtered planar force residual in the robot base frame. Global search may contact a face or a corner, so the object-facing direction combines the known approach and the opposing reaction, 
+
+dt = ut − rt
+
+∥ut − rt∥2
+
+. (3) For an explicitly radial trace probe, dt = ut after verifying directional consistency. The support distance of the probe in direction dt is 
+
+hP (dt) = max  
+
+> p∈P
+
+dT 
+
+> t
+
+RBE,t p. (4) where p is a probe-section point and RBE,t rotates the probe section into the robot base frame. The environmental contact is represented by the support-plane intercept 
+
+ˆpt = xE,t + hP (dt)dt. (5) An initial object-center hypothesis is placed a nominal radius inside the boundary and refined with each contact. 
+
+C. Coverage-Driven Object Search 
+
+The search policy maintains samples E along the TCP’s executed planar path. Frontier candidates are sampled uni-formly within the permitted container boundary; a candidate 
+
+q remains unexplored when 
+
+min  
+
+> e∈E
+
+∥q − e∥2 > r cov . (6) where e indexes executed-path samples and rcov is the coverage radius. Traced object centers are registered in the policy’s exclusion list; duplicate contacts within a traced object’s envelope are skipped and global search resumes immediately. The nearest unexplored frontier is selected, pro-ducing continuous Cartesian segments through the container. A segment without contact is added to E; a segment with contact switches to local boundary tracing. Search resumes after the object is characterized, continuing until all expected objects are found or the search space is exhausted. 
+
+D. Orbit-and-Probe Contour Estimation 
+
+From the current center estimate ˆc, the robot moves outward to a clearance orbit, follows the orbit in bounded an-gular increments, and approaches radially toward the center. The orbital portion avoids chord paths through the object; the radial portion produces boundary observations with known approach directions. After each accepted contact, the robot retreats and updates the center before planning the next direction, prioritizing the largest uncovered angular interval. For a round-like candidate, planar contact points {ˆpk}Kk=1 
+
+are fit with a circle by minimizing 
+
+min 
+
+> c,ρ K
+
+X
+
+> k=1
+
+ρSL1 (∥ˆpk − c∥2 − ρ) , (7) where K is the number of accepted contacts, c and ρ are the fitted circle center and radius, and ρSL1 is a soft-ℓ1
+
+robust loss. When the circle residual remains high after the minimum number of contacts, additional directions are collected and an oriented rectangle is fitted using point-to-nearest-edge residuals. The selected primitive supplies the center, coarse contour class, scale, and, for a box-like shape, its planar orientation. Finally, the probe is positioned above the fitted center and moves downward under the same guarded contact detector. The object-height estimate is the top-contact height minus the calibrated floor height. The candidate record passed to the local stage is Ci = (ˆ ci, ˆHi, s i, ˆθi, k i, q i), where the (a) Contacts and center estimates.             
+
+> Metric Probe Gripper Center error 0.37 3.15 Contact std 0.84 4.81 Contact RMS 0.87 5.08 Max contact 1.58 6.93 Side error 0.95 5.67
+
+(b) Errors (mm).      
+
+> Fig. 4. Contact-mode validation on a calibration square. (a) Ground truth, contacts, square fits, and centers. (b) Errors from the true contour (mm).
+
+entries denote center, height, scale, planar orientation, coarse contour class ki ∈ { round , box }, and local-fit quality. After all objects are localized, the probe is returned to its holder and the gripper transitions to the local stage. 
+
+E. Contact-Mode Validation 
+
+The global stage relies on probe-mediated contact rather than direct gripper contact. To validate this design choice, both modes execute the same orbit-and-probe procedure on a calibration square with known pose, and the fitted squares are compared against the ground truth (Figure 4). Probe-mediated tracing fits the contour well, while the bare gripper produces noticeably larger center error and contact scatter, together with a misaligned contour fit. This stems from contact localization: the gripper’s large envelope makes face contact and the effective contact point uncertain, validating the necessity of probe-mediated tracing. V. LOCAL HAPTIC RECOGNITION AND TARGET RETRIEVAL 
+
+A. Stable Tactile Acquisition and Quality Assessment 
+
+After global exploration, the robot returns the probe and moves the open gripper above a candidate. At each height layer, the jaws perform a force-limited closure. A layer is accepted only when the aperture reaches a stable plateau and TCP motion is small; the opening is recorded as gk,h , where 
+
+k indexes a closure sequence and h a height layer. Unstable layers are skipped. For each tactile side s ∈ { L, R } and TouchSet j, temporal median filtering gives a depth map Dsj (u, v ). Indentations above a small threshold form a contact mask, and only sufficiently large connected support patches are retained. Fitting a plane to such a patch yields the relative nonplanarity 
+
+ρsj,k = RMS( Dsj − bDsj )
+
+q90 (Dsj ) , (8) where bDsj is the fitted plane and q90 is the 90th-percentile indentation. The sequence-level ρk is the median over valid left/right patches, and qD,k is the fraction of valid tactile patches. Bilateral layers receive the highest weight, unilateral layers are down-weighted, and invalid layers are excluded. 
+
+B. Target-Conditioned Finite-Window Matching 
+
+The global contour selects one of two acquisition modes: round-like candidates are sampled at three independent yaws, whereas rectangular candidates are sampled along three parallel longitudinal tracks. Each candidate therefore yields a TouchSet Dj containing three multi-height sequences. The reference open-TCP positions tk and rotations Rk
+
+infer an action graph. SVD of the centered positions gives longitudinal coordinates ak. With ∆t = max k ak − min k ak
+
+and ∆R = max m<n d(Rm, R n), where d(·, ·) is relative rotation, the soft coupling probability is 
+
+pc =
+
+s
+
+σ
+
+
+
+3 log max(∆ t, ϵ t)
+
+τt
+
+
+
+σ
+
+
+
+−3 log max(∆ R, ϵ R)
+
+τR
+
+
+
+,
+
+(9) where σ(·) is a logistic function, ϵt and ϵR are positive floors, and τt, τ R are reference scales. For the target STL M, let aM denote its horizontal bounding-box anisotropy. For scale s, relative yaw θ, and tactile window W(l, z ), the model predicts support width 
+
+WM(l, z ; s, θ ) = max  
+
+> v∈W (l,z )
+
+c(v) − min  
+
+> v∈W (l,z )
+
+c(v), (10) where l and c(v) are longitudinal and closing-direction coordinates. Surface-normal dispersion dM is calibrated to the sensor-domain prediction ρM .For nuisance parameters s, θ, window shift δ, scan-top offset z0, scan reflection, and aperture bias b, the predicted opening is 
+
+byk,h = WM(ak + δ, z k,h + z0; s, θ ) + b. (11) All residuals use a weighted Huber RMS [30]. The width loss combines absolute, centered, vertical-difference, and cross-action residuals, plus coverage and aperture-bias penalties: 
+
+G = waHa(y − by; w) + wcHc(˜ y − ˜by; w)+ wv Hv (∆ z y − ∆z by; w)+ wxHx(∆ ay − ∆a by; w) + λC (1 − C) + λb
+
+|b|
+
+b0
+
+,
+
+(12) where Ha,c,v,x are weighted Huber RMS operators, wa,c,v,x 
+
+are loss weights, w is observation evidence, C is the finite-support fraction, and b0 normalizes the bias. A coupled branch shares one model pose across the three sequences; an independent branch fits each sequence separately and fuses the losses by median. Each branch objective adds a scale prior λs| log s|, whose weight increases with model anisotropy aM . The width loss is their soft mixture 
+
+Lwidth = pcLcoupled width + (1 − pc)Lindependent width . (13) The local-depth term compares ρk with ρM and weights the residual by model surface information. With IM =
+
+dM /(dM + ϵ), the depth loss is 
+
+Ldepth = median k log 
+
+"
+
+1 + 
+
+ ρk − ρM
+
+σD
+
+2#
+
+mean k(qD,k IM )
+
+(14) Fig. 5. UniVTAC simulation sequence. Blue: probe-mediated global exploration. Black: tactile acquisition. Green: grasping. 
+
+Here σD is the depth-noise scale. Its weight λD = λD, 0/(1+ 
+
+γa M ) decreases with aM because the width profile is already informative for anisotropic targets. A collection-mode con-sistency term 
+
+Lcm = λcm a2 
+
+> M
+
+(1 − pc) (15) penalizes the mismatch between anisotropic models and independently fitted sequences. The final matching loss is 
+
+Lmatch (Dj | M ) = Lwidth + λD Ldepth + Lcm . (16) 
+
+C. Ranking and Target Grasping 
+
+For a fixed target mesh M, the matcher ranks all touched physical TouchSets by Lmatch (Dj | M). A decision is accepted only when the best candidate has sufficient first– second loss margin, absolute fit quality, and tactile evidence. The grasp center is corrected by the local contact center, the rectangular orientation is initialized from the global major direction, and the gripper closes under the same force limit before lifting the selected object. VI. EXPERIMENTS 
+
+A. Simulation Benchmark 
+
+We port the full exploration–retrieval pipeline to UniVTAC [31]. STL objects are converted to UIPC bodies to obtain deformable fingertip contact, but these bodies are outside the PhysX contact-reporting pipeline, whereas blind explo-ration relies on collision-triggered stopping and orbit tracing. During exploration, each object therefore has a co-located PhysX proxy with identical geometry and pose registered to the robot contact pipeline. After a candidate is localized, the proxy is removed and the UIPC body takes over guarded descent and removal at the same task state. The probe is modeled as a rigid body with a ContactSensor, so remote collisions enter the controller as wrench readings, consistent with real-robot inference from TCP wrench. Fig. 5 shows the simulation environment. Table II reports per-target end-to-end retrieval in the five-object simulation benchmark; each target is evaluated in 20               
+
+> TABLE I GLOBAL -SEARCH ABLATION ON 100 RANDOMIZED FIVE -OBJECT LAYOUTS . D ISCOVERED VALUES ARE ORDERED AS 1/3/5 M BUDGETS ;
+> COMPLETE DISCOVERY IS AT 5M.Method Mean discovered (/5) Complete at 5 m (%) Random descent 1.23/3.17/4.02 30.0 Global search 1.35/3.30/4.44 55.0 TABLE II SIMULATION RETRIEVAL BY TARGET IN FIVE -OBJECT SCENES . E ACH TARGET IS EVALUATED IN 20 TRIALS .
+
+Target Wukong Nailong Apple Train Truck Total Successes 16/20 19/20 20/20 14/20 15/20 84/100 
+
+randomized trials, 100 in total. GLoTouch retrieves 84 of the 100 targets (84.0%). Apple is the most reliably retrieved tar-get (20/20, 100.0%), while Train is the most difficult (14/20, 70.0%). Failures mainly arise from exploration runs that do not discover all candidates, occasional simulator runtime failures, and the largest recognition confusion, between Train and Truck. We additionally test whether global search is necessary using a no-global-search/random-descent baseline on 100 randomized five-object layouts. The baseline has no contact map or frontier selection: it samples a random descent site, moves there without sweep detection, descends vertically, and uses the same local centering procedure under the same budget. As shown in Table I, random descent discovers fewer objects at every budget and completes all five discoveries in only 30% of layouts with a 5 m budget, compared with 55% for coverage-driven search. This gap shows that random descents can find isolated objects but structured global search improves complete scene discovery. 
+
+B. Local Tactile Matching Validation 
+
+Before evaluating the full pipeline on hardware, we val-idate the local matcher as an independent component. This isolates model-conditioned recognition from global search and grasping. The evaluation uses 60 target/phase samples from five physical objects. Each trial compares a target mesh against a TouchSet assembled from three acquisition sequences of the same physical object. Different phases reuse different sequence subsets, so the protocol measures target-conditioned matching under repeated contact. With param-eters frozen before these trials, the full matcher achieves 90.0% Top-1 accuracy (54/60) with a mean first–second loss margin of 0.402. Width/action matching alone obtains 68.3% (41/60) and 0.267. Adding local depth changes the result to 78.3% (47/60) and 0.343; adding collection-mode consistency gives the full-method result. Table III shows that correct pairings receive distinctly lower matching loss: rows are target STLs, columns are physical objects, and each column averages the losses over that object’s phase TouchSets. Specifically, the matrix should be read row by row: each row fixes a specified target STL and evaluates it against TouchSets from all physical objects. Within a TABLE III MEAN MATCHING -LOSS MATRIX UNDER THE FULL MATCHER . R OWS :                                           
+
+> TARGET STL S;COLUMNS :PHYSICAL OBJECTS . D IAGONAL ENTRIES :
+> CORRECT PAIRINGS .STL \Object Nailong Wukong Train Apple Truck Nailong 0.27 0.48 2.40 0.65 1.69 Wukong 1.02 0.54 2.27 1.47 1.85 Train 1.87 1.33 0.78 1.37 0.93 Apple 1.59 0.89 2.96 0.08 2.24 Truck 1.91 2.02 2.05 1.25 0.90
+> TABLE IV PROGRESSIVE ABLATION ON THE FIVE -OBJECT DEVELOPMENT SET .MARGIN IS THE MEAN FIRST –SECOND LOSS DIFFERENCE UNDER EACH METHOD ’S OWN LOSS SCALE AND IS NOT DIRECTLY COMPARABLE ACROSS ROWS .Method Top-1 (%) Margin Width/action only 68.3 0.267 + Local depth 78.3 0.343 + Collection-mode prior (Full) 90.0 0.402
+
+row, the lowest-loss column is the recognition decision, and the diagonal corresponds to the correct physical object. Therefore, differences among cells in a row measure the discrimination margin for that target, whereas a column only averages the same physical object’s TouchSet losses against different STLs and is not itself a separate recognition decision. Table IV reports the progressive ablation. 
+
+C. Real-Robot Experiments 
+
+Real experiments use the Flexiv and Xense setup described in Sec. III. The robot receives the target STL mesh and known scene cardinality, but not target identity, object poses, or contact correspondences. Five-object scenes contain one target and four distractors. Object poses and yaws are sam-pled randomly without collision. The object set contains five 3-D-printed objects (Wukong, Nailong, Apple, Train, and Truck), as visible in Fig. 6. All contact, acquisition, and matching parameters are frozen before any reported trial and are never adjusted per object or per scene. External measurements are used only for ground-truth annotation and visualization. End-to-end success requires discovering the target, identi-fying it correctly, establishing a grasp, and lifting it clear of the container without external visual input or human correc-tion. In the five-object benchmark, each target is evaluated in 10 randomized trials, giving 50 real-robot trials in total. GLoTouch retrieves the specified target in 38 trials, yielding a 76.0% end-to-end success rate. Table V reports the per-target results. Apple achieves 100.0% retrieval, whereas Train is the most difficult target with a 50.0% success rate; Wukong, Nailong, and Truck achieve 70.0–80.0%. Failure analysis shows that the main recognition errors occur between Train and Truck, and the failure direction is relatively clear: a specified Train target is grasped as Truck. This outcome is consistent with the component-level matrix   
+
+> TABLE V REAL -ROBOT END -TO -END RETRIEVAL BY TARGET IN FIVE -OBJECT SCENES . E ACH TARGET IS EVALUATED IN 10 TRIALS .
+
+Target Wukong Nailong Apple Train Truck Total Successes 7/10 8/10 10/10 5/10 8/10 38/50  
+
+> Fig. 6. Real-robot five-object sequence. Red: global probe search. Blue: probe return and local recognition. Green: target retrieval. Dark frames indicate a temporary lights-off period; the tactile-driven pipeline continues to execute.
+
+in Table III: for the Train target, the Train STL obtains 0.78 on the Train TouchSet and 0.93 on the Truck TouchSet, yielding only a 0.15 mean margin, whereas the Truck target obtains 0.90 on the Truck TouchSet and 2.05 on the Train TouchSet. The other failure mode arises during physical execution. Objects can rotate slightly under probe contact during tactile acquisition, shifting the local observations relative to the target-model acquisition mode. When grasping Train and Truck, objects can also topple during clamping, so retrieval fails after reaching the grasping stage. These remaining failures therefore reflect both the boundary of local geometric discrimination and the stability of physical manipulation. Figure 6 illustrates a representative five-object run in three rows. The red row shows the gripper-held probe performing contact-driven global search in the container. The blue row shows local bilateral fingertip acquisition after the probe is returned; its darkened images correspond to the temporary low-light operating condition. The green row shows the system grasping and lifting the object with the lowest match-ing loss. Thus, the tactile-driven pipeline remains active across global search, recognition, and retrieval despite the illumination change. VII. CONCLUSION We presented GLoTouch, a global-to-local haptic percep-tion and manipulation framework for retrieving a model-specified object from a multi-object container without ex-ternal vision. A parallel gripper temporarily holds a pas-sive spherical-tipped probe for coverage-driven force-based search, tool-aware contact localization, and coarse contour and height estimation; it then sets down the probe and uses the same gripper’s bilateral visuotactile sensors for shape-conditioned, multi-height contact acquisition, which finite-window support geometry links directly to the target STL without object-specific training. Experiments show that this global-to-local coupling is effective: coverage-driven global search completes all discoveries in 55% of 100 randomized five-object layouts, compared with 30% for random descent; the component-level matcher achieves 90.0% Top-1 accu-racy over 60 target/phase samples; and end-to-end retrieval reaches 84.0% (84/100) in simulation and 76.0% (38/50) on hardware in five-object scenes, with remaining failures concentrated on closely matched Train/Truck geometry and physical stability during clamping. Current boundaries point directly to future work. The system currently assumes a known target STL, top-accessible objects, and a registered container frame. Within this set-ting, the local matcher does not yet exploit the visuotactile RGB channel, and coarse contours use only round and box primitives. Future work will enrich local cues with the RGB tactile channel, reduce reliance on known target models through model-free recognition, extend coarse shape models beyond round and box-like objects, select local touches online according to matching uncertainty, and ultimately address dense clutter in which the target’s top is not initially accessible. Larger-scale real-robot validation will accompany these extensions. REFERENCES [1] Q. Li, O. Kroemer, Z. Su, F. F. Veiga, M. Kaboli, and H. J. Ritter, “A review of tactile information: Perception and action through touch,” 
+
+IEEE Transactions on Robotics , vol. 36, no. 6, pp. 1619–1634, 2020. [2] S. Pai, T. Chen, M. Tippur, E. Adelson, A. Gupta, and P. Agrawal, “Tactofind: A tactile only system for object retrieval,” arXiv preprint arXiv:2303.13482 , 2023. [3] S. Zhong, N. Fazeli, and D. Berenson, “Soft tracking using contacts for cluttered objects to perform blind object retrieval,” IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 3507–3514, 2022. [4] S. Suresh, M. Bauza, K.-T. Yu, J. G. Mangelson, A. Rodriguez, and M. Kaess, “Tactile slam: Real-time inference of shape and pose from planar pushing,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2021, pp. 11 322–11 328. [5] S. Kamtikar, C. H. Kim, C. Tabasso, T. Brady, J. Migdal, and T. Padir, “Tactful: Tactile-driven exploration for object localization and identi-fication in confined environments,” arXiv preprint arXiv:2606.24712 ,2026. [6] C. Xiao, S. Xu, W. Wu, and J. Wachs, “Active multiobject exploration and recognition via tactile whiskers,” IEEE Transactions on Robotics ,vol. 38, no. 6, pp. 3479–3497, 2022. [7] X. Zhao, W. Liang, X. Zhang, C. M. Chew, and Y. Wu, “Unknown object retrieval in confined space through reinforcement learning with tactile exploration,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2024, pp. 10 881–10 887. [8] J. Xu, H. Lin, S. Song, and M. Ciocarlie, “Tandem3d: Active tactile exploration for 3d object recognition,” in 2023 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2023, pp. 10 401–10 407. [9] J. Zhao, M. Bauza, and E. H. Adelson, “Fingerslam: Closed-loop unknown object localization and reconstruction from visuo-tactile feedback,” in 2023 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2023, pp. 8033–8039. [10] M. Comi, Y. Lin, A. Church, A. Tonioni, L. Aitchison, and N. F. Lepora, “Touchsdf: A deepsdf approach for 3d shape reconstruction using vision-based tactile sensing,” IEEE Robotics and Automation Letters , vol. 9, no. 6, pp. 5719–5726, 2024. [11] A. Petrovskaya and O. Khatib, “Global localization of objects via touch,” IEEE Transactions on Robotics , vol. 27, no. 3, pp. 569–585, 2011. [12] M. Kaboli, K. Yao, D. Feng, and G. Cheng, “Tactile-based active ob-ject discrimination and target object search in an unknown workspace,” 
+
+Autonomous Robots , vol. 43, no. 1, pp. 123–152, 2019. [13] K.-W. Lee, Y. Qin, X. Wang, and S.-C. Lim, “Dextouch: Learning to seek and manipulate objects with tactile dexterity,” IEEE Robotics and Automation Letters , vol. 9, no. 12, pp. 10 772–10 779, 2024. [14] C. Fox, M. Evans, M. Pearson, and T. Prescott, “Tactile slam with a biomimetic whiskered robot,” in 2012 IEEE International Conference on Robotics and Automation . IEEE, 2012, pp. 4925–4930. [15] Y. Karayiannidis, C. Smith, F. E. Vina, and D. Kragic, “Online contact point estimation for uncalibrated tool use,” in 2014 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2014, pp. 2488–2494. [16] A. Molchanov, O. Kroemer, Z. Su, and G. S. Sukhatme, “Contact lo-calization on grasped objects using tactile sensing,” in 2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) .IEEE, 2016, pp. 216–222. [17] D. Ma, S. Dong, and A. Rodriguez, “Extrinsic contact sensing with relative-motion tracking from distributed tactile measurements,” in 
+
+2021 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2021, pp. 11 262–11 268. [18] S. Kim, D. K. Jha, D. Romeres, P. Patre, and A. Rodriguez, “Simul-taneous tactile estimation and control of extrinsic contact,” in 2023 IEEE International Conference on Robotics and Automation (ICRA) .IEEE, 2023, pp. 12 563–12 569. [19] G. Wang, X. Liu, Z. Ye, Z. Liu, and P. Huang, “Contact slam: An active tactile exploration policy based on physical reasoning utilized in robotic fine blind manipulation tasks,” arXiv preprint arXiv:2512.10481 , 2025. [20] Z. Pezzementi, C. Reyda, and G. D. Hager, “Object mapping, recognition, and localization from tactile geometry,” in 2011 IEEE International Conference on Robotics and Automation . IEEE, 2011, pp. 5942–5948. [21] M. Bauza, O. Canal, and A. Rodriguez, “Tactile mapping and local-ization from high-resolution tactile imprints,” in 2019 International Conference on Robotics and Automation (ICRA) . IEEE, 2019, pp. 3811–3817. [22] U. Martinez-Hernandez, G. Metta, T. J. Dodd, T. J. Prescott, L. Natale, and N. F. Lepora, “Active contour following to explore object shape with robot touch,” in 2013 World Haptics Conference (WHC) . IEEE, 2013, pp. 341–346. [23] Z. Yi, R. Calandra, F. Veiga, H. van Hoof, T. Hermans, Y. Zhang, and J. Peters, “Active tactile object exploration with gaussian processes,” in 2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2016, pp. 4925–4930. [24] D. Driess, P. Englert, and M. Toussaint, “Active learning with query paths for tactile object shape exploration,” in 2017 IEEE/RSJ Interna-tional Conference on Intelligent Robots and Systems (IROS) . IEEE, 2017, pp. 65–72. [25] N. Jamali, C. Ciliberto, L. Rosasco, and L. Natale, “Active perception: Building objects’ models using tactile exploration,” in 2016 IEEE-RAS 16th International Conference on Humanoid Robots (Humanoids) .IEEE, 2016, pp. 179–185. [26] S. Fleer, A. Moringen, R. L. Klatzky, and H. Ritter, “Learning efficient haptic shape exploration with a rigid tactile sensor array,” PloS one ,vol. 15, no. 1, p. e0226880, 2020. [27] A.-H. Shahidzadeh, S. J. Yoo, P. Mantripragada, C. D. Singh, C. Ferm¨ uller, and Y. Aloimonos, “Actexplore: Active tactile explo-ration on unknown objects,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2024, pp. 3411–3418. [28] M. Bauza, A. Bronars, Y. Hou, I. Taylor, N. Chavan-Dafle, and A. Rodriguez, “Simple, a visuotactile method learned in simulation to precisely pick, localize, regrasp, and place objects,” Science Robotics ,vol. 9, no. 91, p. eadi8808, 2024. [29] M. C. Koval, N. S. Pollard, and S. S. Srinivasa, “Pose estimation for planar contact manipulation with manifold particle filters,” The International Journal of Robotics Research , vol. 34, no. 7, pp. 922– 945, 2015. [30] P. J. Huber, “Robust estimation of a location parameter,” in Break-throughs in statistics: Methodology and distribution . Springer, 1992, pp. 492–518. [31] B. Chen, W. Wan, T. Chen, X. Guo, C. Xu, Y. Qi, H. Zhang, L. Wu, T. Xu, Z. Li et al. , “Univtac: A unified simulation platform for visuo-tactile manipulation data generation, learning, and benchmarking,” 
+
+arXiv preprint arXiv:2602.10093 , 2026.

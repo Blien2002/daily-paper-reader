@@ -1,0 +1,848 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-24T21:58:45.624372+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 11,
+    "deep_cap": 7,
+    "deep_selected": 7,
+    "quick_candidates": 12,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2609.18197v1",
+      "source": "arxiv",
+      "title": "WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors",
+      "abstract": "Humanoid whole-body manipulation requires coordinated whole-body dynamics, yet large-scale trajectories from a target robot are expensive to collect and difficult to scale. In contrast, whole-body motion from human and humanoid sources is abundantly available, although such data cannot be directly used as embodiment-specific robot actions. This work asks whether these scalable motion resources can instead provide a transferable predictive prior for humanoid world-action modeling. We introduce WholeBodyWAM, a humanoid world-action model that learns whole-body dynamics from large-scale heterogeneous motion before target-robot training. We curate UniMotion-4K, a motion corpus spanning more than 4K hours from human videos, native 3D motion datasets, and heterogeneous humanoid platforms, and canonicalize these diverse sources into a unified motion space. A language-conditioned Motion Expert is then pretrained to predict future whole-body motion without target-robot action supervision. During robot post-training, the pretrained Motion Expert is integrated with Video and Action Experts through asymmetric Mixture-of-Transformers (MoT) attention, enabling predictive scene dynamics and whole-body motion to jointly inform embodiment-specific action generation. Experiments show that WholeBodyWAM consistently benefits from increased motion-pretraining scale, improves future-motion prediction and downstream task performance, and transfers effectively to real-world humanoid manipulation. Moreover, the pretrained motion prior substantially improves data efficiency under limited target-robot demonstrations.",
+      "authors": [
+        "Bowei Zhang",
+        "Qiyao Zhang",
+        "Shuanghao Bai",
+        "Xinhua Wang",
+        "Meng Li",
+        "Yilei Wang",
+        "Leiwang Zhang",
+        "Jian Tang",
+        "Lu Zhou",
+        "Lei Sun",
+        "Zhengping Che"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T06:32:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.18197v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Whole-body world action model using large-scale human motion priors for humanoid manipulation",
+      "llm_evidence_cn": "使用大规模人体运动先验的全身世界动作模型用于人形机器人操作",
+      "llm_evidence": "使用大规模人体运动先验的全身世界动作模型用于人形机器人操作",
+      "canonical_evidence": "使用大规模人体运动先验的全身世界动作模型用于人形机器人操作",
+      "llm_tldr_en": "Proposes WholeBodyWAM, a humanoid world-action model that leverages large-scale human motion data as a transferable prior to learn whole-body dynamics before target-robot training.",
+      "llm_tldr_cn": "针对人形机器人全身操作数据稀缺的问题，提出WholeBodyWAM，利用大规模人体运动数据作为可迁移先验，学习全身动力学模型。构建了包含4K小时运动的UniMotion-4K语料库。实验表明该先验能有效提升目标机器人的全身操作学习效率。",
+      "llm_tldr": "针对人形机器人全身操作数据稀缺的问题，提出WholeBodyWAM，利用大规模人体运动数据作为可迁移先验，学习全身动力学模型。构建了包含4K小时运动的UniMotion-4K语料库。实验表明该先验能有效提升目标机器人的全身操作学习效率。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.21948v1",
+      "source": "arxiv",
+      "title": "GALA: Geometry-Aware Latent Action Modeling for Vision-Language-Action Model Pretraining across Embodiments",
+      "abstract": "Learning large-scale vision-language-action (VLA) models from multi-embodiment datasets remains challenging due to heterogeneous action spaces across end effectors. Although latent action models (LAMs) can learn embodiment-agnostic action representations from diverse video data, existing image-based LAMs often fail to capture fine-grained end-effector articulation, particularly finger-level geometric changes in human and dexterous robot hands. To address this limitation, we propose GALA, a Geometry-Aware Latent-Action modeling framework that augments image-based latent actions with 3D end-effector geometric motion. However, naively incorporating point clouds yields fine-grained action representations with limited shared semantics, hindering cross-embodiment pretraining. To address this issue, we introduce the Unified End-effector Motion Representation (UEMR), which preserves fine-grained motion information while improving the cross-embodiment generalizability of latent actions. Building upon UEMR, GALA combines visual latent actions that capture scene-level dynamics with geometric latent actions that capture shared fine-grained end-effector articulation, providing effective supervision for VLA pretraining from multi-embodiment data, including action-free ego-centric human videos. Experiments on fine-grained motion probing, cross-embodiment retrieval, and downstream VLA evaluation demonstrate GALA's effectiveness in modeling generalizable fine-grained motions across embodiments, achieving 68.3% RoboCasa-GR1 success rate and 75.5% real-world success rate. Code, appendix, and demos are available at https://puzhenyuan.github.io/GALA-website/.",
+      "authors": [
+        "Yichen Liu",
+        "Puzhen Yuan",
+        "Xiang Zhu",
+        "Yanjiang Guo",
+        "Jianyu Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-09-18T16:05:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.21948v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Geometry-aware latent action modeling for VLA model pretraining across embodiments",
+      "llm_evidence_cn": "用于跨具身VLA模型预训练的几何感知潜在动作建模",
+      "llm_evidence": "用于跨具身VLA模型预训练的几何感知潜在动作建模",
+      "canonical_evidence": "用于跨具身VLA模型预训练的几何感知潜在动作建模",
+      "llm_tldr_en": "GALA addresses the challenge of learning heterogeneous action spaces in large-scale VLA pretraining across embodiments. It proposes a Geometry-Aware Latent-Action modeling framework that augments image-based latent actions with 3D end-effector geometric motion, enabling capture of fine-grained finger-level articulation. The framework improves embodiment-agnostic action representations for dexterous manipulation.",
+      "llm_tldr_cn": "现有多具身VLA模型预训练中，基于图像的潜在动作模型难以捕捉末端执行器细粒度关节运动，尤其是手指级几何变化。GALA提出几何感知潜在动作建模框架，将3D末端执行器几何运动与图像潜在动作结合，提升了对人手和灵巧机器人手指级变化的表示能力。该方法为跨具身VLA预训练提供了更精细的动作表征，推动了基础模型的发展。",
+      "llm_tldr": "现有多具身VLA模型预训练中，基于图像的潜在动作模型难以捕捉末端执行器细粒度关节运动，尤其是手指级几何变化。GALA提出几何感知潜在动作建模框架，将3D末端执行器几何运动与图像潜在动作结合，提升了对人手和灵巧机器人手指级变化的表示能力。该方法为跨具身VLA预训练提供了更精细的动作表征，推动了基础模型的发展。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.24976v1",
+      "source": "arxiv",
+      "title": "DexTacWAM: A Visuo-Tactile World-Action Model for Dexterous Manipulation",
+      "abstract": "Dexterous manipulation depends on contact dynamics that are often only partially observable from vision. Recent World-Action Models (WAMs) couple predictive video world modeling with action generation, but remain largely vision-centric and therefore cannot directly model these contact dynamics. We present DexTacWAM, a visuo-tactile WAM that encodes each fingertip independently, aggregates the resulting features through a finger- and pose-aware tactile compressor, and injects the tactile latent into a video diffusion world model for joint visuo-tactile world modeling. Across six contact-rich dexterous manipulation tasks on a 22-DoF bimanual platform, DexTacWAM achieves the highest score on every task, averaging 70.6 versus 38.0 for the strongest baseline. Ablations attribute the gain to modeling contact evolution as part of the predicted world state rather than tactile conditioning alone: removing tactile world modeling reduces the four-task mean from 74.7 to 26.6 while keeping the same tactile features and action expert. After four hours of tactile-encoder adaptation with a frozen pretrained vision VAE, our continual vision-to-touch learning extends the pretrained video model to touch using roughly 100 demonstrations per task without tactile midtraining, while retaining visual prediction quality within 0.5 dB of vision-only counterparts. The compressor retains 89.4% of pre-fusion contact recall while enabling 2.26x faster training and 1.29x faster inference. Together, these results show that pretrained video priors can be extended to distributed multi-finger contact dynamics in a data- and compute-efficient manner.",
+      "authors": [
+        "Haoran Yuan",
+        "Zekai Wang",
+        "Boning Shao",
+        "Haoran Lu",
+        "Trevor Darrell",
+        "Ismini Lourentzou",
+        "Wei Zhan"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-09-21T17:55:24+00:00",
+      "link": "https://arxiv.org/pdf/2609.24976v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Visuo-tactile World-Action Model for dexterous manipulation, central to VLA+WAM theme",
+      "llm_evidence_cn": "视觉-触觉世界-动作模型，属于VLA与WAM主题核心",
+      "llm_evidence": "视觉-触觉世界-动作模型，属于VLA与WAM主题核心",
+      "canonical_evidence": "视觉-触觉世界-动作模型，属于VLA与WAM主题核心",
+      "llm_tldr_en": "DexTacWAM is a visuo-tactile world-action model that encodes per-fingertip tactile features and injects them into a video diffusion world model, improving dexterous manipulation across contact-rich tasks.",
+      "llm_tldr_cn": "现有世界-动作模型主要依赖视觉，难以建模接触动力学。该论文提出 DexTacWAM，将每个指尖的触觉特征经压缩后注入视频扩散世界模型，实现视觉-触觉联合世界建模。在六个接触丰富的灵巧操作任务上，DexTacWAM 平均得分70.6，远超基线，表明触觉感知对灵巧操作至关重要。",
+      "llm_tldr": "现有世界-动作模型主要依赖视觉，难以建模接触动力学。该论文提出 DexTacWAM，将每个指尖的触觉特征经压缩后注入视频扩散世界模型，实现视觉-触觉联合世界建模。在六个接触丰富的灵巧操作任务上，DexTacWAM 平均得分70.6，远超基线，表明触觉感知对灵巧操作至关重要。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.27695v1",
+      "source": "arxiv",
+      "title": "GLoTouch: Global-to-Local Haptic Perception Using a Parallel Gripper for Object Search, Recognition, and Grasping Without External Vision",
+      "abstract": "Perceiving objects in the environment is a fundamental capability of autonomous robots. In dark or low-light environments, external cameras often fail to reliably perceive object positions and geometry; when visual sensing is unavailable, completing target search, recognition, and grasping through touch alone becomes a key robot manipulation capability. This task must simultaneously address container-scale spatial exploration and object-scale fine-grained geometric perception, which is particularly challenging for low-degree-of-freedom parallel grippers. However, a unified framework remains lacking for connecting container-scale spatial exploration with object-scale fine-grained geometric perception and grasping. To address this challenge, we present \\textbf{GLoTouch}, a global-to-local haptic perception and manipulation framework built on a parallel gripper. In the global stage, the gripper holds a passive long-reach probe, combining force measurements with known tool geometry to localize contacts and actively estimate candidate-object positions, coarse contours, and heights. In the local stage, the robot sets down the probe and uses the bilateral visuotactile sensors on the same gripper to directly acquire local haptic observations, which are matched against a given target 3-D model without object-specific training. We evaluate the framework in both simulation and real-robot experiments. Source code will be open-sourced.",
+      "authors": [
+        "Zonglin Li",
+        "Wanruo Zhang",
+        "Yiming Wang",
+        "Kun Song",
+        "Xinyi Zhou",
+        "Daolin Ma"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-23T11:16:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.27695v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Haptic perception for touch-based object search and grasping without vision",
+      "llm_evidence_cn": "无视觉情况下基于触觉的物体搜索与抓取",
+      "llm_evidence": "无视觉情况下基于触觉的物体搜索与抓取",
+      "canonical_evidence": "无视觉情况下基于触觉的物体搜索与抓取",
+      "llm_tldr_en": "GLoTouch proposes a global-to-local haptic perception framework enabling parallel grippers to search, recognize, and grasp objects using touch alone. It addresses the failure of external cameras in dark environments and unifies container-scale exploration with object-scale geometric perception. The framework is evaluated on touch-only object manipulation tasks and shows promising performance.",
+      "llm_tldr_cn": "在黑暗或低光环境中，外部相机往往失效，机器人需要仅靠触觉完成物体搜索与抓取。该文提出全局到局部的触觉感知框架，连接容器级空间探索与物体级精细几何感知，适用于低自由度平行夹爪。实验表明该方法能在无视觉条件下实现物体搜索、识别与抓取，为触觉驱动的机器人操作提供了新思路。",
+      "llm_tldr": "在黑暗或低光环境中，外部相机往往失效，机器人需要仅靠触觉完成物体搜索与抓取。该文提出全局到局部的触觉感知框架，连接容器级空间探索与物体级精细几何感知，适用于低自由度平行夹爪。实验表明该方法能在无视觉条件下实现物体搜索、识别与抓取，为触觉驱动的机器人操作提供了新思路。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "haptic sensing",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.28431v1",
+      "source": "arxiv",
+      "title": "LiMA: Bridging Long-term Imagination to Real-time Dexterous Manipulation via Asynchronous Diffusion",
+      "abstract": "Dexterous manipulation demands long-term foresight and rapid reactive control. Vision-Language-Action (VLA) models, while proficient in high-level reasoning, often lack a fine-grained understanding of physical dynamics and spatial perception. Conversely, World-Action Models (WAMs) typically suffer from high inference latency due to iterative generation. These deficiencies result in a critical temporal misalignment where the model's intent fails to adapt to rapid physical contact changes. To overcome this fundamental bottleneck, we propose LiMA, an asynchronous dual-system generative framework that systematically decouples intent planning from reactive execution. LiMA organizes computation into a multi-scale hierarchy: a slow system handles sparse long-horizon spatiotemporal intent generation, while a fast system focuses on dense high-frequency motion refinement. To align sparse intent predictions with dense action trajectories, we introduce a Latent Schrödinger Bridge Coupling mechanism that formulates refinement as an entropy-regularized probabilistic transport process. LiMA reduces inference latency by 45.8% compared with Cosmos-Policy via asynchronous decoupling. Evaluated across six bimanual dexterous manipulation tasks spanning multiple horizons, LiMA achieves an overall success rate of 70.8% and an average subtask success rate of 78.9%, while maintaining performance in unseen scenarios. The project website is available at https://ccdcs.github.io/LiMA_repo/",
+      "authors": [
+        "Ning Chen",
+        "Yankai Fu",
+        "Junkai Zhao",
+        "Qianpu Sun",
+        "Guocai Yao",
+        "Pengwei Wang",
+        "Zhongyuan Wang",
+        "Shanghang Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-23T17:31:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.28431v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "asynchronous dual-system combining VLA and WAM for long-term planning and reactive control",
+      "llm_evidence_cn": "异步双系统结合VLA与WAM用于长期规划与反应控制",
+      "llm_evidence": "异步双系统结合VLA与WAM用于长期规划与反应控制",
+      "canonical_evidence": "异步双系统结合VLA与WAM用于长期规划与反应控制",
+      "llm_tldr_en": "Proposes LiMA, an asynchronous dual-system generative framework decoupling intent planning from reactive execution to combine VLA's high-level reasoning with real-time control for dexterous manipulation.",
+      "llm_tldr_cn": "VLA擅长高层推理但缺乏物理动态与空间感知，WAM推理延迟高，导致意图与实时接触变化错位。LiMA提出异步双系统生成框架，将意图规划与反应执行解耦，多尺度层次组织计算。该方法解决了灵巧操作中的时间对齐问题。",
+      "llm_tldr": "VLA擅长高层推理但缺乏物理动态与空间感知，WAM推理延迟高，导致意图与实时接触变化错位。LiMA提出异步双系统生成框架，将意图规划与反应执行解耦，多尺度层次组织计算。该方法解决了灵巧操作中的时间对齐问题。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.25887v1",
+      "source": "arxiv",
+      "title": "What is the Better Curriculum: Controller-Shaped Grasping Behavior for Contact Force-Sensitive Manipulation",
+      "abstract": "How should a robot learn to manipulate objects so fragile that sub-Newton contact forces can cause irreversible damage? Existing visuo-tactile policy learning typically treats tactile sensing as an additional policy input. In direct-contact force-sensitive manipulation, however, the bottleneck can arise earlier, during data collection: manual gripper control is too delayed and coarse-grained to reliably maintain the narrow force range required for stable grasping. We therefore use a deterministic 25 Hz tactile reflex controller as a collection-time teacher, producing demonstrations with controller-shaped grasping behavior for tactile-free policy learning. On Action Chunking with Transformers (ACT), policies trained from reflex-shaped demonstrations recover the teacher's grasping profile and achieve 95% stable grasps on the nominal plastic-cup task, substantially outperforming visually screened manual demonstrations. The same intervention improves in-distribution stability on $π_{0.5}$ and shows a favorable exploratory trend on an unseen paper-cup variant. Under randomized external disturbance, however, the reflex-data $π_{0.5}$ policy still fails in 45% of policy-only trials, whereas a deployment-time reflex arbiter retains all grasps. These results reveal a new role for tactile feedback in force-sensitive manipulation: rather than integrating tactile into the policy, we use it as a collection-time teacher that shapes grasping behavior in demonstrations for policy learning, while disturbance rejection remains controller-dependent, revealing the boundary of tactile-free policy.",
+      "authors": [
+        "Ziyan Feng",
+        "Zizhao Yuan",
+        "Yulong Fu",
+        "Yuxin He",
+        "Zhiyuan Zhang",
+        "Zhengjie Zhang",
+        "Jinni Zhou",
+        "Renjing Xu",
+        "Qiang Nie"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-22T08:52:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.25887v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "tactile reflex controller for force-sensitive grasping demonstrations",
+      "llm_evidence_cn": "用于力敏感抓取演示的触觉反射控制器",
+      "llm_evidence": "用于力敏感抓取演示的触觉反射控制器",
+      "canonical_evidence": "用于力敏感抓取演示的触觉反射控制器",
+      "llm_tldr_en": "Addresses data collection bottleneck for contact force-sensitive manipulation; uses a 25 Hz tactile reflex controller as a collection-time teacher to produce demonstrations with controller-shaped grasping behavior, enabling tactile-free policy learning for fragile objects.",
+      "llm_tldr_cn": "针对脆弱物体亚牛顿力操作中手动抓取控制延迟大、难以维持窄力范围的问题，提出使用25Hz触觉反射控制器作为数据采集时的教师，生成控制器塑形抓取行为。在ACT策略上训练，使策略无需触觉输入即可学习稳定抓取。",
+      "llm_tldr": "针对脆弱物体亚牛顿力操作中手动抓取控制延迟大、难以维持窄力范围的问题，提出使用25Hz触觉反射控制器作为数据采集时的教师，生成控制器塑形抓取行为。在ACT策略上训练，使策略无需触觉输入即可学习稳定抓取。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "tactile force fusion for robot manipulation",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.21497v1",
+      "source": "arxiv",
+      "title": "FORTE: Task-Adaptive Force Capability Optimization for Mobile Manipulators",
+      "abstract": "Effective physical interaction control in robotic manipulation requires not only kinematically feasible motion but also sufficient force-interaction capability. Existing redundancy resolution methods often ignore task-specific force demands or maximize the force capability indiscriminately, sacrificing dexterity when large force margins are unnecessary. We propose a task-oriented force capability optimization framework for redundant mobile manipulators. A Vision-Language Model (VLM) infers object physical properties from an RGB image and a task description, generating a desired task-force sequence that captures gravitational and inertial demands. We then define a task-oriented force capability metric as the signed distance between a task-force uncertainty ball and the dynamic residual force polytope (RFP), quantifying compatibility between task demands and the robot's remaining actuation capacity. This metric is incorporated, alongside manipulability, joint-limit avoidance, trajectory smoothness, and base-oscillation suppression, into a whole-body multi-objective trajectory-optimization problem. Experiments on a mobile manipulator performing lifting and single-point-holding tasks under varying payload conditions demonstrate that the proposed method provides sufficient force capability for heavy loads while preserving high manipulability for light loads. This yields a task-adaptive balance that fixed capability-maximizing baselines (RFP inscribed radius, RFP cone) and manipulability-only optimization fail to achieve. The core implementation is publicly available at https://github.com/yeying256/FORTE.",
+      "authors": [
+        "Xiao Wang",
+        "Heng Zhang",
+        "Gokhan Solak",
+        "Fei Zhao",
+        "Arash Ajoudani"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-18T08:48:56+00:00",
+      "link": "https://arxiv.org/pdf/2609.21497v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "VLM infers object physical properties and generates task-force sequence for force capability optimization",
+      "llm_evidence_cn": "VLM推断物体物理属性并生成任务力序列以优化力能力",
+      "llm_evidence": "VLM推断物体物理属性并生成任务力序列以优化力能力",
+      "canonical_evidence": "VLM推断物体物理属性并生成任务力序列以优化力能力",
+      "llm_tldr_en": "Proposes FORTE, framework that uses VLM to infer object properties from RGB and task description, generating desired force sequence for task-adaptive force capability optimization in mobile manipulators.",
+      "llm_tldr_cn": "针对冗余移动机械臂力能力优化中忽视任务需求的问题，提出FORTE框架，利用VLM从RGB图像和任务描述推断物体物理属性，生成所需的任务力序列。定义任务导向的力能力指标，优化冗余自由度分配，在保持灵活性的同时满足力需求。实验表明该方法能有效提升力交互性能。该工作将VLM与力控制结合，推动具身智能中的力觉应用。",
+      "llm_tldr": "针对冗余移动机械臂力能力优化中忽视任务需求的问题，提出FORTE框架，利用VLM从RGB图像和任务描述推断物体物理属性，生成所需的任务力序列。定义任务导向的力能力指标，优化冗余自由度分配，在保持灵活性的同时满足力需求。实验表明该方法能有效提升力交互性能。该工作将VLM与力控制结合，推动具身智能中的力觉应用。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.21621v1",
+      "source": "arxiv",
+      "title": "Towards Fine-Grained Object Manipulation: SAM3-Guided Visuomotor Policy with Persistent Memory Learning and Focused Visual Conditioning",
+      "abstract": "Fine-grained object (FO) manipulation requires robots to distinguish a specified FO from visually similar objects and execute actions reliably despite scene distractors. However, scene-level visual conditioning lacks explicit object selection, while category-level guidance cannot reliably distinguish FOs within the same category. We present a SAM3-guided visuomotor framework that addresses these challenges through persistent object memory and focused visual conditioning. First, we introduce FO Memory-driven SAM3 (FOM-SAM3), which learns reusable FO memory tokens from limited multi-view registration images while keeping SAM3 fully frozen. Through one-vs-rest learning, these tokens encode persistent memories for localizing target FOs and rejecting similar alternatives, which can be stored in a memory bank. Second, we propose Focused Spatial-Appearance Encoding (FSAE), which combines in-FO local appearance features with explicit bounding-box coordinates to condition action policies including Diffusion Policy (DP) and Action Chunking with Transformers (ACT). The effectiveness of the proposed FOM-SAM3 was validated on the FO-30 dataset comprising 30 physical objects across four coarse categories. Across three real-robot FO manipulation tasks, our FOM-SAM3-guided policies demonstrated robustness against distractors, discrimination ability among similar FOs, and extendibility to new FOs.",
+      "authors": [
+        "Haolong Meng",
+        "Fangbo Qin",
+        "Mengchen Bai",
+        "Houwu Wang",
+        "Cirong Liu",
+        "Shan Yu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-18T11:01:46+00:00",
+      "link": "https://arxiv.org/pdf/2609.21621v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "SAM3-guided visuomotor policy with persistent memory learning for fine-grained object manipulation",
+      "llm_evidence_cn": "SAM3引导的视觉运动策略与持久记忆学习用于细粒度物体操作",
+      "llm_evidence": "SAM3引导的视觉运动策略与持久记忆学习用于细粒度物体操作",
+      "canonical_evidence": "SAM3引导的视觉运动策略与持久记忆学习用于细粒度物体操作",
+      "llm_tldr_en": "This work addresses fine-grained object manipulation by introducing FOM-SAM3, which learns reusable object memory tokens, and focused visual conditioning to distinguish target objects from distractors. The SAM3-guided visuomotor policy improves reliability in scenes with visually similar objects.",
+      "llm_tldr_cn": "针对细粒度物体操作中需要区分相似物体并抵抗场景干扰的问题，论文提出FOM-SAM3方法。通过有限多视角注册图像学习可复用的物体记忆令牌，保持SAM3冻结，并采用一对一对比学习编码物体特征。结合聚焦视觉条件，引导视觉运动策略可靠执行操作。实验表明该方法在存在相似物体和干扰的场景中提高了操作成功率。",
+      "llm_tldr": "针对细粒度物体操作中需要区分相似物体并抵抗场景干扰的问题，论文提出FOM-SAM3方法。通过有限多视角注册图像学习可复用的物体记忆令牌，保持SAM3冻结，并采用一对一对比学习编码物体特征。结合聚焦视觉条件，引导视觉运动策略可靠执行操作。实验表明该方法在存在相似物体和干扰的场景中提高了操作成功率。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End-to-end robotic manipulation tasks",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.18232v1",
+      "source": "arxiv",
+      "title": "UMI-Bridge: Action-Anchored Latent Alignment across Human and Robot Manipulation Data",
+      "abstract": "Real-robot demonstrations are limited, motivating the use of human manipulation data collected without robots, including egocentric videos and handheld Universal Manipulation Interface (UMI) demonstrations. However, differences in viewpoint, embodiment, and available action supervision make it difficult to align representations across these sources according to manipulation motion rather than visual appearance. We introduce UMI-Bridge, which uses UMI as an intermediate domain to align representations according to action equivalence rather than pixel similarity. UMI action supervision anchors the latent representation to end-effector motion and gripper behavior, while synchronized head-wrist observations and paired ego-UMI clips support alignment across views and domains. We train a dual-view latent action model (LAM) on human manipulation data without robot demonstrations, then freeze its wrist teacher and dynamics model to regularize vision-language-action (VLA) post-training on UMI and robot data. The shared wrist interface enables this training-time supervision across both domains while preserving the policy's standard inference architecture. Across three real-robot tasks, UMI-Bridge achieves 91.7% mean success versus 73.3% for Naive Co-training with matched UMI and robot data. On two data-efficiency tasks, it surpasses a full-data Robot-only baseline using 25% of the robot demonstrations together with UMI data. It also achieves 85% and 90% success on two additional tasks learned from UMI demonstrations without task-specific robot demonstrations. These results support action-anchored latent alignment for data-efficient robot learning and UMI-to-robot task transfer.",
+      "authors": [
+        "Haiyi Liu",
+        "Jingming Ma",
+        "Ke Rui",
+        "Yuteng Wei",
+        "Yuan Ma",
+        "Yushen Zuo",
+        "Honglong Tian",
+        "Haoran Jia",
+        "Weitao Zhou",
+        "Jiawei Wang",
+        "Minglei Li",
+        "Shiyi Chen",
+        "Haiyan Mao",
+        "Jiaqi Zhang",
+        "Chun Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-16T07:03:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.18232v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Aligns human and robot manipulation data via action-anchored latent representations",
+      "llm_evidence_cn": "通过动作锚定的潜在表示对齐人机操作数据",
+      "llm_evidence": "通过动作锚定的潜在表示对齐人机操作数据",
+      "canonical_evidence": "通过动作锚定的潜在表示对齐人机操作数据",
+      "llm_tldr_en": "UMI-Bridge addresses the scarcity of real-robot demonstrations by aligning human egocentric videos and UMI demonstrations with robot data according to action equivalence. It uses UMI as an intermediate domain and leverages UMI action supervision to anchor latent representations to end-effector motion and gripper behavior. The method supports cross-embodiment learning and improves manipulation data efficiency.",
+      "llm_tldr_cn": "真实机器人演示数据有限，人类操作数据与机器人数据之间存在视点、具身和动作监督差异。UMI-Bridge以UMI为中间域，依据动作等价而非像素相似来对齐表示，利用UMI动作监督锚定潜在空间到末端执行器运动和夹爪行为。实验表明该方法能有效对齐跨源操作数据，为训练机器人操作基础模型提供了数据利用新途径。",
+      "llm_tldr": "真实机器人演示数据有限，人类操作数据与机器人数据之间存在视点、具身和动作监督差异。UMI-Bridge以UMI为中间域，依据动作等价而非像素相似来对齐表示，利用UMI动作监督锚定潜在空间到末端执行器运动和夹爪行为。实验表明该方法能有效对齐跨源操作数据，为训练机器人操作基础模型提供了数据利用新途径。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Robotic foundation models for manipulation",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.25619v1",
+      "source": "arxiv",
+      "title": "Relative Contact Velocity-Controlled Hand-Object Mechanism for Dexterous Tool Manipulation",
+      "abstract": "This work investigates how to enable general multi-finger robotic hands to perform the complete tool manipulation process, which entails picking up a tool, loading it into a suitable pose, and then wielding it. Inspired by human tool manipulation and mechanical design principles, we model the hand and the tool as a unified hand-object mechanism (HOM) composed of sub-assemblies. Specifically, we define a HOM as consisting of the hand, the object, and the generalized contact frames, allowing the HOM's motions to be expressed with the same set of Cartesian-space relative contact velocities, irrespective of the hand's kinematics and geometry. Then, we define a HOM's sub-assemblies as relative contact velocity and contact force constraints between fingers. Building on these definitions, we developed a lightweight and physically interpretable motion planning and contact estimation framework using least squares and a complementary filter. We evaluated our framework in simulation by teleoperating five different robotic hands. The results show that our framework enabled all five hands to execute the complete tool manipulation process, achieving dexterous behaviors even from identical, simple reference trajectories. Furthermore, the results showcase our framework's adaptability to different hands, tools, and tasks, enabled by its kinematic and geometric foundation.",
+      "authors": [
+        "Sunyu Wang",
+        "Jean Oh",
+        "Nancy S. Pollard"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-22T03:25:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.25619v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Presents a hand-object mechanism controlled by relative contact velocities for dexterous tool manipulation, enabling full tool manipulation process",
+      "llm_evidence_cn": "提出由相对接触速度控制的手-物机制用于灵巧工具操作，实现完整工具操作过程",
+      "llm_evidence": "提出由相对接触速度控制的手-物机制用于灵巧工具操作，实现完整工具操作过程",
+      "canonical_evidence": "提出由相对接触速度控制的手-物机制用于灵巧工具操作，实现完整工具操作过程",
+      "llm_tldr_en": "This work models hand and tool as a unified hand-object mechanism (HOM) with generalized contact frames, enabling motions expressed via relative contact velocities regardless of hand kinematics. The approach uses contact velocity and force constraints to achieve picking, loading, and wielding tools with multi-finger hands.",
+      "llm_tldr_cn": "针对多指机器人手完成完整工具操作（拾取、装载、挥舞）的挑战，论文将手和工具建模为统一的手-物机制（HOM）。定义广义接触框架，使HOM运动可用笛卡尔空间相对接触速度表达，与手的具体运动学无关。通过相对接触速度和接触力约束定义子装配体，实现灵巧工具操作。该方法为通用多指手工具操作提供了系统化控制框架。",
+      "llm_tldr": "针对多指机器人手完成完整工具操作（拾取、装载、挥舞）的挑战，论文将手和工具建模为统一的手-物机制（HOM）。定义广义接触框架，使HOM运动可用笛卡尔空间相对接触速度表达，与手的具体运动学无关。通过相对接触速度和接触力约束定义子装配体，实现灵巧工具操作。该方法为通用多指手工具操作提供了系统化控制框架。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End-to-end robotic manipulation tasks",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.21983v1",
+      "source": "arxiv",
+      "title": "SkelWAM: A Skeleton-Guided World-Action Model for Zero-Shot Cross-Embodiment Manipulation",
+      "abstract": "Reusing manipulation experience across robot embodiments is important for scaling robot learning and reducing repeated task-specific data collection. However, changes in embodiment alter visual appearance, action dimensionality and semantics, and the whole-body configurations that can realize the same tool pose. We present SkelWAM, a skeleton-guided world-action model that couples perception and control through one explicit geometric representation for single-source cross-embodiment manipulation. Arm centerline geometry, tool-center-point (TCP) pose, and parallel-jaw commands form a shared 25-D state. The same definition underlies canonical third-person and wrist observations and future whole-body action targets. Trained with predictive visual supervision, a video-action mixture of transformers predicts canonical skeleton action chunks, which embodiment-specific constrained decoders convert into joint or continuum-robot controls. This formulation requires no one-to-one joint correspondence and uses no target-task demonstrations or target policy updates. We introduce LIBERO-Cross10, a source-only cross-embodiment transfer benchmark covering ten tasks and ten target embodiments across four morphological groups. On this benchmark, Franka-trained SkelWAM achieves 43.3% success over 1,000 episodes, exceeding the best-performing evaluated baseline by 36.2 percentage points. We further deploy a JAKA mini2-trained policy on the Feagine A03 continuum robot for three tabletop manipulation tasks, illustrating the approach's potential for real-world cross-embodiment manipulation. Project page: http://www.liukepku.com/skelwam/index.html",
+      "authors": [
+        "Pengjun Niu",
+        "Yujia Xie",
+        "Rui Peng",
+        "Hang Zhao",
+        "Ke Liu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-18T16:44:42+00:00",
+      "link": "https://arxiv.org/pdf/2609.21983v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "skeleton-guided world-action model for zero-shot cross-embodiment manipulation through shared geometric representation",
+      "llm_evidence_cn": "基于骨架引导的世界-动作模型，通过共享几何表征实现零样本跨具身操作",
+      "llm_evidence": "基于骨架引导的世界-动作模型，通过共享几何表征实现零样本跨具身操作",
+      "canonical_evidence": "基于骨架引导的世界-动作模型，通过共享几何表征实现零样本跨具身操作",
+      "llm_tldr_en": "Addresses cross-embodiment manipulation transfer by presenting SkelWAM, a skeleton-guided world-action model that couples perception and control through a shared 25-D state of arm centerline, TCP pose, and parallel-jaw commands. This enables zero-shot transfer of manipulation experience across different robot embodiments.",
+      "llm_tldr_cn": "针对跨机器人具身复用操作经验时外观、动作维度和全身配置变化的问题，提出SkelWAM骨架引导的世界-动作模型，通过手臂中心线几何、工具中心点姿态和平行爪命令组成的共享25维状态耦合感知与控制。该方法在单源跨具身操作中实现零样本迁移，减少重复数据采集。",
+      "llm_tldr": "针对跨机器人具身复用操作经验时外观、动作维度和全身配置变化的问题，提出SkelWAM骨架引导的世界-动作模型，通过手臂中心线几何、工具中心点姿态和平行爪命令组成的共享25维状态耦合感知与控制。该方法在单源跨具身操作中实现零样本迁移，减少重复数据采集。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.22493v1",
+      "source": "arxiv",
+      "title": "Layered e-skin for Shear Sensing",
+      "abstract": "This paper presents a stacked two-layer force-sensing resistor (FSR) array designed for robotic fingertips that combines high-resolution pressure mapping with shear-force estimation. A compliant lattice elastomer spacer converts shear loading into a measurable inter-layer displacement, producing relative center-of-pressure (CoP) shifts between layers. A physics-based moment balance links inter-layer CoP displacement to shear force, while an end-to-end CNN--GRU model captures nonlinear effects from load-dependent compression and contact redistribution. This model, with both layers as input, achieves coefficients of determination $R^2 = 0.914$ for $F_x$ and $R^2 = 0.944$ for $F_y$, consistently outperforming single-layer baselines for shear-force estimation. Robotic manipulation experiments show that, for contact-motion tracking, the deep layer tracks the translation and rotation imposed by the robot arm, whereas the superficial layer tracks the slip at the contact surface. Transient changes in the difference between the total pressure responses of the two layers provide the best slip-event detection performance among the tested cues. These results demonstrate that two-layer FSR arrays can provide three-axis force estimation, contact-motion tracking, and slip-event detection beyond conventional normal-force sensing.",
+      "authors": [
+        "Qingzheng Cong",
+        "Alexis W. M. Devillard",
+        "Abu Bakar Dawood",
+        "Xinxin Zhang",
+        "Wen Fan",
+        "Neri Niccolò Dei",
+        "Cem Suulker",
+        "Kaspar Althoefer",
+        "Etienne Burdet",
+        "Dandan Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-18T18:59:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.22493v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "layered e-skin for shear force estimation",
+      "llm_evidence_cn": "用于剪切力估计的分层电子皮肤",
+      "llm_evidence": "用于剪切力估计的分层电子皮肤",
+      "canonical_evidence": "用于剪切力估计的分层电子皮肤",
+      "llm_tldr_en": "Presents a stacked two-layer FSR array for robotic fingertips that combines pressure mapping with shear-force estimation; uses physics-based moment balance and end-to-end CNN-GRU model; achieves high R2 for shear force estimation, outperforming single-layer baselines.",
+      "llm_tldr_cn": "针对机器人指尖需要同时感知压力分布和剪切力的问题，提出叠层双层力敏电阻阵列。通过物理力矩平衡和端到端CNN-GRU模型估计剪切力，在F_x和F_y上分别达到0.914和0.944的R²，优于单层基线。",
+      "llm_tldr": "针对机器人指尖需要同时感知压力分布和剪切力的问题，提出叠层双层力敏电阻阵列。通过物理力矩平衡和端到端CNN-GRU模型估计剪切力，在F_x和F_y上分别达到0.914和0.944的R²，优于单层基线。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "tactile sensing",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.23997v1",
+      "source": "arxiv",
+      "title": "RoboTalk: Learning Multi-Robot Communication and Coordination from Multimodal Demonstrations",
+      "abstract": "Multi-robot collaboration could enable more efficient and scalable solutions to complex robotic tasks, but collaboration under partial observability remains challenging. Natural-language communication offers a promising approach to coordinating robots under partial observability. However, in decentralized manipulation, jointly learning explicit inter-robot communication and skill-level action selection from multimodal demonstrations remains underexplored for small vision-language models (VLMs) intended for on-device deployment. To address this gap, we introduce RoboTalk, a synthetic data-generation pipeline and dataset of 7,950 multimodal trajectories spanning 53 mobile-manipulation kitchen tasks for training small VLMs to communicate and coordinate. The dataset includes a leader-follower planning protocol, tool calls (perception, manipulation, navigation, and communication), rationale traces, and diversified natural-language communication. Fine-tuning open-source models on our dataset can reach 77% success on novel held-out tasks, a significant improvement over the untuned open source models, which had a success rate of around ~2%.",
+      "authors": [
+        "Dorian Benhamou Goldfajn",
+        "Mason Nakamura",
+        "Saaduddin Mahmud",
+        "Justin Svegliato",
+        "Kyle H. Wray",
+        "Shlomo Zilberstein"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T02:01:04+00:00",
+      "link": "https://arxiv.org/pdf/2609.23997v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Small VLMs learn communication and skill-level action selection for multi-robot coordination from multimodal demos",
+      "llm_evidence_cn": "小型VLM从多模态演示中学习通信和技能级动作选择，用于多机器人协调",
+      "llm_evidence": "小型VLM从多模态演示中学习通信和技能级动作选择，用于多机器人协调",
+      "canonical_evidence": "小型VLM从多模态演示中学习通信和技能级动作选择，用于多机器人协调",
+      "llm_tldr_en": "Introduces RoboTalk, a synthetic data-generation pipeline and dataset for training small VLMs to communicate and coordinate in multi-robot manipulation, addressing partial observability and on-device deployment.",
+      "llm_tldr_cn": "针对多机器人协作中部分可观测性挑战，提出RoboTalk合成数据生成流程和数据集，包含7950条多模态轨迹、53个移动操作厨房任务，用于训练小型视觉语言模型进行显式通信和技能级动作选择。模型可在设备端部署，实现分散式操控。该方法推动了VLM在多机器人系统中的应用。",
+      "llm_tldr": "针对多机器人协作中部分可观测性挑战，提出RoboTalk合成数据生成流程和数据集，包含7950条多模态轨迹、53个移动操作厨房任务，用于训练小型视觉语言模型进行显式通信和技能级动作选择。模型可在设备端部署，实现分散式操控。该方法推动了VLM在多机器人系统中的应用。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Integration of large language models with robotic action spaces",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.25653v1",
+      "source": "arxiv",
+      "title": "PhyVisGen: Physically and Visually High-Fidelity Robotic Manipulation Data Generation",
+      "abstract": "Large-scale manipulation demonstrations are essential for learning robust visuomotor policies, yet real-world data collection is expensive and difficult to scale. Simulation offers a promising alternative, but physical and visual discrepancies can limit the transferability of synthetic data, particularly for manipulation with soft grippers. We present PhyVisGen, a physically and visually high-fidelity framework for scalable robotic manipulation data generation. On the physical side, PhyVisGen introduces an arm-gripper coupling method based on the Incremental Potential Contact (IPC), enabling high-fidelity soft contact throughout complete manipulation trajectories. On the visual side, it combines real-scene reconstruction with real-time path tracing to generate visually realistic observations while preserving captured scene appearance. Quantitative evaluations demonstrate the physical and visual fidelity of PhyVisGen. Policies trained exclusively on synthetic manipulation demonstrations achieve 65-95% success across five real-robot tasks, without real-robot demonstration data or policy fine-tuning.",
+      "authors": [
+        "Yu Zheng",
+        "Qiyu Feng",
+        "Yixin Wu",
+        "Baoquan Yang",
+        "Yixuan Zhou",
+        "Bingyang Hu",
+        "Kemeng Huang",
+        "Guansheng Yang",
+        "Hesheng Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-22T04:03:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.25653v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "physically and visually high-fidelity simulation data generation for soft gripper manipulation",
+      "llm_evidence_cn": "软爪操作的物理视觉高保真仿真数据生成",
+      "llm_evidence": "软爪操作的物理视觉高保真仿真数据生成",
+      "canonical_evidence": "软爪操作的物理视觉高保真仿真数据生成",
+      "llm_tldr_en": "Proposes PhyVisGen, a simulation framework combining arm-gripper coupling via Incremental Potential Contact and real-scene reconstruction for high-fidelity soft-gripper manipulation data generation.",
+      "llm_tldr_cn": "真实数据采集昂贵难扩展，仿真存在物理和视觉差异限制软爪操作迁移。PhyVisGen引入基于增量势接触的臂爪耦合方法和实时场景重建，实现物理视觉高保真数据生成。该框架为软爪操作提供可扩展的高质量演示数据。",
+      "llm_tldr": "真实数据采集昂贵难扩展，仿真存在物理和视觉差异限制软爪操作迁移。PhyVisGen引入基于增量势接触的臂爪耦合方法和实时场景重建，实现物理视觉高保真数据生成。该框架为软爪操作提供可扩展的高质量演示数据。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End-to-end robotic manipulation tasks",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.28429v1",
+      "source": "arxiv",
+      "title": "Watch, Recall, Act: Always-On Robots in Concurrent Embodied Streams",
+      "abstract": "An always-on robot faces an endless stream that never resets: instructions arrive and lapse, the scene changes, and its own past actions reshape what it must reason about. Today's action models are built for the opposite: a fixed instruction, no mid-task intervention, single-step reasoning. In an open-ended world a robot must watch a live stream for far-future cues, recall its own far-past actions, and act on them under dual-arm concurrency. We present ARMS (Always-on Robot in Multi-modal Streams), a deliberately simple streaming policy: a single pretrained $π$0.5 backbone augmented by three lightweight modules that turn live perception, embodied states, and the robot's own past actions into context the backbone reads before it acts. The modules update this context asynchronously, so watching and recalling never block acting and the two arms act at once. Rather than inventing new mechanisms, ARMS integrates these learned context providers with an agent-causal self-history that logs which arm did what, and when. To supervise them without extra annotation, we build ARMS Dataset, whose staged construction script itself labels every module from real dual-arm teleoperation. Trained on it, ARMS reaches 45% on the combined task against 28% for the strongest of our four main baselines, and ablations confirm the memory module, the embodied-state head, and asynchronous concurrency are each necessary.",
+      "authors": [
+        "Ding Yi",
+        "Peiwen Sun",
+        "Chenchu Rong",
+        "Jianan Wang",
+        "Xili Dai",
+        "Xiangyu Yue",
+        "Xi Lin"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-23T17:29:40+00:00",
+      "link": "https://arxiv.org/pdf/2609.28429v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Extends pretrained VLA (π0.5) with lightweight modules for always-on multi-modal streaming, enabling action generation in concurrent embodied streams",
+      "llm_evidence_cn": "通过轻量级模块扩展预训练VLA（π0.5），在并发具身流中实现持续动作生成",
+      "llm_evidence": "通过轻量级模块扩展预训练VLA（π0.5），在并发具身流中实现持续动作生成",
+      "canonical_evidence": "通过轻量级模块扩展预训练VLA（π0.5），在并发具身流中实现持续动作生成",
+      "llm_tldr_en": "ARMS adapts a single pretrained π0.5 VLA backbone to always-on robots by adding modules that incorporate live perception, embodied states, and past actions, enabling reasoning and acting in concurrent multi-modal streams without fixed instructions.",
+      "llm_tldr_cn": "针对现有动作模型假设固定指令和无干预、单步推理，无法处理持续流输入的问题，提出ARMS策略，在预训练π0.5骨干上增加三个轻量级模块，将实时感知、具身状态和机器人自身历史动作转化为上下文。该方法使机器人能够在开放世界中持续观察、回忆并行动，支持双臂并发。",
+      "llm_tldr": "针对现有动作模型假设固定指令和无干预、单步推理，无法处理持续流输入的问题，提出ARMS策略，在预训练π0.5骨干上增加三个轻量级模块，将实时感知、具身状态和机器人自身历史动作转化为上下文。该方法使机器人能够在开放世界中持续观察、回忆并行动，支持双臂并发。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.25689v1",
+      "source": "arxiv",
+      "title": "MotionForge: A Data Generation Pipeline and Large-Scale Benchmark for Long-Horizon Manipulation of Dynamic Objects with Domain Shifts",
+      "abstract": "Recent advances in learning-based robot policies have demonstrated promising progress, yet they are predom- inantly evaluated in static or quasi-static environments. In dynamic manipulation, objects and scenes continuously evolve while the robot perceives, reasons, and acts. However, recent dynamic simulation benchmarks largely focus on short-horizon, reactive interactions with simple motion patterns and offer limited support for both systematic evaluation under domain shifts and model-agnostic real-time execution protocols. To bridge these gaps, we introduce MotionForge, the first large- scale simulation benchmark and data-generation pipeline tailored to jointly evaluate domain shifts and long-horizon interaction in dynamic manipulation. MotionForge comprises 40 dynamic interaction tasks spanning 11 distinct motion patterns, with dedicated support for 17 long-horizon tasks. Our benchmark introduces two key novelties: (1) a systematic evaluation protocol for assessing policy robustness under both single-factor (e.g., only backgrounds shift) and joint domain shifts (e.g., simultaneous shifts of objects, backgrounds, lighting, and speed); and (2) a decoupled, latency-aware execution protocol where the environ- ment continuously evolves independently of policy inference time. Extensive evaluations of representative general-purpose robot policies on our benchmark reveal substantial limitations under joint domain shifts. These findings expose a critical gap between current policy capabilities and the requirements of robust long- horizon manipulation of dynamic objects under domain shifts, establishing MotionForge as a comprehensive testbed for future research in embodied AI.",
+      "authors": [
+        "Mohan Liu",
+        "Dengchen Mei",
+        "Haotian Xian",
+        "Ruyang Han",
+        "Jiayi Sun",
+        "Xuanyu Chen",
+        "Haitian Zhang",
+        "Luxi Li",
+        "Kaimin Mao",
+        "Lin Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-22T04:47:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.25689v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "large-scale simulation benchmark and data generation for long-horizon manipulation under domain shifts",
+      "llm_evidence_cn": "面向长时程动态物体操作的大规模仿真基准与数据生成",
+      "llm_evidence": "面向长时程动态物体操作的大规模仿真基准与数据生成",
+      "canonical_evidence": "面向长时程动态物体操作的大规模仿真基准与数据生成",
+      "llm_tldr_en": "Introduces MotionForge, a large-scale simulation benchmark and data-generation pipeline for evaluating robot policies on long-horizon dynamic object manipulation under domain shifts.",
+      "llm_tldr_cn": "现有机器人策略多在静态或准静态环境评估，动态长程操作缺乏系统性基准与域偏移评估。MotionForge提出首个大规模仿真基准与数据生成管线，支持动态物体长时程操作及模型无关实时执行。该基准填补动态操作域偏移联合评估空白，为动态操作策略研究提供关键测试平台。",
+      "llm_tldr": "现有机器人策略多在静态或准静态环境评估，动态长程操作缺乏系统性基准与域偏移评估。MotionForge提出首个大规模仿真基准与数据生成管线，支持动态物体长时程操作及模型无关实时执行。该基准填补动态操作域偏移联合评估空白，为动态操作策略研究提供关键测试平台。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End-to-end robotic manipulation tasks",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.27095v1",
+      "source": "arxiv",
+      "title": "Intelligence Across Embodiments",
+      "abstract": "Robotic embodiment encompasses the sensing, kinematics, dynamics, geometry, actuation, and control through which an agent physically interacts with the world. These properties vary across robots and change over time. We argue that general embodied intelligence requires learning that accumulates across these differences. Prevailing methods that engineer correspondences to bridge embodiment differences offer immediate practical gains, but their assumptions limit the scope of transfer in the long run. Instead, a more general approach should discover representations that support transfer to a larger range of embodiments as experience grows. We propose embodiment diversity as a promising axis of scaling, and identify broad learned priors as a complementary ingredient. We call for evaluations that better characterize embodiment gaps and transfer performance. More broadly, cross-embodiment learning connects the practical challenge of learning from heterogeneous robot experience with a broader scientific pursuit inspired by nature - physical intelligence that adapts and co-evolves with its embodiments to gain agency over its behavior and physical forms.",
+      "authors": [
+        "Bo Ai",
+        "Henrik I. Christensen",
+        "Hao Su"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-22T21:53:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.27095v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Argues for embodiment diversity for general embodied intelligence",
+      "llm_evidence_cn": "论证具身多样性对通用具身智能的重要性",
+      "llm_evidence": "论证具身多样性对通用具身智能的重要性",
+      "canonical_evidence": "论证具身多样性对通用具身智能的重要性",
+      "llm_tldr_en": "This paper argues that general embodied intelligence requires learning across embodiment differences, proposing embodiment diversity as a scaling axis and broad learned priors as complementary ingredients.",
+      "llm_tldr_cn": "机器人具身属性差异大，现有方法依赖人工对应桥梁，长期泛化受限。该论文提出应通过具身多样性和广泛学习的先验来实现跨具身积累学习。作者认为具身多样性是重要的扩展维度，并呼吁评估通用智能时考虑跨具身能力。",
+      "llm_tldr": "机器人具身属性差异大，现有方法依赖人工对应桥梁，长期泛化受限。该论文提出应通过具身多样性和广泛学习的先验来实现跨具身积累学习。作者认为具身多样性是重要的扩展维度，并呼吁评估通用智能时考虑跨具身能力。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.27308v1",
+      "source": "arxiv",
+      "title": "EmbodiedSWE: Coding Agents for Long Horizon Dexterous Robotics",
+      "abstract": "We study coding agents for long-horizon, dexterous robotics and ask whether their solutions can provide scalable supervision for learning general robot policies. To test this, we develop EMBODIEDSWE-BENCH, a simulation benchmark for coding agents spanning contact-rich manipulation, deformable objects, and long-horizon tasks requiring up to half an hour of continuous interaction. We find that frontier coding agents can solve complex long-horizon tasks and transfer prior solutions across both tasks and embodiments. We also design supporting tools that help agents more effectively solve these tasks. However, the resulting solutions require substantial iterative interaction and are typically specialized to individual task instances. We therefore introduce EMBODIEDSWE-GEN, which expands a single solution from coding agent into large diverse trajectories for training a VLA. VLA performance improves with more generated demonstrations, and agent-aided diversification improves generalization to held-out task variations. We also show that a VLA finetuned solely on coding-agent-generated simulation demonstrations completes a long-horizon task on real robot. Together, our framework uses coding agents to solve complex robotics tasks and turn verified solutions into scalable supervision for robot policies.",
+      "authors": [
+        "Haoxiang You",
+        "Zeyu Shen",
+        "Yilang Liu",
+        "Zhicheng Zheng",
+        "Lihan Zha",
+        "Kashu Yamazaki",
+        "Mingtong Zhang",
+        "Suning Huang",
+        "Jiankai Sun",
+        "Qianzhong Chen",
+        "Lucy He",
+        "Kaiyuan Liu",
+        "Haoran Chang",
+        "Katerina Fragkiadaki",
+        "Dhruv Shah",
+        "Mac Schwager",
+        "Peter Henderson",
+        "Ian Abraham",
+        "Canwen Xu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-09-23T03:38:58+00:00",
+      "link": "https://arxiv.org/pdf/2609.27308v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Coding agents benchmark for long-horizon dexterous robotics, providing scalable supervision for robot policy learning",
+      "llm_evidence_cn": "面向长时程灵巧机器人的编码智能体基准，为机器人策略学习提供可扩展监督",
+      "llm_evidence": "面向长时程灵巧机器人的编码智能体基准，为机器人策略学习提供可扩展监督",
+      "canonical_evidence": "面向长时程灵巧机器人的编码智能体基准，为机器人策略学习提供可扩展监督",
+      "llm_tldr_en": "Introduces EmbodiedSWE-Bench, a simulation benchmark for coding agents in long-horizon dexterous robotics, and analyzes their potential to provide supervision for general robot policies.",
+      "llm_tldr_cn": "研究编码智能体在长时程灵巧机器人任务中的能力，开发了EmbodiedSWE-Bench仿真基准，涵盖接触丰富操作、可变形物体等。发现前沿编码智能体能解决复杂长时程任务并跨任务迁移解决方案。然而，这些方案通常需要大量迭代且针对特定任务实例。",
+      "llm_tldr": "研究编码智能体在长时程灵巧机器人任务中的能力，开发了EmbodiedSWE-Bench仿真基准，涵盖接触丰富操作、可变形物体等。发现前沿编码智能体能解决复杂长时程任务并跨任务迁移解决方案。然而，这些方案通常需要大量迭代且针对特定任务实例。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.28131v1",
+      "source": "arxiv",
+      "title": "DEAL-Grasp: Decoupled Alignment Representation for Geometry-Aware Dexterous Grasp Generation",
+      "abstract": "Synthesizing realistic articulated hand-object interactions is a fundamental problem in virtual reality, embodied intelligence, and digital human applications. Existing methods for dexterous grasp synthesis typically regress or denoise poses in a joint space that couples global rigid motion with local articulation, which often yields unstable samples and physically implausible contacts. We introduce DEAL-Grasp, built upon the Decoupled Alignment (DEAL) representation, which reformulates grasp synthesis as alignment-space generation: the interaction state comprises task-space geometric anchors and articulation parameters, from which the rigid transform is recovered via closed-form Procrustes alignment while preserving local articulation. On this mixed state, we model grasp generation using heterogeneous-state flow matching with component-wise vector fields, incorporating time-adaptive physical regularization during training. At inference, grasps are synthesized solely by integrating the learned vector field, without test-time optimization or auxiliary physical guidance. Across MultiDex and zero-shot RealDex benchmarks, DEAL-Grasp attains high force-perturbation success rates alongside minimal penetration and high diversity of generated grasps, while substantially reducing native inference latency compared to optimization-heavy baselines. The project page is available at https://wmtlab.github.io/DEAL-Grasp/.",
+      "authors": [
+        "Fuqiang Zhao",
+        "Qian Liu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.GR"
+      ],
+      "published": "2026-09-23T13:56:26+00:00",
+      "link": "https://arxiv.org/pdf/2609.28131v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Dexterous grasp generation for embodied intelligence",
+      "llm_evidence_cn": "面向具身智能的灵巧抓取生成",
+      "llm_evidence": "面向具身智能的灵巧抓取生成",
+      "canonical_evidence": "面向具身智能的灵巧抓取生成",
+      "llm_tldr_en": "Introduces DEAL representation for decoupled alignment to generate stable, physically plausible dexterous grasps for hand-object interactions in embodied intelligence.",
+      "llm_tldr_cn": "针对现有灵巧抓取合成中关节空间耦合导致不稳定和接触不物理的问题，提出解耦对齐表示DEAL，将抓取合成重新表述为对齐空间生成，通过任务空间几何锚点和关节参数恢复刚体变换。实验表明该方法能生成更稳定且物理合理的抓取，为具身智能和数字人应用提供支撑。",
+      "llm_tldr": "针对现有灵巧抓取合成中关节空间耦合导致不稳定和接触不物理的问题，提出解耦对齐表示DEAL，将抓取合成重新表述为对齐空间生成，通过任务空间几何锚点和关节参数恢复刚体变换。实验表明该方法能生成更稳定且物理合理的抓取，为具身智能和数字人应用提供支撑。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

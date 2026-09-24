@@ -1,0 +1,401 @@
+Title: Layered e-skin for Shear Sensing
+
+URL Source: https://arxiv.org/pdf/2609.22493v1
+
+Published Time: Tue, 22 Sep 2026 00:16:57 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Layered e-skin for Shear Sensing 
+
+Qingzheng Cong, Alexis W. M. Devillard, Abu Bakar Dawood, Xinxin Zhang, Wen Fan, Neri Niccol ` o Dei, Cem Suulker, Kaspar Althoefer, Etienne Burdet, and Dandan Zhang 
+
+Abstract —Superficial 
+
+> FSR Layer
+> Deep
+> FSR Layer
+> Compliant
+> Spacer
+
+b Two -Layer Pressure Response  
+
+> Superficial Layer Deep Layer
+> Three -axis Force Estimation
+> Contact -Motion Tracking
+
+a Sensor Exploded View 
+
+> Slip -Event Detection
+
+c Capabilities     
+
+> Reference Contact Torsional Motion Translational Motion
+
+This paper presents a stacked two-layer force-sensing resistor (FSR) array designed for robotic fingertips that combines high-resolution pressure mapping with shear-force estimation. A compliant lattice elastomer spacer converts shear loading into a mea-surable inter-layer displacement, producing relative center-of-pressure (CoP) shifts be-tween layers. A physics-based moment bal-ance links inter-layer CoP displacement to shear force, while an end-to-end CNN–GRU model captures nonlinear effects from load-dependent compression and contact redistri-bution. This model, with both layers as in-put, achieves coefficients of determination R 2
+
+= 0.914 for F x and R 2 = 0.944 for F y, con-sistently outperforming single-layer baselines for shear-force estimation. Robotic manipulation experiments show that, for contact-motion tracking, the deep layer tracks the translation and rotation imposed by the robot arm, whereas the superficial layer tracks the slip at the contact surface. Transient changes in the difference between the total pressure responses of the two layers provide the best slip-event detection performance among the tested cues. These results demonstrate that two-layer FSR arrays can provide three-axis force estimation, contact-motion tracking, and slip-event detection beyond conventional normal-force sensing. 
+
+Index Terms — Force-sensing resistor, robotic tactile sensing, shear-force estimation, slip detection, tactile sensor. 
+
+I. I NTRODUCTION 
+
+Tactile sensing is a key enabler of safe, dexterous robotic manipulation. Stable grasping depends not only on normal pressure, but also on friction, shear loading, and incipient slip [1]–[5]. Distributed tactile arrays are therefore valuable because they can capture the spatial evolution of contact pres-sure across grasping, sliding, and contact-transition events [6]. A wide range of tactile sensing technologies has been devel-oped to provide such contact information [7]–[9]. Vision-based tactile sensors (VBTSs), such as GelSight [10], DIGIT [11], and ViTacTip [12], represent a high-resolution class that ex-tracts rich contact information from images. However, the need for imaging hardware, illumination, and optical path length can increase sensor thickness, limiting integration into compact 
+
+This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible. This work was supported in part by the EC ERC 101118626 En-doTheranostics and UKRI PALPABLE 101092518 grants. Cong, Dawood, Dei, Suulker and Althoefer are with Queen Mary University of London, E1 4NS, UK. Cong, Devillard, Fan, Burdet and D Zhang are or were with The Imperial College of Science, Technology and Medicine, London SW7 2AZ, UK. Email: {e.burdet,d.zhang17 }@imperial.ac.uk X Zhang is with King’s College London, SE1 7EU, UK Cong, Devillard, and Dawood contributed equally to this work. 
+
+robotic fingertips. Non-vision approaches, such as capaci-tive [13]–[15], magnetic [16], [17], and multimodal [18] tactile sensors, offer compact alternatives for force and deforma-tion sensing. However, they often require precise fabrication, complex electronics, or substantial computational resources. In contrast, force-sensing resistors (FSRs) and piezoresistive arrays are thin, low-cost, flexible, and easy to arrange into two-dimensional pressure maps using row-column readout [5], [19]. These properties make them attractive for compact robotic fingertips, where sensing area, wiring, and integration complexity are tightly constrained. Conventional single-layer FSR arrays primarily measure local normal loading and provide limited information about shear forces [20]–[22]. This is a critical limitation for robotic grasping, where shear force and slip are closely linked to grasp stability. Sensitivity to shear force can be engineered at the structural level, for instance through sandwich structures with dedicated shear-force sensing units [23] or microstruc-tured elastomer interlayers whose lattice geometry tunes the multiaxial response [24]. Another strategy for estimating shear force is to stack pressure-sensitive layers and infer shear force from relative changes between their pressure maps, where Devillard et al. [25] demonstrated that a two-layer FSR skin can estimate pressure direction from inter-layer pressure-map shifts. However, the effective range of shear force that could arXiv:2609.22493v1 [cs.RO] 18 Sep 2026 2a Normal  Compression 
+
+## X
+
+## Y
+
+## 𝑂 𝑆 
+
+## ℎ𝑠𝑝𝑎𝑐𝑒𝑟 
+
+## Δ𝜽 
+
+## Δx 
+
+## 𝐹 𝑧 
+
+## 𝐹 𝑥  ℎ𝑂 𝑫 
+
+## 𝐹 𝑧  𝐹 𝑧 
+
+# b Compression with Lateral Translation  c Compression with Torsion             
+
+> Fig. 1. Concept of two-layer FSR response under normal, shear, and torsional loading. Blue and red contours represent the pressure distributions on the superficial and deep sensing layers. (a) Under normal compression, the two pressure centers remain aligned; OSand ODare the vertically aligned layer origins and hspacer the undeformed spacer height. (b) Under lateral translation, shear deformation of the spacer offsets the pressure centers by △x;his the fitted effective height above the deep sensing plane at which the shear force acts. (c) Under torsion, the pressure distribution becomes directionally biased, and its principal axis (PCA) angle △θdescribes the response.
+
+be estimated remained limited, as the relatively stiff interlayer permitted only small lateral and rotational deformations under typical normal loading. As a result, the stack had only weak shear sensitivity, behaving similarly to two redundant normal-pressure layers. Our idea to address this issue is to introduce a compliant, lattice-structured elastomer spacer between two FSR layers that converts shear loading into measurable inter-layer pressure redistribution, as shown in Fig. 1. We develop a CNN– GRU model to capture nonlinear deformation and accurately estimate the three-axis force, in line with recent learning-based tactile force estimation [26], [27]. We also demonstrate that the same two-layer response enables both continuous contact-motion tracking and transient slip-event detection. 
+
+II. S ENSOR FABRICATION AND FORCE MODELING 
+
+A. Sensor Fabrication and Readout 
+
+The developed e-skin consists of two stacked 16 × 16 
+
+FSR layers separated by a compliant Ecoflex (Smooth-On, Inc.) silicone spacer as shown in Fig. 2c. Each FSR layer is formed by laminating a Velostat sheet between crossed flexible printed circuit board (FPCB) copper electrodes. The crossed electrodes form a 16 ×16 taxel array with a pitch of 1.5 mm, comprising a 1.2 mm electrode width and a 0.3 mm gap, resulting in a 24 mm ×24 mm sensing area. The spacer is molded into a 2.5 mm high hexagonal lattice structure with a 2 mm feature size, using Ecoflex 00-10 (Smooth-On) diluted with silicone thinner at 10% by mass. A 0.2 mm silicone cover layer is added on the contact side for protection and friction enhancement. All silicone components are bonded using silicone adhesive (Sil-Poxy, Smooth-On). The crossed electrodes are read out via row–column mul-tiplexing. Rows are sequentially selected using 16:1 analog multiplexers (CD74HC4067), while the 16 column signals are measured through voltage dividers and digitized by a 12-bit 16-channel ADC (MAX11632). The readout scans a complete pair of 16 × 16 frames from the superficial and deep layers in an average of 2.36 ms, corresponding to a two-layer frame a FSR Layer Architecture b Two-Layer Assembly c Spacer Fabrication 
+
+Superficial FSR Layer 
+
+Deep FSR Layer 
+
+Elastomer Layer 
+
+3D-printed 
+
+mold 
+
+Curing and peeling 
+
+Ecoflex 00-10 + thinner Horizontal 
+
+electrodes 
+
+(bottom surface) 
+
+Velostat 
+
+Vertical 
+
+electrodes 
+
+24 mm 
+
+Cast silicone spacer  
+
+> Fig. 2. Fabrication of the two-layer FSR array. (a) Single-layer FSR structure formed by laminating a Velostat sheet between crossed FPCB electrodes. Each layer has vertical and horizontal electrodes on opposite faces, and the electrode array is a square with 24 mm side. (b) Final two-layer sensor assembled by stacking two FSR layers with the compliant spacer in between. (c) Cast Ecoflex 00-10 silicone spacer with a hexagonal lattice structure. 3
+
+rate of approximately 424 Hz. 
+
+B. Linear Force Estimation 
+
+As illustrated in Fig. 1, shear loading produces a relative shift between the superficial and deep layer pressure maps. To quantify this effect, after baseline subtraction and normal-ization, each layer provides a pressure map P = {pi,j } at every time step. The center of pressure (CoP) of each layer is defined as: 
+
+c = X
+
+> i,j
+
+pi,j 
+
+ε + p
+
+xi
+
+yj
+
+
+
+, p = X
+
+> i,j
+
+pi,j , (1) where (xi, y j ) are the taxel coordinates , p is the total pressure 
+
+over the map, and ε is a small constant to avoid divergence when the measured pressure is negligible. The CoP displace-ment between the two layers is then: 
+
+△c = c(s) − c(d) =
+
+△x
+
+△y
+
+
+
+, (2) where superscripts (s) and (d) indicate the superficial and deep layers, respectively. Assuming small deformations and that the superficial-layer CoP approximates the point of load application, a shear force Fx acting at an effective height h
+
+above the deep sensing plane shifts the deep-layer CoP in the direction of the applied shear force. The resulting offset between the two layer CoPs allows the normal force ( Fz ) to generate a counteracting moment. Therefore, up to the sign determined by the definition of △c in Eq. 2, 
+
+Fx h ≈ Fz △x , Fy h ≈ Fz △y . (3) This expresses that the inter-layer CoP displacement, scaled by the normal load, is physically coupled to the applied shear force. However, because the compliant spacer undergoes load-dependent compression and nonlinear deformation, the effective height h varies with Fz , contact area, and shear direction. Consequently, the following linear regression model is expected to have limited predictive power. Each force component is regressed using the feature vector 
+
+ϕ =
+
+h
+
+△x, △y, p (s), p (d), △x ¯p, △y ¯p
+
+iT
+
+, (4) where p(s) and p(d) denote the total pressure of the superficial and deep layers, respectively, and ¯p = [ p(s) + p(d)]/2 is their mean. The product terms △x ¯p and △y ¯p combine inter-layer CoP displacement with a proxy for normal load and capture the first-order relationship suggested by Eq. 3. 
+
+C. Temporal Multi-Head CNN–GRU Model 
+
+To capture nonlinear mappings from data to force, we use an end-to-end model with three output heads, one per force com-ponent. After smoothing and downsampling as described in Section III-A, the model maps sequences of FSR frames from the selected layer configuration directly to Fx, Fy , and Fz . To quantify the contribution of each sensing layer, the network is trained using three input configurations: superficial-layer-only, deep-layer-only, and two-layer. Each input sample contains T
+
+consecutive frames. For the superficial-layer-only and deep-layer-only configurations, each frame contains one 16 × 16 
+
+sensing map. For the two-layer configuration, the superficial-layer map, deep-layer map, and their signed difference are stacked as three input channels. The resulting input-window dimensions are T ×C×16 ×16 , where C = 1 for either single-layer configuration and C = 3 for the two-layer configuration. The same lightweight CNN encoder is applied indepen-dently to all T frames, producing one 64-dimensional feature vector per frame and therefore a temporal feature sequence of size T ×64 . This sequence is processed by three indepen-dent gated recurrent unit (GRU) [28] branches, one for each force component. The complete architecture is summarized in Table I. The model was trained using Adam with a learning rate of 
+
+3 × 10 −4 and a batch size of 256. A weighted Smooth-L1
+
+loss was applied to standard-deviation-normalized force errors to balance the three force components and reduce sensitivity to outliers. Training was limited to 200 epochs with early stopping.              
+
+> TABLE I ARCHITECTURE OF THE CNN–GRU NETWORK .DIMENSIONS ARE FOR ONE SAMPLE . A LL CONVOLUTIONS USE 3×3KERNELS WITH PADDING 1. D ROPOUT WITH PROBABILITY 0.1 IS APPLIED AFTER THE FULLY CONNECTED PROJECTION .
+
+Operation Configuration Output shape Input window C ∈ { 1, 3} T ×C ×16 ×16 
+
+Shared frame encoder 
+
+Conv 1 C → 32 , stride 1 T ×32 ×16 ×16 
+
+Conv 2 32 → 64 , stride 2 T ×64 ×8×8
+
+Conv 3 64 → 64 , stride 1 T ×64 ×8×8
+
+Flatten – T ×4096 
+
+Projection 4096 → 64 , ReLU T ×64 
+
+k ∈ { x, y, z }
+
+GRU k hidden 64, 1 layer T ×64 
+
+Last time step – 64 Linear k 64 → 1 1
+
+Force output ( ˆFx, ˆFy , ˆFz ) 3
+
+III. E XPERIMENTS 
+
+In all experiments, the superficial FSR layer contacted the environment, whereas the deep FSR layer was fixed to the support or gripper finger beneath the compliant spacer. A 
+
+calibration dataset was first collected under controlled normal and shear loading to fit the force-regression models. A robotic manipulation experiment was then used to test whether the two-layer pressure maps provide spatial cues for contact-motion tracking and slip-event detection in translational and rotational motion. 
+
+A. Force Estimation Experiment 
+
+Interaction data were collected using a custom three-axis linear platform that applied vertical pressing and in-plane sliding on the e-skin via a 3D-printed rigid hemispherical indenter (radius 2.5 mm). A six-axis force/torque sensor (ATI 4
+
+Mini40) mounted beneath the e-skin provided synchronized reference forces Fx, Fy , and Fz .The dataset collected contains 899 contact trials, including 500 normal-pressing trials and 399 shear-sliding trials across 100 contact positions. At each position, five normal-pressing trials were performed by moving the probe vertically along the z-axis. Four shear-sliding trials were then performed from the preloaded contact position in a randomly selected direction in the XY plane, with a random displacement uniformly sampled from [−0.5, 0.5] mm along the Z-axis. Each sliding motion was terminated when the target shear-force magnitude of 2 N was reached, or the e-skin boundary was encountered, or the normal-force safety limit of 6 N was triggered. The recorded force ranges were Fx ∈ [−2.01 , 2.01] N, Fy ∈
+
+[−1.98 , 1.95] N, and |Fz | ∈ [0 , 6.17] N. Before training, each contact trial was filtered using a moving average with window size 5, and downsampled by averaging consecutive groups of five samples, yielding 82,513 frames. Contact trial data were used for training (70%), validation (15%) and testing (15%). Data splits were performed at the trial level to avoid temporal leakage between training and testing data. The validation set was not used for the linear regression, as the least-squares fit involves no tuned hyperparameters. 
+
+B. Robotic Manipulation Experiment 
+
+Beyond calibrated force estimation, we examine whether the two-layer FSR array can also provide contact-motion tracking and slip-event detection. The experiment was conducted using a UR5e robot arm equipped with a Robotiq Hand-E pressing against a fixed rod with 12 mm in diameter, as shown in Fig. 3. The gripper was commanded to approach the rod until the summed FSR readings across both layers exceeded an empirically selected threshold of 500 ADC counts for five consecutive frames. After contact detection, the gripper was commanded to close by an additional distance (g ∈{6, 9, 12 , 15 } mm) to increase the normal preload. Here, g,referred to as the grip depth, denotes the commanded post-contact closure rather than the realized finger displacement, sensor indentation, or final jaw gap. For each grip depth, seven trials were recorded for each motion mode, yielding 28 translational and 28 torsional trials. Each translational trial followed a 0 → +5 → 0 → − 5 → 0
+
+mm trajectory along X0 at 2 mm /s, whereas each torsional trial followed a 0 → +25 → 0 → − 25 → 0 ◦ trajectory at 
+
+1.5 ◦/s.Because an F/T sensor was unavailable in the gripper setup, the mean normal preloads were estimated using the five-frame two-layer CNN–GRU model as Fz ={1.85, 2.82, 3.74, 4.38 } N for grip depths g = {6, 9, 12 , 15 } mm , respectively. The two layers were evaluated against different references. The deep layer is mechanically fixed to the gripper, which is carried by the robot arm, so its pressure pattern follows the arm motion relative to the rod rather than the slip at the contact. The superficial layer is in contact with the rod and separated from the deep layer by the compliant spacer. When the contact sticks, the spacer shears and the superficial layer stays in place on the rod. Once the contact slips, the superficial layer slides or rotates relative to the rod, and the contact moves across its taxels. Its pressure pattern therefore tracks the slip at the contact surface. To measure the slip displacement, two ArUco markers [29] were attached to a non-contact region of the superficial FSR layer and tracked by an externally fixed Intel RealSense D435 camera, which provided the marker locations at 30 frames per second, temporally aligned with the tactile measurements. Since the rod support and the camera were fixed, the measured marker pose was used as the reference for superficial-layer motion relative to the rod (vision reference). Small elastic deflections of the rod under loading were not separately compensated. For translational slip, the marker displacement was used as the ground-truth slip displacement; for rotational slip, the marker rotation angle was used as the ground-truth slip angle. In parallel, the robot arm’s end-effector pose was used as the deep-layer reference (the arm reference), with its lateral displacement and rotation angle representing translation and torsion relative to the fixed rod, respectively. Continuous contact-motion tracking quantified the accumu-lated displacement or rotation, whereas slip-event detection identified the timing of individual stick–slip transitions. For slip-event detection, the vision-measured translational displacement or rotation angle was filtered using a fourth-order Butterworth low-pass filter with an 8 Hz cutoff, and differen-tiated to obtain the corresponding velocity. Following vision-ArUco Marker 
+
+Superficial 
+
+FSR layer 
+
+Deep 
+
+FSR layer 
+
+Fixed Rod  Δ𝑥 𝑎𝑟𝑚 
+
+# a Initial configuration  c Torsion b Translation 
+
+𝑿 𝟎 
+
+O
+
+𝑥 𝑠𝑙𝑖𝑝  Δ𝜃 𝑎𝑟𝑚 
+
+𝜃 𝑆𝑙𝑖𝑝      
+
+> Fig. 3. Experimental setup for translational and torsional loading. (a) Initial contact configuration between the two-layer FSR sensor and the fixed rod. The blue dashed box denotes the gripper frame, and the yellow dashed box denotes the contact region of the superficial FSR layer. ArUco markers attached to the superficial layer are used for visual tracking. (b) Translational loading, in which the robot arm translates by △xarm in X0
+> direction while the gripper maintains contact with the fixed rod. (c) Torsional loading, in which the robot arm rotates the gripper by an angle △θarm .5
+
+based slip-labeling practice [30], ground-truth slip events were defined as local peaks in the velocity magnitude |v|. For each trial, peaks were detected using an adaptive threshold of 
+
+median( |v|)+1 .4826 ×MAD( |v|), and a minimum inter-peak interval of 150 ms. Here MAD denotes the median absolute deviation and the factor 1.4826 converts the MAD into a robust estimate of the standard deviation under Gaussian noise. Each tactile cue was band-pass filtered at 0.3–12 Hz, differentiated, converted to a 60 ms RMS envelope, and normalized using its median and median absolute deviation. Candidate slip events were extracted from local maxima of the resulting score. Detection thresholds and fixed temporal offsets were selected using training trials only. Detected events were matched one-to-one with the visual events within a tolerance of ±100 ms. Performance was evaluated using leave-one-trial-out (LOTO) validation. 
+
+IV. R ESULTS AND DISCUSSION 
+
+A. Sensor Characterization 
+
+Uniformity and repeatability were evaluated from the normal-pressing trials, using the summed positive response of both layers interpolated at a matched normal load. At 2 N , the response across the 100 contact positions had a coefficient of variation of 14 .5% (bootstrap 95% CI: 12 .5–16 .2% ). Across the 88 positions with a shared loading interval above 0.3 N 
+
+for all five presses, the median within-position coefficient of variation was 6.2% .The shear trials were used to quantify the inter-layer CoP displacement under shear loading. At shear magnitudes of 1.9–
+
+2.1 N, the trial-wise median inter-layer CoP displacement was 
+
+2.20 mm ( 10 th– 90 th percentile: 1.41 –2.97 mm). To evaluate the first-order relation in Eq. 3, Fz △c was fitted to the reference shear force over all shear trials, giving effective co-efficients of hx = 3 .64 mm and hy = 4 .71 mm. Repeating the same fit within normal-force intervals showed that these fitted coefficients increased with normal load, from 1.62 /1.44 mm for x/y at 0.5–1.0 N to 4.84 /6.53 mm at 5.0–6.5 N. Over the same intervals, the R2 of the regression between Fz △c
+
+and the reference shear force increased from 0.159 /0.125 to 
+
+0.626 /0.725 for x/y . Thus, hx and hy represent effective force–CoP coupling coefficients rather than the physical spacer height. 
+
+B. Force Estimation 
+
+To assess the contributions of inter-layer and temporal infor-mation to force estimation, we compared the physics-inspired linear baseline with CNN–GRU models using different layer inputs and sequence lengths. Using both FSR layers as input improves shear-force es-timation over using the superficial layer alone. With five-frame inputs (s5), using two layers rather than only the superficial layer increases R2 by 0.045 for Fx and 0.050 for 
+
+Fy , while reducing the corresponding MAEs by 20.3% and 25.3%, respectively. The superficial layer alone still carries substantial shear information ( R2 = 0 .842 –0.900 ), consistent with partial lateral transmission through the spacer. The deep                                                                       
+
+> TABLE II PER -AXIS FORCE -ESTIMATION PERFORMANCE .LIN .: LINEAR RE -
+> GRESSION USING THE SIX FEATURES IN EQ.4; T/S/D: CNN– GRU WITH TWO -LAYER /SUPERFICIAL /DEEP INPUTS ;S1/ S5: SE -
+> QUENCE LENGTHS OF 1/5 FRAMES . MAE: MEAN ABSOLUTE ERROR ;BEST VALUES ARE IN BOLD .
+> Metric Lin. T-s1 T-s5 S-s1 S-s5 D-s1 D-s5
+> Fx
+> R20.474 0.888 0.914 0.842 0.869 0.426 0.342 MAE (N) 0.275 0.098 0.094 0.126 0.118 0.217 0.231
+> Fy
+> R20.443 0.937 0.944 0.900 0.894 0.457 0.396 MAE (N) 0.229 0.068 0.065 0.085 0.087 0.175 0.178
+> Fz
+> R20.902 0.988 0.983 0.992 0.989 0.928 0.926 MAE (N) 0.318 0.105 0.113 0.094 0.104 0.252 0.256 Start  End
+
+b Two -layer  Seq5 model 
+
+a Linear model  
+
+> Fig. 4. Per-axis force estimation from (a) the linear regression and (b) the nonlinear two-layer s5 model. Dashed lines denote the ideal prediction; color indicates temporal progression within each contact trial.
+
+layer alone is far less informative for shear ( R2 = 0 .342 –
+
+0.457 ) but remains effective for Fz (R2 ≈ 0.93 ), supporting its role as a mechanically filtered reference that, when combined with the superficial layer, helps isolate inter-layer deformation associated with shear. The linear regression is substantially less accurate than the two-layer CNN–GRU model. For a sequence length of five (T-s5), the nonlinear model achieves R2 = 0 .914 and 0.944 
+
+for Fx and Fy , respectively, reflecting nonlinear effects (e.g., load-dependent spacer compression, changes in contact area, spatial pressure redistribution, direction-dependent deforma-tion) beyond first order. Increasing the sequence length from one to five frames improved Fx estimation by a similar amount for the two-layer input ( R2 from 0.888 to 0.914) and the superficial-layer input (0.842 to 0.869), but changed Fy only slightly (0.937 to 0.944 and 0.900 to 0.894, respectively). For the deep-layer input, longer sequences reduced accuracy on both shear axes. Fz
+
+was already well estimated from a single frame. Fig. 4 highlights the limitation of centroid-based features: for the in-plane axes, the linear model follows the trend at large shear but degrades near zero shear because △c in Eq. (2) (difference of normalized pressure centroids) becomes noise-sensitive. Operating on full 16 ×16 pressure maps and a short temporal window, the T-s5 model contracts trajectories towards the diagonal across the full range, lifting R2 for shear force 6c Translational  Slip -Event  Detection  d Torsional  Slip -Event  Detection 
+
+# a Translational  Contact -Motion  Tracking  b Torsional  Contact -Motion  Tracking  
+
+> Fig. 5. Representative layer-specific contact-motion tracking and slip-event detection for translation (a,c) and torsion (b,d) at a grip depth of 12 mm. (a,b) Grip-specific calibrated deep-layer and superficial-layer readouts compared with the arm motion and the vision-measured slip, respectively. (c,d) Slip-event detection using the inter-layer difference cue and the grip-specific threshold learned from the training trials. Vertical dashed lines indicate vision-derived ground-truth slip events. Green triangles, orange inverted triangles, and blue crosses denote true positives (TP), false positives (FP), and false negatives (FN), respectively.
+
+estimation from approximately 0.4 with the linear model to 
+
+0.9.
+
+C. Layer-Specific Contact-Motion Tracking 
+
+Using the experiments described in Section III-B, we eval-uated contact-motion tracking separately for the deep and superficial layers, against the arm and vision references, re-spectively. Translation was represented by CoP displacement and torsion by the PCA angle.                                                                            
+
+> TABLE III GRIP -SPECIFIC LOTO TRACKING PERFORMANCE . T HE SLOPE aIS AVERAGED ACROSS THE LOTO FOLDS ,WHEREAS R2AND MAE ARE CALCULATED FROM THE POOLED OUT -OF -FOLD PREDICTIONS .MAE IS REPORTED IN MILLIMETERS FOR TRANSLATION AND DEGREES FOR TORSION .
+> Deep (arm) Superficial (vision) Motion gaR2MAE aR2MAE Translation 6 mm 1.35 0.996 0.13 0.94 0.991 0.19 9 mm 1.23 0.996 0.15 0.90 0.991 0.16 12 mm 1.22 0.989 0.26 0.91 0.973 0.25 15 mm 1.25 0.973 0.41 0.97 0.882 0.41 Torsion 6 mm 1.16 0.897 3.92 0.92 0.953 2.46 9 mm 1.16 0.952 2.87 0.87 0.946 2.79 12 mm 1.16 0.973 2.10 0.84 0.975 1.90 15 mm 1.16 0.980 1.73 0.79 0.980 1.51
+
+For each grip depth and sensing layer, the readout was calibrated and evaluated using LOTO cross-validation. In each fold, a scale-and-offset calibration, ˆq = aq FSR + b, was fitted on the remaining trials at the same grip depth and applied to the held-out trial. For translation, qFSR is the displacement of the layer CoP (Eq. 1) relative to its initial position. For torsion, 
+
+qFSR is the PCA angle, 
+
+θ(k) = 12 atan2 
+
+
+
+2C(k) 
+
+> xy
+
+, C (k) 
+
+> xx
+
+− C(k)
+
+> yy
+
+
+
+,
+
+where C(k) 
+
+> xx
+
+, C(k) 
+
+> yy
+
+, and C(k) 
+
+> xy
+
+are the pressure-weighted coor-dinate covariances of the corresponding superficial or deep layer. The slope a represents the scale correction, while R2
+
+and MAE evaluate the held-out tracking accuracy. Table III summarizes the results for each grip depth. 
+
+1) Translation: Fig. 5a shows a representative trial at g =12 mm . The deep-layer readout followed the imposed arm motion, whereas the superficial-layer readout followed the vision-measured slip, which was smaller than the arm motion because the spacer deformed during sticking. The deep-layer calibration slope remained within a = 1 .22 –
+
+1.25 at g = {9, 12 , 15 } mm , but was much higher ( a = 1 .35 )at g = 6 mm . A likely reason is the weaker deep-layer signal: low-level noise readings spread across the array then carry more weight in the pressure-weighted CoP and pull it toward the array center, which reduces its displacement. By comparison, the superficial-layer slope remained close to unity (a = 0 .90 –0.97 ) across all grip depths. Because this layer is in direct contact with the rod, its CoP follows the contact position and needs only a small scale correction. Translational tracking accuracy degraded with increasing grip depth for both layers, particularly for the superficial layer. From g = 6 to 15 mm , R2 fell from 0.996 to 0.973 for the deep layer and from 0.991 to 0.882 for the superficial layer, while the MAE rose from 0.13 and 0.19 mm , respectively, to 
+
+0.41 mm for both. At larger grip depths, deeper indentation and tangential traction during sticking redistribute pressure within the contact, causing the pressure-weighted CoP to shift even when the contact does not slip. Because this traction-7
+
+dependent shift is not captured by the scale-and-offset cali-bration, the superficial layer, being closest to the contact, is affected most.  
+
+> 2) Torsion:
+
+Fig. 5b shows a representative trial at g =12 mm . Torsional tracking showed the opposite compression dependence, with tracking by both layers generally improving toward g = 15 mm . At this grip depth, both readouts achieved 
+
+R2 = 0 .980 , with MAEs of 1.73 ◦ and 1.51 ◦, respectively. The deep-layer slope remained near 1.16 across all grip depths, suggesting that the PCA angle was less sensitive to limited contact at g = 6 mm than the translational CoP. This is consistent with the explanation given for translation: low-level noise readings spread evenly across the array have no preferred direction, so they do not rotate the principal axis. They only make the angle noisier, as reflected by the lower 
+
+R2 at g = 6 mm .As g increased, the superficial-layer slope decreased from 
+
+0.92 to 0.79 , meaning that the pressure pattern rotated 9% to 27% more than the slip angle measured by the vision reference. This increasing angular amplification can be ex-plained by two effects. First, since the vision markers measure the motion of the non-contact region whereas the PCA angle describes the pressure distribution within the contact, the two measurements are not always consistent, particularly when the contact pressure is highly non-uniform. Second, under torsion the tangential traction acts in opposite directions at the two ends of the elongated contact, and the resulting pressure shifts rotate the principal axis further than the contact itself, an effect strengthened by deeper indentation. A deeper grip therefore affected translation and torsion differently. In translation, it added pressure redistribution that does not scale with slip, so accuracy decreased. In torsion, deeper contact strengthened the pressure pattern, while the as-sociated pressure redistribution was expressed predominantly as a systematic change in angular scale that the grip-specific calibration could absorb. Consequently, torsional tracking ac-curacy improved with increasing grip depth. 
+
+D. Slip-Event Detection 
+
+Slip events were identified from peaks of the vision-measured translational velocity (791 events) and rotational velocity (2,977 events) over 28 trials per motion mode. Five tactile cues were compared: the superficial-layer total response, inter-layer difference (the absolute difference be-tween the superficial-layer and deep-layer total responses), the magnitude of the three-axis force Fxyz and the normal force 
+
+Fz , both predicted by the T-s5 model, and a superficial-layer geometric cue (CoP for translation, PCA angle for torsion). For the Global and Grip settings, thresholds were selected within each training fold to maximize F1, and detected events were matched one-to-one with the ground-truth events within ±100 
+
+ms. The Oracle setting instead used a label-informed threshold for each held-out trial as an upper bound. The inter-layer difference achieved the highest F1 score in every setting (Table IV). A slip transition creates a transient imbalance between the total responses of the two layers, allowing this cue to emphasize differential loading while attenuating changes common to both layers.                                           
+
+> TABLE IV SLIP -EVENT DETECTION F1 SCORES (TRIAL -MACRO , LOTO). G LOBAL :
+> ONE THRESHOLD ACROSS ALL GRIPS ; G RIP :WITHIN -GRIP THRESH -
+> OLD ; O RACLE :LABEL -INFORMED PER -TRIAL UPPER BOUND .
+> Translation Torsion Cue Global Grip Oracle Global Grip Oracle Inter-layer diff. 0.672 0.840 0.859 0.731 0.787 0.809
+> Superficial-layer 0.642 0.795 0.836 0.621 0.681 0.730 Geometric cue 0.652 0.821 0.851 0.585 0.651 0.675
+> Fxyz 0.649 0.808 0.855 0.607 0.664 0.682
+> Fz0.638 0.728 0.765 0.625 0.695 0.720
+
+Grip-specific thresholds substantially improved F1 (Trans-lation: 0.672 to 0.840 ; Torsion: 0.731 to 0.787 ), leaving only 
+
+0.019 and 0.022 , respectively, to the oracle bounds. This suggests that the events were generally well separated and that the main limitation of a global threshold was the compression-dependent response amplitude: low preload produced weaker tactile transients, whereas high preload produced larger ones. A fixed latency compensation reduced the median tactile lead relative to vision from 82 ms to 10 ms, consistent with camera pipeline delay [31]. Representative detections are shown in Fig. 5 c and d. 
+
+V. C ONCLUSION 
+
+This paper presented a two-layer FSR e-skin that extends normal-force sensing to three-axis force estimation by exploit-ing the CoP displacement induced by shear loading through a compliant lattice spacer. Compared with the stiffer inter-layer design in [25], the proposed spacer enables shear-force estimation under lower normal preload ( ±2 N shear force at approximately 6 N normal load) by allowing larger relative displacement between the two FSR layers. A first-order moment-balance analysis and related linear regression were consistent with this coupling, while a CNN– GRU model captured the remaining nonlinear response and achieved R2 = 0 .914 and 0.944 for Fx and Fy , respectively. Relative to a superficial-layer-only baseline, the two-layer input increased the mean shear R2 by approximately 0.048 and reduced the mean shear MAE by 22 .8% .The robotic experiments further demonstrated that the two layers provide complementary information for contact-motion tracking. The deep-layer CoP and PCA features tracked the imposed arm motion, whereas the superficial-layer features tracked the slip at the contact surface. Transient inter-layer difference also provided a consistent cue for both translational and torsional slip-event detection. A current limitation is that the relation between spacer compliance and the range of shear force that can be estimated has not yet been systematically characterized. Establishing this mapping across spacer materials and lattice geometries is a necessary next step toward tuning the force range and sensitivity of the two-layer FSR e-skin. 
+
+ACKNOWLEDGMENT 
+
+The authors used OpenAI ChatGPT to assist with English-language editing, sentence rephrasing, and stylistic refinement throughout the manuscript. All technical content and interpre-tations were reviewed and verified by the authors. 8
+
+REFERENCES 
+
+[1] W. Chen, H. Khamis, I. Birznieks, N. Lepora, and S. Redmond, “Tactile sensors for friction estimation and incipient slip detection - toward dexterous robotic manipulation: A review,” IEEE Sensors Journal ,vol. 18, no. 22, pp. 9049–9064, 2018. [2] X. Zhang, L. Wu, S. He, Z. Sha, Y. Huang, S. Wu, D. Chu, C. H. Wang, and S. Peng, “Recent advances of slip sensors for smart robotics,” 
+
+Advanced Materials Technologies , p. e02251, 2026. [3] J. Su, J. M. R. Tan, J. Liu, K. He, D. Wu, W. Lai, J. Cao, S. J. Phee, S. Magdassi, and X. Chen, “Bioarchitectonics-inspired soft grippers with cutaneous slip perception,” Science Advances , vol. 11, no. 33, p. eadx4206, 2025. [4] Q. Cong, W. Fan, and D. Zhang, “TacFR-Gripper: A reconfigurable fin-ray-based gripper with tactile skin for in-hand manipulation,” Actuators ,vol. 13, no. 12, p. 521, 2024. [5] J. Zhu, C. Zhou, and M. Zhang, “Recent progress in flexible tactile sensor systems: from design to application,” Soft Science , vol. 1, no. 1, 2021. [6] Y. Wang, X. Wu, D. Mei, L. Zhu, and J. Chen, “Flexible tactile sensor array for distributed tactile sensing and slip detection in robotic hand grasping,” Sensors and Actuators A: Physical , vol. 297, p. 111512, 2019. [7] W. Fan, H. Li, and D. Zhang, “CrystalTac: Vision-based tactile sensor family fabricated via rapid monolithic manufacturing,” Cyborg and Bionic Systems , vol. 6, p. 0231, 2025. [8] M. Meribout, N. A. Takele, O. Derege, N. Rifiki, M. ElKhalil, V. Tiwari, and J. Zhong, “Tactile sensors: A review,” Measurement , vol. 238, p. 115332, 2024. [9] N. F. Lepora, “Tactile robotics: Past and future,” The International Journal of Robotics Research , 2026. [10] W. Yuan, S. Dong, and E. H. Adelson, “GelSight: High-resolution robot tactile sensors for estimating geometry and force,” Sensors , vol. 17, no. 12, p. 2762, 2017. [11] M. Lambeta, P.-W. Chou, S. Tian, B. Yang, B. Maloon, V. R. Most, D. Stroud, R. Santos, A. Byagowi, G. Kammerer, D. Jayaraman, and R. Calandra, “DIGIT: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation,” IEEE Robotics and Automation Letters , vol. 5, no. 3, pp. 3838–3845, 2020. [12] W. Fan, H. Li, W. Si, S. Luo, N. Lepora, and D. Zhang, “ViTacTip: Design and verification of a novel biomimetic physical vision-tactile fusion sensor,” in Proc IEEE International Conference on Robotics and Automation (ICRA) , 2024, pp. 1056–1062. [13] B. Li, Y. Gao, A. Fontecchio, and Y. Visell, “Soft capacitive tactile sensing arrays fabricated via direct filament casting,” Smart Materials and Structures , vol. 25, no. 7, p. 075009, 2016. [14] A. B. Dawood, H. Godaba, A. Ataka, and K. Althoefer, “Silicone-based capacitive e-skin for exteroception and proprioception,” in Proc IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2020, pp. 8951–8956. [15] A. B. Dawood, C. Coppola, and K. Althoefer, “Learning decoupled multi-touch force estimation, localization and stretch for soft capaci-tive e-skin,” in Proc IEEE International Conference on Robotics and Automation (ICRA) , 2023, pp. 614–619. [16] R. Bhirangi, T. Hellebrekers, C. Majidi, and A. Gupta, “ReSkin: Ver-satile, replaceable, lasting tactile skins,” in Proc. Conference on Robot Learning (CoRL) , 2021. [17] W. Fan, H. Li, Q. Cong, and D. Zhang, “MagicGripper: A mini-magictac integrated gripper enabling multimodal perception in contact-rich manipulation,” IEEE Transactions on Automation Science and Engineering , vol. 22, pp. 24 311–24 332, 2025. [18] J. A. Fishel and G. E. Loeb, “Sensing tactile microvibrations with the BioTac—comparison with human sensitivity,” in IEEE RAS & EMBS Proc International Conference on Biomedical Robotics and Biomecha-tronics (BioRob) , 2012, pp. 1122–1127. [19] W. A. Friedl and M. A. Roa, “Experimental evaluation of tactile sensors for compliant robotic hands,” Frontiers in Robotics and AI , vol. 8, p. 704416, 2021. [20] T. Bartunek, A. M. Fey, and E. Battaglia, “On the effect of layering Velostat on force sensing for hands,” Sensors , vol. 25, no. 10, p. 3245, 2025. [21] D. Giovanelli and E. Farella, “Force sensing resistor and evaluation of technology for wearable body pressure sensing,” Journal of Sensors , vol. 2016, no. 1, p. 9391850, 2016. [22] J. Huang, Y. Guo, Y. Jiang, F. Wang, L. Pan, and Y. Shi, “Recent advances and future prospects in tactile sensors for normal and shear force detection, decoupling, and applications,” Journal of Semiconduc-tors , vol. 45, no. 12, p. 121601, 2024. [23] Y. Zhang, J. Zeng, Y. Wang, and G. Jiang, “Flexible three-dimensional force tactile sensor based on Velostat piezoresistive films,” Microma-chines , vol. 15, no. 4, p. 486, 2024. [24] A. Berman, K. Hsiao, S. E. Root, H. Choi, D. Ilyn, C. Xu, E. Stein, M. Cutkosky, J. M. DeSimone, and Z. Bao, “Additively manufactured micro-lattice dielectrics for multiaxial capacitive sensors,” Science Ad-vances , vol. 10, no. 40, p. eadq8866, 2024. [25] A. W. Devillard, A. Dutta, Z. Zhang, X. Cheng, M. Kaboli, and E. Burdet, “Modular, multi-layer e-skin for robotics investigations and applications,” in Proc IEEE World Haptics Conference (WHC) , 2025, pp. 15–23. [26] A.-H. Shahidzadeh, G. M. Caddeo, K. Alapati, L. Natale, C. Ferm¨ uller, and Y. Aloimonos, “FeelAnyForce: Estimating contact force feedback from tactile sensation for vision-based tactile sensors,” in Proc IEEE International Conference on Robotics and Automation (ICRA) , 2025, pp. 251–257. [27] S. Shang, M. Seo, Y. Zhu, and L. Chin, “FORTE: Tactile force and slip sensing on compliant fingers for delicate manipulation,” IEEE Robotics and Automation Letters , vol. 11, no. 4, pp. 4473–4480, 2026. [28] K. Cho, B. van Merrienboer, C. Gulcehre, D. Bahdanau, F. Bougares, H. Schwenk, and Y. Bengio, “Learning phrase representations using RNN encoder–decoder for statistical machine translation,” in Proc. Conference on Empirical Methods in Natural Language Processing (EMNLP) , 2014, pp. 1724–1734. [29] S. Garrido-Jurado, R. Mu˜ noz-Salinas, F. Madrid-Cuevas, and M. Mar´ ın-Jim´ enez, “Automatic generation and detection of highly reliable fiducial markers under occlusion,” Pattern Recognition , vol. 47, no. 6, pp. 2280– 2292, 2014. [30] R. Zenha, B. Denoun, A. Cavallaro, A. Bernardino, and L. Jamone, “Let’s DENSE: a novel protocol for efficiently collecting dense and diverse data for tactile slip detection in robotic grasping,” npj Robotics ,vol. 3, no. 1, 2025. [31] T. Sonoda, J. N. Sweetser, T. Khuong, S. Brook, and A. Grunnet-Jepsen, “High-speed capture mode of RealSense Depth Camera D435,” Intel RealSense, White Paper Rev. 1.2, 2020. [Online]. Available: https://dev.realsenseai.com/docs/ high-speed-capture-mode-of-intel-realsense-depth-camera-d435

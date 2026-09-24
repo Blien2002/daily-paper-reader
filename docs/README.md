@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-23</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-24</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 19 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-23 22:09:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-24 22:11:36 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,10 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 19 篇推荐（精读 7 篇，速读 12 篇）</p>
-<p>精读：《DexTacWAM: A Visuo-Tactile World-Action Model for Dexterous Manipulation》（10.0/10）, 《ME-VLM:A Unified VLM for Embodied Cognition and Agent Coordination》（9.0/10）</p>
-<p>速读：《WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors》（8.0/10）, 《Touch2Robot: Robot Touch in the Human Demonstration Loop》（8.0/10）, 《X-Planner: Event-Structured Task Planning for Embodied Intelligence》（8.0/10）</p>
-<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
+<p>今日扫读19篇具身智能论文（精读7篇、速读12篇），焦点集中在世界动作模型与跨具身操作。</p>
+<p>最值得看：WholeBodyWAM 用可扩展运动先验构建全身世界动作模型，GALA 以几何感知潜在动作做跨具身 VLA 预训练，均获9.0高分。</p>
+<p>下步建议</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -84,7 +83,7 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="DexTacWAM: A Visuo-Tactile World-Action Model for Dexterous Manipulation">DexTacWAM: A Visuo-Tactile World-Action Model for Dexterous Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="ME-VLM:A Unified VLM for Embodied Cognition and Agent Coordination">ME-VLM:A Unified VLM for Embodied Cognition and Agent Coordination</span></li><li><span class="dpr-home-dashboard-paper-title" title="MachEmbodied-U0: Unified Understanding and Generation Model for Embodied Intelligence">MachEmbodied-U0: Unified Understanding and Generation Model for Embodied Intelligence</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors">WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors</span></li><li><span class="dpr-home-dashboard-paper-title" title="GALA: Geometry-Aware Latent Action Modeling for Vision-Language-Action Model Pretraining across Embodiments">GALA: Geometry-Aware Latent Action Modeling for Vision-Language-Action Model Pretraining across Embodiments</span></li><li><span class="dpr-home-dashboard-paper-title" title="DexTacWAM: A Visuo-Tactile World-Action Model for Dexterous Manipulation">DexTacWAM: A Visuo-Tactile World-Action Model for Dexterous Manipulation</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>5</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
 </section>
@@ -97,9 +96,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors">WholeBodyWAM: Learning Whole-Body World Action Models with Scalable Motion Priors</span></li><li><span class="dpr-home-dashboard-paper-title" title="Touch2Robot: Robot Touch in the Human Demonstration Loop">Touch2Robot: Robot Touch in the Human Demonstration Loop</span></li><li><span class="dpr-home-dashboard-paper-title" title="X-Planner: Event-Structured Task Planning for Embodied Intelligence">X-Planner: Event-Structured Task Planning for Embodied Intelligence</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Towards Fine-Grained Object Manipulation: SAM3-Guided Visuomotor Policy with Persistent Memory Learning and Focused Visual Conditioning">Towards Fine-Grained Object Manipulation: SAM3-Guided Visuomotor Policy with Persistent Memory Learning and Focused Visual Conditioning</span></li><li><span class="dpr-home-dashboard-paper-title" title="SkelWAM: A Skeleton-Guided World-Action Model for Zero-Shot Cross-Embodiment Manipulation">SkelWAM: A Skeleton-Guided World-Action Model for Zero-Shot Cross-Embodiment Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="RoboTalk: Learning Multi-Robot Communication and Coordination from Multimodal Demonstrations">RoboTalk: Learning Multi-Robot Communication and Coordination from Multimodal Demonstrations</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>9</strong></span><span class="dpr-home-dashboard-tag">tf <strong>3</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>11</strong></span><span class="dpr-home-dashboard-tag">tf <strong>1</strong></span></div>
 </section>
 </div>
 
