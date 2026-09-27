@@ -1,0 +1,538 @@
+Title: Imagine then Verify: Affordance-Targeted Active Perception for Task-Oriented Grasping in Cluttered Scenes
+
+URL Source: https://arxiv.org/pdf/2609.23504v1
+
+Published Time: Tue, 22 Sep 2026 01:26:50 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Imagine then Verify: Affordance-Targeted Active Perception for Task-Oriented Grasping in Cluttered Scenes 
+
+Jingzhi Cui, Xuefeng Liu, Feng Han, Xinyu Liu, Wei Chen, Jianwei Niu 
+
+Abstract — Task-oriented grasping (TOG) requires robots to grasp functional parts of objects (e.g., the handle of a mug for pouring), yet these affordance regions are frequently occluded in cluttered scenes. Active perception via next-best-view (NBV) planning can resolve such occlusions by moving the camera for more informative observations. However, existing NBV methods typically optimize viewpoints for grasping the target object as a whole without distinguishing which part is task-relevant. A naive adaptation, fully scanning the target object before predicting the affordance, wastes most of the viewpoint budget on task-irrelevant surfaces (e.g., the mug body for pouring). To address this, we propose ATAP, an Affordance-Targeted Active Perception framework that shifts viewpoint planning from exhaustive target scanning to targeted affordance verification. ATAP hypothesizes the occluded target geometry via a generative shape prior and predicts the affordance distribution over the imagined complete surface. In cluttered scenes, severe occlusion can make the location of the hidden affordance ambiguous, leaving multiple locations plausible given the partial observation. ATAP therefore introduces an uncertainty-aware viewpoint planner that jointly optimizes ex-pected entropy reduction over these competing hypotheses and expected affordance verification gain from real observations. This process iterates until the affordance is sufficiently verified for grasp execution. Experiments in simulation and real-world cluttered scenes show that ATAP substantially improves the functional grasp success rate over fixed-view TOG baselines, and outperforms reconstruction-based active perception with over 57% fewer NBV steps. 
+
+I. INTRODUCTION Grasping is a fundamental step in robotic manipulation, but the success of downstream tasks often depends not on whether an object is grasped, but on how it is grasped [1]. When humans grasp an object, we intuitively choose the task-relevant functional part, e.g., the handle of a mug for pouring. This requirement is formalized as task-oriented grasping (TOG) [2], [3]. Unlike general grasping that aims for any stable grasp on an object [4], [5], TOG requires the robot to contact the functional part (the affordance region) according to the task instruction. Existing TOG methods, whether through training-based affordance transfer [3], [6], [7] or zero-shot VLM reasoning [8], [9], [10], implicitly assume that the affordance region is visible from the current viewpoint. However, in cluttered environments, these func-tional parts are frequently occluded by surrounding objects or hidden due to unfavorable object orientations, causing affordance reasoning failures and unsuccessful TOG.           
+
+> Jingzhi Cui, Xuefeng Liu, Feng Han, Wei Chen and Jianwei Niu are with the School of Computer Science and Engineering, Beihang University, Beijing, China. Xinyu Liu is with the School of Artificial Intelligence, Beihang University, Beijing, China. Handle Points Verified!
+> “I am thirsty.”
+> Ours Baseline
+> ❌Body Grasp
+> ☹TOG Failed !
+> ✅Handle Grasp
+> 😊 TOG Success !
+> TOG Fixed-view TOG Verify
+> (Active perception) Initial observation New observation
+> Not enough handle points observed.
+> handle? Imagine
+
+Fig. 1: Motivation of ATAP . When the task-relevant af-fordance is occluded, fixed-view TOG tends to grasp the visible body and fails the pouring task. ATAP hypothesizes the hidden affordance from imagined geometry and actively verifies it from a new viewpoint before executing the TOG. Active perception via Next-Best-View (NBV) planning offers a principled remedy for occlusion by iteratively repositioning the camera for more informative observations [11], [12], [13], [14]. However, existing NBV objectives typically optimize for either geometric reconstruction [11], grasp quality [12], or target visibility [13], [14]. None of these objectives is explicitly aligned with the task-specific functional affordance required for TOG. The most direct way to extend such methods to TOG is a reconstruct-then-reason pipeline that first reconstructs the entire target object and then predicts its affordance. This approach is inherently inefficient, as it expends most viewpoint budget on task-irrelevant surfaces (e.g., the body of a mug when only the handle matters for pouring), or terminates once the object is broadly covered while the affordance region remains hidden. Our key insight is that, for TOG, the affordance region itself requires high-fidelity observation; complete target re-construction is unnecessary. However, this insight exposes a circular dependency: directing the camera toward the affordance requires knowing its location, yet under occlusion this is precisely the information that must be recovered. To address this, we propose ATAP, an Affordance-Targeted Active Perception framework that shifts viewpoint planning from exhaustive object scanning to targeted affordance ver-ification, as illustrated in Fig. 1. Given a language instruc-tion and an initial observation, ATAP first hypothesizes the occluded target geometry via a generative shape prior and arXiv:2609.23504v1 [cs.RO] 20 Sep 2026 predicts the task-relevant affordance distribution over the imagined complete surface. However, under sparse initial ob-servations the shape prior can yield multiple plausible affor-dance placements, particularly for symmetric objects where the functional region could lie at several orientations. To handle this ambiguity, ATAP introduces an uncertainty-aware viewpoint planner that jointly maximizes expected entropy reduction over competing affordance-location hypotheses and expected verification gain from real observations. This hypothesize-then-verify loop iterates until the affordance is sufficiently verified and the remaining location ambiguity is low, progressively grounding the imagined geometry with real observations before TOG execution. In summary, our main contributions are as follows:  
+
+> •
+
+We propose ATAP, a closed-loop active perception framework for task-oriented grasping under occlusion. By leveraging generative shape priors, ATAP follows a hypothesize-then-verify strategy that shifts viewpoint planning from exhaustive target reconstruction to tar-geted affordance verification.  
+
+> •
+
+We introduce an affordance-targeted NBV planner that maintains multiple affordance-location hypotheses un-der ambiguous registration and selects views by jointly optimizing expected affordance verification gain and affordance-location disambiguation.  
+
+> •
+
+Simulation experiments and real-robot validation demonstrate that ATAP substantially improves func-tional grasp success over fixed-view TOG baselines, and outperforms reconstruction-based active perception with over 57% fewer NBV steps. II. R ELATED WORK 
+
+A. Task-oriented Grasping 
+
+Unlike general grasping, which seeks any stable grasp on an object [4], [5], [15], task-oriented grasping [2] requires robots to grasp the functional part according to the task instruction to enable downstream manipulation. Early TOG methods learn task-grasp mappings from large-scale anno-tated datasets through semantic knowledge [2], grasp-action embeddings [16], or part affordance grounding [17], but are limited to closed-set categories. Recent work improves generalization through LLM-augmented affordance transfer [3], [6], [7] and zero-shot VLM reasoning [8], [9], [10], [18]. However, these methods have been validated primarily in single-object or lightly cluttered settings, and implicitly assume the affordance region is visible from the current viewpoint. Although AffordGrasp [8] and OSTG [19] extend TOG to cluttered scenes, they do not address occlusion of the affordance itself. In practice, functional parts are frequently occluded by surrounding objects or hidden due to viewing angles, causing TOG failure. More recently, TOSC [20] addresses partial observability for dexterous hand grasping by completing only the task-relevant contact regions and directly synthesizing grasps. In contrast, ATAP imagines the full object geometry to support both affordance reasoning and viewpoint planning, and executes a grasp after the affordance has been sufficiently corroborated through active perception. 
+
+B. Active Perception for Grasping 
+
+Active perception through Next-Best-View (NBV) plan-ning provides a principled approach to resolving occlusion in grasping by iteratively selecting informative viewpoints [11], [12], [21]. Traditional methods primarily formulate NBV as a reconstruction-driven or grasp-quality-driven problem, leveraging volumetric information gain from ray casting [11], grasp imagery at novel views [12], or neural graspness fields [21]. ACE-NBV [12] considers grasp affordance in view selection, but targets generic graspability rather than task-specific functional regions. Recent semantic-guided methods use VLMs or semantic information gain for open-vocabulary target search and grasping [22], [14], [13]. However, they still optimize object-level visibility rather than task-relevant affordance verification. While effective for target localiza-tion, these methods treat all occluded geometry of the target as equally informative, overlooking the specific requirements of downstream manipulation. For TOG, this task-agnostic exploration wastes the viewpoint budget on task-irrelevant surfaces, or terminates prematurely while the affordance region remains hidden. To bridge this gap, our framework hypothesizes the affordance distribution via a generative shape prior and introduces an uncertainty-aware viewpoint planner that jointly optimizes affordance verification and affordance-location disambiguation. III. P ROBLEM FORMULATION 
+
+We consider a robotic arm with a wrist-mounted RGB-D camera and a parallel-jaw gripper operating over a clut-tered tabletop containing m arbitrarily placed objects O =
+
+{O1, . . . , O m}. Given a language task instruction L (e.g., “pour some water”), the robot is required to identify the task-relevant target object O∗ ∈ O and execute a 6-DoF grasp on its functional part—the affordance region A∗—that enables the intended manipulation task. A trial is considered successful if the robot lifts O∗ stably and the grasp contact falls within A∗.At each step t, the robot receives observation ot =(It, Dt, Tee t ), including the RGB frame It ∈ RH×W ×3,the depth map Dt ∈ RH×W , and the end-effector pose Tee  
+
+> t
+
+∈
+
+SE (3) . Based on the accumulated observations o0: t and L,the system evaluates whether A∗ is sufficiently observable to execute a stable task-oriented grasp. A viewing policy 
+
+πv : ( o0: t, L) → vt+1 ∈ SE (3) iteratively repositions the camera to expose the occluded affordance geometry. The perception loop continues until A∗ is sufficiently observed or the viewpoint budget T is exhausted, at which point a grasping policy πg : ( o0: t, L) → g is invoked to produce the final 6-DoF grasp pose and gripper width. IV. M ETHOD 
+
+A. System Overview 
+
+As illustrated in Fig. 2, ATAP follows a hypothesize-then-verify strategy for task-oriented grasping under affordance language instruction  ℒ
+
+“I am thirsty.”  
+
+> observation 𝑜𝑜𝑡𝑡
+
+3. Affordance-targeted NBV Planning    
+
+> VLM (GPT-4o, once)
+> Task : get some water
+> O* :Mug a*: handle
+> Grounding DINO
+> SAM2
+
+1. Task parsing & Grounding  2. Imagination-augmented Scene Representation  
+
+> Target mask
+> Occluder mask Bounding Boxes
+> Observed target
+> …
+> Top-K affordance-location hypotheses
+> Hy p. 1
+> 𝒜𝒜 𝑡𝑡 1
+> Hy p. 2
+> 𝒜𝒜 𝑡𝑡 2
+> Hy p. K
+> 𝒜𝒜 𝑡𝑡 k
+
+Depth  
+
+> Imagined completion Affordance map
+
+4.Task-oriented Grasp Execution 
+
+> Grasp
+> Candidates
+> Task-aware
+> filter
+> TOG
+> execution
+
+Stop Criterion 
+
+Yes 
+
+No   
+
+> ℬt
+> Hy p. 1
+> 𝒜𝒜 𝑡𝑡 1
+> Hy p. 2
+> 𝒜𝒜 𝑡𝑡 2
+> 𝑣𝑣 ∗
+> current view candidate view best view
+
+Candidate View Scoring Disambiguation       
+
+> 𝐻𝐻𝑡𝑡 =− � 𝑘𝑘=1 𝐾𝐾 𝑤𝑤𝑘𝑘 log 𝑤𝑤𝑘𝑘
+> Entropy
+> 0
+> 1
+> 𝑘𝑘 12K…
+
+Verification         
+
+> (example of hyp.1)
+> Verified
+> Unverified 𝒰𝒰 𝑡𝑡 k
+> 𝒮𝒮 𝑡𝑡 k
+> Hyp. reliability 𝑤𝑤𝑘𝑘
+> 𝒗𝒗 ∗= arg max
+> 𝑣𝑣∈𝒱𝒱 Δ𝐻𝐻 𝑣𝑣
+> location disambiguation
+> +��𝑞𝑞 𝑣𝑣
+> affordance verification
+> − 𝑤𝑤𝑐𝑐𝑐𝑐 move 𝑣𝑣
+> motion cost
+
+Move to  𝒗𝒗 ∗Fig. 2: Overview of ATAP. Given a language instruction and an RGB-D observation, ATAP completes the target geometry, predicts task-relevant affordances, and maintains multiple affordance-location hypotheses. The NBV planner selects target-centered views by jointly considering affordance verification, hypothesis disambiguation, and motion cost. The loop continues until the affordance is sufficiently verified and the remaining ambiguity is low, or the viewpoint budget is exhausted, after which the verified affordance guides task-oriented grasping. occlusion. Given a task instruction and partial target obser-vations, it first imagines the complete target geometry and predicts task-relevant affordances on the completed surface. To account for ambiguity in aligning the imagined geometry with partial observations, ATAP retains multiple plausible registrations as competing affordance-location hypotheses. The NBV planner then selects viewpoints that jointly disam-biguate these hypotheses and verify the predicted affordance against real depth observations. Each new observation up-dates the scene representation, and this closed-loop process continues until the affordance is sufficiently verified and the remaining hypothesis ambiguity is low, or the viewpoint budget is exhausted. Finally, the available verified affordance guides grasp selection. 
+
+B. Imagination-Augmented Scene Representation 
+
+Since the task-relevant affordance may be occluded from the initial view, planning toward it requires reasoning about unobserved geometry. ATAP addresses this with a hybrid scene representation: the target object is represented by a completed, affordance-annotated geometry that captures pos-sible functional-region locations, while surrounding clutter is approximated with coarse 3D bounding boxes. This avoids exhaustive scene reconstruction and focuses the NBV planner on the affordance region. 
+
+Task Parsing and Target Grounding. At episode start, we query a VLM [23] once with the task instruction L and the initial RGB observation I0 to identify the target object 
+
+O∗ and affordance type a∗. The target name guides open-vocabulary grounding, and a∗ serves as the language query for subsequent affordance prediction. Given O∗, Grounding DINO [24] and SAM2 [25] produce the target mask Mt
+
+from It. The masked depth is back-projected to the robot base frame to obtain the observed target cloud 
+
+Pobs  
+
+> t
+
+= Tcam  
+
+> t
+
+· K−1[u, v, 1] ⊤Dt(u, v ) (u, v ) ∈ M t , (1) where K is the camera intrinsic matrix and Tcam  
+
+> t
+
+denotes the camera-to-base transformation obtained from the end-effector pose Tee  
+
+> t
+
+and a fixed hand-eye calibration. Non-target masks are converted into coarse 3D boxes Bt =
+
+{Bi | i̸ = ∗} , which provide a compact occlusion model for viewpoint scoring. 
+
+Target Completion under Registration Ambiguity. The partial cloud Pobs  
+
+> t
+
+may not contain the task-relevant affor-dance, especially when the affordance is occluded by clutter or by the object itself. We therefore use SAM 3D [26] as a generative shape prior to imagine a complete target geometry from the masked RGB-D observation. The generated mesh is uniformly sampled to obtain a completed target cloud ˆPcomp  
+
+> t
+
+.The imagined complete cloud is registered to the accumu-lated target observation using ICP with scale estimation [27]. Under sparse or symmetric observations, multiple alignments can have similar registration fitness, leading to different possible affordance locations. Instead of selecting the best alignment, we retain the top-K registration hypotheses. Each hypothesis hk defines a transformation T(k) 
+
+> reg
+
+and scale α(k):
+
+ˆPcomp ,(k) 
+
+> t
+
+= T(k)
+
+> reg
+
+ α(k) ˆPcomp 
+
+> t
+
+, k = 1 , . . . , K. (2) Completion artifacts can also bias the alignment. We address this by identifying ghost points using both 3D nearest-neighbor support and projected depth discrepancies to assess approximate conflicts with observed free space. These points are penalized during coarse alignment and excluded before fine ICP, reducing their influence on the retained registra-tions. The aligned completions are thus used as spatial priors to be verified, rather than as exact reconstructions. 
+
+Affordance Prediction. We run GEAL [28] on the com-pleted cloud before registration, conditioned on a∗, to obtain a score sj ∈ [0 , 1] for each point pj . To focus subsequent planning on the predicted functional region, we retain points above a task-specific threshold γ and transform them under each registration: 
+
+A(k) 
+
+> t
+
+=
+
+n
+
+p(k) 
+
+> j
+
+pj ∈ ˆPcomp  
+
+> t
+
+, s j ≥ γ
+
+o
+
+, (3) where p(k) 
+
+> j
+
+= T(k)reg (α(k)pj ). The scores remain unchanged across registrations, so the resulting sets describe alternative spatial placements of the same predicted affordance. These affordance-location hypotheses form the basis for the verifi-cation and disambiguation objectives below. 
+
+C. Affordance-Targeted Next-Best-View Selection 
+
+Given the imagination-augmented scene representation, the view planner assesses whether the predicted affordance has been sufficiently verified and, if not, selects the next viewpoint to acquire further evidence. Unlike reconstruction-driven NBV methods that maximize global object coverage, ATAP focuses on the thresholded affordance sets A(k) 
+
+> t
+
+.Its view selection balances two complementary objectives: 
+
+affordance verification , which measures how much of the predicted affordance is supported by real depth observations, and affordance-location disambiguation , which aims to re-solve ambiguity among the affordance locations proposed by competing registration hypotheses. 
+
+Affordance-Location Hypotheses. The top-K registra-tions from Sec. IV-B induce K possible spatial placements of the thresholded affordance set A(k) 
+
+> t
+
+. To account for their varying agreement with the accumulated target observations, we assign each hypothesis a registration reliability score: 
+
+ρk = −(1 − Fk) + λGGk + λRRk
+
+, (4) where Fk is the ICP correspondence inlier ratio, Rk is the correspondence RMSE, and Gk is the ghost-point ratio de-fined in Sec. IV-B. Thus, larger ρk indicates better agreement. We normalize these scores into hypothesis weights: 
+
+wk = exp( ρk/σ ρ)
+
+PKj=1 exp( ρj /σ ρ) , (5) where σρ = max {0.5(max j ρj − min j ρj ), 0.01 } is an adaptive temperature computed from their score range. The affordance-location ambiguity is measured by 
+
+Ht = −
+
+> K
+
+X
+
+> k=1
+
+wk log wk. (6) A high Ht indicates that several affordance placements remain plausible, whereas a low Ht indicates that one placement dominates. 
+
+Affordance-Targeted Viewpoint Scoring. For each hy-pothesis hk, we first partition the thresholded affordance set 
+
+A(k) 
+
+> t
+
+into verified and unverified subsets using multi-view depth consistency. A point in A(k) 
+
+> t
+
+is verified if its valid image projection agrees with measured depth within ϵd in at least one acquired frame up to step t. We denote these points by S(k) 
+
+> t
+
+and the remaining points by U(k) 
+
+> t
+
+= A(k) 
+
+> t
+
+\ S (k) 
+
+> t
+
+.Candidate camera positions are sampled on a spherical shell of radius r = 0 .5 m centered at the target centroid, with the camera optical axis oriented toward the target center. This target-centered sampling provides a common candidate set independent of any individual affordance-location hypoth-esis. Workspace, inverse-kinematics, and collision checks are then applied to remove infeasible candidates, yielding the feasible set Vt. The candidates are subsequently ranked according to their expected affordance verification and dis-ambiguation gains. For each v ∈ V t, we estimate the fraction of the affordance set that is currently unverified and would become visible under each registration hypothesis: 
+
+q(k) 
+
+> ver
+
+(v) = 1
+
+|A (k) 
+
+> t
+
+| + ϵ
+
+X 
+
+> pj∈U (k)
+> t
+
+1visible (pj , v, Bt), (7) where visible (·) checks the camera field of view and ray occlusion by the clutter boxes Bt and the target geometry, and ϵ is a small constant for numerical stability. We compute the expected affordance verification gain by marginalizing over registration hypotheses: 
+
+¯q(v) = 
+
+> K
+
+X
+
+> k=1
+
+wk q(k) 
+
+> ver
+
+(v). (8) This term rewards views exposing unverified affordance points, rather than merely increasing global object coverage. Verification gain alone does not distinguish views that expose similar affordance fractions under competing hy-potheses. We therefore introduce a surrogate disambiguation gain based on the predicted affordance visibility under each hypothesis. Specifically, we use a binary observation model in which q(k)ver (v) serves as a surrogate likelihood of an affordance-consistent depth observation under hk. Condi-tioned on a positive or negative consistency outcome, the hypothesis weights are approximated as 
+
+w+ 
+
+> k
+
+(v) = wk q(k) 
+
+> ver
+
+(v)¯q(v) , w− 
+
+> k
+
+(v) = wk (1 − q(k) 
+
+> ver
+
+(v)) 1 − ¯q(v) , (9) where ¯q(v) is clipped to [ϵ, 1−ϵ] in the denominators to avoid degenerate updates. The expected posterior entropy is 
+
+ˆHt+1 (v) = ¯ q(v) H(w+) +  1 − ¯q(v) H(w−), (10) where H(w) = − P 
+
+> k
+
+wk log wk. The surrogate disambigua-tion gain is then 
+
+∆H(v) = Ht − ˆHt+1 (v). (11) A view yields a large ∆H(v) when different hypotheses predict different affordance visibility, making the view in-formative for resolving affordance-location ambiguity. The final NBV score combines affordance verification, affordance-location disambiguation, and motion cost: 
+
+v∗ = arg max 
+
+> v∈V t
+
+h
+
+∆H(v)
+
+| {z }
+
+> disambiguation
+
++ ¯q(v)
+
+|{z} 
+
+> verification
+
+− wc cmove (v)
+
+| {z }
+
+> motion cost
+
+i
+
+, (12) where cmove (v) is a normalized weighted sum of Cartesian translational and angular displacements from the current camera pose vt to v. When one hypothesis dominates, the potential entropy reduction is small, and view selection is driven primarily by affordance verification and motion cost. 
+
+Termination and Closed-loop Update. Using the best-supported hypothesis k∗, we measure the remaining need for verification by 
+
+rt = |U (k∗) 
+
+> t
+
+||A (k∗) 
+
+> t
+
+| + ϵ . (13) Coverage alone may leave competing locations unresolved, while low entropy does not ensure that the functional region has been observed. We therefore terminate the NBV loop when  rt < τ r ∧ Ht < τ H
+
+ ∨ t ≥ T, (14) where t counts viewpoint adjustments after the initial obser-vation and T is the maximum budget. After executing v∗, the robot acquires a new RGB-D observation and updates the accumulated target cloud and the occluder boxes Bt. The perception pipeline is then re-executed to update hypothesis weights and the revised ver-ified/unverified affordance partition. This observe–imagine– verify loop repeats until the termination criterion is met, after which the system proceeds to TOG execution. 
+
+D. Task-oriented Grasp Execution 
+
+After the NBV loop terminates, we execute the final grasp using the verified affordance under the current best-supported hypothesis k∗. Let Aver  
+
+> t
+
+= S(k∗) 
+
+> t
+
+denote the affordance points that have been corroborated by real observations. We run AnyGrasp [5] on the accumulated target point cloud to generate 6-DoF grasp candidates. Each grasp candidate g is scored by combining grasp quality and affordance alignment: 
+
+Q(g) = λ1sAG (g) + λ2ϕcen (g) + λ3ϕnear (g), (15) where sAG (g) ∈ [0 , 1] is the grasp quality returned by Any-Grasp [5]. The two affordance-alignment terms are defined as 
+
+ϕcen (g) = exp 
+
+
+
+− d2
+
+> cen
+
+(g)2σ2
+
+> c
+
+
+
+, ϕnear (g) = exp 
+
+
+
+− d2
+
+> near
+
+(g)2σ2
+
+> n
+
+
+
+,
+
+where dcen (g) is the distance from the grasp center to the centroid of Aver  
+
+> t
+
+, and dnear (g) is the distance to the nearest   
+
+> (a) (b) (c)
+
+Fig. 3: Simulation benchmark scenes on ManiSkill3. (a) Mug-handle grasping for pouring. (b) Knife-handle grasping for cutting. (c) Scissors finger-loop grasping for cutting. All three tasks use a top-down camera as the initial viewpoint. Red circles mark the target objects, whose affordance regions are occluded by surrounding clutter or the object’s own pose. verified affordance point. These terms bias grasp selection toward the verified task-relevant region, while sAG preserves geometric grasp stability. Among the candidates that pass inverse kinematics and collision checking, the grasp with the highest Q(g) is executed. V. E XPERIMENTS 
+
+We evaluate ATAP in simulation and on a real robot to examine whether affordance-targeted active perception improves both functional grasp success and viewpoint ef-ficiency under occlusion. We further study how performance changes with initial affordance occlusion, whether multi-hypothesis planning benefits ambiguous scenes, and whether these advantages transfer to real-world clutter. 
+
+A. Experiment Setup 
+
+Simulation Environment. All simulation experiments are conducted on the ManiSkill3 platform [29] using a 7-DoF Franka Emika Panda manipulator with a parallel-jaw gripper and a wrist-mounted RGB-D camera ( 1080 ×720 , 90 ◦ FoV). The robot operates on a 0.8×1.0 m tabletop workspace pop-ulated with randomly placed household objects. We evaluate all methods with three tasks that span different affordance geometries: (1) pouring with a mug (handle grasp), (2) cut-ting with a knife (handle grasp), and (3) cutting with scissors (finger-loop grasp), as illustrated in Fig. 3. Following [19], thin objects such as knives and scissors are elevated 5 cm above the table surface to ensure graspability with a parallel-jaw gripper. For each task, we sample 100 random scenes with varying object poses and occlusion configurations. 
+
+Implementation Details. At t=0 , we use GPT-4o [23] once to parse the language instruction to determine the target object O∗ and affordance type a∗. Grounding DINO [24] and SAM2 [25] provide instance-level target segmentation. SAM 3D [26] performs shape completion from the RGB-D observation and target mask, and GEAL [28] predicts per-point affordance scores conditioned on a∗. ATAP retains 
+
+K=3 registration hypotheses. The registration reliability score uses a ghost penalty weight of 0.3 and an ICP residual weight of 0.5 m −1. The viewpoint objective uses 
+
+wc=0 .3, with |V| =128 candidate viewpoints and a maximum viewpoint budget of T =5 . The depth-consistency tolerance is set to ϵd=0 .005 m. The verification and ambiguity thresholds are set to τr =0.2 and τH =0.1, respectively. Grasp candidates TABLE I: Simulation results across three task-oriented grasping tasks on ManiSkill3. GS and FGS denote Grasp Success Rate and Functional Grasp Success Rate (%), respectively. Steps denotes the average number of viewpoint adjustments after the initial observation. Best FGS are shown in bold .                                                                                       
+
+> Mug (Handle) Knife (Handle) Scissors (Loop) Average Method GS ↑FGS ↑Steps ↓GS ↑FGS ↑Steps ↓GS ↑FGS ↑Steps ↓GS ↑FGS ↑Steps ↓
+> Part A: Comparison with Baselines
+> AffordGrasp 28 27 036 21 029 19 031.0 22.3 0Recon. NBV 53 53 4.31 65 59 4.10 55 50 3.19 57.7 54.0 3.87 Semantic NBV 34 33 0.49 73 48 0.37 45 39 0.32 50.7 40.0 0.39
+> Part B: Ablation Studies
+> w/o Active Perception 45 42 067 56 034 27 048.7 41.7 0w/o Multi-hypothesis 66 63 2.94 60 56 0.85 60 60 2.04 62.0 59.7 1.94
+> ATAP (Ours) 80 68 2.43 69 65 0.63 69 66 1.90 72.7 66.3 1.65
+
+are generated by AnyGrasp [5] and ranked using λ1=0 .6,
+
+λ2=0 .3, and λ3=0 .1, with distance scales σc=0 .05 m and 
+
+σn=0 .01 m. We use affordance thresholds γ = 0 .4, 0.2, and 
+
+0.05 for mug, knife, and scissors, respectively. All parameters are fixed before evaluation and remain unchanged across scenes of the same task. 
+
+Baselines. We compare ATAP with fixed-viewpoint and active perception baselines. AffordGrasp [8] performs open-vocabulary task-oriented grasping directly from the same initial observation used by ATAP, without subsequent view-point adjustment. Reconstruction-based NBV (Recon. NBV) 
+
+adopts the volumetric information gain of Breyer et al. [11] to reconstruct the target object, after which the same affordance prediction and grasp generation pipeline as ATAP is ap-plied. Semantic-guided NBV adopts the occlusion-semantic viewpoint optimization of APeG [13] and terminates when AffordGrasp [8] successfully grounds the affordance region for grasp execution. All active-perception methods use the same maximum viewpoint budget of T = 5 .
+
+Metrics. We evaluate all methods with three metrics. 
+
+Grasp Success Rate (GS ) measures whether the target object is lifted and held stably for at least 3 s. Functional Grasp Success Rate (FGS ) additionally requires the grasp contact points to lie within 1.5 cm of the ground-truth affordance region. It is our primary metric for TOG evaluation. Average NBV Steps (Steps ) counts the mean number of viewpoint adjustments across all trials. 
+
+B. Simulation Results 
+
+Table I summarizes the results across three TOG tasks. Part A compares ATAP with baselines, while Part B evaluates ablated variants of the proposed pipeline. 
+
+Comparison with fixed-viewpoint baselines. Afford-Grasp yields substantially lower FGS than ATAP across all tasks, highlighting the limitation of single-view TOG when the task-relevant region is occluded. By actively acquiring additional observations to verify the predicted affordance, ATAP provides more reliable evidence for TOG. 
+
+Comparison with active perception baselines. Re-con. NBV improves grasping under occlusion by actively recovering target geometry, but its reconstruction-driven ob-Low Moderate High 
+
+> Initial Occlusion Level
+> 020 40 60 80
+> FGS (%)
+> ATAP (Ours) Recon. NBV w/o Multi-hypothesis Semantic NBV w/o Active Perception AffordGrasp
+
+Fig. 4: Robustness to initial occlusion. Functional grasp success rate (FGS) across low, moderate, and high initial occlusion levels. jective requires more viewpoint adjustments. In contrast, ATAP achieves higher FGS with 57% fewer viewpoint ad-justments, showing that directing perception toward the task-relevant affordance uses the view budget more effectively than reconstructing the entire target. Semantic NBV requires fewer viewpoint adjustments but yields much lower FGS, indicating that improving target-level semantic visibility does not necessarily expose the functional region required for TOG. 
+
+Ablation studies. Removing active perception reduces FGS, showing that imagined affordance geometry alone can-not replace verification from real observations. Nevertheless, this variant still outperforms the fixed-view AffordGrasp baseline, which suggests that shape imagination can partially compensate for missing visual evidence by hypothesizing plausible hidden affordance geometry. However, these hy-potheses may be inaccurate under severe occlusion, moti-vating active verification before grasp execution. Restricting ATAP to a single registration hypothesis reduces FGS while increasing viewpoint adjustments, showing the benefit of explicitly maintaining alternative affordance locations under ambiguous observations. 
+
+Robustness to initial affordance occlusion. Following TABLE II: Multi-hypothesis ablation on 85 scenes with high affordance occlusion.         
+
+> Method FGS ↑Steps ↓
+> w/o Multi-hypothesis 48.24% 3.14 ATAP (Ours) 56.47% 2.51
+
+TABLE III: Real-world evaluation results over 20 scenes per task.                    
+
+> Mug (Handle) Scissors (Loop) Method GS ↑FGS ↑Steps ↓GS ↑FGS ↑Steps ↓
+> AffordGrasp †15/20 4/20 –12/20 3/20 –
+> ATAP (Ours) 15/20 13/20 1.25 13/20 12/20 1.3
+> †: Fixed side-view observation.
+
+TARGO’s same-view visibility comparison [30], we quantify initial affordance occlusion offline using ground-truth affor-dance geometry. With the camera and target poses fixed, let 
+
+Vfull and Vref denote the visible affordance surface in the complete scene and an affordance-only reference, respec-tively. We define oaff = 1 − Vfull /V ref , where a larger value indicates stronger occlusion, and divide the 300 scenes into low ( 0–30% ), moderate ( 30 –60% ), and high ( 60 –100% ) oc-clusion levels. As shown in Fig. 4, ATAP achieves the highest FGS across all three levels and remains comparatively stable as initial affordance visibility decreases. In contrast, the fixed-view and semantic-guided baselines degrade sharply under severe occlusion, while Recon. NBV is less sensitive to the initial view but remains below ATAP. These results show that affordance-targeted verification is particularly beneficial when the task-relevant region is heavily occluded in the initial view. 
+
+Multi-hypothesis ablation under high affordance oc-clusion. Severe affordance occlusion can leave the target registration ambiguous, motivating the retention of alterna-tive affordance-location hypotheses. We evaluated this design on 85 scenes with initial oaff ≥ 60% . Specifically, we compared ATAP with w/o Multi-hypothesis , which selects viewpoints using only the best-supported registration at each iteration. ATAP achieved higher FGS with fewer viewpoint adjustments (Table II), which suggests that explicitly favor-ing views that distinguish competing affordance locations improves both grasp reliability and view efficiency under severe occlusion. 
+
+C. Real-World Validation 
+
+We deploy ATAP on a 7-DoF Franka Research 3 (FR3) arm equipped with the Franka Hand parallel-jaw gripper and a wrist-mounted Intel RealSense L515 RGB-D camera in the eye-in-hand configuration (Fig. 5). We compare ATAP against AffordGrasp [8] from a fixed side-view observation on two tasks (mug handle and scissors finger loop), and each task is evaluated over 20 scenes with different clutter arrangements. Both methods start from the same fixed side-view observation. As shown in Table III, ATAP achieves substantially higher 
+
+Fig. 5: Real-robot setup with an FR3 arm, Franka Hand gripper, and wrist-mounted RealSense L515 RGB-D camera.   
+
+> (a) Initial View (b) Active View
+> (c) Initial Observation (d) Active Observation
+
+Fig. 6: Real-robot scissors grasping trial. Top row: third-person view of the robot at the initial pose (a) and after active viewpoint adjustment (b). Bottom row: corresponding wrist-camera observations. The red dashed circle marks the target affordance region (finger loop). The finger loop is occluded from the initial view. ATAP selects an active viewpoint that exposes the affordance region, enabling a successful TOG. FGS than AffordGrasp with comparable GS, indicating that fixed-view observations often reach the target but miss the task-relevant affordance. By actively verifying the predicted affordance with few viewpoint adjustments, ATAP exposes the functional region for stable task-oriented grasp execution. Fig. 6 shows a representative scissors trial, where the initially occluded finger loop is exposed after active viewpoint adjust-ment, enabling a successful grasp on the verified affordance. 
+
+D. Failure Case Analysis 
+
+To diagnose the remaining limitations of ATAP, we assign each unsuccessful simulation scene to its primary failure stage, as summarized in Fig. 7. Target localization failures mainly occur under severe occlusion, revealing the depen-dence of the current framework on reliable initial grounding and segmentation. Affordance prediction failures typically All Trials (300) Failure (101) Success (199) Grasp Execution (39) Target Localization (27) Functional Grasp (19) Affordance Prediction (16) Fig. 7: Failure flow analysis of ATAP over 300 simulation scenes. originate from inaccurate shape completion, where erroneous imagined geometry leads to incorrect affordance hypotheses and can subsequently misguide view selection. Functional grasp selection fails when the affordance is correctly lo-calized but no stable grasp is available on the functional region, exposing a mismatch between task relevance and local graspability. Finally, grasp execution is the largest failure category, where otherwise valid affordance-aligned grasps become unstable during physical execution. Overall, these failures suggest that further gains require tighter cou-pling between active perception, affordance reasoning, and graspability-aware execution. VI. CONCLUSIONS We presented ATAP, a closed-loop active perception framework for task-oriented grasping under affordance oc-clusion. ATAP follows a hypothesize-then-verify strategy that uses generative shape completion to hypothesize hidden affordance regions and actively verifies them through tar-geted depth observations. By combining affordance verifica-tion with affordance-location disambiguation, ATAP directs viewpoint planning toward task-relevant regions instead of exhaustive object reconstruction. Simulation and real-world experiments show that ATAP improves functional grasp success while requiring fewer viewpoint adjustments than reconstruction-based active perception. REFERENCES [1] B. Wen et al. , “Catgrasp: Learning category-level task-relevant grasp-ing in clutter from simulation,” in 2022 International Conference on Robotics and Automation (ICRA) , 2022, pp. 6401–6408. [2] A. Murali et al. , “Same object, different grasps: Data and semantic knowledge for task-oriented grasping,” in Conference on robot learn-ing . PMLR, 2021, pp. 1540–1557. [3] C. Tang et al. , “Foundationgrasp: Generalizable task-oriented grasping with foundation models,” IEEE Transactions on Automation Science and Engineering , vol. 22, pp. 12 418–12 435, 2025. [4] H.-S. Fang et al. , “Graspnet-1billion: A large-scale benchmark for general object grasping,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2020. [5] H.-S. Fang et al. , “Anygrasp: Robust and efficient grasp perception in spatial and temporal domains,” IEEE Transactions on Robotics ,vol. 39, no. 5, pp. 3929–3945, 2023. [6] C. Tang et al. , “Graspgpt: Leveraging semantic knowledge from a large language model for task-oriented grasping,” IEEE Robotics and Automation Letters , vol. 8, no. 11, pp. 7551–7558, 2023. [7] W. Dong et al. , “Rtagrasp: Learning task-oriented grasping from human videos via retrieval, transfer, and alignment,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) , 2025, pp. 1–7. [8] Y. Tang et al. , “Affordgrasp: In-context affordance reasoning for open-vocabulary task-oriented grasping in clutter,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,2025, pp. 9433–9439. [9] E. Tong et al. , “Oval-grasp: Open-vocabulary affordance localization for task oriented grasping,” 2025. [Online]. Available: https://arxiv.org/abs/2511.20841 [10] Y. Qian et al. , “Thinkgrasp: A vision-language system for strategic part grasping in clutter,” in 8th Annual Conference on Robot Learning ,2024. [11] M. Breyer et al. , “Closed-loop next-best-view planning for target-driven grasping,” in 2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2022, pp. 1411–1416. [12] X. Zhang et al. , “Affordance-driven next-best-view planning for robotic grasping,” in Proceedings of The 7th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, J. Tan 
+
+et al. , Eds., vol. 229. PMLR, 06–09 Nov 2023, pp. 2849–2862. [13] Y. Dai et al. , “Active-perceptive language-oriented grasp policy for heavily cluttered scenes,” IEEE Robotics and Automation Letters ,vol. 10, no. 11, pp. 11 094–11 101, 2025. [14] Y. Shi et al. , “Viso-grasp: Vision-language informed spatial object-centric 6-dof active view planning and grasping in clutter and in-visibility,” in 2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2025, pp. 14 931–14 938. [15] M. Sundermeyer et al. , “Contact-graspnet: Efficient 6-dof grasp gen-eration in cluttered scenes,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) , 2021, pp. 13 438–13 444. [16] M. Sun and Y. Gao, “Gater: Learning grasp-action-target embeddings and relations for task-specific grasping,” IEEE Robotics and Automa-tion Letters , vol. 7, no. 1, pp. 618–625, 2022. [17] Y. Song et al. , “Learning 6-dof fine-grained grasp detection based on part affordance grounding,” IEEE Transactions on Automation Science and Engineering , vol. 22, pp. 15 200–15 214, 2025. [18] S. Li et al. , “Shapegrasp: Zero-shot task-oriented grasping with large language models through geometric decomposition,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2024, pp. 10 527–10 534. [19] A.-L. Wang et al. , “Task-oriented 6-dof grasp pose detection in clutters,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) , 2025, pp. 5692–5698. [20] W. Wu et al. , “TOSC: Task-oriented shape completion for open-world dexterous grasp generation from partial point clouds,” in Proceedings of the AAAI Conference on Artificial Intelligence , vol. 40, no. 13, 2026, pp. 10 781–10 789. [21] H. Ma et al. , “Active perception for grasp detection via neural grasp-ness field,” in Advances in Neural Information Processing Systems ,A. Globerson et al. , Eds., vol. 37. Curran Associates, Inc., 2024, pp. 38 122–38 141. [22] V. Sripada et al. , “Scene exploration by vision-language models,” 2025. [Online]. Available: https://arxiv.org/abs/2409.17641 [23] OpenAI et al. , “Gpt-4o system card,” 2024. [Online]. Available: https://arxiv.org/abs/2410.21276 [24] S. Liu et al. , “Grounding dino: Marrying dino with grounded pre-training for open-set object detection,” in Computer Vision – ECCV 2024 , A. Leonardis et al. , Eds. Cham: Springer Nature Switzerland, 2025, pp. 38–55. [25] N. Ravi et al. , “Sam 2: Segment anything in images and videos,” in 
+
+International Conference on Learning Representations , Y. Yue et al. ,Eds., vol. 2025, 2025, pp. 28 085–28 128. [26] X. Chen et al. , “Sam 3d: 3dfy anything in images,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-tion (CVPR) , June 2026, pp. 7220–7232. [27] P. J. Besl and N. D. McKay, “A method for registration of 3-d shapes,” 
+
+IEEE Trans. Pattern Anal. Mach. Intell. , vol. 14, no. 2, p. 239–256, Feb. 1992. [Online]. Available: https://doi.org/10.1109/34.121791 [28] D. Lu et al. , “Geal: Generalizable 3d affordance learning with cross-modal consistency,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2025, pp. 1680–1690. [29] S. Tao et al. , “Maniskill3: Gpu parallelized robotics simulation and rendering for generalizable embodied ai,” Robotics: Science and Systems , 2025. [30] Y. Xia et al. , “Targo: Benchmarking target-driven object grasping under occlusions,” arXiv preprint arXiv:2407.06168 , 2024.

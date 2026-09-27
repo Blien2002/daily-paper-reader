@@ -1,0 +1,235 @@
+Title: Task aware Dynamic Movement Primitives for failure detection and recovery in contact rich manipulation
+
+URL Source: https://arxiv.org/pdf/2609.23151v1
+
+Published Time: Tue, 22 Sep 2026 01:01:44 GMT
+
+Number of Pages: 7
+
+Markdown Content:
+# Task aware Dynamic Movement Primitives for failure detection and recovery in contact rich manipulation 
+
+Bhavnashri A 1 Sobia Shafi 2 Krishnapuram Himavarshini 3 and Anuj Tiwari 2
+
+Abstract — Assembly remains a challenging robotic manip-ulation task in presence of tight tolerances and complex contact interactions. While Learning from Demonstration (LfD) frameworks like Dynamic Movement Primitives (DMPs) can effectively encode trajectories from a single demonstration, they are highly sensitive to variations in initial grasp configurations and external contact forces. Such variations often lead to task failures during the contact rich phases. This paper presents a task aware failure detection and recovery framework that integrates DMP based trajectory generation with real time stage classification. Utilizing Quadratic Discriminant Analysis (QDA) trained on multimodal sensor data, the framework segments execution into approach, alignment, and insertion stages for a Peg in Hole (PiH) assembly operation. By using goal relative position data as features, this classification generalizes to unseen goal positions without requiring retraining, matching the inherent generalization capability of DMPs. Anomaly detec-tion is performed online using a Mahalanobis distance metric computed over force features, isolating contact induced failures from nominal trajectory execution. Upon failure detection, a spiral search recovery policy is triggered to actively realign the peg under contact before resuming the learned DMP insertion. The proposed approach is evaluated on an experimental setup achieving 95% stage classification accuracy, and demonstrates reliable failure recovery under lateral misalignments of up to 3 mm using only a single demonstration. 
+
+I. INTRODUCTION Robotic manipulation plays a crucial role in industrial automation, particularly in tasks that require precise mo-tion, adaptability, and physical interaction with the envi-ronment [1]. However, programming robots to operate with precision and adaptability simultaneously can be challenging. Existing industrial automation widely relies on manual pro-gramming, with specification of exact waypoints which can be time consuming, lacks adaptability, and fails to generalize for even small changes in task settings [2]. This motivates the use of Learning from Demonstration (LfD), also referred to as Imitation Learning (IL), where the robot learns the desired behaviour by imitating an expert [3]. The choice of LfD is particularly compelling when the desired robot behavior cannot be easily scripted through conventional programming but can be naturally demonstrated by a human expert [4]. By observing such demonstrations, the robot can learn task knowledge, motion patterns, and    
+
+> This work has been submitted to the IEEE for possible publication. Copyright may be transferred without notice, after which this version may no longer be accessible.
+> 1Atomberg Technologies Limited, India
+
+bhavnashri.a@gmail.com       
+
+> 2Indian Institute of Technology Madras (IITM), India
+
+id25d018@smail.iitm.ac.in,anujt@iitm.ac.in  
+
+> 3Appian Corporation, India
+
+himavarshini2704@gmail.com 
+
+manipulation strategies, and reproduce similar trajectories under comparable but slightly varying conditions [5]. Within the paradigm of LfD, Dynamic Movement Primi-tives (DMPs) have been widely used to encode and reproduce demonstrated robot motions [6]. DMPs represent the demon-strated trajectory as a stable second order dynamical system, allowing the robot to preserve the overall shape of the learned motion while adapting to changes in start position, goal position, and execution speed [7]. However, standard DMP formulations are often limited when task conditions vary, such as changes in object pose, contact location, or task geometry [8]. These variations can reduce reproduction accuracy and may lead to task failure, particularly in contact rich manipulation. In such cases, stage segmentation provides useful task level awareness by dividing the execution into meaningful phases. By identifying the current stage, the robot can better interpret the execution context, detect stage spe-cific deviations, and apply appropriate recovery actions rather than relying only on trajectory encoding using DMPs. This limitation motivates the integration of stage classification into DMP based manipulation frameworks. Stage segmentation has been explored in robotic assem-bly to capture the sequential structure of task execution. In [9], a Hidden Markov Model (HMM) framework is employed for assembly stage estimation, where task pro-gression is modeled through transitions between discrete stages. However, online stage inference can be challenging near stage transitions, as future observations are unavailable and adjacent stages may exhibit overlapping force position characteristics. Moreover, their formulation relies on residual equations to define individual stages, which is feasible in constrained robotic assembly but difficult to generalize to human demonstrations due to natural variability in execution [10], [11]. Previous works have also demonstrated that differ-ent phases of assembly exhibit distinct temporal signatures, and that learning based methods can effectively map sensor trajectories to success or failure outcomes [12]. Together, these studies underscore the relevance of data driven stage classification for contact rich manipulation and motivate methods that can infer task phases directly from observed multimodal sensor data. The current article introduces a stage aware framework for failure detection and recovery that integrates DMP based trajectory generation with real time stage classification and force based anomaly detection. Quadratic Discriminant Anal-ysis (QDA) [13] classifies execution stages using multi-modal sensor inputs, enabling structured interpretation of task progression. Failure detection is performed using a arXiv:2609.23151v1 [eess.SY] 19 Sep 2026 1. Task demonstration via teleoperation 2. QDA training 3. Trajectory encoding using DMP   
+
+> 4. Task execution with online stage prediction and failure detection using QDA Approach Insertion
+> Failure Allignment Fig. 1. Overview of proposed learning and recovery framework, starting with 1. single task demonstration through teleoperation, 2. QDA training for stage classification, 3. encoding the trajectory using dynamic movement primitive, and 4. the proposed framework for the Peg in Hole (PiH) task.
+
+statistical distance measure computed over force features for reliable identification of contact induced anomalies. Based on the detected stage and failure condition, a stage specific recovery action is performed to improve robustness during task execution. This capability is particularly important for Peg in Hole (PiH) insertion, a widely used benchmark task in robotic assembly [14]–[16]. Despite its geometric simplicity, the task remains challenging due to complex contact rich interactions and sensitivity to small variations in initial alignment and grasp configuration. Classical studies on rigid part mating have shown that assembly success is strongly influenced by part geometry, and initial lateral or angular misalignment, which can lead to contact induced phenomena such as jamming and wedging during insertion [17]. PiH insertion task involves distinct stages such as ap-proach, alignment, and insertion. These stages exhibit dif-ferent position and force characteristics, and without explicit stage modeling, it becomes difficult to interpret execution context and to identify task failures in real time. Thus, by combining motion reproduction, stage recognition, and force based recovery, the proposed framework provides a robust foundation for PiH insertion and similar contact rich manipulation tasks that require adaptive and context aware execution. The main contributions of this work include: 1) A QDA based real time stage classification method using multimodal sensor data for a benchmark contact rich task i.e. PiH insertion. 2) A data efficient learning framework based on DMPs trained from a single demonstration with failure detec-tion and recovery. The remainder of this paper is organized as follows: Sec-tion II describes the detailed methodology with mathematical background, Section III describes the hardware setup used for performing the contact rich manipulation task and Section IV discusses the results, followed by conclusion in Section V. II. M ETHODOLOGY 
+
+A. Task Demonstration 
+
+The robot is guided via teleoperation to demonstrate the PiH insertion task while recording End Effector (EE) position, velocity, and force data at a sampling frequency of 1000 Hz. These demonstrated cartesian trajectories serve as reference for trajectory tracking, stage classification, and anomaly detection during task execution. Since, the focus of this work is on failure detection and recovery during execution rather than trajectory variability, a single demon-stration is used as the reference trajectory. An overview of the proposed learning and recovery framework is given in Figure 1. 
+
+B. Task Segmentation 
+
+PiH assembly is a complex contact interaction task which cannot be captured by a single continuous trajectory. There-fore, we segment the process is into three semantically meaningful stages: Approach , Alignment , and Insertion .1) Approach: The robot moves the peg towards the hole from a home position. 2) Alignment: The peg makes the initial contact with the hole and adjusts its position to align with the hole axis. 3) Insertion: The peg is inserted into the hole along the aligned direction. Fig. 2. Experimental setup for collecting task demonstrations via teleop-eration 
+
+Due to variations in the initial grasp position or envi-ronmental uncertainties, failure may occur in the Alignment 
+
+stage during execution of the learnt DMP trajectory. 
+
+C. Dynamic Movement Primitives (DMPs) 
+
+DMPs are used to encode and learn the demonstrated trajectories using a simple second order spring, mass, damper model driven by a non linear forcing term. For the PiH inser-tion task, a separate DMP is learnt for each spatial dimension 
+
+(x, y, z ) using the recorded demonstration trajectory. For a single Degree of Freedom (DoF), it is defined as: 
+
+τ 2 ¨xi = αx
+
+ βx(gi − xi) − τ ˙xi
+
+ + fi(s) (1) where xi denotes the position along dimension i ∈ { x, y, z },
+
+gi is the goal position, and ˙xi and ¨xi represent velocity and acceleration, respectively, and fi(s) is the non linear forcing function. The parameters αx and βx define the spring, and damper behavior of the system, τ is a temporal scaling factor controlling execution speed. The forcing term fi(s) is represented as a weighted sum of Gaussian basis functions, 
+
+fi(s) = 
+
+PNi=1 wiψi(s)
+
+PNi=1 ψi(s) s (2) where ψi(s) = exp( −hi(s − ci)2) are Gaussian basis functions with centers ci and widths hi, and wi are learnable weights. To achieve time independent trajectory generation, DMPs employ a canonical system governed by a phase variable s:
+
+τ ˙s = −αss (3) where αs is a positive decay constant. The phase variable monotonically decreases from 1 to 0, synchronizing the evolution of all trajectory dimensions during execution. The learned DMPs are executed online to generate the reference motion for PiH insertion.  
+
+> Fig. 3. 3D-printed peg in hole insertion setup for demonstrating contact rich task
+
+D. Quadratic Discriminant Analysis (QDA) 
+
+Stage classification is formulated as a supervised learn-ing problem using QDA, trained on the following features extracted from the demonstrated trajectory,  
+
+> •
+
+relative EE position (x − xg , y − yg , z − zg ), 
+
+> •
+
+force measurements (Fx, F y , F z ), and,  
+
+> •
+
+EE velocity (vx, v y , v z ).The relative position is computed with respect to the goal position and is consistent with the goal relative representation used in DMPs. Each data sample is represented by a feature vector u, which contains the data used for stage classification formed by concatenating the relative position with respect to the goal, the force measurements, and the EE velocity, 
+
+u = (p − pg )T F T vT T , (4) where 
+
+p = [ x, y, z ]T , pg = [ xg , y g , z g ]T , (5) 
+
+F = [ Fx, F y , F z ]T , v = [ vx, v y , v z ]T . (6) The feature vector corresponding to stage k is assumed to follow a multivariate Gaussian distribution: 
+
+p(u|k) ∼ N (μk, Σk), (7) where μk denotes the mean feature vector of stage k,representing the average value of each feature across the training samples belonging to that stage, and Σk denotes the covariance matrix of stage k, which characterizes the variability of the features and their pairwise correlations. The parameters μk and Σk are estimated from the demonstrated trajectories associated with stage k.The stage label is obtained as: 
+
+L = arg max  
+
+> k
+
+p(k|u) (8) where, L ∈ { Approach , Alignment , Insertion }. The pre-dicted stage is used to enable stage aware monitoring and recovery during execution. Fig. 4. Stage prediction using QDA on DMP execution 
+
+1) Failure Detection: Failures are detected using a Maha-lanobis distance [18] based criterion computed in the force feature space. Let uF = [ Fx, F y , F z ]T denote the contact force vector. For the predicted stage k, the distance is defined as: 
+
+d(uF ) = ( uF − μk)T Σ−1 
+
+> k
+
+(uF − μk) (9) A failure is declared when: 
+
+d(uF ) > μ d + 6 σd (10) Here, μd and σd are the mean and standard deviation of Mahalanobis distances estimated from recorded demon-stration data. The six sigma factor was selected empirically ensuring that normal contact transitions are not misclassified as failures while still detecting significant deviations due to misalignment. In practice, this threshold provided the most stable performance across multiple trials without requiring manual tuning per stage. 
+
+2) Feature Selection for Failure Detection: While all features are used for stage classification, failure detection is performed using only force features (Fx, F y , F z ). The position trajectory is accurately tracked by the DMP even during failure. As a result, errors in peg pose or grasp configuration are not reflected in the position signal but instead manifest as abnormal contact forces. Therefore, restricting failure detec-tion to force features gives a more physically meaningful criterion. 
+
+E. Recovery Action 
+
+Failures primarily occur due to the lateral misalignment of peg with reference to original grasping pose, during the 
+
+Alignment stage. Upon failure detection using the Maha-lanobis distance criterion, the DMP execution is paused and a recovery policy is triggered. The recovery strategy performs a spiral search in the (x, y )
+
+plane under contact to relocate the hole. The spiral motion is defined in cartesian coordinates as, 
+
+x(t) = kt cos( ωt ), y(t) = kt sin( ωt ), (11) where k controls radial expansion and ω defines angular speed. The search radius is bounded to ensure stable inter-action. Alignment is detected using force feedback. Specifically, a reduction in lateral contact forces (Fx, F y ) together with a decrease in axial force along the insertion direction (Fz )
+
+indicates successful alignment. The system infers alignment when the axial force stabilizes near zero and lateral forces remain consistently low. Once alignment is detected, recovery is terminated and the robot resumes the DMP learnt trajectory. III. E XPERIMENTAL SETUP 
+
+Human demonstrations are collected through teleoperation using the setup shown in Figure 2. The experimental platform consists of a Doosan A0509s robotic arm with a force-torque sensor at the flange, a Geomagic Touch haptic device, and a two finger DH-AG95 gripper. The Geomagic Touch acts as a master device during task demonstration, while the robotic manipulator constitutes the slave system. The teleopsystem operates in velocity control mode, mapping cartesian velocity commands of the master to the slave. The complete experimental framework is implemented in ROS 2 Humble on Ubuntu 22.04. ROS 2 serves as the underlying software and communication framework for the entire system, integrating the haptic interface, robot control, task demonstration, and autonomous task execution. During each demonstration, the cartesian position and velocity of the robot EE, together with the measured interaction forces, are recorded at a sampling frequency of 1000 Hz and stored as a ROS 2 bag file for offline processing. The experiments are conducted using a 3D-printed PiH setup as shown in Figure 3. A square peg of size 33 ×33 mm is inserted into a 35 ×35 mm hole, providing 1 mm clearance per side and requiring precise alignment under contact. The peg is grasped using a two finger parallel gripper, while the hole fixture is rigidly mounted to ensure a fixed reference frame. The small clearance between the peg and the hole require accurate translational, and rotational allign-ment during insertion, providing a contact rich manipulation setting for evaluating the proposed framework. IV. R ESULTS 
+
+The proposed stage aware framework is evaluated on teleoperated demonstrations and DMP executed trajectories. 
+
+1) Demonstration and Stage Learning: Figure 5 shows the recorded demonstration with manually labeled task stages, namely Approach , Alignment , and Insertion . These labeled segments are used to train both the DMPs for trajectory reproduction and the QDA classifier for stage recognition. 
+
+2) Stage Classification: The performance of the QDA based stage classifier is shown in Figure 4. The predicted stage labels closely follow the demonstrated segmentation, indicating that the classifier reliably distinguishes between different phases of the task during execution. The QDA based stage classifier was ran over multiple trials as dicussed in Table I and achieves an overall accuracy of 95% during execution, as detailed in Table II. 0200 400        
+
+> EE Position (mm)  xyz
+> 40
+> 20
+> 020
+> EE Velocity (mm/s)  vx
+> vy
+> vz
+> 0510 15 20 25 30 35
+> Time (s)
+> 020 40 60
+> Force (N)
+> Fx
+> Fy
+> Fz
+
+Fig. 5. Demonstration data with time labeled task stages used for training TABLE I STAGE CLASSIFICATION ACCURACY ACROSS RECORDED EXECUTION 
+
+TRIALS 
+
+Trial Accuracy (%) 1 97.5 2 88.7 3 95.0 4 86.1 5 85.4 6 98.0 Mean ± Std 91 .8 ± 5.4
+
+TABLE II COMPARISON OF TRUE AND PREDICTED STAGE TIME INTERVALS 
+
+Stage True Time Interval (s) Predicted Time Interval (s) Approach 0.0 – 17 .00 0.0 – 16 .36 
+
+Alignment 17 .00 – 32 .80 16 .36 – 32 .34 
+
+Insertion 32 .80 – 38 .00 32 .34 – 38 .00 
+
+Overall Accuracy 95% 0 5 10 15 20 
+
+> Time (s)
+> 400
+> 200
+> 0200 400
+> EE Position (mm)
+> x (Demo) y (Demo) z (Demo) x (DMP) y (DMP) z (DMP)
+
+Fig. 6. Comparison of demonstration trajectory and DMP execution under a shifted goal position 
+
+The variation in classification accuracy is mainly observed near stage transitions, where force-position characteristics overlap due to contact interaction. To evaluate generalisation to different goal, the classifier 0 5 10 15 20 
+
+> Time (s)
+> 200 250 300 350 400
+> EE Position (z) (mm)  Failure Approach Alignment Insertion
+
+Fig. 7. Stage classification results on DMP execution with shifted goal position where the classifier correctly generalises across goal variations. 
+
+is tested for a modified goal position, where the original goal 
+
+(−400 , 0, 200) is shifted to (−400 , −100 , 200) .Figure 6 shows the comparison between the original demonstration trajectory and the DMP executed trajectory under the shifted goal. 0 5 10 15 20       
+
+> Time (s)
+> 020 40 60 80 100 120
+> Force (N)
+> Fx(Demo)
+> Fx(DMP)
+> Fy(Demo)
+> Fy(DMP)
+> Fz(Demo)
+> Fz(DMP)
+
+Fig. 8. Comparison of force profiles between demonstration and execution. 
+
+As shown in Figure 7, the classifier maintains consistent stage segmentation under the shifted goal without retraining, correctly identifying Approach , Alignment , and Insertion 
+
+phases. This confirms that goal relative position feature enables generalisation across goal variations. 
+
+3) Failure Detection: The demonstration corresponds to a failure case occurring during the allignment stage, which leads to excessive force buildup along the insertion axis ( Fz ). The robot execution is compared against the demonstrated trajectory in terms of position, velocity, and force profiles, as shown in Figure 8. The deviation in force response, despite similar nominal motion trends, highlights the onset of failure during contact rich interaction. Figure 9 shows the force profile along the insertion axis (Fz ) over time. A sharp increase in contact force is observed during the insertion phase, which corresponds to the failure event. The proposed detection mechanism identifies this region based on force deviation from nominal behavior. To formally validate the detection approach, the Maha-lanobis distance is computed over the feature space, as shown in Figure 10. A significant rise in distance is observed during the failure phase, exceeding the six-sigma threshold and enabling reliable detection of the failure condition. 
+
+A. Recovery Action 
+
+To evaluate robustness, recovery experiments are con-ducted under induced misalignment, where the peg is initially 0 5 10 15 20 
+
+> Time (s)
+> 020 40 60 80 100 120
+> Fz (N)
+> Failure Approach Alignment
+
+Fig. 9. Sharp rise in force along z direction during insertion stage due to failure. 0 5 10 15 20 
+
+> Time (s)
+> 0500 1000 1500 2000
+> Mahalanobis Distance  Mahalanobis distance Failure threshold
+
+Fig. 10. Mahalanobis distance during execution with six-sigma threshold. 
+
+offset by approximately 3 mm from the hole center, causing failure during the alignment stage. Upon failure detection, a spiral search is executed in the (x, y ) plane to reestablish alignment. The trajectory is defined in Cartesian coordinates as: 
+
+x(t) = kt cos( ωt ), y(t) = kt sin( ωt ) (12) The parameters are set as k = 0 .0002 m/s, ω = 2 .0 rad/s, and maximum spiral radius equal to 8 mm to ensure local and stable exploration. Alignment is inferred from force feedback, where reduc-tion in lateral forces and stabilization of axial force Fz
+
+indicate successful centering of the peg within the hole. The proposed recovery strategy successfully restores in-sertion under up to 3 mm misalignment, demonstrating improved robustness in contact-rich assembly tasks. V. C ONCLUSION AND FUTURE WORK 
+
+In this work, we presented a stage aware framework that integrates DMPs with QDA for real time stage classification and failure detection of PiH insertion task. The system is trained on a single teleoperated human demonstration, decomposed into approach , alignment , and insertion stages. DMPs track the position trajectory, QDA is used for online stage classification, while a Mahalanobis distance based criterion is used to detect force anomalies associated with failure conditions. To handle failures during alignment stage, a spiral search recovery strategy is introduced that allows the robot to realign and then resume the learned DMP trajectory. Exper-imental results on a real robotic setup show successful PiH insertion task execution, failure detection and recovery up to 3 mm offset from hole center, demonstrating the effectiveness of the proposed framework for robust precision assembly. Future work will focus on integrating vision feedback and extending the framework to handle more complex failure modes and tighter tolerance assembly tasks. ACKNOWLEDGMENT The authors would like to acknowledge support in part by Anusandhan National Research Foundation (ANRF) under grant SP25260420MEANRF009063. REFERENCES [1] A. Billard and D. Kragic, “Trends and challenges in robot manipula-tion,” Science , vol. 364, no. 6446, p. eaat8414, 2019. [2] S. Calinon, Robot programming by demonstration . EPFL Press, 2009. [3] S. Schaal, “Learning from demonstration,” in Advances in Neural Information Processing Systems , M. Mozer, M. Jordan, and T. Petsche, Eds., vol. 9. MIT Press, 1996. [4] H. Ravichandar, A. S. Polydoros, S. Chernova, and A. Billard, “Recent advances in robot learning from demonstration,” Annual review of control, robotics, and autonomous systems , vol. 3, no. 1, pp. 297– 330, 2020. [5] S. Chernova and A. L. Thomaz, Robot learning from human teachers .Springer Nature, 2022. [6] A. J. Ijspeert, J. Nakanishi, H. Hoffmann, P. Pastor, and S. Schaal, “Dynamical movement primitives: Learning attractor models for motor behaviors,” Neural Computation , vol. 25, no. 2, pp. 328–373, 2013. [7] P. Pastor, H. Hoffmann, T. Asfour, and S. Schaal, “Learning and generalization of motor skills by learning from demonstration,” in 2009 IEEE international conference on robotics and automation . IEEE, 2009, pp. 763–768. [8] M. Ginesi, N. Sansonetto, and P. Fiorini, “Overcoming some draw-backs of dynamic movement primitives,” Robotics and Autonomous Systems , vol. 144, p. 103844, 2021. [9] X. Cheng, “Towards automatic assembly of small screws : Failure detection and stage classification,” 2019. [Online]. Available: https: //api.semanticscholar.org/CorpusID:202622009 
+
+[10] S. Calinon, F. Guenter, and A. Billard, “On learning, representing, and generalizing a task in a humanoid robot,” IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cybernetics) , vol. 37, no. 2, pp. 286–298, 2007. [11] J. Yang, Y. Xu, and C. S. Chen, “Hidden markov model approach to skill learning and its application to telerobotics,” IEEE transactions on robotics and automation , vol. 10, no. 5, pp. 621–631, 1994. [12] R. M. Aronson, A. Bhatia, Z. Jia, M. Guillame-Bert, D. A. Bourne, A. W. Dubrawski, and M. T. Mason, “Data-driven classification of screwdriving operations,” in International Symposium on Ex-perimental Robotics , 2016. [Online]. Available: https://api. semanticscholar.org/CorpusID:8956767 
+
+[13] R. Wu and N. Hao, “Quadratic discriminant analysis by pro-jection,” Journal of Multivariate Analysis , vol. 190, p. 104987, 2022. [Online]. Available: https://www.sciencedirect. com/science/article/pii/S0047259X22000276 
+
+[14] B. Nemec, F. J. Abu-Dakka, B. Ridge, A. Ude, J. A. Jørgensen, T. R. Savarimuthu, J. Jouffroy, H. G. Petersen, and N. Kr¨ uger, “Transfer of assembly operations to new workpiece poses by adaptation to the desired force profile,” in 2013 16th International Conference on Advanced Robotics (ICAR) . IEEE, 2013, pp. 1–7. [15] S. Kim and A. Rodriguez, “Active extrinsic contact sensing: Ap-plication to general peg-in-hole insertion,” in 2022 International Conference on Robotics and Automation (ICRA) , 2022, pp. 10241– 10247, doi: 10.1109/ICRA46639.2022.9812017. [16] A. Y. Yasutomi, H. Mori, and T. Ogata, “A peg-in-hole task strat-egy for holes in concrete,” in 2021 IEEE International Conference on Robotics and Automation (ICRA) , 2021, pp. 2205–2211, doi: 10.1109/ICRA48506.2021.9561370. [17] D. E. Whitney, “Quasi-static assembly of compliantly supported rigid parts,” Journal of Dynamic Systems, Measurement, and Control , vol. 104, no. 1, pp. 65–77, 03 1982. [Online]. Available: https://doi. org/10.1115/1.3149634 [18] R. De Maesschalck, D. Jouan-Rimbaud, and D. L. Massart, “The ma-halanobis distance,” Chemometrics and intelligent laboratory systems ,vol. 50, no. 1, pp. 1–18, 2000.

@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-26</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-27</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 19 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 18 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>7</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-26 22:41:29 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-27 22:17:28 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 19 篇推荐（精读 7 篇，速读 12 篇）</p>
-<p>精读：《Bridge3D: Enabling Vision-Language-Action Models to See and Act in 3D》（9.0/10）, 《BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models》（9.0/10）</p>
-<p>速读：《Skel-WAM: A Hand-Skeleton-Conditioned World Action Model for Human-to-Robot Manipulation Transfer》（8.0/10）, 《Capability-Aware Arbitration for Semantic Intent-Based Shared Control》（8.0/10）, 《InternW0: A Foundational Physical World Model for Efficient Real-World Interactions》（8.0/10）</p>
+<p>今日共生成 18 篇推荐（精读 7 篇，速读 11 篇）</p>
+<p>精读：《Grounded Action Model: 3D Grounding as a Foundation for Robotics》（9.0/10）, 《MedVLA: A Hierarchical Vision-Language-Action Framework for Closed-Loop Precision Medical Robot Manipulation》（9.0/10）</p>
+<p>速读：《InfiNoVA: Infinite Novel View Augmentation for Viewpoint Invariant Robot Policies》（8.0/10）, 《Distillation for Efficient Multitask Manipulation Policies via Conditional Flow Matching》（8.0/10）, 《From Passive Execution to Active Exploration: Agentic Embodied Manipulation in Realistic Environments》（8.0/10）</p>
 <p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
@@ -84,7 +84,7 @@
     <strong class="dpr-home-dashboard-count">7 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Bridge3D: Enabling Vision-Language-Action Models to See and Act in 3D">Bridge3D: Enabling Vision-Language-Action Models to See and Act in 3D</span></li><li><span class="dpr-home-dashboard-paper-title" title="BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models">BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="MemBodied: Recurrent Associative Memory for Vision-Language-Action Models">MemBodied: Recurrent Associative Memory for Vision-Language-Action Models</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Grounded Action Model: 3D Grounding as a Foundation for Robotics">Grounded Action Model: 3D Grounding as a Foundation for Robotics</span></li><li><span class="dpr-home-dashboard-paper-title" title="MedVLA: A Hierarchical Vision-Language-Action Framework for Closed-Loop Precision Medical Robot Manipulation">MedVLA: A Hierarchical Vision-Language-Action Framework for Closed-Loop Precision Medical Robot Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Self-Adaptive VLA for Robust Robot Deployment">Self-Adaptive VLA for Robust Robot Deployment</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>5</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
 </section>
@@ -94,12 +94,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Skel-WAM: A Hand-Skeleton-Conditioned World Action Model for Human-to-Robot Manipulation Transfer">Skel-WAM: A Hand-Skeleton-Conditioned World Action Model for Human-to-Robot Manipulation Transfer</span></li><li><span class="dpr-home-dashboard-paper-title" title="Capability-Aware Arbitration for Semantic Intent-Based Shared Control">Capability-Aware Arbitration for Semantic Intent-Based Shared Control</span></li><li><span class="dpr-home-dashboard-paper-title" title="InternW0: A Foundational Physical World Model for Efficient Real-World Interactions">InternW0: A Foundational Physical World Model for Efficient Real-World Interactions</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="InfiNoVA: Infinite Novel View Augmentation for Viewpoint Invariant Robot Policies">InfiNoVA: Infinite Novel View Augmentation for Viewpoint Invariant Robot Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="Distillation for Efficient Multitask Manipulation Policies via Conditional Flow Matching">Distillation for Efficient Multitask Manipulation Policies via Conditional Flow Matching</span></li><li><span class="dpr-home-dashboard-paper-title" title="From Passive Execution to Active Exploration: Agentic Embodied Manipulation in Realistic Environments">From Passive Execution to Active Exploration: Agentic Embodied Manipulation in Realistic Environments</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>12</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>8</strong></span><span class="dpr-home-dashboard-tag">tf <strong>3</strong></span></div>
 </section>
 </div>
 

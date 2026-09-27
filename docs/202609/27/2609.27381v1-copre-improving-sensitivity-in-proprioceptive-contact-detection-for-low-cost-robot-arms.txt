@@ -1,0 +1,379 @@
+Title: CoPRE: Improving Sensitivity in Proprioceptive Contact Detection for Low-Cost Robot Arms
+
+URL Source: https://arxiv.org/pdf/2609.27381v1
+
+Published Time: Thu, 24 Sep 2026 00:36:08 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# CoPRE: Improving Sensitivity in Proprioceptive Contact Detection for Low-Cost Robot Arms 
+
+Yuxiao Zhu 1,* Jinzhou Li 1,* Yifei Dong 2 Muhammad Suhail 3 Chunyuan Yang 1
+
+Xinyuan Luo 1 Haoyu Li 1 Boyuan Chen 1 Xianyi Cheng 1
+
+> 1
+
+Duke University 2KTH Royal Institute of Technology 3Carnegie Mellon University *Equal contribution 
+
+Abstract — Contact detection during robotic manipulation allows robots to recognize unexpected contact and adapt their motion accordingly. However, in low-cost robot arms without dedicated force or tactile sensors, detecting weak contacts from proprioception is challenging because the resulting changes in joint-level proprioceptive signals can be small compared to normal variation and noise caused by robot motion itself. We introduce Contact-free Proprioceptive Response Estimation (CoPRE), improving proprioceptive contact detection sensitivity using only contact-free motion, without additional force sensors, contact labels, or analytical dynamics models. CoPRE estimate the expected joint torques under contact-free motion from proprioceptive state history and commanded motion, while re-moving recent observations that may already reflect contact. It then computes the residual between the expected and observed joint torque estimates, and maps this residual to a contact score using a noise-weighted Jacobian. Real-robot experiments on ARX Arm and Unitree G1 show that CoPRE achieves 74.1% and 82.2% recall on the tested contact trials, compared with 0%/0% on ARX and 16.3%/42.2% on G1 for the learned torque-prediction and inverse-dynamics baselines. CoPRE also reaches 90% detection rate for pushing force at 3.5 N on ARX and 5.5 N on G1. To demonstrate the downstream utility of our method, we implement belief-space manipulation planning for obstacle-aware object placement and book insertion where detected contacts update the spatial belief and enable the robot to retreat from blocked motions, adjust its pose, and retry. Project website: https://copre-arm.github.io .
+
+I. I NTRODUCTION 
+
+Contact detection helps robots recognize unexpected interactions and adapt their motion during manipulation [1], [2]. Uncertainty in object poses and local geometry can cause planned placement or insertion motions to encounter unexpected obstacles. Contact feedback lets the robot stop, retreat, and plan another attempt (Fig. 1). Low-cost robot arms can lack dedicated force or tactile sensors [3]; built-in joint states and motor signals offer contact feedback [4], [5]. Weak contact is difficult to distinguish from normal motion and noise. We define weak contact by contact-induced joint torque changes that are small relative to contact-free variability. Residual-based detectors compare observed torque or motor current with a nominal reference to obtain a residual. The reference comes from dynamics or learned contact-free motion [4]–[6]. When contact-affected states enter the predictor, the learned reference may follow the torque change and reduce the residual. Prediction errors also produce contact-free residuals that vary across joints and motions. Suppressing false alarms from these residuals Proprioceptive Weak-Contact Sensing 
+
+Protective Reaction Contact-Guided Insertion 
+
+ARX Arm G1 Arm 
+
+No Additional Force Sensors No Force Labels Required Low-Cost Robot Arms 
+
+Contact Retreat Contact Adjust 
+
+Task Policy Integration  
+
+> Fig. 1. Weak-contact detection and reactive manipulation with CoPRE.
+> Built-in joint states and torque estimates provide contact feedback on ARX and G1, using contact-free training data without additional force sensors or force labels. Bottom: on ARX, detected contact triggers protective retreat during placement (left) and pose adjustment during book insertion (right).
+
+can require higher thresholds that miss weak contacts. Detection must preserve contact-induced deviations and account for contact-free residual variability. We introduce Contact-free Proprioceptive Response Estimation (CoPRE) to address these difficulties. CoPRE predicts the joint torque expected during contact-free motion from earlier states and commanded motion. State exclusion prevents observations within the prediction interval from entering the predictor, preserving the reference against recent contact-induced state changes. The difference between observed and predicted torque is mapped to acontact score through noise-weighted Jacobian aggregation. The aggregation gives less weight to joints with larger contact-free residual variability. Training and calibration use only contact-free motion, without additional force sensors, contact labels, or analytical dynamics models. We integrate CoPRE with belief-guided planning for object placement and book insertion on ARX. When contact blocks a motion, the robot stops and updates a spatial belief map using the contact decision, robot pose, and task progress. Contact provides evidence of a nearby obstruction, while traversed paths provide evidence of free space. After retreat, the map guides the next placement or insertion attempt. Book-pushing experiments compare CoPRE with neural and dynamics baselines on ARX L5 and the Unitree G1 arXiv:2609.27381v1 [cs.RO] 23 Sep 2026 right arm. Combined calibration uses task-matched and broad contact-free motion under shared rules within each robot. ARX recall is 74.1% for CoPRE and zero for both baselines. On G1, CoPRE achieves 82.2%, compared with 16.3% for the neural and 42.2% for the dynamics baseline. Detection reaches at least 90% at separately measured reference sliding resistances of 3.5 N and 5.5 N, respectively, and at all higher tested levels. Matched ablations support the roles of state ex-clusion and noise weighting. The ARX manipulation demon-strations provide qualitative evidence of downstream use. Our contributions are twofold:  
+
+> •
+
+Improved sensitivity in proprioceptive contact detection. CoPRE uses state exclusion to preserve contact-induced deviations and noise-weighted Jacobian aggregation to account for residual variability.  
+
+> •
+
+Real-robot implementation, validation, and downstream integration. We implement and evaluate CoPRE on ARX L5 and G1 through baseline compar-isons and matched ablations, and integrate its contact feedback with belief-guided manipulation on ARX. II. R ELATED WORK 
+
+A. Model-based contact and force estimation 
+
+Model-based methods detect contact and estimate external forces from deviations from nominal dynamics [4], [7]–[9]. Model errors, friction, and noise limit sensitivity. Hybrid approaches use semiparametric dynamics learning and dis-turbance filtering [10], or recurrent learning of momentum-observer uncertainty [11]. CoPRE instead learns nominal joint torque from contact-free recordings, reducing reliance on identified dynamics and explicit friction models while retaining a kinematic model for residual aggregation. 
+
+B. Learning-based contact and force sensing 
+
+Learning-based methods model nominal behavior or learn contact outputs from labeled interactions. Learned current and inverse-dynamics models support residual-based sens-ing [5], [12], [13]; unsupervised anomaly detection identifies departures from normal motion [14]. NEXT in FACTR 2 predicts free-space torque from state and tracking-error his-tories extending to the current time [6]. Supervised methods learn collision detection [15]–[17], localization [18], [19], or force prediction [20]. CoPRE uses no contact or force la-bels, excludes prediction-interval states, and combines noise-weighted aggregation with separate contact-free calibration. 
+
+C. Contact sensing and feedback for manipulation 
+
+Contact feedback supports information gathering and mo-tion adaptation [1], [2]. Tactile feedback guides motion through clutter and helps resolve jamming [21], [22]. Contact observations also support object tracking, active search, and blind retrieval [23]–[25], while haptic planning has been applied to crowded bookshelf insertion [26]. Feedback con-trollers regulate interaction using force measurements or ac-tuator signals [27]–[29]; Blind Dexterity learns whole-body manipulation from proprioceptive histories and purposeful contact [30]. We evaluate CoPRE on ARX and G1, with belief-guided placement and insertion on ARX. III. P ROBLEM DEFINITION 
+
+We study contact detection from built-in proprioceptive signals. We focus on weak contact as defined above, seeking to distinguish contact-induced torque changes from contact-free variability. Our experiments cover contact at the end ef-fector or through a grasped object. For a d-joint robot, xt and 
+
+ut denote the observed state and joint commands at time t:
+
+xt = [ qt, ˙qt, τ t] ∈ R3d, ut = [ qcmd  
+
+> t
+
+, ˙qcmd  
+
+> t
+
+] ∈ R2d. (1) Here, qt and ˙qt are joint position and velocity. The observed torque τt is the controller’s joint torque estimate, obtained from built-in motor signals on our platforms. qcmd  
+
+> t
+
+and ˙qcmd 
+
+> t
+
+are the commanded joint position and velocity. Let ct ∈ {0, 1} indicate whether external contact is present at step t; this quantity is unavailable to the detector. A causal detector maps these states and commands to a nonnegative score st and binary contact decision ˆct:
+
+st = gθ (x1: t, u 1: t), ˆct = Dγ (s1: t) ∈ { 0, 1}, (2) where gθ maps proprioceptive observations and joint commands to a contact score st, and Dγ converts the score history into a binary contact decision by requiring consec-utive samples at or above threshold γ. A false alarm occurs when ˆct = 1 during contact-free motion ( ct = 0 ). The goal is high weak-contact sensitivity while limiting false alarms. IV. C OPRE CoPRE converts joint observations and commands into contact feedback for manipulation (Fig. 2). A model trained on contact-free recordings predicts nominal joint torque: the controller’s expected torque estimate during contact-free motion. We subtract this prediction from the observed torque estimate and aggregate the bias-corrected residuals through a noise-weighted Jacobian to obtain a contact score. The rule 
+
+Dγ converts this score history into the contact decision ˆct.
+
+A. Contact-Free Data, Training, and Calibration 
+
+Contact-free recordings establish the nominal motion ref-erence. We record states and commands (Eq. (1), Fig. 2(A1)) for each robot. Separate training, validation, and calibration sets fit its predictor, select the checkpoint with the lowest validation loss, and set the detection threshold. For a prediction horizon of H steps, the predictor learns the next H states from earlier observations and joint commands (Fig. 2(A2)). Inputs and targets are normalized using training statistics. Let ℓq , ℓ ˙q , and ℓτ
+
+denote mean-squared errors over all predicted steps and joints in normalized coordinates. The loss is 
+
+L = ℓτ + αq ℓq + α ˙q ℓ ˙q , (3) Joint position and velocity predictions provide auxiliary supervision; detection uses only the final-step torque prediction. The experiments specify the loss weights. Training residuals set the bias and scale for detection. Even without contact, prediction errors produce nonzero scores. We therefore calibrate the detector on separate contact-free recordings, choosing the lowest threshold that Proprioceptive state            
+
+> 𝑥 !=𝑞 !, 𝑞̇ !, 𝜏 !
+> (A) Data Collection and Training (B) CoPRE Weak-Contact Detection (C) Downstream Tasks
+> 𝑡 "= 𝑡 − 𝐻
+> Commanded motion
+> 𝑢 !=𝑞 !#$% , 𝑞̇ !#$%
+> Proprioceptive states Commanded motions
+> 𝑡 𝑡 − 𝐻 − 𝐿 + 1
+> Masked states Predicted states
+> 𝑥 ."&':!
+> (1) Predictor Input and State Masking (2) Contact-Free State Prediction (1) Contact-Free Data Collection (3) Contact Detection (2) Training and Threshold Calibration
+> Transformer
+> 𝑡 '𝑡 )𝑡 *
+> 𝑡 '
+> 𝑡 )
+> 𝑡 +
+> 𝑡 ,
+> 𝑡 *
+> 𝑡 +𝑡 ,
+> 𝑥 "-.&':"
+> 𝑢 "-.&':!
+> Predicted states Measured states
+
+## - Residual       
+
+> 𝑟 != 𝜏 !− 𝜏̂ !/
+> 𝑟 !,
+> 𝑟 !*
+> 𝑟 !0
+> 𝑟 !'
+> 𝑟 !)
+> 𝑟 !+
+> Noise-weighted Jacobian
+> 𝑡
+> Three-frames confirm 1 2 3
+> (1) Protective Reaction
+> Stop → Retreat → Redirect
+> Top-down insert Direct insert
+> 1Contact Retreat
+> Contact Score Free-motion data Contact-free predictor
+> Contact-free calibration trajectory force score Threshold Selection under a False-Alarm Constraint Threshold γ
+> 234
+> ARX-Arm G1-Arm
+> (2) ContactGuided Adjustment
+> Contact → Adjust → Retry
+> Adjust
+
+Fig. 2. CoPRE: from proprioception to contact-guided action. (A) Contact-free recordings train the nominal-response predictor and calibrate the detection threshold. (B) A history of L state–command pairs and known commands predicts H states, excluding observations within that interval. Torque residuals yield a contact score through bias correction and noise-weighted Jacobian aggregation. The schematic omits bias correction. Three consecutive samples at or above threshold confirm contact. (C) Contact feedback guides retreat or pose adjustment and retry. 
+
+satisfies the prescribed false-alarm constraint under the same confirmation rule used at deployment. The experiments spec-ify each robot’s constraint. The model, statistics, and thresh-old remain fixed; new motions may alter false-alarm rates. 
+
+B. Nominal State Prediction 
+
+Contact can change the measured state. If that state enters the predictor, the predicted nominal joint torque may also change, leaving a smaller residual for detection. CoPRE uses state exclusion to predict from an earlier state history (Fig. 2(B1)). It predicts H states from L samples ending at 
+
+ta = t − H:
+
+ˆxta+1: t = fθ (xta−L+1: ta , u ta−L+1: ta , u ta+1: t). (4) The anchor ta is the last step whose state enters the predictor. State exclusion withholds observations over (ta, t ] while retaining commands. Detection uses current torque and joint positions to compute the residual and Jacobian. Contact can still affect earlier states and commands. To implement Eq. (4), a transformer [31] encodes L state– command pairs with learned positional embeddings to mark their order (Fig. 2(B2)). The decoder predicts H states using queries that share the anchor state, each paired with its own command and learned step embedding. A causal mask lets each query attend only to its own and earlier steps. The decoder adds a predicted change to the anchor state without feeding predicted states back as inputs. As the window advances, detection uses only the predicted nominal joint torque at the final step, ˆτ (H) 
+
+> t
+
+.
+
+C. Noise-Weighted Contact Detection 
+
+Joints with larger residual variability during contact-free motion provide less reliable evidence of contact. We reduce their fitting weights and use the Jacobian to combine joint residuals into a contact score (Fig. 2(B3)). Let rt be the difference between observed and predicted joint torques after correcting the nominal bias b. The translational end-effector Jacobian Jt ∈ R3×d, evaluated at qt, maps a force vector to joint torques through J⊤ 
+
+> t
+
+. We fit the residual by weighted damped least squares: 
+
+rt = τt − ˆτ (H) 
+
+> t
+
+− b, st = ∥ ˆft∥2,
+
+ˆft = arg min  
+
+> f
+
+D−1 
+
+> σ
+
+(J⊤ 
+
+> t
+
+f − rt) 22 + λt∥f ∥22, (5) The fitted vector ˆft ∈ R3 is an equivalent end-effector force, not a validated contact-force measurement. Both ˆft
+
+and Jt use the kinematic model’s world frame. Predictions are restored to the controller’s torque units; b is the mean training residual at step H. The diagonal Dσ contains robust residual scales σj = max(1 .4826 MAD j , 10 −4), where MAD is the median absolute deviation. The positive scales reflect prediction error, motion effects, and noise. Damping limits large solutions near poorly conditioned Jacobians and scales with the weighted Jacobian: 
+
+λt = max 
+
+
+
+ϵ, λ max 
+
+ tr( JtD−2 
+
+> σ
+
+J⊤ 
+
+> t
+
+)3 , ϵ 
+
+ 
+
+,
+
+where λ sets relative damping and ϵ is a numerical floor. The ablations call st the weighted Jacobian score. This scalar detects contact; force accuracy and localization remain untested. To reject isolated score excursions, K consecutive samples at or above γ set the binary contact decision to 1 (Fig. 2(B3)). A lower score resets the decision and counter. We normalize the score as st/γ , with threshold 1. V. E XPERIMENTS 
+
+We evaluate CoPRE through three questions on contact detection, design choices, and downstream manipulation: 
+
+Q1 How sensitive is CoPRE to weak contact compared with existing methods? 
+
+Q2 How do CoPRE’s design choices affect contact detec-tion sensitivity and false alarms? 
+
+Q3 How can sensitive proprioceptive contact detection guide manipulation without additional force sensing? Neural baseline Dynamics baseline 
+
+CoPRE (Ours) 1.5 N 2.5 N 3.5 N 4.5 N 5.5 N Fig. 3. Weak-contact detection on ARX. Columns show separately measured reference sliding resistances of the book stacks. Curves show threshold-normalized scores at 0.04 m/s: mean and 10–90% range over trials and model seeds. Dotted lines mark threshold 1; vertical lines mark geometric contact references. Percentages report trial-level detection across all three pushing speeds. Orange (T) uses task-matched contact-free motion calibration; blue (B) adds broad contact-free motion. Thresholds permit zero confirmed calibration alarms. Only CoPRE retains detections under combined calibration. 
+
+A. Detection Benchmark Setup 
+
+Q1 and Q2 use the detection benchmark on both arms; Q3 evaluates separate manipulation tasks. 
+
+Robot platforms. We evaluate two arm platforms: a six-degree-of-freedom ARX L5 manipulator [32] and the seven-joint right arm of the Unitree G1 humanoid [33] (Figs. 3 and 4). During pushing, G1 stands autonomously under the SONIC policy [34]. Detection uses only right-arm signals; leg, waist, left-arm, and floating-base measurements are ex-cluded. We read joint position, velocity, and torque estimates. Detection uses only built-in proprioception. On ARX, the SDK estimates joint torque by scaling motor-current feedback with motor-specific factors. On G1, we read 
+
+tau est from the low-level motor-state interface. Neither arm uses dedicated torque sensors. Current-derived estimates are subject to scaling error, temperature, friction, and transmission effects [6]. 
+
+Detection task. Each arm pushes five book stacks at 0.02 ,
+
+0.04 , and 0.06 m/s, with three repetitions per condition: nine physical trials per reference sliding resistance and 45 per arm. The stacks weigh 300 , 610 , 930 , 1270 , and 1610 g. Separate measurements of the approximate peak force needed to initiate sliding give reference sliding resistances 
+
+Fref of 1.5, 2.5, 3.5, 4.5, and 5.5 N. These separately measured values characterize each pushing condition but do not track force during individual trials. We collect task-matched contact-free motion by repeating the pushing trajectory without an object. Broad contact-free motion varies pose, direction, and speed, with stops and reversals. 
+
+Data separation. Training recordings fit the predictors and residual statistics. Validation recordings select the saved models with the lowest validation loss; separate calibration recordings set the detection thresholds. Contact trials are excluded from fitting and calibration. Within each platform, all methods use the same recordings and evaluation splits. Learned models use three seeds; dynamics is evaluated once. The default horizon H = 3 was selected on data separate from the reported contact trials. 
+
+Metrics. We report trial-level detection at each reference sliding resistance. Only alarms confirmed within the detection evaluation window count: from the geometric contact reference time tref through push end on ARX, or for 0.5 s on G1. Confirmation restarts at tref , the recorded contact-plane crossing, not independently measured physical contact onset. Methods share the evaluation window within each platform. Detection rates average trial outcomes across seeds; overall trial recall R pools all resistances and speeds. Seeds do not add physical trials. We define F90 as the lowest reference sliding resistance with at least 90% detection at that and all higher tested levels. If none qualifies, we report 
+
+F90 > 5.5 N. This metric characterizes sensitivity under the calibration rule; force at detection is unmeasured. Recall uses 95% bootstrap confidence intervals over physical trials, grouping their seed evaluations. The false alarm time fraction FA t (%) measures how much of the monitored contact-free time is spent in confirmed alarm. 
+
+Baselines. We compare CoPRE with a neural torque predictor based on NEXT [6] and a nominal inverse-dynamics detector. The neural baseline uses a two-layer, 128-unit LSTM over joint position, velocity, and position tracking error. The ARX implementation uses 50 history samples and torque MSE; the G1 implementation uses 25 history samples and Smooth L1 loss. Both use the L1 norm of the unweighted torque residual as the contact score. We evaluate NEXT adapted to each arm under the shared protocol. The dynamics baseline computes nominal joint 1.5 N 2.5 N 3.5 N 4.5 N 5.5 N (a) Detection rate (%) by reference sliding resistance (N)                                                    
+
+> Method 1.5 2.5 3.5 4.5 5.5 Dynamics baseline 22.2 22.2 55.6 44.4 66.7 Neural baseline 0.0 18.5 0.0 25.9 37.0
+> CoPRE (Ours) 55.6 85.2 85.2 85.2 100.0 (b) Operating characteristics
+> Method F90 (N) Recall (%) Task FA tBroad FA t
+> Dynamics baseline >5.542.2 0.80 0.36 Neural baseline >5.516.3 0.37 1.51
+> CoPRE (Ours) 5.582.2 1.37 0.86 Fig. 4. Weak-contact detection on the G1 right arm. Top: book stacks with separately measured reference sliding resistances. (a) Trial-level detection within 0.5 s of the geometric contact reference, pooled across three speeds and averaged over model seeds. (b) F90 is the lowest tested resistance with at least 90% detection at that and all higher levels; >5.5means it was not reached. Recall pools all trials. Task/Broad FA tis held-out task-matched/broader contact-free time in confirmed alarm (%). All methods share a 1% calibration FA tbudget. CoPRE reaches F90 = 5 .5N.
+
+torques from inertia, gravity, Coriolis and centrifugal effects, and available joint-friction parameters. It subtracts these torques from the joint torque estimates and fits the residual using unweighted damped least squares with the translational Jacobian. Existing parameters are used without additional dynamics identification. To estimate acceleration, we causally filter velocity with a 0.10 s time constant and take the backward difference. ARX has no active joint-friction parameters; G1 uses nominal friction and damping with its base and non-arm joints held fixed in the dynamics model. 
+
+Calibration protocols. All methods confirm contact after three consecutive samples at or above the threshold. Thresh-olds are selected independently under a common rule on each platform. On ARX, we select the lowest threshold with zero confirmed false alarms on the calibration set. Task-matched calibration uses nine contact-free executions of the pushing trajectory; combined calibration uses the union of these recordings and one trajectory of diverse contact-free motions. We keep the models and contact trials fixed to isolate the effect of calibration coverage. G1 uses three-fold cross-fitting over contact-free motion recordings. Each fold calibrates on nine task-matched and three broad contact-free runs, while holding out three task-matched runs and one broad contact-free run for FA evalua-tion. The threshold is the lowest value with at most 1% FA t in each calibration motion set. The corresponding contact trials are used only for evaluation within that fold, and all methods share the splits. We selected this budget during development from a sweep of 1%, 2%, 3%, 5%, and 10%. Held-out false alarms are reported separately on new executions of the task and broad contact-free trajectories. The different ARX and G1 rules restrict comparisons to each platform. 
+
+Implementation Details. Both arms use L = 20 , H = 3 ,
+
+K = 3, αq = α ˙q = 0.1, and ϵ = 10 −12 , with a 96-dimensional transformer with four attention heads, two encoder and two decoder layers, and feedforward width 192. We train with AdamW [35] at learning rate 5 × 10 −4,weight decay 10 −4, and batch size 256 for up to 60 epochs, stopping after 10 epochs without validation improvement. Seeds are 7, 17, and 27, and relative Jacobian damping is 
+
+λ = 10 −3. Windows use consecutive samples at typical intervals of 32 ms on ARX and 20 ms on G1. ARX training uses 18 task-matched contact-free and two broad contact-free runs. Each G1 fold uses 24 task-matched contact-free and two broad contact-free runs for training and nine separate task-matched contact-free runs for checkpoint selection. The six G1 broad contact-free recordings last 120 s each: two for training and four for cross-fitted calibration and evaluation. Calibration excludes the first 0.5 s. 
+
+B. Detection across Reference Sliding Resistances (Q1) 
+
+Figure 3 compares detector scores at 0.04 m/s, each divided by its calibration threshold so that the decision threshold is 1. Curves show the mean and shading the 10–90% range across three trials and, for learned methods, three seeds. The vertical lines mark approximate contact references for visual guidance, not measured contact onset. Blue (B) and orange (T) indicate combined and task-matched calibration. Detection rates combine all three speeds; curves show the middle speed. 
+
+ARX detection performance. CoPRE retains sensitivity under combined calibration (Fig. 3). It reaches F90 = 3 .5 Nand 74.1% recall (95% CI: 62.2–85.2%). Both baselines miss all contacts, with F90 > 5.5 N. CoPRE has no confirmed alarms on nine task-matched calibration pushes. On held-out broad contact-free motion, it reduces FA t from 14.51% for the neural baseline to 3.32%. Dynamics yields zero FA t.
+
+Effect of calibration coverage. Combined calibration affects the neural baseline much more than CoPRE. With task-matched calibration, neural detection rises from 22.2% at 1.5 N to 100% at 5.5 N, while CoPRE reaches 100% at 3.5 N. Adding broad contact-free motion raises the neural threshold to 2.48–2.63 times its task-matched value across seeds and eliminates its contact detections. Its normalized curves fall below the threshold, while CoPRE’s blue and orange curves remain close (Fig. 3). CoPRE’s threshold changes by ≤ 7.4% ; task-matched and combined calibration yield 74.8% and 74.1% recall, respectively. 
+
+G1 detection performance. CoPRE improves weak-contact sensitivity on the G1 right arm (Fig. 4). It reaches F90 =(a) State exclusion and residual aggregation                                                                                                                                                                                                                                                                                                           
+
+> State exclusion Aggregation ARX: Task-matched ( γT)ARX: Combined ( γB)G1: Task-matched ( γT)G1: Combined ( γB)
+> F90 RBroad FA tγbr /γ TF90 RBroad FA tF90 RBroad FA tγbr /γ TF90 RBroad FA t
+> Off W. Jac. >5.540 .04.67 1.52 >5.53.70.42 >5.565 .90.88 0.96 >5.564 .40.84
+> Off Std. norm >5.556 .374 .61 3.53 >5.50.00.63 >5.512 .61.82 1.06 >5.59.61.11
+> On Std. norm 3.588 .985 .48 2.60 >5.50.011 .79 >5.549 .65.40 1.18 >5.531 .91.02
+> On W. Jac. 3.574 .83.68 1.02 3.574 .13.32 5.583 .00.92 0.94 5.582 .20.86
+> (b) Aggregation and noise weighting
+> ARX G1 Score F90 RFA tF90 RFA t
+> Std. norm >5.50.011 .79 >5.531 .91.02
+> U. Jac. 5.545 .91.67 >5.512 .60.38
+> W. Jac. 3.574 .13.32 5.582 .20.86
+> (c) G1 state exclusion at H= 2 –4
+> Off On Variant F90 RFA tF90 RFA t
+> H= 2 5.568 .90.85 5.571 .10.94
+> H= 3 >5.564 .40.84 5.582 .20.86
+> H= 4 >5.563 .00.81 4.583 .71.23
+> (d) G1 evaluation window
+> Off On Window F90 RF90 R
+> 0.10 s>5.513 .3>5.520 .70.25 s>5.538 .5>5.557 .0
+> 0.50 s >5.564 .45.582 .2
+> (e) Prediction horizon
+> ARX G1 Variant F90 RFA tF90 RFA t
+> H= 1 >5.54.40.22 5.570 .40.88
+> H= 2 >5.546 .71.26 5.571 .10.94
+> H= 3 3.574 .13.32 5.582 .20.86
+> H= 4 3.574 .14.55 4.583 .71.23
+> H= 5 3.580 .07.92 5.581 .50.95
+> (f) Predictor family
+> ARX G1 Variant F90 RFA tF90 RFA t
+> Persistence >5.50.00.02 >5.524 .40.59
+> Ridge >5.531 .10.23 >5.548 .90.91
+> MLP 3.577 .8 14 .18 4.581 .50.84
+> GRU 5.557 .00.72 2.592 .60.45
+> Transformer 3.574 .13.32 5.582 .20.86
+> (g) Prediction and evidence
+> ARX G1 Variant F90 RFA tF90 RFA t
+> Direct 3.574 .13.32 5.582 .20.86
+> Autoregressive 4.569 .66.30 5.565 .90.81
+> Instantaneous 3.574 .13.32 5.582 .20.86
+> Fast transient >5.540 .01.00 >5.554 .80.99
+> Slow sustained 3.580 .0 26 .19 5.550 .40.56
+
+Fig. 5. Ablations of prediction, scoring, and temporal design. Panels compare (a) state exclusion and residual aggregation, (b) noise weighting, (c) state exclusion across horizons H, (d) G1 detection windows with fixed thresholds, (e) prediction horizons, (f) predictor families, and (g) prediction and temporal filtering. Off/On disables/enables state exclusion within the prediction interval. Std. norm denotes the standardized torque residual norm; W./U. Jac. denotes weighted/unweighted Jacobian scoring. γT and γbr are thresholds for task-matched and broad contact-free motion, with γB = max( γT , γ br )
+
+for combined calibration, used in (b)–(g). For G1, this maximum is computed per fold and seed; reported ratios divide the mean broad threshold by the mean task threshold. F90 (N) is the lowest tested reference sliding resistance with at least 90% detection at that and all higher levels; > 5.5 indicates that the criterion is unmet. R is overall trial recall (%); FA t is the percentage of held-out broad contact-free motion spent in confirmed alarm. Blue marks defaults; Direct and Instantaneous share the same configuration. State exclusion and weighted aggregation jointly retain sensitivity under broader calibration. 
+
+5.5 N and 82.2% recall (95% CI: 72.6–91.1%), versus 16.3% for the neural and 42.2% for the dynamics baseline. Neither baseline attains F90 within the tested range. CoPRE detects 55.6% of trial–seed evaluations at 1.5 N and 85.2% at 2.5 N. Held-out task/broad FA t is 1.37/0.86% for CoPRE and 0.80/0.36% for the dynamics baseline. 
+
+C. Ablation Study (Q2) 
+
+Figure 5 tests state exclusion, residual aggregation, pre-diction design, and evaluation-window duration. Each com-parison holds the data split, reference sliding resistances, confirmation rule, and calibration protocol fixed except for the named factor. 
+
+State exclusion and residual aggregation. The 2 × 2
+
+comparison varies access to state observations within the prediction interval and the residual score: the weighted Jacobian score from Eq. (5), or the standardized torque residual norm ∥D−1 
+
+> σ
+
+rt∥2. Within each robot, the variants share the transformer architecture, H = 3 , training data, loss, and residual-normalization procedure. With state exclusion off, the predictor receives the preceding measured state within the prediction interval; with it on, measured states end at the earlier anchor. Both robots use task-matched 
+
+γT and combined γB = max( γT , γ br ) thresholds, with γbr 
+
+calibrated on broad contact-free motion. On ARX, state exclusion increases task-matched recall by 34.8 percentage points with the weighted Jacobian score (95% CI: 22.2–46.7) and 32.6 with the standardized residual norm (95% CI: 20.0–45.9). Under combined calibration, the standardized norm needs a much higher threshold and loses all detections. With state exclusion, the weighted Jacobian score retains sensitivity with little threshold change, supporting the complementary roles of state exclusion and aggregation. On G1, state exclusion improves recall with either score under both calibration scopes. With state exclusion, combined calibration lowers standardized-norm recall from 49.6% to 31.9%, reducing broad FA t from 5.40% to 1.02%. Weighted Jacobian recall changes only from 83.0% to 82.2%, with broad FA t of 0.92% and 0.86%. Together, these results show how state exclusion provides sensitivity and weighted aggregation preserves it under broader calibration. The state-exclusion gain also persists across H = 2–4
+
+(Fig. 5(c)); at H = 1 , both variants use identical inputs. 
+
+Aggregation and noise weighting. Figure 5(b) separates geometric mapping from noise weighting by holding pre-dictors, kinematics, residual centering, relative damping, and calibration rules fixed. The unweighted Jacobian score sets all residual scales to one. Noise weighting improves sensitivity on both robots while increasing broad FA t.
+
+Evaluation-window sensitivity. With predictors and thresh-olds fixed, shortening the G1 evaluation window from 0.50 to 0.10 s lowers CoPRE recall from 82.2% to 20.7%. State exclusion improves recall at every tested duration (Fig. 5(d)). 
+
+Prediction design. The horizon sweep shows the trade-off around the common setting H = 3 (Fig. 5(e)). Shorter horizons reduce recall on both robots. On G1, H = 4 lowers 
+
+F90 from 5.5 to 4.5 N but raises broad FA t from 0.86% to 1.23%. Longer horizons retain ARX F90 and raise FA t.Placement area         
+
+> Fragile obstacle
+> 1
+> Object to be placed
+> 24a 5a 4b 5b
+> Approach Placement Area Obstacle Contact Threshold Exceeded No Confirmed Contact
+> CoPRE (Ours)
+> Retreat Place at Alternative Location Continue Forward Cup Tipped Over
+> (A) Protective Reaction during Placement (B) Contact-Guided Book Insertion 03a 3b Neural baseline
+> Insertion Area
+> Book
+> 0
+> Attempt Insertion
+> 1
+> 2
+> Neighboring-Book Contact
+> 345
+> Adjust Insertion Pose Retry Insertion Insertion Complete Fig. 6. Contact-guided manipulation on ARX. (A) A cup obstructs placement of a carried block. CoPRE triggers retreat and alternate placement, leaving the cup upright (3a–5a); the neural baseline continues forward and tips it over (3b–5b). Insets: threshold-normalized detector scores; dotted lines: threshold 1. (B) Contact with a neighboring book prompts pose adjustment and a successful insertion retry. Both sequences are qualitative demonstrations.
+
+Predictor families share 20 history samples, H = 3
+
+command input, full-state targets, aggregation, and the decision rule (Fig. 5(f)). The transformer matches the MLP’s ARX F90 with much lower FA t, while GRU improves both G1 sensitivity and FA t. We use the transformer on both robots to keep the default architecture consistent. Direct multi-step prediction improves recall relative to au-toregressive rollout on both robots (Fig. 5(g)). Temporal fil-tering has a less consistent benefit. The fast variant subtracts an exponentially smoothed reference (0.35 s), smooths the squared deviation over 0.1 s, and takes its square root. The slow variant smooths the vector over 0.3 s before taking its norm. Both use their 99th percentile on contact-free training data for normalization. Fast evidence loses sensitivity on both robots; slow evidence increases ARX recall with a large increase in FA t and lowers G1 FA t at a sensitivity cost. These comparisons support direct multi-step prediction and instantaneous scoring as the benchmark default. 
+
+Calibration trade-off. A retrospective sweep with frozen predictors illustrates the operating trade-off. On ARX, relax-ing the calibration FA t budget from 0% to 1% raises recall from 74.1% to 95.6%, while held-out broad FA t rises from 3.32% to 12.41%. On G1, tightening the budget from 1% to 0.1% lowers task/broad FA t from 1.37/0.86% to 0.26/0.14%, with recall decreasing from 82.2% to 58.5%. The calibration budget should balance missed contacts and unnecessary task interruptions; held-out FA t can still exceed this budget. 
+
+D. Contact-Guided Manipulation (Q3) 
+
+Task settings. We qualitatively evaluate belief-guided plan-ning on ARX for object placement around a cup and book insertion among neighboring books (Fig. 6). 
+
+Belief-guided task policy. Detected contact stops blocked motion and prompts replanning (Fig. 2(C)). After each attempt, the contact decision, robot pose, and task progress update a spatial belief map: contact increases the estimated probability of an obstruction nearby, while traversed path segments provide evidence of free space. After retreat, the planner ranks placement or insertion attempts by estimated feasibility, distance to the goal, and previous failures. 
+
+Protective reaction during placement. A movable cup blocks the arm as it places a rigid block. CoPRE triggers a stop and retreat, followed by placement at an alternate loca-tion, leaving the cup upright (Fig. 6(A), 3a–5a). With the neu-ral baseline, the arm continues and tips the cup over (3b–5b). 
+
+Contact-guided book insertion. During book insertion, con-tact with a neighboring book blocks the first attempt. Contact feedback prompts a pose adjustment, and the next attempt succeeds (Fig. 6(B)). Task-success rates remain unquantified. VI. D ISCUSSION AND CONCLUSION 
+
+CoPRE improves weak-contact sensitivity through state exclusion and noise-weighted Jacobian aggregation. It achieves F90 = 3 .5 N on ARX and 5.5 N on G1; neither baseline meets this criterion under the same calibration rule within each robot. Ablations support both designs. Qualitative ARX demonstrations show how contact feedback supports protective retreat during object placement and pose adjustment for book-insertion retries. CoPRE requires robot-specific contact-free training and calibration. Sensitivity to data quantity, motion diversity, un-seen motions, and payload changes remains untested; false-alarm rates may change in new conditions. During sustained contact, affected states can enter the input history, allowing the reference to follow torque changes and reduce the resid-ual. Evaluation covers contacts transmitted through the end effector. Future work will test other arm links and quantify detection latency, task success, and false interruptions. REFERENCES [1] M. Suomalainen, Y. Karayiannidis, and V. Kyrki, “A Survey of Robot Manipulation in Contact,” Robotics and Autonomous Systems , vol. 156, p. 104224, 2022. [Online]. Available: https://arxiv.org/abs/2112.01942 [2] J. Bohg, et al. , “Interactive Perception: Leveraging Action in Perception and Perception in Action,” IEEE Transactions on Robotics , vol. 33, no. 6, pp. 1273–1291, 2017. [Online]. Available: https://doi.org/10.1109/TRO.2017.2721939 [3] T. Z. Zhao, V. Kumar, S. Levine, and C. Finn, “Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware,” in Proceedings of Robotics: Science and Systems , Daegu, Republic of Korea, 2023. [Online]. Available: https://doi.org/10.15607/RSS.2023.XIX.016 [4] A. De Luca and R. Mattone, “Sensorless robot collision detection and hybrid force/motion control,” in IEEE International Conference on Robotics and Automation , 2005, pp. 999–1004. [Online]. Available: https://doi.org/10.1109/ROBOT.2005.1570247 [5] A. Dalla Libera, E. Tosello, G. Pillonetto, S. Ghidoni, and R. Carli, “Proprioceptive Robot Collision Detection through Gaussian Process Regression,” in American Control Conference , 2019, pp. 19–24. [Online]. Available: https://arxiv.org/abs/1905.08689 [6] S. Oh, et al. , “FACTR 2: Learning External Force Sensing for Commodity Robot Arms Improves Policy Learning,” arXiv preprint arXiv:2606.12406 , 2026. [Online]. Available: https://arxiv.org/abs/ 2606.12406 [7] A. De Luca, A. Albu-Sch¨ affer, S. Haddadin, and G. Hirzinger, “Collision detection and safe reaction with the DLR-III lightweight manipulator arm,” in IEEE/RSJ International Conference on Intelligent Robots and Systems , 2006, pp. 1623–1630. [8] S. Haddadin, A. De Luca, and A. Albu-Sch¨ affer, “Robot collisions: A survey on detection, isolation, and identification,” IEEE Transactions on Robotics , vol. 33, no. 6, pp. 1292–1312, 2017. [Online]. Available: https://doi.org/10.1109/TRO.2017.2723903 [9] A. Wahrburg, J. Bos, K. D. Listmann, F. Dai, B. Matthias, and H. Ding, “Motor-current-based estimation of Cartesian contact forces and torques for robotic manipulators and its application to force control,” IEEE Transactions on Automation Science and Engineering , vol. 15, no. 2, pp. 879–886, 2018. [Online]. Available: https://doi.org/10.1109/TASE.2017.2691136 [10] J. Hu and R. Xiong, “Contact force estimation for robot manipulator using semiparametric model and disturbance Kalman filter,” IEEE Transactions on Industrial Electronics , vol. 65, no. 4, pp. 3365–3375, 2018. [11] D. Lim, D. Kim, and J. Park, “Momentum observer-based collision detection using LSTM for model uncertainty learning,” in IEEE International Conference on Robotics and Automation , 2021, pp. 4516–4522. [12] N. Yilmaz, J. Y. Wu, P. Kazanzides, and U. Tumerdem, “Neural network based inverse dynamics identification and external force esti-mation on the da Vinci research kit,” in IEEE International Conference on Robotics and Automation , 2020, pp. 1387–1393. [13] S. Shan and Q.-C. Pham, “Sensorless estimation of contact using deep-learning for human-robot interaction,” in IEEE International Conference on Robotics and Automation , 2024, pp. 12 935–12 941. [Online]. Available: https://arxiv.org/abs/2309.16219 [14] K. M. Park, Y. Park, S. Yoon, and F. C. Park, “Collision detection for robot manipulators using unsupervised anomaly detection algorithms,” 
+
+IEEE/ASME Transactions on Mechatronics , vol. 27, no. 5, pp. 2841– 2851, 2022. [15] K. M. Park, J. Kim, J. Park, and F. C. Park, “Learning-based real-time detection of robot collisions without joint torque sensors,” IEEE Robotics and Automation Letters , vol. 6, no. 1, pp. 103–110, 2021. [16] D. Kim, D. Lim, and J. Park, “Transferable collision detection learning for collaborative manipulator using versatile modularized neural net-work,” IEEE Transactions on Robotics , vol. 38, no. 4, pp. 2426–2445, 2022. [17] Z. Niu, L. S. Saoud, and I. Hussain, “MAD-CNN: High-Sensitivity and Robust Collision Detection for Robots with Variable Stiffness Actuation,” arXiv preprint arXiv:2310.02573v3 , 2024. [Online]. Available: https://arxiv.org/abs/2310.02573v3 [18] J. Liang and O. Kroemer, “Contact Localization for Robot Arms in Motion without Torque Sensing,” in IEEE International Conference on Robotics and Automation , 2021, pp. 6322–6328. [Online]. Available: https://arxiv.org/abs/2011.03142 [19] W. Fu, H. Li, I. X. He, S. Tellex, and S. Sridhar, “UniTac: Whole-Robot Touch Sensing Without Tactile Sensors,” arXiv preprint arXiv:2507.07980 , 2025. [Online]. Available: https://arxiv.org/abs/ 2507.07980 [20] Z. Dou, et al. , “NeuralActuator: Neural Actuation Modeling for Robot Dynamics and External Force Perception,” in Proceedings of Robotics: Science and Systems , 2026. [21] A. Jain, M. D. Killpack, A. Edsinger, and C. C. Kemp, “Reaching in Clutter with Whole-Arm Tactile Sensing,” The International Journal of Robotics Research , vol. 32, no. 4, pp. 458–482, 2013. [Online]. Available: https://doi.org/10.1177/0278364912471865 [22] D. Brouwer, et al. , “Tactile-Informed Action Primitives Mitigate Jamming in Dense Clutter,” in IEEE International Conference on Robotics and Automation , 2024, pp. 7991–7997. [23] S. Zhong, N. Fazeli, and D. Berenson, “Soft Tracking Using Contacts for Cluttered Objects to Perform Blind Object Retrieval,” IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 3507–3514, 2022. [Online]. Available: https://arxiv.org/abs/2201.10434 [24] ——, “RUMI: Rummaging Using Mutual Information,” IEEE Transactions on Robotics , vol. 41, pp. 5431–5450, 2025. [Online]. Available: https://arxiv.org/abs/2408.10450 [25] M. S. Saleem, L. Yuan, and M. Likhachev, “A Contact-Driven Framework for Manipulating in the Blind,” arXiv preprint arXiv:2510.20177 , 2025. [Online]. Available: https://arxiv.org/abs/ 2510.20177 [26] L. Yang, S. H. Turlapati, C. Lv, and D. Campolo, “Planning for Quasi-Static Manipulation Tasks via an Intrinsic Haptic Metric: A Book Insertion Case Study,” IEEE Robotics and Automation Letters , vol. 10, no. 6, pp. 6111–6118, 2025. [27] A. Jordana, S. Kleff, J. Carpentier, N. Mansard, and L. Righetti, “Force Feedback Model-Predictive Control via Online Estimation,” in IEEE International Conference on Robotics and Automation , 2024, pp. 11 503–11 509. [28] H. Shi, S. Hu, Y. Hou, W. Wang, K. Liu, and S. Song, “Minimalist Compliance Control,” in Proceedings of Robotics: Science and Systems , 2026. [Online]. Available: https://arxiv.org/abs/2603.00913 [29] C. Ma, Y. Yao, Z. Wei, R. Li, D. Szafir, and M. Ding, “Current as Touch: Proprioceptive Contact Feedback for Compliant Dexterous Manipulation,” arXiv preprint arXiv:2607.03529 , 2026. [Online]. Available: https://arxiv.org/abs/2607.03529 [30] A. Bhatt, O. Kaidanov, P. Liu, and J. Peters, “Blind dexterity: Whole-body humanoid manipulation via pure proprioception,” 
+
+arXiv preprint arXiv:2608.29487 , 2026. [Online]. Available: https: //arxiv.org/abs/2608.29487 [31] A. Vaswani, et al. , “Attention is all you need,” in Advances in Neural Information Processing Systems , vol. 30, 2017. [Online]. Available: https://arxiv.org/abs/1706.03762 [32] ARX Robotics, “ARX Robotics Official Website,” accessed: Sep. 16, 2026. [Online]. Available: https://www.arx-x.com/ [33] Unitree Robotics, “G1 Humanoid Robot,” accessed: Sep. 16, 2026. [Online]. Available: https://www.unitree.com/g1 [34] Z. Luo, et al. , “SONIC: Supersizing Motion Tracking for Natural Humanoid Whole-Body Control,” Science Robotics , vol. 11, no. 117, p. eaed4592, 2026. [Online]. Available: https://doi.org/10.1126/ scirobotics.aed4592 [35] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in International Conference on Learning Representations , 2019. [Online]. Available: https://arxiv.org/abs/1711.05101
