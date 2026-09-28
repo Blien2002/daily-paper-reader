@@ -1,0 +1,283 @@
+Title: Imp-ACT: Adaptive Impedance Control and Action Chunking with Transformers to Learn Contact-Rich Manipulation from Demonstrations
+
+URL Source: https://arxiv.org/pdf/2609.31225v1
+
+Published Time: Mon, 28 Sep 2026 01:03:59 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Imp-ACT: Adaptive Impedance Control and Action Chunking with Transformers to Learn Contact-Rich Manipulation from Demonstrations 
+
+Luca Zanetti 1, Doganay Sirintuna 1, Idil Ozdamar 1, Pietro Balatti 1, Heng Zhang 2, Arash Ajoudani 1
+
+Abstract — Contact-rich manipulation requires robots to bal-ance accurate motion tracking with compliant interaction, yet most visual-action policies leave compliance fixed at the con-troller level. We present Imp-ACT, a methodologically grounded and practical approach to incorporating direction-dependent Cartesian stiffness modulation directly into demonstration col-lection, without manual stiffness selection or offline target reconstruction. During teleoperation, a self-tuning impedance controller adapts stiffness along the instantaneous direction of motion while maintaining compliance in orthogonal directions. The adapted stiffness is applied and recorded alongside visual observations and motion commands, capturing motion and compliance under the same dynamics. We implement this pipeline using Action Chunking with Transformer (ACT) to predict end-effector pose, gripper action, and motion-direction stiffness from visual, proprioceptive, and wrench observations. The performance of Imp-ACT is evaluated on wiping and plug insertion using both success rate and quantitative measures of contact behavior. Compared with fixed low- and high-stiffness baselines, Imp-ACT achieves comparable or higher success while maintaining low interaction forces. In wiping, it reduces contact-force vibration by approximately 29 × relative to the compliant baseline and 180 × relative to the stiff baseline. In plug insertion, it reduces forces orthogonal to the insertion direction by 43% relative to the better fixed-stiffness baseline. These results highlight the benefit of maintaining sufficient stiffness along the direction needed for task execution while preserving compliance in other directions to limit contact forces and accommodate environmental constraints. 
+
+I. I NTRODUCTION 
+
+Traditionally, robots have been deployed in structured environments where tasks and workspace conditions are known in advance. These controlled settings allow robot behaviors to be explicitly programmed, with limited need for adaptation because operating conditions remain largely unchanged [1]. As robotic applications extend beyond such predictable environments, manually programming behaviors for different situations becomes increasingly challenging. Imitation learning offers an alternative by enabling robots to acquire manipulation skills from expert demonstrations rather than explicitly specifying the behavior for every pos-sible task condition [2]. Recent advances in deep learning have considerably improved the ability of imitation learning methods, such as ACT [3] and Diffusion Policy [4], to learn visuomotor behaviors from relatively small sets of demonstrations. However, most existing policies formulate the robot action primarily as a motion command, such as joint positions or end-effector poses. For contact-rich           
+
+> 1Human-Robot Interfaces and Interaction Laboratory, Istituto Italiano di Tecnologia, Genoa, Italy Email: first.last@iit.it
+> 2Safe AI Lab, Carnegie Mellon University Email:
+> hengzhang01@cmu.edu
+> Fig. 1: Imp-ACT turns intuitive human demonstrations into compliant, adaptive robot skills. By learning from human motion while an online Cartesian impedance controller generates direction-dependent stiffness, it unites natural kinematic teaching with interaction-aware control.
+
+manipulation, motion alone does not fully determine the resulting behavior: task execution also depends on how the robot responds to interaction forces. Although interaction controllers have long been studied in classical robotics, learning their parameters jointly with robot motion has received comparatively limited attention in learning-based manipulation. In particular, impedance control provides a well-established approach for regulating a robot’s response to physical interaction by defining the relationship between motion errors and interaction forces through stiffness and damping parameters. Varying stiffness 1
+
+throughout a task enables the robot to trade off accurate motion tracking and compliant interaction according to the current task requirements. Incorporating such behavior into imitation learning, however, requires suitable stiffness targets to be associated with the demonstrated motion. Existing approaches obtain stiffness targets either through manual selection during demonstration [5], [6] or by deriving compliance after the demonstrations have been collected [7]. The former increases the burden on the operator, while the latter can introduce a mismatch between data collection and deployment: applying a different compliance profile changes the robot’s dynamics and can therefore shift the state distribution encountered by the policy. In imitation learning, such distribution shifts are particularly problematic [8] because deviations from the demonstrated trajectories can 
+
+> 1Because damping is designed based on the selected stiffness in our implementation, we refer primarily to stiffness throughout this paper. Never-theless, the choice of damping is important in contact-rich manipulation, as it strongly influences transient behavior, stability, and contact-force regulation. arXiv:2609.31225v1 [cs.RO] 25 Sep 2026
+
+compound during execution. This motivates generating and applying stiffness during the demonstration, so that motion and compliance are recorded under the same interaction dynamics that the policy is expected to reproduce. In this work, we propose Imp-ACT, an ACT-based imita-tion learning framework that combines human-demonstrated motion with direction-dependent stiffness generated online by an adaptive Cartesian impedance controller (see Fig. 1). During data collection, the human operator commands only the desired end-effector pose and gripper action through a virtual reality interface, while the controller automatically regulates translational stiffness based on interaction feed-back using an adaptation law based on [9]. The resulting stiffness commands are applied to the robot and recorded synchronously with the demonstrated motion. This preserves an intuitive, kinematics-based demonstration interface while ensuring that the resulting robot behavior is compliant and adaptive by design. From these demonstrations, Imp-ACT learns to jointly pre-dict end-effector pose, gripper action, and motion-direction stiffness from visual observations, robot state, and interaction wrench. During autonomous execution, the learned stiffness prediction replaces the demonstration-time adaptation mech-anism, allowing motion and compliance to be generated jointly by the policy. II. R ELATED WORK 
+
+A. Variable Impedance Control 
+
+Impedance control is widely used in contact-rich tasks such as assembly, rehabilitation, and human-robot co-manipulation [10], [11], [12]. Conventional impedance con-trollers typically use fixed stiffness and damping parameters [13], limiting their ability to adapt to changing task condi-tions. Variable impedance control addresses this by adjusting these parameters online according to task and interaction requirements [14]. In the literature, several strategies have been proposed for adapting impedance parameters. Some approaches fo-cus on task-specific adaptation, including a fuzzy-neural-network controller for upper-limb rehabilitation [15] and gait-phase-based impedance regulation for a powered pros-thetic knee [16]. Alternatively, teleimpedance methods trans-fer stiffness estimated from the operator’s EMG activity [17], [18], [19]. While these methods can be tailored to a variety of tasks, EMG-based estimation requires additional sensors and calibration, limiting its practicality. A more generic approach is introduced by Balatti et al. [9], where a self-tuning Carte-sian impedance controller is proposed to adapt its stiffness and damping online based on interaction forces and tracking errors, while regulating the impedance parameters only along the direction of motion. The scalability of this approach was tested in different scenarios, including agricultural scooping, pallet-jack manipulation [9], and debris removal [20]. 
+
+B. Imitation Learning 
+
+Imitation learning enables robots to acquire manipulation skills from demonstrations rather than explicit programming [2]. Modern visuomotor policies such as ACT [3] and Diffu-sion Policy [4] map visual and proprioceptive observations to action sequences, while larger models such as OpenVLA [21] and π0.5 [22] target broader generalization. Despite these advances, such policies primarily predict motion commands, leaving the robot’s response to contact to the low-level controller rather than learning it as part of the behavior. A first line of work incorporates interaction feedback into the policy observations. CRAFT [23] introduces a force-aware curriculum that encourages the policy to exploit joint-torque feedback, while TacVLA [24] integrates tactile in-formation only when contact is detected. These approaches improve contact awareness, but force or tactile information only influences the predicted motion; the compliance with which that motion is executed remains determined by the low-level controller. Other approaches incorporate compliance into the action space. Comp-ACT [5] and DIPCOM [6] jointly predict mo-tion and stiffness but require manual selection of predefined compliance modes during teleoperation. Adaptive Compli-ance Policy (ACP) [7] removes this burden by reconstructing compliance targets offline from forces measured during uni-formly low-stiffness demonstrations. CompliantVLA-adaptor [25] instead introduces compliance at deployment, pairing a pretrained VLA with a separate module for stiffness and damping selection. Although reconstructed equilibrium targets can reproduce the reference force at demonstrated poses, changes in com-pliance can alter the robot’s response to tracking errors and contact disturbances. Introducing compliance after collection can therefore create a mismatch between demonstration and execution dynamics, potentially shifting the states encoun-tered by the policy. Such distribution shifts can contribute to compounding execution errors [8]. This motivates generating and applying stiffness during teleoperation, so that motion and compliance targets are recorded within the same closed-loop interaction. Imp-ACT implements this collection strategy using a self-tuning Cartesian impedance controller [9]. While the opera-tor commands only the end-effector pose and gripper action, the controller adapts stiffness along the motion direction while maintaining compliance in the orthogonal directions. The applied stiffness is recorded alongside the commanded motion, without manual stiffness selection or offline recon-struction. Imp-ACT then learns to jointly predict motion, gripper action, and stiffness from visual, proprioceptive, and wrench observations. This preserves the correspondence between the recorded stiffness targets and the controller settings used during collection. III. M ETHODOLOGY 
+
+The proposed framework enables the policy to jointly learn desired end-effector poses and task-appropriate stiffness be-havior from human demonstrations. The methodology is pre-sented in four parts: Cartesian Impedance Controller , Self-Tuning Impedance Approach , Demonstration Collection and Fig. 2: Overview of (a) Demonstrations and (b) Deployment phases, where ΨB denotes the base frame. During demonstration collection, images from the cameras, measured end-effector pose Xa, external interaction wrench Fext , and the gripper state Gs are recorded as observations. The corresponding action targets comprise the desired end-effector pose Xd, the gripper command Gc = open, close , and the applied stiffness coefficient kst . During deployment, Imp-ACT predicts these action targets, including the stiffness coefficient ˜kst .
+
+Representation , and Imp-ACT Policy Learning and Deploy-ment . The first two describe how compliant robot behavior is generated and adapted online during task execution, while the latter two describe how demonstrations are processed and used to train and deploy the Imp-ACT policy (see Fig. 2). 
+
+A. Cartesian Impedance Controller 
+
+Cartesian impedance control allows the robot to modulate its end-effector dynamics in response to external forces, en-abling a compliant and controlled interaction [26], [27]. This approach relies on real-time torque sensing and actuation, with the robot rigid body model in joint space described by: 
+
+τ = M (q)¨ q + C(q, ˙q) ˙ q + g(q) + τext , (1) 
+
+τext = J(q)T Fc + τst , (2) where n is the number of joints, q ∈ Rn is the joint-angle vector, J ∈ R6×n is the robot arm Jacobian matrix, M ∈
+
+Rn×n is the mass matrix, C ∈ Rn×n is the Coriolis and centrifugal matrix, g ∈ Rn is the gravity vector and τext is the external torque vector. Fc represents the wrench vector in the Cartesian space and τst the second task torques projected onto the null-space of J. The Cartesian wrench Fc ∈ R6 is calculated as follows: 
+
+Fc = Kc(Xd − Xa) + Dc( ˙Xd − ˙Xa), (3) where Kc ∈ R6×6 and Dc ∈ R6×6 represent the Cartesian stiffness and damping matrices, respectively. Xd and Xa ∈
+
+R6 are the desired and actual Cartesian poses, ˙Xd and ˙Xa ∈
+
+R6 denote their corresponding velocity profiles. 
+
+B. Self-Tuning Impedance Approach 
+
+For the online stiffness calculation, we adopt the core principles of the self-tuning impedance controller presented in [9], which assigns higher stiffness along the direction of motion, enabling the robot to track the commanded trajectory and reach the desired goal position, while maintaining lower stiffness along the orthogonal directions. This allows the robot to adjust its motion in response to contact forces, environmental constraints, and unintended disturbances. To this end, the Cartesian stiffness matrix Kc and the damping matrix Dc are tuned online according to the desired transla-tional motion direction, defined as: 
+
+−→
+
+P (t) = Xtrans d (t) − Xtrans d (t − 1) . (4) Along the two axes orthogonal to −→
+
+P ∈ R3, compliant behavior is maintained by setting the corresponding stiffness and damping coefficients to kmin and dmin = 2 ζ√kmin ,respectively [28]. To implement this direction-dependent adaptive impedance behavior, the symmetric and positive-definite translational components of the Cartesian stiffness and damping matrices, Ktrans c ∈ R3×3 and Dtrans c ∈ R3×3,are derived as follows: 
+
+Ktrans c = U ΣkU T , (5) 
+
+Dtrans c = U ΣdU T , (6) where Σk ∈ R3×3 and Σd ∈ R3×3 are diagonal matrices containing the desired stiffness and damping parameters along the directions of the vectors composing the orthonor-mal basis U ∈ R3×3. The first column of U corresponds to the normalized desired motion vector, ˆP = −→
+
+P /∥−→
+
+P ∥, while the remaining two columns are derived such that they form an orthonormal basis. Σk and Σd are defined as: 
+
+Σk = diag (kst , k min , k min ), (7) Σd = diag (dst , d min , d min ), (8) where kst ∈ R>0 is the self-tuning stiffness coefficient applied along the motion direction −→
+
+P and bounded by 
+
+kmin ≤ kst ≤ kmax . The corresponding damping coefficient 
+
+dst is calculated as dst = 2 ζ√kst [28]. At each time step t, kst is updated as follows: 
+
+kst (t) = min 
+
+n
+
+kmax , k st (t − 1) + α∥∆Xerr (t)∥∆T
+
+o
+
+, (9) 
+
+∆Xerr (t) = Xtrans d (t) − Xtrans a (t), (10) where α is the update parameter, ∥∆Xerr ∥ is the Euclidean norm of the end-effector translational tracking error, and 
+
+∆T is the control-loop sampling period. It is important to note that, kst is subject to changes only when the ∥∆Xerr ∥
+
+exceeds the position error threshold ∆Xth err ∈ R>0. This threshold introduces an error tolerance that prevents unnec-essary increases in impedance and stops the stiffness growth once the desired tracking accuracy is reached. On the other hand, maintaining high stiffness is mostly not desired when the robot leaves the contact region and contin-ues its motion in free space. This situation is characterized by a small tracking error accompanied by a decrease in the external interaction force. To this end, the translational force drop rate ˙Fext ∈ R is computed as: 
+
+˙Fext (t) =  ∥F trans ext (t − 1) ∥ − ∥ F trans ext (t)∥ /∆T , (11) where ∥F trans ext ∥ ∈ R is the magnitude of the external force at the end-effector. Note that positive ˙Fext indicates a decrease in the interaction force, while a negative value indicates the opposite. Whenever the Cartesian position error remains below its threshold ( ∥∆Xerr ∥ < ∆Xth err ) and the force drop rate exceeds its threshold ˙Fext > ˙F th ext the stiffness is decreased according to: 
+
+kst (t) = max 
+
+n
+
+kmin , k st (t − 1) − α10 −2 ˙Fext (t)∆ T
+
+o
+
+. (12) This prevents the stiffness from remaining unnecessarily high once the external interaction force has diminished. Here, α
+
+is scaled by a factor of 10 −2, to account for the different scales of the position-error and force-drop-rate signals. The pseudocode in Algorithm 1 summarizes the complete flow of the implemented self-tuning impedance approach. 
+
+C. Demonstration Collection and Representation 
+
+Demonstrations are collected through teleoperation and stored using the LeRobot [29] dataset format, in which each recorded frame pairs the robot and sensor observations with the corresponding action target. At each recording step, the observations comprise the measured tool-center-point (TCP) pose, the gripper state (motor current as a proxy for grasping force and a Boolean object-detection flag), the latest available camera images, and the external wrench at the TCP that is obtained by mapping the measurements from the force/torque (F/T) sensor mounted between the robot flange and the gripper. The corresponding action target contains the processed Cartesian equilibrium pose and gripper command. 
+
+Algorithm 1 Self-tuning impedance algorithm 
+
+Inputs: −→
+
+P , ∆Xerr , ˙Fext 
+
+Output: Ktrans c , Dtrans c
+
+Initialization: 
+
+kst (0) = kmin , dst (0) = dmin ,
+
+Σk = kmin I3×3 , Σd = dmin I3×3
+
+Control loop: 
+
+if ∥∆Xerr (t)∥ > ∆Xth err then ▷ Increase stiffness 
+
+kst (t) = min {kmax , k st (t − 1) + α∥∆Xerr (t)∥∆T }
+
+else if ˙Fext (t) > ˙F th ext then ▷ Decrease stiffness 
+
+kst (t) = max 
+
+n
+
+kmin , k st (t − 1) − α10 −2 ˙Fext (t)∆ T
+
+o
+
+end if 
+
+Σk, 1,1 = kst (t), Σd, 1,1 = 2 ζpkst (t)
+
+U = getOrthonormalBasis (−→
+
+P )
+
+Ktrans c = U ΣkU T , Dtrans c = U ΣdU T ▷ Output During demonstrations, the stiffness value kst , obtained from the controller’s online adaptation, is additionally appended to the action vector without requiring explicit input from the operator. Following Zhou et al. [30], measured and target orientations use a continuous 6D representation comprising the first two rotation-matrix rows, avoiding rotation-vector discontinuities at π. At inference, rotation predictions are de-coded via Gram–Schmidt orthonormalization and converted to the low-level controller’s pose representation. 
+
+D. Imp-ACT Policy Learning and Deployment 
+
+Imp-ACT extends ACT’s action space with ˜kst and pre-dicts 50-step action chunks, corresponding to a one-second horizon. The observation space comprises two 480 × 640 
+
+RGB images from a wrist-mounted camera and a fixed camera behind the robot, plus an 18-dimensional state: end-effector position (3D), orientation (6D), gripper position, force/torque wrench (6D), gripper motor current (a proxy for grasping force), and a binary object-detection flag. Each 11-dimensional action contains the Cartesian equilib-rium position (3D), orientation (6D), gripper command, and motion-direction stiffness parameter ˜kst . Stiffness in the two orthogonal translational directions remains fixed. The policy runs at 50 Hz , using temporal ensembling with a weighting coefficient of 0.1 to smooth overlapping predictions. Each action dimension, including stiffness, is normalized using its mean and standard deviation computed from the train-ing demonstrations. At deployment, predicted actions are converted back to their original units before being passed to the low-level controller. Eqs. (4)–(8) map ˜kst to the translational Cartesian stiffness and damping used by the low-level controller. IV. E XPERIMENTS 
+
+A. Experimental Setup 
+
+Experiments are conducted using a torque-controlled 7-DoF Franka Emika Panda robotic arm equipped with a Robotiq 2F-85 two-finger parallel gripper. To enable precise measurement of external contact forces, an additional six-axis ATI Mini-45 F/T sensor is mounted between the robot’s flange and the gripper. Visual observations are provided by a wrist camera (Intel RealSense D435i) attached adjacent to the gripper for capturing close-range contact interactions, and a back camera (Logitech B525 HD) positioned with an offset of (-5, 41, 56) cm along the X-, Y-, and Z-axes of the robot base frame for obtaining broader task context. Demonstrations are collected via teleoperation, using a Meta Quest 3 headset as the interface (see Fig. 1 for an overview of the setup). The system is integrated within the Robot Operating System 2 (ROS 2), where RGB camera streams are acquired at 30 fps and teleoperation commands are updated at 72 Hz, while low-level robot control is performed through the Franka Control Interface (FCI), which communicates with the robot over Ethernet at 1 kHz. Policy training was performed on an HPC cluster. Each training job was allocated 20 CPU cores and 64 GB of RAM. The nodes provide four NVIDIA Tesla V100 GPUs with 16 GB of memory each. Inference was run on a Lenovo Legion 9i Gen 10 laptop equipped with an Intel Core Ultra 9 275HX processor and an NVIDIA GeForce RTX 5090 Laptop GPU. 
+
+B. Teleoperation Interface 
+
+Teleoperation is conducted using a custom Unity passthrough application on a VR headset, connected to a recording framework based on ROS 2 and LeRobot. The application streams six-degree-of-freedom poses and button states from a four-button handheld controller, mapping mo-tion into robot coordinates using the session-verified trans-formation of Rosasco et al. [31], [32] (see Fig. 2). A grip button acts as a clutch for relative control of the Cartesian equilibrium target. On engagement, the current handheld controller and end-effector poses are stored as references; subsequent controller translations and rotations update the target relative to these poses. Releasing the clutch pauses target updates and recording while retaining the last target, allowing hand repositioning. The analog trigger proportionally controls gripper aperture, while two buttons terminate and retain or discard the demonstration. A wrist-camera panel, toggled via the thumbstick, provides a view of otherwise occluded contact regions. An augmented-reality arrow displays the interaction force, while a gauge indicates whether its magnitude lies below, within, or above a predefined band. These cues help the operator unload contact and retract the equilibrium target before releasing an inserted object, reducing the risk of unintended end-effector motion into the surrounding structure. 
+
+C. Experimental Scenarios 
+
+To evaluate the effectiveness of Imp-ACT, we compare it against two fixed-stiffness baselines: a low-stiffness compli-ant controller and a high-stiffness controller. The compliant baseline uses a fixed translational stiffness of 200 N/m, whereas the high-stiffness baseline uses 1000 N/m. We evaluate the proposed approach against the baselines on two contact-rich manipulation scenarios, namely 1) wiping and 2) plug insertion , each imposing distinct interaction and compliance requirements. For each task, each policy was trained on a separate demonstration dataset collected using its corresponding controller. The number of demonstrations, task-variation protocol, training settings, and evaluation con-ditions were identical across policies. The operator aimed to demonstrate each task consistently across conditions, without deliberately adjusting their strategy to favor any controller. 
+
+1) Wiping: The goal of this task is to remove marks from a whiteboard, with their positions and shapes varying across episodes. Each episode begins with the robot at its home configuration. The teleoperator guides the robot to grasp the eraser, wipe the board until no visible trace of the mark remains, and return the eraser to its initial location (see Fig. 3(a)-(d)). We collected 40 demonstration episodes under each of three stiffness conditions: fixed low stiffness, fixed high stiffness, and adaptive stiffness using the proposed approach. Stiffness regulation is important for maintaining effective wiping and consistent erasing, while limiting excessive contact forces at high Kc and stick-slip-induced vibration in both baseline conditions. This scenario therefore provides a basis for comparing the three conditions in terms of their ability to maintain the surface contact required for effective wiping as the locations and shapes of the marks vary across episodes. 
+
+2) Plug insertion: The goal of this task is to insert a two-pin plug into the central socket of a five-outlet power strip. As in the wiping task, each episode begins with the robot at its home configuration. The teleoperator then guides the robot to grasp the plug, move it toward the power strip, align the plug with the central socket, and complete the insertion (see Fig. 3(e)-(h)). To introduce variability across demonstra-tions, the initial position of the plug was randomized within 
+
+±2 cm in translation and ±10 ◦ in rotation about the X-axis of the robot base frame. Because plug insertion requires greater precision than wiping, 80 episodes were collected under each stiffness condition (low, high, and adaptive) for this task. Note that the need to simultaneously align both pins of the plug with the two holes of the socket, ≈ 1 mm tolerance, poses a greater challenge than classic peg-in-hole insertion tasks widely used in the literature to represent complex interactions with the environment. Consequently, even minor misalignments at contact, whether due to tracking inaccuracies, sensor noise, or similar factors, may gener-ate large interaction forces or prevent successful insertion, highlighting the need to balance positional accuracy with compliant behavior. Video of these experiments can be found at: https://youtu.be/iAu_HFeaCRg 
+
+D. System Parameters 
+
+In the adaptive-stiffness case, kst , representing the stiff-ness along the motion direction −→
+
+P , was bounded within 
+
+kmin = 200 N/m and kmax = 1000 N/m. Along the other two directions orthogonal to −→
+
+P , the stiffness was fixed at kmin =200 N/m, thereby preserving compliance in the plane perpen-dicular to the primary motion direction and allowing the end-effector to accommodate small deviations without unneces-t = 1 .4 s                                          
+
+> ˜kst = 300 N/m
+> (a) Free.
+> t= 3 .4s
+> ˜kst = 327 N/m
+> (b) Descending.
+> t= 9 .1s
+> ˜kst = 464 N/m
+> (c) Wiping.
+> t= 24 .4s
+> ˜kst = 360 N/m
+> (d) Wiping complete.
+> t= 2 .6s
+> ˜kst = 237 N/m
+> (e) Over the plug.
+> t= 12 .8s
+> ˜kst = 277 N/m
+> (f) Inserting.
+> t= 14 .0s
+> ˜kst = 321 N/m
+> (g) Fully inserted.
+> t= 18 .4s
+> ˜kst = 208 N/m
+> (h) Released. Fig. 3: Cartesian stiffness ellipsoids during wiping (top) and plug insertion (bottom). The proposed approach increases the predicted stiffness ˜kst along the instantaneous motion direction (magenta arrow), while maintaining the two orthogonal directions at 200 N/m. The principal stiffness direction follows the task motion, lying approximately along the wiping direction or insertion axis. Each panel reports the time (upper left) and ˜kst (lower right). Across the illustrated episodes, ˜kst ranges from 200 –642 N/m for wiping and from 200 –329 N/m for insertion.
+
+sary resistance. For the rotational components, stiffness was fixed at 30 Nm/rad along all three axes. The Cartesian stiff-ness matrices of the low and high stiffness baselines were de-liberately set to Klow c = diag(200 , 200 , 200 , 30 , 30 , 30) and 
+
+Khigh c = diag(1000 , 1000 , 1000 , 30 , 30 , 30) , respectively, to match the lower and upper bounds of the adaptive stiffness range, enabling a fair comparison across all cases. Following this, the damping was set according to Dc = 2 ζ√Kc with 
+
+ζ = 0 .7, for all conditions. The stiffness adaptation gain was selected as α = 1000 to balance rapid adaptation to external interactions against abrupt stiffness changes. The Cartesian position error and force-drop-rate thresholds were empirically chosen as ∆Xth err = 5 cm and ˙F th ext = 2 N/s, respectively. These values were not highly sensitive to small variations, as their role is to detect meaningful changes in the interaction. For both tasks, each policy was trained for 300,000 steps, taking approximately 16 hours per run. V. R ESULTS 
+
+We compare the three stiffness strategies in terms of task success and interaction performance, evaluating each policy over 25 trials per task. Interaction metrics are computed only over successful episodes ( 24 , 25 , and 25 for wiping, and 
+
+15 , 18 , and 19 for plug insertion) to ensure a consistent comparison across the three policies. 
+
+A. Stiffness adaptation 
+
+To illustrate how the learned stiffness changes during task execution, Fig. 3 visualizes the corresponding Cartesian stiff-ness ellipsoid for representative wiping and plug-insertion episodes. The top row reports the wiping sequence, while the bottom row shows the approach, insertion, and release phases of the plug task. In both cases, the main axis of the ellipsoid is aligned with the instantaneous direction of desired end-effector motion, indicated by the magenta arrow, while the two orthogonal directions remain at the compliant baseline. Higher interaction forces are associated with larger values of 
+
+˜kst , making the robot stiffer along the direction of motion. This stiffening is more pronounced during wiping, which involves sustained contact, with respect to plug insertion. To further examine the stiffness evolution during task execution, Fig. 4 reports ˜kst together with the Cartesian stiffness components Kx, Ky , and Kz for a representa-tive wiping episode. The policy continuously modulates the Cartesian stiffness along the instantaneous direction of motion through ˜kst , while the stiffness in the two orthogonal directions remains fixed at 200 N/m. Stiffness adaptation remains active throughout the episode, rather than only during contact. During free-space motion and grasping, ˜kst 
+
+averages 317 N/m, improving Cartesian tracking relative to the compliant baseline. Once contact with the surface is established, it increases to an average of 377 N/m and peaks at 554 N/m before decreasing as contact is released. The policy therefore continuously regulates the tracking– compliance trade-off rather than switching between discrete free-space and contact regimes. The amount of adaptation also reflects the task require-ments. Across successful wiping episodes, ˜kst peaks at 
+
+547 N/m on average (range 485 –705 N/m), compared with 
+
+299 N/m for plug insertion (range 272 –329 N/m). Wiping requires sustained surface interaction, whereas plug insertion involves shorter and more localized contacts. 
+
+B. Wiping 
+
+In the wiping task, both the high-stiffness baseline and Imp-ACT achieve a 100% success rate over 25 trials (see Fig. 5), while the low-stiffness baseline achieves 96% , failing once during grasp acquisition. This failure may be attributed to the poorer pose-tracking accuracy associated with uni-formly low Cartesian stiffness. The main differences emerge in interaction behavior. In Fig. 5, F mean ext denotes the average of the mean interaction forces computed for individual episodes, while F max ext is the corresponding average of the per-episode peak interaction forces. The low-stiffness baseline yields the smallest F mean ext ,which is 24 .0 N, closely followed by Imp-ACT with 24 .3 N, Fig. 4: Predicted Cartesian stiffness during one wiping episode. Kx, Ky and      
+
+> Kzare the stiffness commanded w.r.t ΨB, and ˜kst (dashed) the inferred stiffness along the direction of motion. The pink region marks the gripper closing on the wiper while the yellow one marks contact with the board.
+
+while the high-stiffness baseline reaches the largest value with 41 .4 N. A similar trend, but favoring the proposed approach, is observed for F max ext . Imp-ACT achieves the lowest mean peak force ( 43 .2 N), followed by the low-stiffness baseline ( 45 N), while the high-stiffness baseline again has the largest value with 94 .4 N. When the completion time tc is analyzed, the high-stiffness baseline is fastest, finishing the task in 16.9 s, followed by Imp-ACT with 20.3 s and the low-stiffness baseline with 25.6 s. This indicates that Imp-ACT recovers part of the speed lost with compliant behavior, while still maintaining low interaction forces. While the force and completion-time results reveal the expected trade-off between compliance and tracking perfor-mance, the most pronounced difference between the three approaches emerges in the smoothness of the contact in-teraction. F mean ext and F max ext characterize the overall load applied to the environment, but they do not capture rapid force fluctuations associated with oscillatory or stick–slip behavior. To quantify this aspect, we compute the band power of the vertical interaction force Fz during contact. Band power Pvibr is calculated as the trapezoidal integral of the Welch power spectral density of the mean-removed Fz signal over the 8–40 Hz frequency range. The force signal, sampled at 1 kHz, may contain high-frequency measurement noise unrelated to the physical contact dynamics. Restricting the analysis to the selected band therefore focuses the metric on vibrations associated with contact chatter while reducing sensitivity to such noise. Imp-ACT achieves a band power of only 0.6 N2, compared with 17 .7 N2 for the low-stiffness baseline and 109 .6 N2 for the high-stiffness baseline, cor-responding to reductions of approximately 29 × and 180 ×,respectively. We hypothesize that this reduction results from the directional stiffness adaptation. Wiping benefits from higher stiffness along the tangential direction to preserve motion against friction, while excessive normal stiffness can amplify contact disturbances. By increasing stiffness along the direction of motion while keeping the orthogonal direc-tions compliant, Imp-ACT can preserve tangential tracking without unnecessarily increasing the normal interaction load. 
+
+C. Plug insertion 
+
+Plug insertion requires both accurate alignment and suffi-cient force along the insertion direction to overcome socket resistance. In this task, Imp-ACT achieves the highest suc-cess rate with 76% , followed by the high-stiffness baseline with 72% , and the low-stiffness baseline with 60% (see Fig. 5). The proposed approach also results in the lowest inter-action forces, with F mean ext = 12 .3 N and F max ext = 23 .0
+
+N, compared with 13 .8 N and 31 .3 N for the low-stiffness baseline, and 20 .3 N and 38 .4 N for the high-stiffness baseline. However, the magnitude of the total interaction force alone does not fully characterize insertion quality. During insertion, force along the insertion axis is expected and necessary to push the plug against the socket resistance, whereas forces orthogonal to this direction mainly arise from misalignment and contact with the socket walls. We there-fore additionally evaluate the transverse interaction force (F cross ext =
+
+q
+
+F 2 
+
+> x
+
++ F 2 
+
+> y
+
+), which quantifies lateral loading associated with misalignment and contact with the socket walls. Imp-ACT reduces this force to 4.4 N, compared with 
+
+7.8 N for the low-stiffness baseline and 11 .9 N for the high-stiffness baseline, corresponding to a 43% reduction relative to the better baseline. This result is consistent with the anisotropic adaptation mechanism, where higher stiffness along the insertion direction facilitates plug insertion, while orthogonal compliance allows residual misalignment to be accommodated with lower lateral loading. Alongside these improvements in contact behavior, tc
+
+remains comparable across conditions ( 15 .8 s for Imp-ACT, 
+
+15 .1 s for the high-stiffness baseline, and 18 .2 s for the low-stiffness baseline). These results indicate that Imp-ACT reduces interaction forces while maintaining a completion time similar to the faster baseline. VI. C ONCLUSION 
+
+This work introduced Imp-ACT, a methodologically grounded approach to integrate stiffness modulation into demonstration collection for imitation learning. The frame-work preserves an intuitive, kinematics-based teleoperation interface in which the operator commands the desired mo-tion while the self-tuning module adjusts stiffness online. Adaptive impedance is therefore part of the demonstra-tion, without requiring explicit stiffness commands from the operator or targets assigned after data collection. This allows the policy to learn from demonstrations in which compliance is already present. The wiping and plug insertion experiments highlight the benefit of adapting stiffness to the directional demands of the task, supporting motion along the intended direction while preserving orthogonal compliance to limit transverse interaction forces and accommodate envi-ronmental constraints. Future work could extend the stiffness adaptation law to rotational degrees of freedom, enabling both translational and rotational compliance to be modulated and recorded during teleoperation. A further direction is to incorporate a passivity filter to regulate energy injection Fig. 5: Task outcome and contact metrics for wiping (top) and plug insertion (bottom). Grey-background metrics are better when higher; white-background metrics are better when lower and are computed over successful episodes only. Bold text indicates the best result, including ties. 
+
+associated with stiffness variations and establish conditions for stable robot interaction with the environment. The data-collection principle is policy-agnostic in spirit, motivating future work on integrating stiffness modulation into a broader range of visual-action policy pipelines such as Diffusion Policy or more general foundation models like VLAs. ACKNOWLEDGMENT 
+
+This paper was supported by the European Union Horizon Projects TORNADO (Grant GA 101189557) and by the Italian Ministry of University and Research (MUR) under the Fondo Italiano per la Scienza (FIS), call FIS 3, project EPIC with code FIS-2024-02654. The authors thank Sebastian Schleisner Hjorth for helpful discussions and the HRII 2
+
+Lab for providing equipment and facilities. The authors also acknowledge IIT and its HPC Team for their support and assistance with the IIT High Performance Computing infrastructure. REFERENCES [1] V. Villani, F. Pini, F. Leali, and C. Secchi, “Survey on human-robot collaboration in industrial settings: Safety, intuitive interfaces and applications,” Mechatronics , vol. 55, pp. 248–266, 2018. [2] H. Ravichandar, A. S. Polydoros, S. Chernova, and A. Billard, “Recent advances in robot learning from demonstration,” Annual Review of Control, Robotics, and Autonomous Systems , vol. 3, no. Volume 3, 2020, pp. 297–330, 2020. [3] T. Z. Zhao, V. Kumar, S. Levine, and C. Finn, “Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware,” in Proceedings of Robotics: Science and Systems , Daegu, Republic of Korea, July 2023. [4] C. Chi, Z. Xu, S. Feng, E. Cousineau, Y. Du, B. Burchfiel, R. Tedrake, and S. Song, “Diffusion policy: Visuomotor policy learning via action diffusion,” The International Journal of Robotics Research , 2024. [5] T. Kamijo, C. C. Beltran-Hernandez, and M. Hamaya, “Learning variable compliance control from a few demonstrations for bimanual robot with haptic feedback teleoperation system,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,2024, pp. 12 663–12 670. [6] M. Aburub, C. C. Beltran-Hernandez, T. Kamijo, and M. Hamaya, “Learning diffusion policies from demonstrations for compliant contact-rich manipulation,” in 2026 IEEE/SICE International Sympo-sium on System Integration (SII) , 2026, pp. 28–34. [7] Y. Hou, Z. Liu, C. Chi, E. Cousineau, N. Kuppuswamy, S. Feng, B. Burchfiel, and S. Song, “Adaptive compliance policy: Learning approximate compliance for diffusion guided control,” in 2025 IEEE International Conference on Robotics and Automation (ICRA) , 2025, pp. 4829–4836. [8] J. Chang, M. Uehara, D. Sreenivas, R. Kidambi, and W. Sun, “Miti-gating covariate shift in imitation learning via offline data with partial coverage,” in Advances in Neural Information Processing Systems ,M. Ranzato, A. Beygelzimer, Y. Dauphin, P. Liang, and J. W. Vaughan, Eds., vol. 34. Curran Associates, Inc., 2021, pp. 965–979. [9] P. Balatti, D. Kanoulas, N. Tsagarakis, and A. Ajoudani, “A method for autonomous robotic manipulation through exploratory interactions with uncertain environments,” Autonomous Robots , vol. 44, 11 2020. [10] L. Roveda, “Adaptive interaction controller for compliant robot base applications,” IEEE Access , vol. 7, pp. 6553–6561, 2019. [11] P. K. Jamwal, S. Hussain, M. H. Ghayesh, and S. V. Rogozina, “Impedance control of an intrinsically compliant parallel ankle reha-bilitation robot,” IEEE Transactions on Industrial Electronics , vol. 63, no. 6, pp. 3638–3647, 2016. [12] F. Ficuciello, A. Romano, L. Villani, and B. Siciliano, “Cartesian impedance control of redundant manipulators for human-robot co-manipulation,” in 2014 IEEE/RSJ International Conference on Intel-ligent Robots and Systems , 2014, pp. 2120–2125. [13] P. Song, Y. Yu, and X. Zhang, “A tutorial survey and comparison of impedance control on robotic manipulation,” Robotica , vol. 37, no. 5, pp. 801–836, 05 2019. [14] F. J. Abu-Dakka and M. Saveriano, “Variable impedance control and learning—a review,” Frontiers in Robotics and AI , vol. Volume 7 -2020, 2020. [15] G. Xu, A. Song, and H. Li, “Adaptive impedance control for upper-limb rehabilitation robot using evolutionary dynamic recurrent fuzzy neural network,” Journal of Intelligent & Robotic Systems , vol. 62, pp. 501–525, 2011. [16] A. Mohammadi and R. D. Gregg, “Variable impedance control of powered knee prostheses using human-inspired algebraic curves.” 
+
+Journal of computational and nonlinear dynamics , vol. 14 10, pp. 101 007–10 100 710, 2019. [17] A. Ajoudani, M. Gabiccini, N. Tsagarakis, A. Albu-Sch¨ affer, and A. Bicchi, “Teleimpedance: Exploring the role of common-mode and configuration-dependant stiffness,” in 2012 12th IEEE-RAS Interna-tional Conference on Humanoid Robots (Humanoids 2012) , 2012, pp. 363–369. [18] C. Yang, P. Liang, Z. Li, A. Ajoudani, C.-Y. Su, and A. Bicchi, “Teaching by demonstration on dual-arm robot using variable stiffness transferring,” in 2015 IEEE International Conference on Robotics and Biomimetics (ROBIO) , 2015, pp. 1202–1208. [19] I. Ozdamar, M. Laghi, G. Grioli, A. Ajoudani, M. G. Catalano, and A. Bicchi, “A shared autonomy reconfigurable control framework for telemanipulation of multi-arm systems,” IEEE Robotics and Automa-tion Letters , vol. 7, no. 4, pp. 9937–9944, 2022. [20] P. Balatti, D. Kanoulas, G. F. Rigano, L. Muratore, N. G. Tsagarakis, and A. Ajoudani, “A self-tuning impedance controller for autonomous robotic manipulation,” in 2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , 2018, pp. 5885–5891. [21] M. J. Kim, K. Pertsch, S. Karamcheti, T. Xiao, A. Balakrishna, S. Nair, R. Rafailov, E. P. Foster, P. R. Sanketi, Q. Vuong, T. Kollar, B. Burchfiel, R. Tedrake, D. Sadigh, S. Levine, P. Liang, and C. Finn, “Openvla: An open-source vision-language-action model,” in Proceed-ings of The 8th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, P. Agrawal, O. Kroemer, and W. Burgard, Eds., vol. 270. PMLR, 06–09 Nov 2025, pp. 2679–2713. [22] K. Black, N. Brown, J. Darpinian, K. Dhabalia, D. Driess, A. Esmail, M. R. Equi, C. Finn, N. Fusai, M. Y. Galliker, D. Ghosh, L. Groom, K. Hausman, b. ichter, S. Jakubczak, T. Jones, L. Ke, D. LeBlanc, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, A. Z. Ren, L. X. Shi, L. Smith, J. T. Springenberg, K. Stachowicz, J. Tanner, Q. Vuong, H. Walke, A. Walling, H. Wang, L. Yu, and U. Zhilinsky, “π0.5: a vision-language-action model with open-world generaliza-tion,” in Proceedings of The 9th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, J. Lim, S. Song, and H.-W. Park, Eds., vol. 305. PMLR, 27–30 Sep 2025, pp. 17–40. [23] Y. Zhang, Y. Wang, X. Sun, K. Huang, Z. Xu, J. Ji, Z. Che, J. Tang, and J. Sun, “Craft: Adapting vla models to contact-rich manipulation via force-aware curriculum fine-tuning,” arXiv preprint arXiv:2602.12532 ,2026. [24] K. Zhang, H. Zhang, Z. Xu, Z. Zhang, M. R. I. Prince, X. Li, X. Han, Y. Zhou, A. Ajoudani, and Y. She, “Tacvla: Contact-aware tactile fusion for robust vision-language-action manipulation,” arXiv preprint arXiv:2603.12665 , 2026. [25] H. Zhang, W.-H. Huang, Q. Tong, G. Solak, P. Liu, K. Zhang, S. Liu, J. Peters, Y. She, and A. Ajoudani, “Compliantvla-adaptor: Vlm-guided variable impedance action for safe contact-rich manipulation,” 
+
+arXiv preprint arXiv:2601.15541 , 2026. [26] C. Schindlbeck and S. Haddadin, “Unified passivity-based cartesian force/impedance control for rigid and flexible joint robots via task-energy tanks,” in IEEE International Conference on Robotics and Automation (ICRA) , 2015, pp. 440–447. [27] A. Ajoudani, N. G. Tsagarakis, and A. Bicchi, “Choosing poses for force and stiffness control,” IEEE Transactions on Robotics , vol. 33, no. 6, pp. 1483–1490, 2017. [28] A. Albu-Schaffer, C. Ott, U. Frese, and G. Hirzinger, “Cartesian impedance control of redundant robots: Recent results with the dlr-light-weight-arms,” in 2003 IEEE International conference on robotics and automation , vol. 3. IEEE, 2003, pp. 3704–3709. [29] R. Cadene, S. Alibert, A. Soare, Q. Gallouedec, A. Zouitine, S. Palma, P. Kooijmans, M. Aractingi, M. Shukor, D. Aubakirova, M. Russi, F. Capuano, C. Pascal, J. Choghari, K. Meftah, M. Ellerbach, J. Moss, and T. Wolf, “Lerobot: State-of-the-art machine learning for real-world robotics in pytorch,” https://github.com/huggingface/lerobot, 2024. [30] Y. Zhou, C. Barnes, J. Lu, J. Yang, and H. Li, “On the continuity of rotation representations in neural networks,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , June 2019. [31] A. Rosasco, F. Ceola, G. Pasquale, and L. Natale, “Kdpe: A kernel density estimation strategy for diffusion policy trajectory selection,” in Proceedings of The 9th Conference on Robot Learning , ser. Pro-ceedings of Machine Learning Research, J. Lim, S. Song, and H.-W. Park, Eds., vol. 305. PMLR, 27–30 Sep 2025, pp. 1210–1224. [32] A. Rosasco, S. Berti, F. Bottarel, M. Colledanchise, and L. Natale, “To-wards confidence-guided shape completion for robotic applications,” in 2022 IEEE-RAS 21st International Conference on Humanoid Robots (Humanoids) , 2022, pp. 580–586.
