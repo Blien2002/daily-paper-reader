@@ -1,0 +1,436 @@
+Title: Vision-Based 6-DoF Grasp Pose Estimation for Robot Cloth Unfolding
+
+URL Source: https://arxiv.org/pdf/2609.31452v1
+
+Published Time: Mon, 28 Sep 2026 01:31:42 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+> 1
+
+# Vision-Based 6-DoF Grasp Pose Estimation for Robot Cloth Unfolding 
+
+Domen Tabernik †*, Peter Nimac ‡§ *, Jan Jeri´ cevi´ c‡§ , Danijel Skoˇ caj †, Andrej Gams §†Faculty of Computer and Information Science, University of Ljubljana, Veˇ cna pot 113, 1000 Ljubljana, Slovenia 
+
+{domen.tabernik, danijel.skocaj }@fri.uni-lj.si 
+
+‡Joˇ zef Stefan International Postgraduate School, Jamova cesta 39, 1000 Ljubljana, Slovenia 
+
+§Joˇ zef Stefan Institute, Jamova cesta 39, 1000 Ljubljana, Slovenia 
+
+{peter.nimac, jan.jericevic, andrej.gams }@ijs.si 
+
+Abstract —Cloth manipulation is a challenging task due to the deformable and high-dimensional nature of cloth, which leads to complex interaction dynamics and perceptual ambiguity arising from frequent occlusions of critical visual cues such as folds, edges, and grasp points. In this work, we tackle cloth unfolding using a regrasping-in-the-air strategy, where one manipulator holds the cloth while the other grasps it at an optimally selected point to unfold it. To this end, we propose CeDiRNet-6DoF, a deep learning framework that jointly predicts effective grasp points and the complete 6-DoF grasp pose from the observed cloth configuration. By integrating dense 3D grasp regression with segmentation and sine–cosine-encoded Euler angles, the proposed method reliably estimates the grasp configuration that maximizes the unfolded cloth area. We extensively evaluated CeDiRNet-6DoF on a bimanual robotic setup within the ICRA 2024 Cloth Competition framework, achieving state-of-the-art performance. An ablation study further validates the benefits of key design components, including joint segmentation, background random-ization, and image cropping. These results establish CeDiRNet-6DoF as a robust and versatile foundation for reliable robotic cloth manipulation in unstructured environments. 
+
+Index Terms —Robotic Manipulation, Cloth Manipulation, Grasp Pose Regression, 6-DoF, Deep Learning. 
+
+I. I NTRODUCTION 
+
+Robotic manipulation of deformable objects, such as cloth and textiles, represents a fundamental yet challenging problem in modern robotics. Unlike rigid objects, for which robotic grasping [1] or pushing [2] typically results in a well-predicted object state, cloths exhibit high degrees of freedom, complex non-linear dynamics, and significant variability in shape and appearance [3]. These challenges make tasks like folding, un-folding, and precise grasping particularly difficult to automate, especially in unstructured environments [4]. Folding and unfolding are fundamental operations in cloth manipulation. Prior work has explored a range of strate-gies—from bimanual techniques [5] and flinging [6] to regrasping-in-the-air [7], [8], [9]. In this paper, we focus on unfolding as a critical precursor to effective folding. Specifically, we adopt a regrasping-in-the-air strategy where one robot arm suspends the cloth while the other selects the optimal grasp point to achieve full unfolding. The ICRA 2024 
+
+> *
+
+Domen Tabernik and Peter Nimac contributed equally to this work as first authors. Dense regression Localization Euler angles from arctan2(sin,cos) at detected location Euler angles +depth at detected location   
+
+> Input RGB Input Depth Grasp pose
+> CeDiRNet 6-DoF extension
+> Direction head Rotation head (roll) Rotation head (pitch) Rotation head (yaw)  Sine Yaw Pitch Roll Cosine Euler angles
+> Cosine Sine Direction vectors
+> Points
+
+Fig. 1: CeDiRNet-6DoF architecture. CeDiRNet (top) re-gresses center directions for 2D grasp localization; its 6-DoF extension (bottom) regresses sine/cosine pairs for roll, pitch, and yaw. Orientation and depth yield the 6-DoF pose. Cloth Competition [9] recently introduced a standardized dual-arm benchmark for this task, enabling real-world evaluation. By following this framework, our approach facilitates robust and reproducible comparisons with state-of-the-art methods. In this paper, we propose a novel learning-based approach for estimating the optimal grasp pose to unfold cloth using the regrasping-in-the-air technique. Instead of relying on hand-crafted heuristics, we propose a deep neural network that directly predicts the grasp point from a single RGB image of the cloth suspended in the air. The network is trained in a fully supervised manner to predict the grasp pose that maximizes cloth unfolding when stretched, as defined by the annotator. In this way, deformability is handled through learning-based point supervision and a high-capacity visual backbone that can adapt grasp prediction to the currently observed cloth configuration. Our method not only identifies the grasp location but also fully regresses a 6-DoF gripper pose, enabling precise execution of the unfolding sequence. Furthermore, by leveraging a dense prediction framework, multiple grasp candidate locations are generated, allowing for flexible selection based on kinematic feasibility. Our approach, CeDiRNet-6DoF, builds upon the point detection capabilities of CeDiRNet [10] and extends it to predict full 6-DoF grasp poses in Euler angles as depicted in Fig. 1. Unlike cloth methods that typically predict only grasp points or regions and rigid-object methods that often assume stable object geometry, CeDiRNet-6DoF jointly regresses dense grasp locations and arXiv:2609.31452v1 [cs.RO] 25 Sep 2026 2
+
+full orientation from one RGB image; depth completes the position, and kinematic-feasibility-aware selection integrates the candidates into a real-robot unfolding pipeline. Our contributions are threefold: i) we introduce CeDiRNet-6DoF, a novel deep-learning-based approach for grasp pose estimation for cloth unfolding using a regrasping-in-the-air strategy; ii) we rigorously evaluate our approach following the ICRA 2024 competition rules, evaluating on the same compe-tition items plus additional items, demonstrating its superior performance compared to competition methods; and iii) we provide a detailed ablation study that highlights the impact of our design choices, such as background randomization, image cropping, joint segmentation, and the integration of RGB-D data, on the overall performance. These contributions lay the groundwork for more versatile and reliable robotic systems capable of handling the complex task of cloth manipulation. This has also been demonstrated in the ICRA 2024 cloth competition, where CeDiRNet-6DoF achieved second place and outperformed nine of the ten competing methods. II. R ELATED WORK 
+
+The most closely related literature concerns cloth grasp selection [11], [5] and in-air grasp prediction [12], [13], while rigid-object 6-DoF pose [14] and grasp [15], [16], [17] estimation provides related methodological approaches that are not always applicable to cloth manipulation due to rigid-object assumptions. 
+
+A. Cloth Grasp Selection and Manipulation 
+
+Early work on deformable-object grasping relied mainly on hand-crafted visual cues such as corners and edges for grasp-point selection [7], [8]. These approaches can work well when data are scarce, but are less robust to severe self-occlusions, folds, and appearance variability common in real-world cloth manipulation. Recent learning-based methods instead infer grasp-relevant structure directly from visual observations, including target grasp-point detection and region-aware garment segmenta-tion for structural-region grasp selection [18], [11]. Such approaches show that cloth grasp selection can be learned effectively from image data, but typically focus on grasp points or graspable regions rather than direct 6-DoF gripper-pose prediction. Related recent garment-manipulation systems also address broader bimanual folding or manipulation tasks [5], [19], [20]. However, such systems often predict coordinated grasp pairs, use richer task-level supervision, or target broader manipula-tion policies rather than direct single-grasp 6-DoF prediction for unfolding. 
+
+B. In-air Cloth Grasping and Direct Grasp Prediction 
+
+Among cloth-specific methods, an important distinction is between tabletop manipulation and in-air manipulation. Prior work on deformable-object grasp-point selection spans both tabletop grasping [21], [22], [23] and in-air manipulation [24], [13], [12]. Tabletop methods often select grasp points for cloth lying on a surface, using task-oriented metrics [21], preference- and reward-guided action selection [22], or end-to-end policies for dynamic bimanual primitives [23]. While highly relevant to deformable manipulation, these methods do not address direct 6-DoF in-air grasp prediction and often rely on tabletop-specific heuristics or predefined primitives for executing grasps. On the other hand, the more closely related in-air ap-proaches typically rely on stronger sensing or observation assumptions than our setting. Examples include visuotactile edge tracing [24], confidence-aware visuotactile affordance prediction [13], and dual-view policies trained extensively in simulation [12]. These methods therefore require tactile sens-ing, multiple viewpoints, or broader policy-level assumptions that differ materially from the single-view benchmark consid-ered here. This motivates our positioning of CeDiRNet-6DoF as a single-view method for direct 6-DoF grasp prediction in a full real-robot unfolding pipeline. 
+
+C. 6-DoF Pose Estimation and Grasping for Rigid Objects 
+
+Deep-learning-based 6-DoF pose estimation from a single RGB or RGB-D image is well established for rigid objects, including keypoint-correspondence and voting methods [25], dense correspondence or coordinate-map regression [26], di-rect rotation prediction and continuous angular regression [27], [28], and geometry-guided pose estimation [14]. These meth-ods estimate object pose relative to a reference shape or canonical object frame, which is natural for rigid objects but much less applicable to deformable cloth, where configuration changes continuously and cannot be mapped reliably by a single rigid transformation. This motivates moving from 6-DoF pose estimation to methods that predict executable grasps directly. Direct 6-DoF grasp estimation for rigid objects has like-wise progressed from pose-plus-grasp pipelines [29] to end-to-end grasp prediction from RGB-D or point-cloud obser-vations [30], [29]. Recent examples include Generalizing-Grasp [31] for domain-prior-guided generalization, Language-Driven 6-DoF Grasp Detection [32] for language-conditioned diffusion-based grasp generation, Region-aware Normalized Grasp Space [33] for efficient single-view detection, Ze-roGrasp [17] for reconstruction-enabled zero-shot grasping, and GraspCoT [16] for language- and reasoning-augmented prediction. Among them, EconomicGrasp [15] is especially relevant in our setting because it remains comparatively prac-tical while still performing direct single-view 6-DoF grasp pre-diction, learning from point clouds through dense objectness and graspness prediction with sparse supervision. These rigid-object methods are therefore useful comparison points, but transferring them to hanging cloth remains non-trivial because they are often designed around rigid-object assumptions that do not transfer naturally to deformable garments, including grasp definitions tied to stable object geometry or to grasping the object as a whole rather than selecting a small locally suitable grasp region. In addition, sev-eral recent methods do not yet provide straightforward public reproducibility for train-and-evaluate use in our benchmark. 3
+
+D. Benchmarks and Datasets 
+
+Progress in learning-based cloth grasping has also been driven by larger datasets and more structured evaluation pro-tocols. Lips et al. demonstrated learning garment keypoints from synthetic data with semantic keypoint annotations [34]. Our prior work introduced the ViCoS Towel Dataset together with CeDiRNet-3DoF [35], enabling dense learning-based grasp-point detection under cloth-specific supervision, but still focusing on 3-DoF prediction and image-level evaluation. A benchmark for full 6-DoF evaluation with the regrasping-in-the-air strategy was then introduced through the ICRA 2024 Cloth Competition [9], providing a training dataset, an execution setup, and an evaluation protocol for end-to-end robotic cloth unfolding. 
+
+E. Positioning of CeDiRNet-6DoF 
+
+Against this backdrop, we position CeDiRNet-6DoF in the regrasping-in-the-air setting of the ICRA 2024 benchmark. In contrast to tabletop cloth-grasping methods, we target direct in-air 6-DoF grasp prediction. In contrast to tactile or multi-view in-air approaches, our method uses a single visual observation. In contrast to broader bimanual garment-manipulation systems [5], [19], [20], we focus on predicting a single executable grasp pose aligned with the benchmark setup rather than coordinated grasp pairs or broader task policies. Compared to generic rigid-object 6-DoF grasp estimators such as the point-cloud-based EconomicGrasp [15], our for-mulation eliminates rigid-object assumptions and learns from single grasp-point annotations, without requiring explicit ob-jectness, segmentation, or grasp definitions tied to the object as a whole. It also estimates the grasp pose from RGB images rather than point clouds, with depth used only for positioning in 3D. Rather than relying on a stable canonical object pose [14] or an explicit model of cloth deformation [12], the method learns grasp selection from supervision tied to the current cloth state. This is particularly important for cloth, where the geometry changes continuously and grasp success depends strongly on local visual cues such as corners, folds, edges, and the hanging geometry. Point-based supervision therefore provides a natural way to adapt direct grasp pre-diction to deformable-object manipulation. Building on our prior CeDiRNet-3DoF framework [10], CeDiRNet-6DoF retains the dense point-localization formu-lation while extending it to full 6-DoF grasp-pose prediction and integrating it into a complete real-robot unfolding pipeline. While the backbone architecture remains the same as in CeDiRNet-3DoF, using ConvNeXt with an FPN, CeDiRNet-6DoF introduces 6-DoF-specific adaptations, including orien-tation regression, segmentation supervision, background ran-domization, and robot-aware cropping. III. M ETHOD 
+
+In this section, we describe our proposed approach for full 6-DoF grasp pose estimation using CeDiRNet-6DoF and its integration into a robotic cloth manipulation pipeline. The method builds upon our previous work on cloth key-point detection in 3-DoF [35], extending it to predict full 6-DoF grasp poses. We build on top of definitions and notations introduced in CeDiRNet [10] and its 3DoF variant [35], but provide basic definitions here as well. We also describe our planning and grasp execution strategies that perform the final stretching of the grasped cloth. 
+
+A. CeDiRNet 
+
+Our proposed network builds on the Center Direction Re-gression Network (CeDiRNet) for point detection [10]. Here, we provide a quick formulation, while the reader is referred to [10], [35] for more details. CeDiRNet performs point detection using a two-stage approach: i) a dense regression of center vectors in the first stage, and ii) a localization using a lightweight, domain-agnostic network in the second stage. In the first stage, given an input image I, a dense regression net-work outputs two dense fields, Csin , C cos = DenseRegNet( I),which encode the direction ϕ toward the target location in the image plane for every image pixel. The direction to target ϕ
+
+is parameterized with a trigonometric function. DenseRegNet 
+
+can also output a third dense output field R that is regressed to the logarithm of the distance r to the closest target for each pixel. In the second stage, a LocNet is used to extract the exact point locations from the regressed center-directions fields, 
+
+Ocent = LocNet( Csin , C cos ), where Ocent is a probability map for target location with local maxima representing final predicted locations. 
+
+B. Grasp Pose Estimation in 6-DoF 
+
+We extend CeDiRNet for 6-DoF pose regression, follow-ing the 3-DoF extension in [35], but now regress a three-dimensional orientation instead of a single-dimensional one, while also regressing cloth segmentation. Concretely, the CeDiRNet-3DoF variant regressed a single sin/cos orientation pair, whereas CeDiRNet-6DoF uses three parallel orientation heads, one for each Euler-angle component, with each head regressing its own sin/cos pair. This results in a CeDiRNet-6DoF model. We define a 3-dimensional location X ∈ R3 with Euler angles θ ∈ R3 as a grasp pose relative to the camera frame. The dense regression network in CeDiRNet-6DoF now predicts the following fields: 
+
+Csin / cos , (Dx, D y , D z )sin / cos , S, R = DenseRegNet( I),
+
+(1) where Csin and Ccos encode the center-directions ϕ toward the closest grasp points projected from the 3D position X ∈ R3
+
+into the image plane x ∈ R2, while Dsin and Dcos encode corresponding three-dimensional Euler angles θ about the x-, y-, and z-axes (roll, pitch, and yaw components) relative to the camera frame. Additionally, S is the cloth-segmentation mask and R is the log-distance r to the closest grasp point. The dense regression network predicts one set of Euler angles for every pixel location, allowing for the estimation of multiple grasp points in the same image. Because the dense prediction and localization stages can return multiple local maxima, the system produces a set of candidate grasp locations from a single image, and each candidate location is paired with one 4
+
+regressed 6-DoF pose. Following [10] and [35], the Euler angles are reparametrized with the trigonometric function to convert values from [−∞ , ∞] into [−1, 1] , while also removing angle discontinuities at 2π. The original Euler angles for roll (x-axis), pitch (y-axis), and yaw (z-axis) are recovered element-wise as: 
+
+θ = atan2( Dsin , Dcos ), (2) where Dsin = (Dx
+
+> sin
+
+, D y
+
+> sin
+
+, D z
+
+> sin
+
+) and Dcos =(Dx
+
+> cos
+
+, D y
+
+> cos
+
+, D z
+
+> cos
+
+).The final 6-DoF grasp pose prediction is then constructed by combining the predicted 2D grasp-pose location ˆx retrieved by the LocNet stage and the predicted Euler angles ˆθ(ˆ x) read at location ˆx. The 3D position of the grasp point is recovered by combining the pixel location with the depth measurement provided by an RGB-D sensor. 
+
+Euler-angle representation: We use Euler angles mainly as a practical representation choice for this benchmark and architecture. The training annotations in the ICRA 2024 cloth competition dataset are already provided in Euler-angle form, so keeping the same target representation preserves direct alignment between labels and regression targets. The sine/cosine parameterization mitigates angular wrap-around discontinuities, while remaining compact for dense per-pixel prediction. We note, however, that Euler angles still have known limitations, such as coupling between axes and sensi-tivity near singular configurations. Alternative representations, such as quaternions and rotation matrices, may mitigate some of those limitations, but come with other trade-offs. For instance, quaternions have sign-equivalence issues while rota-tion matrices would require higher-dimensional dense outputs together with additional structural consistency constraints. We therefore leave exploration of alternative representations for future work. 
+
+Backbone and dense regression network: CeDiRNet is agnostic to the specific backbone or dense regression network. The backbone architecture for our 6-DoF version remained the same as in our prior 3-DoF variant [35], employing a ConvNeXt backbone with a Feature Pyramid Network (FPN) for multi-scale feature aggregation. This backbone replaces the ResNet backbone originally used in CeDiRNet [10], while the localization network remained identical to the originally proposed one. In the context of cloth manipulation, retaining a generic high-capacity visual backbone together with dense prediction enables the model to learn grasp-relevant regulari-ties directly from supervision. This design is well matched to severe self-occlusion, configuration-dependent geometry, and substantial appearance variability, where rigid hand-crafted assumptions are difficult to maintain. 
+
+C. Data Input 
+
+We crop the input image based on the robots’ workspace positions to suppress the background and focus on cloth details. Since our setup keeps the cloth between the two robots, we use the robot-base positions to define the left, right, and lower crop boundaries. The upper boundary is placed 5 cm above the gripper of the left robot, which holds the cloth (see Fig. 2). We apply the same crop during training and inference, and the resulting cropped image is used as input to the final model. By default we use RGB input, but for the RGB-D variants we modify only the input layer by adding depth: distance to the world XZ-plane through the holding gripper and perpendicular to the ground, normalized from 
+
+[−50 , 50] cm to [−1, 1] . This object-centric encoding avoids absolute camera depth and reduces camera-position/viewpoint dependence. 
+
+D. Learning 
+
+The model is trained in a fully supervised manner using an annotated 6-DoF grasp pose for each training sample. The dataset and annotations we used are described in Section IV-C. Training of DenseRegNet follows [35], with all dense output fields trained jointly. We use a shared dense output head for 
+
+C + R + S, together with three parallel orientation heads for 
+
+Dx, Dy , and Dz , resulting in a total of four individual heads. Each orientation head predicts the sin/cos parameterization for one Euler axis. This enables specialization for center directions with distance and segmentation within the shared dense prediction head, as well as specialization for individual Euler axes. With the exception of weights for the final dense output heads, all other encoder and decoder weights are shared. Losses for each individual output head are balanced using uncertainty weighting [36] as already proposed in CeDiRNet-3DoF [35]: 
+
+Uw( ˆL, σ ) = 12σ2 ˆL + log σ, (3) The final loss is composed of the individual losses: 
+
+L = Uw( ˆLϕ + ˆLr , σ ϕ) + Uw( ˆLseg , σ seg ) + 
+
+Uw( ˆLθx , σ θx ) + Uw( ˆLθy , σ θy ) + Uw( ˆLθz , σ θz ) (4) with the weighting values σϕ, σθx , σθy , σθz and σseg acting as additional learnable parameters defining the uncertainty weight for each corresponding loss. This eliminates the need for manually setting additional hyperparameter weights and prevents gradients from one task from dominating and nega-tively influencing the other tasks as demonstrated in our prior 3-DoF version [35]. Segmentation S and log-distance R are learned during training through ˆLseg and ˆLr losses, but are not needed for inference; instead, they provide auxiliary-task supervision during training and can have regularization-like effects on the shared representation. Note that log-distance 
+
+R was already used in CeDiRNet-3DoF [35], although not officially reported in the paper. We use binary cross-entropy for segmentation loss ˆLseg 
+
+and, similar to [35], L1 for all other regression losses, where 
+
+ˆLθ is applied to (Dsin , D cos ) fields for roll, pitch and yaw; 
+
+ˆLϕ is applied to (Csin , C cos ) for center-directions and ˆLr is applied to log-distance R. All regression losses are computed only for foreground regions ( 30 × 30 pixels around each grasp point), as in [10], [35]. Note that we ignore the background only during training; during inference, we regress for all pixels but read the final pose orientation only at the detected grasp point location. 5
+
+E. Inference 
+
+Starting from the cropped robot-workspace image in RGB or RGB-D, DenseRegNet jointly predicts center directions and three orientation fields, as well as auxiliary training outputs S
+
+and R, which are discarded during inference. LocNet extracts 2D candidates whose corresponding orientation-field values provide roll, pitch, and yaw, while camera depth then provides the 3D position for both RGB and RGB-D variants. Before planning, 2.5 cm is added along the grasp-pose z-axis to slightly increase the depth at which the gripper executes the grasp. 
+
+F. Planning and Grasping 
+
+Once the 6-DoF grasp pose is estimated by CeDiRNet-6DoF, this pose must be transformed into executable robot motions. First, the grasp pose defined in the camera frame is converted into the robot’s world frame using the known extrinsic calibration between the RGB-D sensor and the robot base. Given that CeDiRNet-6DoF detects multiple potential grasp poses, we sort them by detection confidence based on the Ocent probability value from LocNet . We also filter out detections that are further away than the maximal reach of the robot arm. At inference time, the candidate poses are therefore ranked by detection confidence and filtered by reachability, inverse-kinematics validity, and trajectory feasibility before one executable grasp is selected. Then, we select a grasp pose with the highest confidence score and a valid inverse-kinematics solution for the final execution. An analytical inverse kinematics solver [37] is applied to map the target 6-DoF pose into the corresponding joint space configuration. Given that our robotic manipulators have more than six degrees of freedom, multiple inverse kinematics solutions can exist for a single target pose. To resolve this re-dundancy, our system iterates over potential last joint configu-rations and selects the one closest—by Euclidean distance—to empirically defined desirable configurations. This ensures that the computed joint configuration is both feasible and efficient for execution. For the grasp execution, a motion planning module [38] computes a collision-free trajectory from the robot’s current configuration to the target configuration, calculated from the target grasp pose using inverse kinematics. We employ an efficient planner, specifically the RRT-Connect [39], to explore the high-dimensional configuration space and generate a viable path, while real-time collision checking is performed against a model of the environment—including both robot arms, the table, the virtual boundary walls and the detected cloth. In scenarios where all grasp poses within the potentially reachable space lack a valid arm joint solution or pose a risk of collision, the system adopts a heuristic re-planning strategy as detailed in Algorithm 1. This involves a controlled repositioning of the robot arm holding the cloth followed by a re-evaluation of the grasp pose, thereby ensuring robust execution even under challenging conditions. We define an initial joint configuration qdefault and two secondary joint configurations, qfar and qnear , each resulting in a different gripper position for holding the cloth. If no grasp poses are 
+
+Algorithm 1 Robust 6-DoF Grasp Pose Execution 
+
+Require: current joint position qright for the right arm per-forming the grasp; a predefined set of joint configurations 
+
+Qleft = {qdefault , qnear , qfar } for the left arm, which holds the cloth and defines its position; maximum reach dmax ;and extrinsic calibration R.
+
+Ensure: Successful grasp execution or report failure  
+
+> 1:
+
+for each qi ∈ Qleft do  
+
+> 2:
+
+Reposition cloth by setting left arm joints to qi 
+
+> 3:
+
+▷ Detect grasp pose candidates in camera frame  
+
+> 4:
+
+P ← CeDiRNet6DoF( I| qi) sorted by Ocent  
+
+> 5:
+
+▷ Project p to robot frame and filter out-of-reach  
+
+> 6:
+
+Pw ← { R · p|p ∈ P and ∥R · p∥ ≤ dmax } 
+
+> 7:
+
+if Pw from qdefault was empty then  
+
+> 8:
+
+return failure - no grasp poses  
+
+> 9:
+
+end if  
+
+> 10:
+
+▷ Compute all inverse kinematics for all candidates  
+
+> 11:
+
+Sw ← [ComputeIK( pw) | pw ∈ Pw] 
+
+> 12:
+
+s ← select s ∈ Sw within joint limits, no collision, and highest Ocent  
+
+> 13:
+
+if s exists then  
+
+> 14:
+
+Ttraj ← PlanTrajectory( qright , s ) 
+
+> 15:
+
+Execute Ttraj with right arm  
+
+> 16:
+
+return success  
+
+> 17:
+
+end if  
+
+> 18:
+
+end for  
+
+> 19:
+
+return failure 
+
+found within the potentially reachable space for the initial cloth position, no re-planning is performed, and we consider this case a failed grasp. By executing a slow move during re-positioning, the textile hardly deforms. The initial joints qdefault 
+
+position the gripper 10 cm from the center-point between the robots towards the left robot. In the second attempt, the gripper was positioned 20 cm toward the right robot for qnear to bring it closer to the grasp arm, while in the last attempt, we positioned the cloth 10 cm from the initial hanging position in the other direction for qfar , to move it further away from the grasp arm. Overall, this integrated planning and grasping framework enables robust and efficient robotic manipulation of de-formable cloth objects by ensuring that the selected 6-DoF grasp poses are reliably translated into safe, executable mo-tions. IV. E XPERIMENTS 
+
+In this section, we extensively evaluate the whole pipeline for the robotic dual-arm cloth unfolding task using the regrasping-in-the-air strategy [7], [8], [9]. 
+
+A. Task 
+
+We follow the task definition from the ICRA 2024 cloth competition [9] that involves unfolding the cloth through the following steps: Step i) A cloth randomly positioned on the table is picked up with the right robot arm at the highest point and lifted in the air. 6
+
+Fig. 2: Captured images from three different setups: (i) the competition training dataset provided by the organizers (top row), showing the ground truth data; (ii) our setup (middle row), showing the inference results; and (iii) the competition setup at ICRA 2024 (bottom row), showing the inference results from the competition. The red bounding boxes indicate the cropping boundaries based on the robot’s position, as used in our approach. Step ii) The lowest point on the cloth hanging in the air is then used as the first grasp point. The cloth is grasped at this point and lifted into the initial configuration with the left arm for the next grasp. Step iii) The optimal second grasp pose for fully unfolding the cloth must be estimated and executed with the right robot arm. Step iv) Finally, the cloth is completely unfolded by stretch-ing it in the air in front of the camera with both robot arms maintaining a grip at the grasp points. Note that the process can be initiated with either the right or left hand; however, we use the right hand to align with the procedure followed in the ICRA 2024 competition, which results in the left arm holding the cloth in the air and the right arm performing the grasp. Steps (i), (ii), and (iv) are prede-fined, while step (iii)—grasp selection—is the most critical and must be executed autonomously to ensure optimal unfolding. Success is measured by comparing the surface area of the cloth after in-air stretching to a reference surface area obtained at a manually defined optimal stretch configuration, where the surface coverage of the cloth is maximized. Additional details on surface area computation are provided in Section IV-E. 
+
+B. Robot Setup 
+
+Our setup closely replicates the ICRA 2024 cloth competi-tion setup, utilizing a dual-arm configuration with the robots positioned 90 cm apart. The same RGB stereo-depth camera, the Zed2i RGB-D camera with passive stereo, was mounted behind the robots at a slight downward angle. While the competition employed two UR5e robots equipped with wrist-mounted force-torque sensors and Robotiq 2F-85 grippers, we used two 7-DoF Franka Robotics FR3 robots with basic Franka Hand grippers featuring plastic fingertips. Since high force feedback accuracy was not required, we extrapolated forces from the motors. This method was sufficient for reliable use during the final stretching phase. All three setups (ours, the training-data setup, and the ICRA 2024 competition setup) are depicted in Fig. 2. While both robots have a similar reach, 855 mm for the FR3 and 850 mm for the UR5e, they differ in the number of degrees of freedom, seven for the FR3 and six for the UR5e, and the range of joint motion, with a larger range for the UR5e than the FR3, resulting in a differently shaped workspace for the UR5e. We thus included a simple error-handling procedure to reposition the cloth closer to or further away from the left robot arm as described in Section III-F. 
+
+C. Training Datasets 
+
+We used two datasets for training: i) the ViCoS Towel Dataset [35] extended with additional samples for pre-training, and ii) a dataset provided by the organizers of the ICRA 2024 competition [40] for fine-tuning the model for the unfolding task. We refer to the latter as the competition dataset. 
+
+a) The ViCoS Towel Dataset: The ViCoS Towel Dataset [35] consists of 8,000 real and 12,000 synthetic RGB-D images of towels lying flat on the table, captured from a top-down view and annotated with segmentation, corner keypoints, and 1D orientation for a 3-DoF grasp pose. We extended this dataset with an additional 559 samples of the same towels under more difficult conditions. The same setup used to capture the original 8,000 real images was employed to collect 459 additional samples, while the remaining 100 samples were acquired using an RGB-only camera mounted in a top-down view at a resolution of 1341 × 1012 . To increase the difficulty of the dataset, we focused primarily on additional folded and crumpled configurations, which have proven challenging in the CeDiRNet-3DoF evaluation. These extra images boosted the F1 score on the ViCoS Towel 3-DoF benchmark from 78.0 % to 79.8 %. We have also made the expanded image set publicly 7
+
+available 1. We used real and synthetic training data from the ViCoS Towel Dataset and an additional 559 samples to pre-train our model. 
+
+b) The ICRA 2024 cloth competition dataset: To fine-tune our model for the unfolding task, we used the ICRA 2024 cloth competition dataset [40] as described in [9]. The dataset consists of 503 samples captured from 28 items (13 towels and 15 T-shirts) using the competition setup. An example image is depicted in the top row in Fig. 2. Each sample contains a single grasp point annotated with a 6-DoF pose by a human operator, with the camera, robot arm base, and gripper positions provided in world coordinates. This annotation format therefore provides one target grasp pose per image, which also steered our formulation toward predicting one 6-DoF pose for each detected grasp candidate. The dataset also includes images acquired after execution of the annotated grasp; we added cloth-segmentation masks. We split the dataset into training and validation sets, using two T-shirts and one towel for validation and the remaining items for training. 
+
+D. Training and Inference Details 
+
+We trained the grasp pose estimation model in two stages. First, we pre-trained it for detecting cloth corners, and then we fine-tuned it for 6-DoF grasp estimation. The pre-training stage primed the model for the visual appearance of textiles and clothes. We used the extended ViCoS Towel Dataset for pre-training. Since the dataset contains only 3-DoF poses, we trained only center-direction vectors and a single-dimensional orientation, i.e., CeDiRNet-3DoF [35]. We first pre-trained with 12,000 synthetic images and then with 5,679 real images from the ViCoS Towel Dataset training set plus our additional 559 samples. Before starting our pre-training stage, we also initialized the ConvNeXt backbone with publicly available ImageNet pre-trained weights. In the second stage, we fine-tuned the full 6-DoF pose estimation model based on the pre-trained 3-DoF model weights. Since the two additional Euler-angle heads and the segmentation output were not part of the 3-DoF model, they were initialized from scratch during fine-tuning. The model was fine-tuned on our training split of the ICRA 2024 competition data for 6-DoF pose estimation. We used the same pre-training optimization process as in [35], with slight modifications: increasing the epoch size to 50, resizing real images to 960 × 544 pixels, and replacing Gaussian blur augmentation with random horizontal/vertical flips and rotations. Augmentations were performed online dur-ing training, each independently activated with a probability of 0.5, with rotations using discrete angles at 10 ◦ increments selected from a uniform random distribution. We used the ConvNeXt-B backbone in all our experiments. Together with the extra 559 training images, the changes to the pre-training protocol improved the F1 score on the ViCoS Towel 3-DoF benchmark from 78.4% to 83.3%. For fine-tuning on the competition dataset, we trained the model for 100 epochs using a batch size of 4, a learning rate of 10 −4 (Adam optimizer), and a polynomial decay (power of 0.9). Training images were 
+
+> 1https://go.vicos.si/toweldatasetextra
+
+resized to 768 × 768 pixels. We performed color jittering with a probability of 0.5 using randomly selected values from 
+
+[−0.3, 0.3] for brightness, contrast, saturation, and hue; image scaling with a scale factor uniformly sampled from [0 .8, 1.2] ;and background randomization for data augmentation. For background randomization, we used COCO images with two background-replacement techniques: i) using cloth segmenta-tion masks or ii) using depth larger than 1.2 m. We performed the former with a probability of 0.2 and the latter with 0.8. TABLE I: Evaluation results for ICRA 2024 Set and Our Set with reported coverage, grasp success and coverage for only successful grasps. Combined results from RUNS A and RUNS B are reported. Items observed during training are marked with (*).                                                                     
+
+> Cloth Coverage Grasp Success Coverage for Successful Grasp
+> ICRA 2024 Set
+> cloth-checkered-rag* 0.648 0.70 0.804 cloth-waffle-rag* 0.560 0.50 0.793 tshirt-blue-airo* 0.618 0.80 0.691 tshirt-green-airo* 0.667 0.70 0.808 tshirt-zara-airo 0.639 1.00 0.639 tshirt-women-airo 0.752 0.80 0.860 cloth-green-airo 0.462 0.60 0.553 cloth-checkers-airo 0.561 0.70 0.660
+> Average (only *) 0.623 0.675 0.774
+> Average (only without *) 0.604 0.775 0.678
+> Average 0.613 0.725 0.726
+> Our Set
+> cloth-checkered-green 0.359 0.30 0.607 cloth-rainbow-checkered 0.503 0.70 0.564 cloth-rainbow-striped 0.455 0.30 0.636 shirt-pink 0.704 1.00 0.704 tshirt-beige 0.738 0.90 0.769 tshirt-black-large 0.525 0.40 0.741 tshirt-black-small 0.650 0.60 0.863 tshirt-red 0.656 0.80 0.749
+> Average 0.574 0.625 0.704
+> Overall Average (only without *) 0.583 0.675 0.695
+> Overall Average 0.594 0.675 0.715
+
+E. Evaluation Protocol 
+
+We evaluated each model on 16 unique items, repeating each evaluation 5 times to account for variability in the initial cloth configuration. As part of our ablation study, we conducted two sets of experiment runs: the first with four models, and the second with an additional three models. Since the initial cloth configuration—specifically, the loca-tion where the robot’s left hand holds the cloth—strongly in-fluences grasp success, we sought to minimize this variability by evaluating all models within a given run using the same initial grasp point obtained from steps (i) and (ii) defined in Section IV-A. This ensured a consistent gripper position for the first grasp, although the exact cloth configuration was not always replicated because previous grasp trials could slightly alter the cloth state. Nevertheless, we observed that similar configurations were often achieved. To further mitigate cross-model interference, we randomized the order in which models were evaluated within each run. 8cloth-checkers-airo cloth-waffle-rag cloth-checkered-rag cloth-green-airo    
+
+> cloth-rainbow-checkered cloth-rainbow-striped cloth-checkered-green
+> tshirt-green-airo tshirt-blue-airo
+> tshirt-red tshirt-black-large
+> tshirt-zara-airo
+> tshirt-beige
+> tshirt-women-airo
+> shirt-pink tshirt-black-small
+> tshirt-blue-airo Our Set ICRA 2024 Set
+
+Fig. 3: Cloth evaluation reference items for ICRA 2024 set (top row) and our set (bottom row). This protocol enables fair comparison of models within the same run; however, comparing models across different runs is less appropriate due to the significant influence of the initial cloth configuration. To provide a reference between runs, we included the best-performing model in both. In total, eight models (seven unique) were evaluated, resulting in 640 grasping trials. 
+
+a) Evaluation Items: The evaluation items included 8 objects from the ICRA competition that were provided to us by the organizers (4 towels and 4 t-shirts), as well as 8 additional items that we obtained independently (3 towels and 5 t-shirts) 2.All items are depicted in Fig. 3. Out of 16 items, 2 towels and 2 t-shirts from the competition set were also part of the training set, while the remaining 12 items were never observed during training. 
+
+b) Metrics: We measure the cloth coverage metric as used in [9], which is defined as the ratio of the stretched-out cloth’s surface area to the reference surface area. Surface area is measured as the number of pixels belonging to the cloth, with images captured at a predefined distance from the camera for a fair comparison. The segmentation of the cloth that defines its surface area has been automatically obtained using SAM [41], with manual corrections for any incorrect segmentations. We calculated the coverage metric from the two stereo-camera images and report their mean as the final coverage metric. We also measured the number of successful grasps. 
+
+F. Results 
+
+Detailed results for the best-performing CeDiRNet-6DoF model on individual items from ICRA 2024 and our set are provided in Table I. In this table, we report values averaged over two sets of experiment runs for this model (from RUNS A and RUNS B), effectively doubling the number of repeti-tions and increasing statistical robustness. Some examples of estimated grasp poses and unfolding outcomes are depicted in Fig. 4. On the ICRA 2024 set, the method achieved 61.3% average coverage and 72.5% grasp success. Our set of items proved slightly more difficult, with the same model achieving 57.4% 
+
+> 2Items will be made available to the research community for evaluation purposes.
+
+average coverage and 62.5% grasp success. Note that the coverage metric includes both successful and unsuccessful grasps, with unsuccessful grasps resulting in lower values. For successful grasps, CeDiRNet-6DoF achieved 72.6% coverage on the ICRA 2024 set and 70.4% on our set. Note that half of the items in the ICRA set were included in the training data, whereas none of the items in our set were seen during training. We also provide results considering only novel items which are marked as (only without *) in Table I. Among individual items, the method performed best on 
+
+tshirt-women-airo from the ICRA 2024 set, with 75.2% cov-erage and 80% grasp success, and worst on cloth-checkered-green , with 35.9% coverage and 30% grasp success. For cloth-checkered-green , we observed that in many failure cases the grasp location was good (or at least not poor); however, grasp orientation seemed to have been particularly poor. The strong performance on novel T-shirts is also evident for tshirt-women-airo , a substantially different sleeveless shirt not observed during training. The model also performs well on shirt-pink , whose appearance differs even further from the training images. Looking at the variance of individual cases depicted in Fig. 5, we notice that for shirt-pink , cloth-checkered-green 
+
+and tshirt-beige the model performs fairly consistently, while variance is much larger for other items. This indicates that the method struggles to grasp the cloth consistently, but successful grasps often achieve coverage above 80% or even 90%. We also noticed that unsuccessful grasps often stem from incorrect grasp orientation, while the grasp location appeared suitable. This occurred in 27 of the 52 failed grasps. 
+
+G. Computational cost 
+
+Next, we measured the runtime of CeDiRNet-6DoF for the image-processing step in Step (iii), i.e., detection and 6-DoF pose regression. Candidate filtering based on path reachability, motion planning, and grasp execution were performed sepa-rately on the CPU and are not included here. We evaluated the ConvNeXt-base model on an NVIDIA A100 40GB and an NVIDIA RTX 2080 Ti 11GB, using 10 measured runs after one warm-up run. Runtime scaled mainly with input resolution (Table III), increasing from 0.27 to 0.81 sec on the A100 and from 0.45 to 1.45 sec on the RTX 2080 Ti when moving from 512 × 512 9
+
+Fig. 4: Examples of detected grasp points and gripper poses with the corresponding unfolded item at the bottom left of each image. Supplementary video material provides the full execution sequence for all shown examples, including intermediate states between the predicted grasp and the final unfolded outcome. TABLE II: Ablation study for CeDiRNet-6DoF with individual components disabled. The best result for each metric is shown in bold for each set of experiment runs. In both sets, the best results were mostly achieved with the 6-DoF version using segmentation, random background augmentation, and robot-position cropping.                                                                                                       
+
+> DoF Seg. Random bg. augment. Crop. by robot pos. RGB-D Coverage Grasp Success Coverage with Succ. Grasp ICRA 2024 Our Both ICRA 2024 Our Both ICRA 2024 Our Both
+> RUNS A  6-DoF 0.455 0.420 0.437 0.388 0.225 0.306 0.678 0.735 0.709 6-DoF ✓0.490 0.458 0.474 0.475 0.325 0.400 0.660 0.646 0.653 6-DoF ✓✓0.604 0.578 0.591 0.675 0.625 0.650 0.698 0.706 0.702 6-DoF ✓✓✓0.635 0.583 0.609 0.750 0.625 0.688 0.750 0.683 0.717 RUNS B  3-DoF 0.388 0.379 0.383 0.325 0.150 0.238 0.553 0.646 0.581 6-DoF ✓✓✓0.594 0.570 0.582 0.700 0.625 0.663 0.708 0.726 0.717
+> 6-DoF ✓✓✓✓0.593 0.534 0.564 0.675 0.650 0.663 0.717 0.612 0.661 6-DoF ✓✓✓0.577 0.502 0.539 0.725 0.675 0.700 0.717 0.569 0.643
+
+TABLE III: Computational cost with respect to resolution and GPU model (in seconds).                            
+
+> 512 ×512 1024 ×1024 1920 ×1080 3840 ×2160
+> A100 40GB SXM 0.27 ±0.01 0.34 ±0.01 0.41 ±0.01 0.81 ±0.02
+> RTX 2080Ti 11GB 0.45 ±0.04 0.55 ±0.01 0.77 ±0.03 1.45 ±0.06
+
+to 3840 ×2160 . At the default resolution of 1024 ×1024 , GPU memory usage was between 3 and 3.5 GB, and even the RTX 2080 Ti maintained near-real-time image-processing rates. Scene complexity had negligible effect on runtime. At 
+
+1024 × 1024 , a scene with 5 final detections and a higher-complexity scene with 12 final detections required 0.30 vs. 0.30 sec on the A100 and 0.51 vs. 0.49 sec on the RTX 2080 Ti. This is due to the design of CeDiRNet, which regresses all pixel locations at once, making the dominant cost dense image-wide feature extraction and pose regression, largely independent of the final number of detections. Only the final non-maximum suppression and ranking depend on the returned candidate count, and represent a negligible part of the total detection time. Therefore, multiple visible objects in the scene should have little influence on detection speed. 
+
+H. Ablation Study 
+
+Next, we evaluated individual components of CeDiRNet-6DoF to clarify several design choices. We performed two sets of experiment runs. In the first set, denoted RUNS A , we evaluated a 6-DoF CeDiRNet baseline trained with only the Euler-angle and center-direction-vector losses, and compared it with models using segmentation loss and random-background augmentation with robot-position cropping. In the second set, denoted RUNS B , we evaluated the 3-DoF CeDiRNet from our previous work [35] as a baseline and evaluated CeDiRNet variants using RGB-D rather than RGB input. Detailed results are shown in Table II. 
+
+a) CeDiRNet-6DoF components: Focusing on the first set of experiments (RUNS A), the base CeDiRNet model with only the 6-DoF extension, i.e., Euler-angle regression, performed significantly worse than our final CeDiRNet-6DoF. For the combined set (“Both” in Table II), the final model improved coverage from 43.7% to 60.9% (+17.2 pp.) and grasp success from 30.6% to 68.8% (+38.2 pp.). Adding only segmentation improved combined-set coverage from 43.7% to 47.4% (+3.7 pp.) and grasp success from 30.6% to 40.0% (+9.4 pp.). This gap can therefore be reduced simply by 10 0.0 0.2 0.4 0.6 0.8 1.0 Coverage cloth-checkered-rag* cloth-waffle-rag* tshirt-blue-airo* tshirt-green-airo* tshirt-zara-airo tshirt-women-airo cloth-checkers-airo cloth-green-airo cloth-checkered-green cloth-rainbow-checkered cloth-rainbow-striped shirt-pink tshirt-beige tshirt-black-large tshirt-black-small tshirt-red   
+
+> Object Set ICRA 2024 Set Our Set Grasp Success Yes No
+
+Fig. 5: Evaluation of CeDiRNet-6DoF on the ICRA 2024 and our sets. Coverage for ten repeated executions for each item is depicted as green/red circles, with the box-plot showing median (black line), mean (black diamond), min/max (box whiskers) and 75th/25th percentiles (box). Items observed during training are marked with (*). including segmentation as auxiliary-task supervision. While segmentation improved performance, the largest gains resulted from random-background augmentation and robot-position cropping. Together, these improved combined-set coverage from 43.7% to 59.1% (+15.4 pp.) and grasp success from 30.6% to 65.0% (+34.4 pp.) over the base model. These performance improvements are also visible in Fig. 6, which shows coverage for individual samples together with grasp success. Mean coverage is shown by the dashed black line and its 95% confidence interval by the solid black lines. 
+
+b) Depth: In our second set of runs (RUNS B), we also evaluated models with an additional depth input channel (RGB-D). They are shown in the bottom two rows of Table II and the right-most columns of Fig. 6. For matched variants with segmentation, random-background augmentation, and robot-aware cropping, adding depth changed combined-set coverage from 58.2% to 56.4% ( −1.8 pp.) while grasp success remained 66.3%. The unmatched RGB-D variant achieved 53.9% coverage and 70.0% grasp success. The difference between the matched depth (56.4 ± 5.5% 95% CI ) and non-depth models (58.2 ± 5.5% 95% CI ) was not statistically significant under a t-test at p = 0 .05 . We therefore cannot conclude that depth input degrades performance. Note that the RGB-only approach still relies on depth at inference. The network predicts a 5-DoF grasp pose (two image coordinates and three 3D orientation angles), while the RGB-D camera provides the third positional coordinate.                                      
+
+> Rank Team Name/Model Coverage ICRA 2024 setup Coverage Our setup
+> 1st AIR-JNU 0.60 -2nd CeDiRNet-6DoF (our) 0.57 0.61 ±0.05 95% CI
+> 3rd EWHA-glab 0.55 -4th SCUT-ROBOT 0.53 -5th Team Greater Bay 0.53 -6th Samsung Research China 0.48 -7th Shibata Lab 0.46 -8th AI&ROBOT LAB 0.45 -9th UOS-Robotics 0.39 -10th AIS Shinshu 0.37 -11th 3C1S 0.35 -
+
+TABLE IV: Results from the ICRA 2024 cloth competition [9] comparing our CeDiRNet-6DoF entry with other participants and with our setup on the ICRA 2024 item set. 
+
+c) Depth encodings: We further compared multiple depth encodings using human judges in the proxy evaluation de-scribed below. We evaluated three common depth encodings: a) HHA 3 [42], b) surface normals, and c) raw distances. Results are reported in Fig. 7. HHA performs worse than the no-depth and other encodings, with its 95% credible interval clearly below the best-performing models. In contrast, raw dis-tances and surface normals achieve scores comparable to our initial encoding and to the model without depth. While their mean scores are slightly higher, the 95% credible intervals overlap, so we cannot draw a strong conclusion that these encodings improve performance. We performed this evaluation as a model-vs-model bench-mark, which serves as a proxy for real-robot evaluation. We used five judges to indicate which model’s predicted grasp would lead to better unfolding coverage for the same image (considering each grasp’s location and 3D orientation), and then aggregated pairwise preferences into ELO-like scores using a Bayesian Bradley–Terry model [43]. We treated ties as 0.5 in a Bernoulli formulation and report 95% credible intervals to assess uncertainty. This benchmark was performed on 100 independently captured images from our robot setup. To relate the proxy evaluation to real-robot results, we included four reference models that were also evaluated on the robot in the ablation study; the proxy ranking matched their real-robot ranking. 
+
+d) Baseline CeDiRNet-3DoF: We additionally evaluated our previous 3-DoF version of CeDiRNet [35] as a baseline in RUNS B. We applied the CeDiRNet-3DoF baseline to our 6-DoF setup using only the minimal execution constraints required to obtain a valid 6-DoF robot pose. This enables a comparison with our 6-DoF variant that stays close to the original 3-DoF formulation and provides evidence for the benefit of moving from 1D to 3D orientation regression. Since CeDiRNet-3DoF regresses only one rotational degree of freedom, we regress only the yaw of the grasp poses in the world coordinate frame, i.e., the rotation around the world Z-axis (vertical axis). The remaining two rotations (pitch and roll) were constrained such that the gripper always approached the object in an orientation that was parallel to the table                
+
+> 3Horizontal disparity, Height above ground, Angle with gravity. 11 0.0 0.2 0.4 0.6 0.8 1.0 Cloth coverage
+> 6-DoF 6-DoF 6-DoF 6-DoF DoF:
+> Segmentation: Experiment runs A Experiment runs B
+> Rand.bg.augmnent.:
+> Cropping: Grasp success False True
+> 3-DoF 6-DoF 6-DoF 6-DoF
+> RGB-D: Avg.coverage: 43.7% 47.4% 59.1% 60.9% 38.3% 58.2% 56.4% 53.9%
+
+Fig. 6: Ablation study for individual CeDiRNet-6DoF components on combined ICRA 2024 and our set, with RUNS A/B left/right; dashed/solid black lines show average coverage/95% CI. 1250 1300 1350 1400 1450 1500 1550 1600 1650           
+
+> Model score (Elo-scale)
+> Baseline (1500) 1631 1578 1620 1571 1606 1558 1593 1543 1529 1480 1390 1338 1307 1253
+> 6-DoF 6-DoF 6-DoF 6-DoF 6-DoF 6-DoF 3-DoF DoF:
+> Rand.bg.augment.:
+> Cropping:
+> Segmentation: raw surf-normals ours HHA Depth enc.:
+
+Proxy-evaluation with human judges 
+
+Fig. 7: Proxy evaluation of depth encodings with human judges. We report ELO-like scores obtained by fitting aBayesian Bradley–Terry model (Bernoulli likelihood; ties treated as 0.5), together with 95% credible intervals. Models also evaluated on real robots are shown in lighter blue. surface. Depth information from the RGB-D camera was used to position the grasp pose in 3D world coordinates, similar to the 6-DoF version. Note that regressing yaw-only instead of pitch- or roll-only preserves unfolded-coverage capability when grasping hanging cloth, as we manually verified on the robot with human-annotated grasp poses under the same constraints, whereas regressing pitch- or roll-only would lead to a loss of coverage capability. Results for this baseline are presented in the first column of RUNS B on the right in Fig. 6. The performance was signifi-cantly worse than that of our proposed CeDiRNet-6DoF model under a t-test at the 0.05 significance level (38.3 ± 3.5% 95% CI 
+
+vs. 58.2 ± 5.5% 95% CI ), demonstrating that regressing all three Euler angles, together with the other proposed improvements, substantially enhances performance. 
+
+I. Comparing with State-of-the-Art 
+
+Finally, we compare our model with related work. We first provide a comparison with other participants from the ICRA 2024 cloth competition [9] and then provide a human-judge comparison with two related models. 
+
+a) ICRA 2024 cloth competition: We submitted our best CeDiRNet-6DoF model without depth, i.e., a version with segmentation, random background augmentation, robot-aware cropping, and RGB input. The main difference from our setup was primarily in the different robot arms and in the number of repetitions, only two for the competition and ten in our case, as we report results from the combined RUNS A and RUNS B. Detailed results of the competition are reported in [9], while we summarize the results in Table IV. Our model achieved coverage of 57%, which resulted in second place. CeDiRNet-6DoF outperformed nine other methods, except the method by AIR-JNU which achieved coverage of 60%. In our setup, CeDiRNet-6DoF achieved 61 % ± 595% CI coverage using the identical set of items, which is 4 pp. better than in the ICRA 2024 competition despite using the exact same model. However, ICRA 2024 results also include two samples that were disqualified due to technical issues, which represented 12.5% of all examples due to the small number of repetitions. Despite this disadvantage, the model achieved second place and lagged behind the first-ranked method only by 3 pp. Without the two samples, the method would have achieved 59.01% coverage, 0.99 pp. below the first-ranked result of 60%, thus indicating that CeDiRNet-6DoF achieves results comparable to state-of-the-art. 12 CeDiRNet-6DoF (ours) SAM3+EconomicGrasp EWHA-glab 1300 1400 1500 1600 1700 
+
+> Model score (Elo-scale)
+> Baseline (1500) 1737 1695 1472 1438 1348 1311
+> Proxy-evaluation with human judges
+
+Fig. 8: Proxy evaluation against two related-work baselines (in dark blue) with human judges. Reporting ELO-like score from fitted hierarchical Bayesian Bradley–Terry model and 95% credible intervals. 
+
+b) Human judges evaluation: To complement the com-petition ranking, we also extended the proxy evaluation to related-work baselines using the same protocol as in the depth ablation study. Out of the cloth-specific and rigid 6-DoF grasp-pose methods considered in Related Work, we evaluated the two with directly reproducible public implementations for ICRA-style benchmarking: the rigid-object 6-DoF detector EconomicGrasp [15] and the EWHA-glab method from the ICRA 2024 cloth competition. For EconomicGrasp, this re-quired an explicit adaptation to our cloth setting by segmenting the hanging cloth with SegmentAnything3, restricting grasp regression to the segmented cloth region, and training a best-performing adapted model on the ICRA 2024 competition training set. EWHA-glab was evaluated using its released public code 4 and did not require any training. Using the same 100 evaluation samples and the same five judges as in the previous proxy benchmark, our best CeDiRNet-6DoF variant with our initial depth en-coding, segmentation, and robot-aware cropping achieved an ELO-like score of 1715.0, compared with 1455.2 for SAM3+EconomicGrasp and 1329.8 for EWHA-glab. Figure 8 shows this comparison. V. D ISCUSSION 
+
+Overall, the results support CeDiRNet-6DoF and its main design choices for robot cloth unfolding, validated by gains of 17.2 pp. for coverage and 38.2 pp. for grasp success on the combined evaluation set. It also placed second in the ICRA 2024 cloth competition, outperforming nine participants, and ranked highest in our three-method proxy comparison with reproducible related-work baselines. Its advantage over Eco-nomicGrasp, which learns grasp poses from point clouds by densely predicting objectness, graspness, angle, and depth, also supports the center-direction vectors and direct dense grasp-prediction formulation used by CeDiRNet-6DoF. 
+
+a) Generalization: Results on items excluded from train-ing support generalization to the evaluated unseen towels and T-shirts, while other garment categories remain to be 
+
+> 4https://github.com/minseo10/cloth unfolding
+
+evaluated. At the item level, performance was higher on the novel T-shirts than on the novel cloths. This may reflect differences in appearance: the novel cloths had substantially different textures, whereas variation in the novel T-shirts was largely limited to central logos. Likewise, although checkered patterns occurred in training, they may not have transferred to orientation prediction for the novel cloth-checkered-green .
+
+b) Auxiliary segmentation: Although the segmentation head output is not used at inference time, its loss provides auxiliary supervision during training. The measured improve-ment from using segmentation in training may arise because this supervision encourages shared features useful for both segmentation and grasp-pose estimation, thereby having a regularization-like effect [44], [45]. We emphasize that this is a plausible explanation rather than a confirmed mechanism. 
+
+c) Depth input: Depth might be expected to improve grasp-pose estimation where 3D geometry matters, especially given the improvement in our prior 3-DoF evaluation [35]. Its lack of benefit here may reflect the smaller fine-tuning set (approximately 500 images versus more than 5000 real images for the prior 3-DoF model), which could promote overfitting in the depth channel of the ConvNeXt backbone with more than 88 million parameters. Depth augmentation and randomization, such as dropout or noise injection, might help but were not evaluated. Alternatively, RGB appearance may already provide useful grasp cues, such as texture near cloth corners, and ImageNet pre-training provides strong RGB priors; learning general depth-specific features may require more data or benefit from specialized architectures [46]. VI. C ONCLUSION 
+
+In this work, we introduced CeDiRNet-6DoF—a novel deep-learning framework for grasp pose estimation with a full 6-DoF representation for robotic cloth manipulation. Our approach integrates dense regression of 2D grasp locations and 3D orientation angles with segmentation and robust data augmentation techniques, while camera depth provides the third positional coordinate, enabling effective grasp pose de-tection and execution in dual-arm cloth unfolding tasks. We embed this approach within a complete pipeline for dual-arm robotic grasping, leveraging analytical inverse kinematics and an efficient RRT-Connect planner within a regrasping-in-the-air strategy. Our experimental setup, which closely replicated the ICRA 2024 competition, demonstrated through an extensive evalu-ation on the original eight ICRA 2024 items as well as on our previously unobserved eight items that CeDiRNet-6DoF achieves results comparable to state-of-the-art for this task. The detailed ablation study provides further evidence for our design choices. We explored the influence of segmentation loss on both RGB and RGB-D models, demonstrating a slight ben-efit from adjusting features for segmentation. Comparison with the prior 3-DoF model demonstrated the benefit of a three-dimensional orientation loss over a single-dimensional one. Furthermore, random background augmentation and image cropping based on robot positions are shown to significantly contribute to the overall performance. Although the task’s 13 
+
+inherent difficulty is reflected in a high variance of results, the successful cases indicate that our system generalizes well to diverse cloth types and configurations. However, our ex-perimental validation currently focuses only on towels and T-shirts. Because the grasp-pose predictor is fully learning-based and does not rely on garment-specific heuristics, the same method can in principle be extended to garments with substan-tially different geometries (e.g., trousers or long-sleeved shirts) without changing the formulation itself. However, this would require additional training data and dedicated evaluation, and we have not validated such generalization in this work. Notably, our model secured second place in the ICRA 2024 cloth competition by achieving 57% average coverage and outperforming nine competing methods from the challenge. Although the winning method attained 60% coverage, our subsequent evaluation on the identical set of items using the exact same method without any technical issues yielded 61% average coverage. These results show that our approach performs comparably to the best competition entry. Overall, our findings confirm that the proposed framework not only advances the state-of-the-art in cloth manipulation but also offers a promising foundation for future research. At the same time, the current formulation is multi-candidate at the grasp-selection level, but deterministic at the per-candidate level: it does not estimate calibrated uncertainty or multiple pose hypotheses for the same grasp location. This design is consistent with the benchmark, which provides a single annotated 6-DoF grasp per image and requires execution of a single final grasp, but richer uncertainty-aware or multi-hypothesis grasp prediction could be beneficial in ambiguous cloth configurations. Future work could focus on improv-ing grasp-pose orientation, which has often proven to be the main issue, while also expanding the method to handle even more diverse and challenging items (long-sleeved shirts, trousers, etc.). More geometry-aware rotation representations, such as quaternion-based parameterizations or other rotation-aware losses, also remain worthwhile future directions to help improve grasp pose orientation accuracy. The currently used benchmarking protocol also offers only limited environmental variability and tends to reflect the performance of methods under more controlled settings such as in factories. To advance benchmarking in 6-DoF cloth grasping, more challenging environmental variation should be introduced in the future, for example, varying backgrounds, different lighting conditions, and a wider range of camera viewpoints. VII. A CKNOWLEDGMENT 
+
+This work was supported by the ARIS research project J2-4457 (RTFM) and programme groups P2-0214 and P2-0076. It also received funding from the European Union’s Horizon Europe Framework Programme under Grant Agreement No. 101159522 (ROMANDIC). REFERENCES [1] H. Zhang, J. Lyu, C. Zhou, H. Liang, Y. Tu, F. Sun, and J. Zhang, “ADG-Net: A Sim2Real Multimodal Learning Framework for Adaptive Dexterous Grasping,” IEEE Transactions on Cybernetics , vol. 55, no. 2, pp. 840–853, Feb. 2025. [2] S. Yu, D.-H. Zhai, Y. Xia, and Y. Guan, “An Efficient Robotic Push-ing and Grasping Method in Cluttered Scene,” IEEE Transactions on Cybernetics , vol. 54, no. 9, pp. 4889–4902, 2024. [3] A. Longhini, Y. Wang, I. Garcia-Camacho, D. Blanco-Mulero, M. Mo-letta, M. Welle, G. Aleny` a, H. Yin, Z. Erickson, D. Held, J. Borr` as, and D. Kragic, “Unfolding the Literature: A Review of Robotic Cloth Manipulation,” Annual Review of Control, Robotics, and Autonomous Systems , vol. 8, no. 1, pp. 295–322, May 2025. [4] Z. Zhu, Z. Guo, Q. Hu, Y. Zhou, and B. He, “Dual-Arm Fabric Manipulation Learning With Grasp Pose Constraints,” IEEE Robotics and Automation Letters , vol. 10, no. 4, pp. 3494–3501, Apr. 2025. [5] O. Barbany, A. Colom´ e, and C. Torras, “BiFold: Bimanual Cloth Folding with Language Guidance,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2025, pp. 5652–5659. [6] C. Zhou, R. Jiang, F. Luan, S. Meng, Z. Wang, Y. Dong, Y. Zhou, and B. He, “Dual-Arm Robotic Fabric Manipulation With Quasi-Static and Dynamic Primitives for Rapid Garment Flattening,” IEEE/ASME Transactions on Mechatronics , vol. 30, no. 6, pp. 5845–5855, Dec. 2025. [7] J. Maitin-Shepard, M. Cusumano-Towner, J. Lei, and P. Abbeel, “Cloth grasp point detection based on multiple-view geometric cues with application to robotic towel folding,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2010, pp. 2308–2315. [8] A. Doumanoglou, A. Kargakos, T.-K. Kim, and S. Malassiotis, “Au-tonomous active recognition and unfolding of clothes using random decision forests and probabilistic planning,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2014, pp. 987–993. [9] V.-L. De Gusseme et al. , “A dataset and benchmark for robotic cloth unfolding grasp selection: The ICRA 2024 Cloth Competition,” The International Journal of Robotics Research , Jan. 2026. [10] D. Tabernik, J. Muhoviˇ c, and D. Skoˇ caj, “Dense center-direction regres-sion for object counting and localization with point supervision,” Pattern Recognition , vol. 153, p. 110540, 2024. [11] W. Chen, D. Lee, D. Chappell, and N. Rojas, “Learning to Grasp Cloth-ing Structural Regions for Garment Manipulation Tasks,” in IEEE/RSJ International Conference on Intelligent Robots and Systems , 2023, pp. 4889–4895. [12] J. Rome, S. James, and S. Ramamoorthy, “Learning to unfold cloth: Scaling up world models to deformable object manipulation,” arXiv preprint arXiv:2602.16675, 2026. [13] N. Sunil, M. Tippur, A. Saumell, E. Adelson, and A. Ro-driguez, “Reactive In-Air Clothing Manipulation with Confidence-Aware Dense Correspondence and Visuotactile Affordance,” arXiv preprint arXiv:2509.03889, 2025. [14] X. Liu, R. Zhang, C. Zhang, G. Wang, J. Tang, Z. Li, and X. Ji, “GDRNPP: A Geometry-Guided and Fully Learning-Based Object Pose Estimator,” IEEE Transactions on Pattern Analysis and Machine Intel-ligence , vol. 47, no. 7, pp. 5742–5759, 2025. [15] X.-M. Wu, J.-F. Cai, J.-J. Jiang, D. Zheng, Y.-L. Wei, and W.-S. Zheng, “An Economic Framework for 6-DoF Grasp Detection,” in European Conference on Computer Vision . Springer, 2024, pp. 357–375. [16] X. Chu, J. Deng, G. You, W. Liu, X. Li, J. Ji, and Y. Zhang, “GraspCoT: Integrating Physical Property Reasoning for 6-DoF Grasping under Flexible Language Instructions,” in IEEE/CVF International Conference on Computer Vision , 2025, pp. 10 130–10 140. [17] S. Iwase, M. Z. Irshad, K. Liu, V. Guizilini, R. Lee, T. Ikeda, A. Amma, K. Nishiwaki, K. Kitani, R. Ambrus, and S. Zakharov, “ZeroGrasp: Zero-Shot Shape Reconstruction Enabled Robotic Grasping,” in IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2025, pp. 17 405–17 415. [18] E. Corona, G. Aleny` a, A. Gabas, and C. Torras, “Active garment recognition and target grasping point detection using deep learning,” 
+
+Pattern Recognition , vol. 74, pp. 629–641, 2018. [19] Y. Deng, K. Mo, C. Xia, and X. Wang, “Learning Language-Conditioned Deformable Object Manipulation with Graph Dynamics,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2024, pp. 7508–7514. [20] X. Huang, A. Seino, F. Tokuda, A. Kobayashi, D. Chen, Y. Hirata, N. C. Tien, and K. Kosuge, “SIS: Seam-Informed Strategy for T-Shirt Unfolding,” IEEE Robotics and Automation Letters , vol. 10, no. 7, pp. 7342–7349, Jul. 2025. [21] J. Huang and K. W. S. Au, “Task-Oriented Grasping Position Selection in Deformable Object Manipulation,” IEEE Robotics and Automation Letters , vol. 8, no. 2, pp. 776–783, 2023. [22] W. Chen, H. Xue, F. Zhou, Y. Fang, and C. Lu, “DeformPAM: Data-Efficient Learning for Long-Horizon Deformable Object Manipulation via Preference-Based Action Alignment,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , 2025, pp. 6896–6903. 14 
+
+[23] H. Ha and S. Song, “FlingBot: The Unreasonable Effectiveness of Dynamic Manipulation for Cloth Unfolding,” in Proceedings of the 5th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 164, 2022, pp. 24–33. [24] N. Sunil, S. Wang, Y. She, E. H. Adelson, and A. Rodriguez Garcia, “Vi-suotactile Affordances for Cloth Manipulation with Local Control,” in 
+
+Proceedings of the 6th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 205, 2023, pp. 1596–1606. [25] S. Peng, Y. Liu, Q. Huang, X. Zhou, and H. Bao, “PVNet: Pixel-Wise Voting Network for 6DoF Pose Estimation,” in IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2019, pp. 4556–4565. [26] Z. Li, G. Wang, and X. Ji, “CDPN: Coordinates-Based Disentangled Pose Network for Real-Time RGB-Based 6-DoF Object Pose Estima-tion,” in IEEE/CVF International Conference on Computer Vision , 2019, pp. 7677–7686. [27] Y. Xiang, T. Schmidt, V. Narayanan, and D. Fox, “PoseCNN: A Con-volutional Neural Network for 6D Object Pose Estimation in Cluttered Scenes,” in Robotics: Science and Systems , 2018. [28] L. Beyer, A. Hermans, and B. Leibe, “Biternion Nets: Continuous Head Pose Regression from Discrete Training Labels,” in Pattern Recognition: 37th German Conference, GCPR 2015 , ser. Lecture Notes in Computer Science, vol. 9358. Springer, 2015, pp. 157–168. [29] Y. Cong, R. Chen, B. Ma, H. Liu, D. Hou, and C. Yang, “A Com-prehensive Study of 3-D Vision-Based Robot Manipulation,” IEEE Transactions on Cybernetics , vol. 53, no. 3, pp. 1682–1698, 2023. [30] W. Shang, F. Song, Z. Zhao, H. Gao, S. Cong, and Z. Li, “Deep Learning Method for Grasping Novel Objects Using Dexterous Hands,” IEEE Transactions on Cybernetics , vol. 52, no. 5, pp. 2750–2762, 2022. [31] H. Ma, M. Shi, B. Gao, and D. Huang, “Generalizing 6-DoF Grasp Detection via Domain Prior Knowledge,” in IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2024, pp. 18 102–18 111. [32] T. Nguyen, M. N. Vu, B. Huang, A. Vuong, Q. Vuong, N. Le, T. Vo, and A. Nguyen, “Language-Driven 6-DoF Grasp Detection Using Neg-ative Prompt Guidance,” in European Conference on Computer Vision .Springer, 2024, pp. 363–381. [33] S. Chen, P. Xie, W. Tang, D. Hu, Y. Dai, and G. Wang, “Region-aware Grasp Framework with Normalized Grasp Space for Efficient 6-DoF Grasping,” in Proceedings of the 8th Conference on Robot Learning ,ser. Proceedings of Machine Learning Research, vol. 270, 2025, pp. 1834–1850. [34] T. Lips, V.-L. De Gusseme, and F. Wyffels, “Learning Keypoints for Robotic Cloth Manipulation Using Synthetic Data,” IEEE Robotics and Automation Letters , vol. 9, no. 7, pp. 6528–6535, 2024. [35] D. Tabernik, J. Muhoviˇ c, M. Urbas, and D. Skoˇ caj, “Center Direction Network for Grasping Point Localization on Cloths,” IEEE Robotics and Automation Letters , vol. 9, no. 10, pp. 8913–8920, Oct. 2024. [36] A. Kendall, Y. Gal, and R. Cipolla, “Multi-Task Learning Using Un-certainty to Weigh Losses for Scene Geometry and Semantics,” in 
+
+IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2018, pp. 7482–7491. [37] Y. He and S. Liu, “Analytical Inverse Kinematics for Franka Emika Panda – a Geometrical Solver for 7-DOF Manipulators with Unconven-tional Design,” in 9th International Conference on Control, Mechatron-ics and Automation . IEEE, Nov. 2021, pp. 194–199. [38] I. A. Sucan, M. Moll, and L. E. Kavraki, “The Open Motion Planning Library,” IEEE Robotics & Automation Magazine , vol. 19, no. 4, pp. 72–82, Dec. 2012. [39] J. J. Kuffner and S. M. LaValle, “RRT-connect: An efficient approach to single-query path planning,” in Proc. IEEE Int. Conf. Robot. Autom. (ICRA) , vol. 2, 2000, pp. 995–1001. [40] V.-L. De Gusseme, “ICRA 2024 Cloth Competition Dataset,” Zenodo, Jan. 2025. [41] A. Kirillov, E. Mintun, N. Ravi, H. Mao, C. Rolland, L. Gustafson, T. Xiao, S. Whitehead, A. C. Berg, W.-Y. Lo, P. Doll´ ar, and R. Gir-shick, “Segment Anything,” in IEEE/CVF International Conference on Computer Vision , 2023, pp. 4015–4026. [42] S. Gupta, R. Girshick, P. Arbel´ aez, and J. Malik, “Learning Rich Features from RGB-D Images for Object Detection and Segmentation,” in European Conference on Computer Vision , ser. Lecture Notes in Computer Science, vol. 8695. Springer, 2014, pp. 345–360. [43] F. Caron and A. Doucet, “Efficient Bayesian Inference for Generalized Bradley-Terry Models,” Journal of Computational and Graphical Statis-tics , vol. 21, no. 1, pp. 174–196, Jan. 2012. [44] R. Caruana, “Multitask Learning,” Machine Learning , vol. 28, no. 1, pp. 41–75, Jul. 1997. [45] C. Szegedy, W. Liu, Y. Jia, P. Sermanet, S. Reed, D. Anguelov, D. Erhan, V. Vanhoucke, and A. Rabinovich, “Going Deeper with Convolutions,” in IEEE Conference on Computer Vision and Pattern Recognition , Jun. 2015, pp. 1–9. [46] B. Yin, X. Zhang, Z. Li, L. Liu, M.-M. Cheng, and Q. Hou, “DFormer: Rethinking RGBD Representation Learning for Semantic Segmentation,” in International Conference on Learning Representations , 2024. 
+
+Domen Tabernik is a Research Associate with the Visual Cognitive Systems Laboratory, Faculty of Computer and Information Science, University of Ljubljana, Slovenia. His research focuses on deep learning methods for computer vision, with current work spanning visual anomaly detection, industrial surface inspection, point-supervised object localization, and vision-based robotic manipulation. His research interests include computer vision, deep learning, industrial inspection, and robotic percep-tion. 
+
+Peter Nimac is a Ph.D. student with the Department of Automatics, Biocybernetics and Robotics, Joˇ zef Stefan Institute, Ljubljana, Slovenia, and is pursuing his doctoral studies at the Joˇ zef Stefan International Postgraduate School. His current work focuses on robotic cloth manipulation. His research interests include robotics, radar sensing, object tracking, and human–robot collaboration. 
+
+Jan Jeri´ cevi´ c is a Ph.D. student with the Department of Automatics, Biocybernetics and Robotics, Joˇ zef Stefan Institute, Ljubljana, Slovenia, and is pursuing his doctoral studies at the Joˇ zef Stefan Interna-tional Postgraduate School. His current work fo-cuses on robotic cloth manipulation and capability-guided task execution. His research interests include deformable object manipulation, manipulability and workspace analysis, and composable manipulation primitives. 
+
+Danijel Skoˇ caj is a Full Professor and Head of the Visual Cognitive Systems Laboratory at the University of Ljubljana, Faculty of Computer and Information Science. His main research interests in-clude computer vision, deep learning, and cognitive robotics. He has led numerous research projects in these areas and has actively contributed to the trans-fer of research results into practical applications. He has served as President of the IEEE Slovenia Computer Society and President of the Slovenian Pattern Recognition Society. 
+
+Andrej Gams is a Senior Research Associate with the Department of Automatics, Biocybernetics and Robotics, Joˇ zef Stefan Institute, Ljubljana, Slove-nia, where he heads the Humanoid and Cognitive Robotics Laboratory. He is also an Associate Profes-sor with the Joˇ zef Stefan International Postgraduate School. His current work and research interests focus on robot learning and robotic manipulation of deformable objects, with applications in humanoid and industrial robotics.
