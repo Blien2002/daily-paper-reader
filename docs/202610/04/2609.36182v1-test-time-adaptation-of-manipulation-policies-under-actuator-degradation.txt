@@ -1,0 +1,666 @@
+Title: Test-Time Adaptation of Manipulation Policies Under Actuator Degradation
+
+URL Source: https://arxiv.org/pdf/2609.36182v1
+
+Published Time: Wed, 30 Sep 2026 00:21:40 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# Test-Time Adaptation of Manipulation Policies Under Actuator Degradation 
+
+Som Sagar 1, Ransalu Senanayake 1
+
+Abstract — Robot manipulation policies are usually trained under the assumption that a commanded action produces the same motion as it did during training even after hours of operation. Real hardware violates this assumption as the motors gradually heat up, current saturates near contact, voltage sags under load, thus the same policy action can produce a weaker, delayed, or noisier motion. These conditions are already mea-sured by onboard telemetry, such as joint temperature, motor current, and supply voltage, yet this signal is typically used only for logging or safety checks rather than policy adaptation. We introduce Telemetry-Aware Action Rectification (TeAR), a policy-agnostic method that turns a frozen manipulation policy into a telemetry-conditioned policy by rectifying its outgoing action before it reaches the low-level controller. TeAR learns a lightweight Transformer that combines the proposed action with live actuator telemetry and amplifies, damps, or biases individual action components. We evaluate TeAR across 18 policy–task pairs spanning 8 policy families and 5 manipulation tasks. In an additional paired evaluation with degradation-model mismatch, TeAR achieves 31.8% success, compared with 25.6% for the base policy and 30.6% for an assumed-model inverse. On a physical arm, TeAR improves success under heating by 10–15% without on-robot fine-tuning. Code: https://github.com/somsagar07/TeAR-Telemetry-Aware-Action-Rectification. 
+
+I. INTRODUCTION Pre-trained manipulation policies, from small behavior-cloned models to large vision-language-action (VLA) mod-els, are often deployed without explicitly accounting for changes in the action-to-motion relationship. During op-eration, motor heating, current limits, and supply-voltage variation can change the actuator response that realizes a policy command. These effects need not produce immediate hardware faults, but they can alter the executed motion continuously while the robot remains operational. As a result, the policy may continue to output actions that would be appropriate for the actuator response seen during training, while the deployed hardware executes those same actions with reduced magnitude, added delay, or increased noise. These effects are especially consequential in manipulation, where success depends on precise motion and coordinated contact forces [1], and execution delays can disrupt otherwise effective policies [2]. Temperature-dependent changes in actuator torque response further challenge the assumption that a fixed command produces consistent motion [3]. Dy-namics randomization exposes policies to varied physical parameters during training [4], but does not by itself pro-vide deployment-time measurements of actuator conditions.  
+
+> 1School of Computing and Augmented Intelligence, Arizona State Uni-versity, Tempe, Arizona
+
+<ssagar6, ransalu>@asu.edu ab
+
+ab
+
+af
+
+> TeAR
+
+Fig. 1: (a) Mean stressed success rate for 7 base policies ( 2Mto 7B parameters): TeAR (hatched) adds +12% on average over the frozen base (solid). (b) Over one stressed episode, TeAR (red) corrects the base intent (blue) across axes; the inset shows the rectification ab → af on a SO-101 arm. Without explicit telemetry inputs, a policy must infer these changes from their effects on task observations. TeAR in-stead uses measured actuator state to condition its action corrections. Figure 1 illustrates these corrections and the resulting gains under stress. These deployment-time state values are already measured by most standard servo communication buses, which report joint temperature, motor current, and supply voltage at each control step. These measurements provide a compact descrip-tion of the actuator conditions. Although such signals are routinely exposed by manipulator firmware, robot learning systems typically treat them as diagnostic logs or discrete safety thresholds rather than as continuous conditioning variables for the policy. We instead treat telemetry as a learning signal: a deployed action should depend not only on the scene and task, but also on the current actuator state under which the command will be executed. We introduce Telemetry-Aware Action Rectification 
+
+(TeAR), a method for making a manipulation policy hardware-aware at test time (Fig. 2). Our key design choice is to place the correction on the actuator response rather than arXiv:2609.36182v1 [cs.RO] 28 Sep 2026 Healthy Robot Degraded Robot  
+
+> Policy intent matches execution Execution deviates, policy fails
+
+## Telemetry-Aware Action Rectification (TeAR)  
+
+> Telemetry conditions a lightweight model
+> Success Failure
+> Temp (X T)Current (X c)
+> low normal normal Voltage (X v)
+> Temp (X T)Current (X c)
+> high high low Voltage (X v)
+> ab
+> base action
+> aexec
+> executed
+> ab
+> base action
+> aexec
+> executed
+
+# ≈ ≠  
+
+> Telemetry (per-joint) Telemetry (per-joint)
+> Telemetry (per-joint) Observation
+> Per-joint correction after before
+> afab
+
+# ≈ Success 
+
+a) Method Overview: TAM rectifies the outgoing action before control.  
+
+> Real Sim
+
+## XT XC XV
+
+> telemetry input state input
+
+## Pretrained Policy π VLA ACT BC-T BC 
+
+TeAR Transformer     
+
+> a j1 j2 j3 j4 j5
+
+c) Performance improvement by TAM 
+
+ab
+
+ab
+
+af
+
+> proprioception data
+
+b) Per-axis corrections under stress. Fig. 2: Telemetry-Aware Action Rectification. A policy assumes its command ab and executes: on healthy hardware it succeeds (left), but under joint heating, or voltage sag the executed action aexec drifts from ab and the task fails (middle). TeAR (right) reads per-joint temperature, current, and voltage and rewrites each command into af so execution recovers. on the policy internals since training with hardware state such as voltage or temperature is difficult, as it is not easily controllable like the environment state. Thus, TeAR reads the action proposed by the base policy together with live joint temperature, motor current, and supply voltage, and uses a Transformer to reshape the action before execution. Under actuator stress, this rectification can amplify, damp, or bias individual action components according to the sensed hardware state. Because the correction does not touch the base policy, the adapter can be trained in simulation against a physics-derived target, without environment roll-outs or base-policy fine-tuning, and transferred to real hardware. The paper makes three contributions: 1) Telemetry-conditioned rectification. We formulate actuator telemetry as test-time context for correcting frozen-policy actions at the policy-controller interface. 2) Efficient action adaptation. We introduce a gated Transformer adapter trained from a physics-derived target, without base-policy fine-tuning. 3) Experimental validation. We evaluate TeAR across 18 policy–task pairs, assess degradation-model mis-match, demonstrate thermal transfer to a physical arm. II. R ELATED WORKS 
+
+Adapters and residual wrappers for frozen policies. 
+
+Residual policy learning [5], [6] freezes a base controller and learns a bounded additive correction with RL, both to repair miscalibration and to recover sample efficiency on contact-rich tasks. Recent extensions adapt frozen imitation and diffusion policies through closed-loop residuals [7], [8] or by running RL in the latent-noise space of a frozen sampler [9]. The vision-language-action literature has, in parallel, settled on parameter-efficient finetuning: OpenVLA [10] ships with LoRA, OpenVLA-OFT [11] adds a continuous action head, 
+
+π0 [12] attaches a flow-matching expert, and Octo [13] supplies a transformer-diffusion backbone designed for new heads. Across both families the correction is either entan-gled with the base architecture or conditioned on the same observations the base already consumes, and TRANSIC [14] relies on online human teleoperation as its corrective sig-nal. TeAR provides a common telemetry-conditioned action interface for frozen policies. Its use across policy families requires compatible state/action conventions and an appro-priate adapter checkpoint. 
+
+Hardware telemetry and adaptive policy conditioning. 
+
+Adapting robot behavior to changing dynamics often relies on inferring hidden system properties from interaction his-tory. RMA [15] follows this approach by training a policy with privileged environment information and learning an adaptation module that estimates it from proprioceptive his-tory. Related approaches use online system identification and meta-RL to adapt behavior from observed transitions [16], [17]. Explicit measurements of actuator operating conditions offer complementary context for adaptation [18]. Tempera-ture, current, and voltage provide such measurements, al-though they do not directly identify the resulting motion response. Relating these signals to motion still requires a model or learned prior, and ordinary task execution may provide limited coverage of operating conditions. TeAR learns telemetry-conditioned action corrections offline and applies them without updating the deployed policy. 
+
+Robustness and degradation in manipulation. Robust-ness to hardware variation has almost always been delivered at training time. Domain randomization [19], [4] compresses an entire distribution of motor friction, joint damping, link inertias, and gear backlash into a single conservative policy, with adaptive and adversarial extensions that preserve the central premise [20], [21]. Fault-tolerant learning targets the discrete failure regime: ACDR [22] trains a PPO policy under a curriculum that randomly disables joints. Direct evidence that this strategy is insufficient at the VLA scale comes from the OpenVLA-OFT authors themselves, who attribute a sharp drop in bimanual success between training and a re-evaluation weeks later to wear in a small number of joints [11]. TeAR trains an adapter conditioned on measured hardware telemetry, so the deployed behavior tracks the actual motor state rather than being fixed in advance. Inputs          
+
+> Observation Base Policy Action
+> ab
+> Telemetry (per-joint)
+> Temperature Current Voltage
+> State Token
+> Joint token
+> MLP MLP MLP MLP state
+> L1: Multi-Head Attention +Add & Norm
+
+## → Feed-Forward → Add & Norm L2: Multi-Head Attention + Add & Norm → Feed-Forward → Add & Norm L3: Multi-Head Attention + Add & Norm → Feed-Forward → Add & Norm    
+
+> Concatenate + Positional Encoding
+> MLP (δhead) Structural Gate g j(τ)gj(τ)∊[0,1]
+
+δj ɣj
+
+> Each Token (tuple) Is projected to dmodel dimensions dmodel = 128, 4 heads per layer, ~ 419k params
+
+af is executed by the motors                
+
+> Δx
+> Δy
+> Δz
+> Δraw
+> Δpitch
+> Δyaw gripper
+> s
+> MLP (γhead)
+> Action correction heads
+> af,j =ab,j +gj(τ) ( γj⊙ab,j +δj)
+> Scale & Shift per action
+> ab, 1
+> xT,1 xC,1 xV,1 ab, 1
+> xT,1 xC,1 xV,1 ab,n xT,n xC,n xV,n
+
+Fig. 3: A frozen policy proposes an action vector. Each action component is paired with indexed actuator telemetry to form a telemetry–action token. Together with a robot-state token, these inputs are processed by a three-layer Transformer. Two output heads predict multiplicative and additive corrections, activated by a telemetry-dependent gate. 
+
+Fig. 4: Degradation model. Per-joint capacity factor ρ ∈
+
+[ρmin , 1] for each telemetry channel: (a) temperature reduces torque capacity, (b) current induces saturation and cogging ripple, and (c) voltage limits attainable velocity. Shaded bands mark the physical operating regimes. III. M ULTI -C HANNEL DEGRADATION MODEL 
+
+We formalize deployment-time actuator degradation as a telemetry-conditioned perturbation of the policy action, giv-ing controlled and stress conditions in simulation. Given per-joint temperature, current, and voltage measurements, our degradation wrapper computes a capacity factor ρc(xc,j ) ∈
+
+(0 , 1] for each channel c ∈ { T, C, V } and joint j. A factor of one represents nominal capacity; smaller values represent re-duced capacity under stress. The telemetry-dependent curves in Fig. 4 provide controlled simulation conditions rather than calibrated models of a particular robot. In the nominal linear model, temperature capacity de-creases from 1 above 43 ◦C to a floor of 0.05 at 75 ◦C; normalized current capacity decreases from 1 above 0.60 to 0.10 at 1.0; voltage capacity decreases from 1 below 0.90 to 0.10 at 0.50. Current and voltage are normalized model inputs, not amperes and volts. Because the evaluated policies output operational-space control (OSC) [23], we map joint-level capacities to actions. For each channel, we average joint capacities within two predefined, overlapping groups: Gp for translation and Gr
+
+for rotation. The combined capacity for each group is 
+
+qk = Y 
+
+> c∈{ T,C,V }
+
+ 1
+
+|Gk|
+
+X
+
+> j∈Gk
+
+ρc(xc,j )
+
+ , k ∈ { p, r }. (1) The three translation coordinates are scaled by qp and the three rotation coordinates by qr ; the gripper is unchanged. This grouping defines a repeatable action-level stress model rather than a physical mapping from joint torque limits to Cartesian motion. Each channel also introduces its associated perturbation: temperature and voltage add noise, while current adds ripple. The wrapper applies the channels sequentially, 
+
+aexec = V(C(T (af ))) , (2) and passes the resulting action to the low-level controller. Ig-noring these perturbations, the positive capacity factors make the scaling algebraically invertible, although action bounds can prevent exact compensation. Section IV-B describes the approximate inverse-based targets used to train TeAR. IV. T EAR F RAMEWORK 
+
+Telemetry-Aware Action Rectification (TeAR) wraps amanipulation policy with a lightweight adapter that reads the three telemetry channels of Section III and corrects its outgoing action. The adapter is inserted between the base policy and the low-level controller, producing an action of the same dimensionality as the base command without changing the policy internals. 
+
+Setup. A frozen base policy maps task observations o to a normalized action ab = πb(o) ∈ [−1, 1] da . The adapter addi-tionally receives a robot-state vector s and actuator telemetry 
+
+τ = ( T, C, V). In the controlled simulation study, da = 7 :three translation coordinates, three rotation coordinates, and one gripper coordinate for OSC. Action coordinates are not joint torques. TeAR returns an action of the same dimension for the controller. A. Adapter Transformer Architecture 
+
+We instantiate the adapter πθ as a lightweight Transformer (Fig. 3). For each action index j, we form a four-dimensional 
+
+telemetry-action token (ab,j , T j , C j , V j ) that pairs the pro-posed action component with the telemetry at the same index. A shared learned projection maps these tokens to Rdmodel ,and learned positional embeddings distinguish their indices. The robot-state vector s is projected into an additional state token , yielding a sequence of da + 1 tokens. For the seven-dimensional OSC interface, action coordinate j is paired with telemetry entry j in the fixed input ordering. This pairing de-fines the representation rather than a physical correspondence between Cartesian axes and joints; self-attention makes the full telemetry vector available to every action token. A three-layer Transformer encoder with dmodel = 128 and four attention heads processes the sequence. Self-attention allows the correction at each action index to depend on the other telemetry-action tokens and the robot state. Two zero-initialized linear output heads map each action token to logits 
+
+uj and vj . A telemetry gate gj (τ ) ∈ [0 , 1] then modulates the multiplicative gain and additive residual: 
+
+γj = 1 + gj (τ )γmax tanh uj ,δj = gj (τ )α tanh vj . (3) Here, γmax bounds the gain’s deviation from one, and α
+
+bounds the additive correction. The corrected action is 
+
+af,j = clip( γj ab,j + δj , −1, 1) . (4) The gain scales the base command, while the residual provides an additive shift conditioned on the action, state, and telemetry. Together, they allow TeAR to amplify, damp, or bias individual action components. The final effect depends on both terms and action clipping; a gain below one need not reduce the output magnitude when the additive term reinforces the command. We separate the decision to activate correction from the correction itself. The telemetry gate defines a nominal op-erating region in which the base action is preserved, while TeAR learns how to modify commands outside that region. For each channel c, we compute a normalized severity: 
+
+zc,j = clip 
+
+ sc(xc,j − bc)
+
+wc
+
+, 0, 1
+
+
+
+,gj (τ ) = min 
+
+1, X 
+
+> c∈{ T,C,V }
+
+h(zc,j )
+
+ . (5) Here, xT,j = Tj , xC,j = Cj , and xV,j = Vj ; bc is the nominal-band boundary, wc > 0 is the transition width, and 
+
+sT = sC = 1 , sV = −1 specifies whether increasing or decreasing telemetry indicates stress. We use h(z) = 3 z2 −
+
+2z3, which increases smoothly from zero to one with zero slope at both endpoints. Summing channel responses allows stress in any channel to activate correction, while clipping bounds the gate by one. When all measured channels at index j lie within their nominal bands, gj = 0 . Consequently, γj = 1 , δj = 0 ,and Eq. 4 gives af,j = ab,j exactly for finite network outputs and base actions in [−1, 1] . Nominal pass-through is therefore enforced by the architecture rather than learned from data. This property concerns action identity under nominal measured telemetry; it does not establish closed-loop stability or safety under stress. The evaluated adapter applies this mechanism to all action components. 
+
+B. Training: severity-augmented supervised fine-tuning 
+
+The supervised correction targets are constructed using an index-wise approximation to the degradation model in Section III. At each action index j, the product ρj (τ ) = 
+
+ρT (xT,j )ρC (xC,j )ρV (xV,j ) describes the capacity used for supervision. Unlike the grouped capacities in Eq. 1, this target uses telemetry at the same index and omits additive perturbations. Given a demonstration action ad and a sam-pled telemetry profile τ , we compensate for this approximate capacity loss and enforce the action bounds: 
+
+a⋆(ad, τ ) = clip 
+
+
+
+ad ⊘ max  ρ(τ ), ρ min 
+
+, −1, 1
+
+
+
+, (6) where ⊘ denotes element-wise division and the floor ρmin =0.05 limits amplification before clipping. We train πθ to predict a⋆ from (s, a d, τ ) under an L1 loss, optionally adding noise to the demonstration-action input while keeping the target unchanged. At deployment, the action input is the frozen policy’s proposed command ab = πb(o). Both TeAR and analytic compensation rely on a prior relating telemetry to actuator response. TeAR learns a bounded cor-rection conditioned on state, action, and telemetry, while the assumed-model inverse directly applies the nominal capacity curves. Neither receives the true deployment-time capacities. Section V-D tests whether the learned correction transfers when the actuator response differs from that prior. 
+
+Severity curriculum. To expose the adapter to the full telemetry range without on-policy rollouts, we stratify train-ing samples into four tiers: clean, mild, moderate, and severe. For each nominal demonstration action, we sample one telemetry profile from each tier and compute its corre-sponding target a⋆, yielding four supervised examples per demonstration. On clean-tier samples no compensation is needed: ρ = 1 and a⋆ = ad; these examples anchor the supervised dataset at the nominal regime, while the structural gate provides the pass-through guarantee at inference. V. E XPERIMENTS 
+
+Fig. 5: Environment setup for real (left-2) and sim (right-2). We organize the evaluation around five research ques-tions. RQ1. Effectiveness: Does TeAR improve stressed-condition success across policy classes while preserving nominal behavior? RQ2. Comparison against baselines: TABLE I: Task success (%) for 18 policy–task pairs across eight policy families and five tasks. Stressed-condition cells report base →TeAR success; cool reports nominal success. Hot, stall, and brown apply temperature, current, and voltage stress individually; the moderate profiles activate the channels indicated by their subscripts. ∆ reports the mean stressed-condition gain over the base, with the reported standard deviation across evaluation seeds. 
+
+Task Base policy cool hot stall brown Tmod T C mod T V mod T CV mod ∆( ↑) ± σ
+
+> Lift
+
+BC ( ∼2M) 85 40 →65 50 →55 45 →40 75 →90 80 →85 80 →100 85 →90 +7.2 ±1.4 
+
+BC-Transformer (18M) 99 59 →78 36 →50 67 →61 93 →90 84 →94 87 →93 69 →75 +6.8 ±0.2 
+
+ACT [1] ( ∼52M) 100 57 →90 27 →71 44 →63 99 →100 93 →100 87 →100 56 →96 +22.2 ±1.4 
+
+GR00T-N1.5 [24] (3B) 100 40 →78 13 →54 17 →81 93 →99 61 →100 49 →97 16 →92 +44.8 ±2.3 
+
+OpenVLA [11] (7B) 100 50 →65 10 →55 40 →40 100 →100 96 →98 100 →100 95 →98 +9.3 ±2.5 
+
+> Can
+
+BC ( ∼2M) 39 9→11 2→0 4→0 13 →35 15 →24 16 →43 3→0 +7.3 ±2.9 
+
+ACT ( ∼52M) 90 15 →35 0→0 10 →20 85 →85 60 →70 50 →50 0→0 +6.2 ±1.6 
+
+> Square
+
+BC ( ∼2M) 34 1→7 0→0 1→0 24 →33 12 →30 9→29 2→11 +8.5 ±2.9 
+
+BC-Transformer (18M) 65 9→24 0→2 4→5 49 →63 22 →59 31 →49 0→32 +17.1 ±0.3 
+
+IRIS ( ∼9M) 74 3→17 1→1 1→4 43 →59 24 →54 16 →57 1→12 +16.6 ±0.6 
+
+HBC ( ∼12M) 16 3→5 0→0 0→0 7→17 2→15 6→25 0→5 +7.0 ±2.6 
+
+ACT ( ∼52M) 67 13 →32 1→3 6→5 69 →71 51 →65 41 →64 0→27 +12.2 ±2.5 
+
+> Thread
+
+BC ( ∼2M) 73 8→29 1→4 1→3 41 →54 33 →57 34 →49 0→53 +18.9 ±3.0 
+
+BCQ ( ∼6M) 53 0→1 0→1 1→0 15 →12 6→21 9→17 0→8 +4.3 ±1.2 
+
+HBC ( ∼12M) 85 3→37 1→4 1→14 51 →71 40 →71 21 →65 0→63 +29.7 ±4.6 
+
+> Stack
+
+BC ( ∼2M) 85 33 →57 7→51 15 →37 83 →83 67 →83 58 →79 4→75 +28.5 ±1.7 
+
+BCQ ( ∼6M) 92 28 →52 3→1 11 →1 77 →81 73 →81 62 →83 10 →69 +14.8 ±2.9 
+
+HBC ( ∼12M) 98 45 →71 14 →8 20 →12 85 →96 72 →91 71 →91 19 →76 +16.8 ±2.8 SFT+4-tier (ours) SFT→PPO SFT→KL-PPO Longer SFT (2×) SFT single-tier 0510 15 20     
+
+> Δ stressed (%)
+> 17.9% 17.1% 15.2% 14.3% 10.7%
+> Ours PPO variants SFT variants
+
+Fig. 6: Stressed-condition ∆ over the frozen base for five recipes with the TeAR architecture fixed. How does it compare with robustness methods, alternative adapters, and training recipes? RQ3. Architectural attribu-tion: Which components matter, and how does the trained adapter modify actions? RQ4. Robustness to Degradation Mismatch: Is TeAR effective when actuator behavior differs from the degradation model used for training? RQ5. Sim-to-real transfer: Does simulation-trained TeAR transfer to a physical arm? 
+
+A. RQ1: Effectiveness 
+
+Table I evaluates TeAR on 18 policy task pairs span-ning eight policy families and five robosuite manipulation tasks [25], [26]. The policies range from behavior cloning and hierarchical or offline-RL methods to ACT [1] and VLA families [24], [11]. TeAR achieves a positive mean gain across the seven stressed conditions for every evaluated pair, with the largest reported gain of 44 .8% on GR00T– Lift. These results show that telemetry-conditioned action correction is useful across different policy architectures, including large pre-trained models, without updating the base policy. The benefit nevertheless depends on the operating condition. For BC-Lift, TeAR increases success from 40% to 65% under heating, but decreases it from 45% to 40% under voltage stress. Thus, positive average gains do not imply uniform recovery across degradation channels. Under nominal telemetry, TeAR preserves the reported success rate for every evaluated pair, consistent with its structural pass-through gate. We separately verify exact action and trajectory identity in the paired evaluation (Section V-D). 
+
+B. RQ2: Comparison against baselines 
+
+We systematically compare TeAR against three distinct families of alternatives below: robust-training baselines, al-ternative adapters, and alternative training recipes. 
+
+Robust-training and adaptive-control baselines. Table II compares TeAR with robust-training and adaptive-control baselines. TeAR achieves the largest mean gain over the seven stressed conditions, 18 .3 ± 2.9 percentage points, compared with 15 .5±5.3 for the MRAC/ L1 implementation. The advantage depends on the condition: MRAC/ L1 achieves higher success under hot and T CV mod stress, whereas TeAR performs better under Tmod and T C mod . The MRAC/ L1
+
+implementation uses privileged simulator command-response feedback. Retraining-based alternatives yield smaller mean gains in this evaluation. Section V-D compares TeAR with direct compensation using an assumed degradation model. 
+
+Alternative adapter architectures. With the SFT recipe and gate fixed, Table IV compares alternative adapter back-bones. TeAR achieves a mean stressed gain of 18 .3 per-centage points, compared with 6.0 for cross-attention, the TABLE II: Baselines. Success (%), mean ± sample SD across 3 evaluation seeds. ∆ averages paired gains over the frozen BC-Transformer across seven stressed conditions. 
+
+Method hot Tmod T C mod T CV mod ∆( ↑)
+
+Frozen base 6.7 ±2.9 43 .3 ±12 .6 26 .7 ±5.8 0.0 ±0.0 —No-Tele. SFT 3.3 ±5.8 41 .7 ±10 .4 0.0 ±0.0 0.0 ±0.0 −6.9 ±3.4
+
+Domain R. [19] 5.0 ±0.0 46 .7 ±11 .5 25 .0 ±13 .2 0.0 ±0.0 0.0 ±3.1
+
+ACDR [22] 8.3 ±2.9 40 .0 ±10 .0 31 .7 ±7.6 0.0 ±0.0 +1 .0 ±3.2
+
+RMA-style [15] 5.0 ±5.0 35 .0 ±13 .2 23 .3 ±5.8 0.0 ±0.0 −4.3 ±2.6
+
+BC fine-tune 5.0 ±0.0 46 .7 ±11 .5 25 .0 ±13 .2 0.0 ±0.0 0.0 ±3.1
+
+MRAC/ L1 [27] 26 .7 ±10 .4 50 .0 ±5.0 53 .3 ±18 .9 30 .0 ±8.7 +15 .5 ±5.3
+
+TeAR 23 .3 ±2.9 63 .3 ±2.9 55 .0 ±5.0 21 .7 ±2.9 +18 .3 ±2.90.35 0.5 0.55 0.75 1.0 
+
+## γmax 
+
+0.1 0.15 0.3 0.4 0.5 
+
+## α
+
++17 +12 +20 +17 +17 +15 +16 +7 +12 +20 +13 +15 +9 +20 +15 +17 +12 +17 +20 +10 +8 +10 +11 +8 +17 
+
+0510 15 20 
+
+> Δ stressed (\%)
+
+Fig. 7: Stressed success gain sweeping the additive-residual cap α and the multiplicative gain γmax . The selected 
+
+(α, γ max ) = (0 .30 , 0.75) is outlined. strongest alternative in this comparison. The separation is most apparent under combined temperature and cur-rent stress, where TeAR reaches 55 .0% and the alternative adapters reach at most 13 .3% . These results support the chosen backbone among the configurations in this table; the separate MLP checkpoint in Table III shows that the advantage does not hold across all evaluated variants. 
+
+Alternative training recipes. Figure 6 reports the orig-inal training-recipe evaluation, separately from the three-seed checkpoint comparisons. With the TeAR architecture fixed, four-tier SFT achieves the largest mean stressed-condition gain among the evaluated recipes: 17 .9% , com-pared with 10 .7% for single-tier training. Adding PPO after SFT yields 17 .1% , while the KL-constrained PPO variant reaches 15 .2% . Doubling the SFT duration yields 14 .3% .These results support four-tier supervised training for this configuration: neither the additional on-policy stage nor longer optimization improves the reported mean gain. 
+
+C. RQ3: Architectural attribution and correction behavior 
+
+Table III examines variants of the correction heads, state input, gate, and backbone. Removing the state token reduces mean stressed success from 34 .8% to 27 .1% . The residual-only and gain-only variants achieve 31 .7% and 36 .0% ,respectively, indicating that both heads are not essential for improving performance in this setting. The MLP checkpoint achieves the highest overall stressed mean at 41 .0% , while full TeAR achieves the highest means on Tmod and T V mod .TABLE III: Success (%) as mean ± sample SD across three evaluation seeds with fixed checkpoints. Stressed averages all seven stress conditions; ∆T,T V is the paired gain over full TeAR averaged over Tmod and T V mod conditions. 
+
+Configuration Tmod (↑) T V mod (↑) Stressed( ↑) ∆T,T V 
+
+TeAR (reference) 63 .3 ±2.9 68 .3 ±12 .6 34 .8 ±0.4 0.0 ±0.0
+
+Gate → smoothstep 53 .3 ±10 .4 48 .3 ±16 .1 34 .3 ±3.1 −15 .0 ±13 .2
+
+Output: δ only 46 .7 ±5.8 58 .3 ±15 .3 31 .7 ±4.2 −13 .3 ±5.2
+
+Longer SFT ( 2×) 61 .7 ±12 .6 58 .3 ±2.9 33 .8 ±2.9 −5.8 ±11 .5
+
+Gate → linear 55 .0 ±5.0 50 .0 ±10 .0 33 .1 ±2.2 −13 .3 ±7.6
+
+Output: γ only 53 .3 ±11 .5 51 .7 ±7.6 36 .0 ±3.9 −13 .3 ±12 .6
+
+Scalar gate 55 .0 ±5.0 53 .3 ±2.9 31 .7 ±2.7 −11 .7 ±8.0
+
+No state token 36 .7 ±10 .4 53 .3 ±14 .4 27 .1 ±1.9 −20 .8 ±5.2
+
+MLP backbone 61 .7 ±5.8 63 .3 ±5.8 41 .0 ±3.5 −3.3 ±10 .1
+
+TABLE IV: Adapter architectures. Success (%), mean ±
+
+sample SD across three evaluation seeds with fixed check-points, using the same SFT recipe and gate. ∆ averages gains over the frozen base across seven stressed conditions. 
+
+Adapter hot Tmod T C mod T CV mod ∆( ↑)
+
+Frozen BC-T 6.7 ±2.9 43 .3 ±12 .6 26 .7 ±5.8 0.0 ±0.0 —Bottleneck res 10 .0 ±0.0 51 .7 ±11 .5 1.7 ±2.9 10 .0 ±5.0 +1 .9 ±3.5
+
+Cross-attn 15 .0 ±10 .0 55 .0 ±5.0 10 .0 ±5.0 13 .3 ±10 .4 +6 .0 ±6.8
+
+FiLM 28 .3 ±2.9 20 .0 ±5.0 13 .3 ±5.8 8.3 ±5.8 +1 .0 ±2.3
+
+Per-joint MLP 15 .0 ±5.0 45 .0 ±13 .2 3.3 ±2.9 6.7 ±5.8 0.0 ±5.0
+
+Global MLP 23 .3 ±2.9 36 .7 ±16 .1 8.3 ±7.6 10 .0 ±0.0 +1 .2 ±5.8
+
+Hybrid 20 .0 ±8.7 63 .3 ±2.9 6.7 ±7.6 8.3 ±5.8 +4 .5 ±5.4
+
+MoE 18 .3 ±2.9 61 .7 ±12 .6 3.3 ±5.8 10 .0 ±10 .0 +4 .5 ±3.2
+
+TeAR 23 .3 ±2.9 63 .3 ±2.9 55 .0 ±5.0 21 .7 ±2.9 +18 .3 ±2.9
+
+The relative performance therefore depends on the stress con-dition. The ∆T,T V column summarizes these two displayed conditions; Stressed averages all seven. The gate variants also change gain parameterization, action-magnitude input, and gripper masking, so they do not isolate gate shape. The smoothstep variant retains the refer-ence gate shape. The sensitivity sweep in Fig. 7 motivates the deployment bounds (α, γ max ) = (0 .30 , 0.75) , which we use throughout evaluation. 
+
+Correction behavior. Figure 8 shows action correction during a Can rollout under combined temperature and current stress. From the same initial scene, TeAR completes the placement while the base policy fails within the evaluation horizon. Along the TeAR trajectory, the adapter both damps commands from 0.074 to 0.002 and amplifies them from 
+
+0.497 to 1.000 . This selected rollout illustrates correction behavior; aggregate evaluations measure task success. 
+
+D. RQ4: Robustness to degradation-model mismatch 
+
+Actuator response at deployment may differ from the model used to train TeAR. We test whether its correc-tion remains effective under this mismatch and whether randomized-curve training improves transfer. We evaluate eight temperature–current–voltage curve triples drawn from linear, exponential, sigmoid, and polynomial families; each includes a nonlinear channel absent from TeAR’s nomi-nal linear training model. The evaluation covers BC (Lift, Can), BC-Transformer (Square), and IRIS (Square) under Base TeAR 
+
+t=4.8 t=10.1 t=11.9   
+
+> Normalized Y Command
+> Base Base TeAR TeAR
+
+TeAR TeAR Fig. 8: Action correction under combined temperature and current stress. Top: paired base-policy and TeAR snapshots from the same initial state; yellow circles mark the target can. TeAR completes the task at 11.95 s, while the base fails within 20 s. Bottom: proposed and corrected y-translation commands along the TeAR trajectory. Shading highlights amplification and damping, with numeric examples of each. This selected rollout illustrates correction behavior. 
+
+Fig. 9: Compensation under model mismatch. Bars show corrected minus base success rates; positive values indicate improvement. Each task uses 480 episodes per method; Overall averages the four tasks. four stress profiles (hot, Tmod , T C mod , and T CV mod ). Five episodes per profile and three seeds give 480 stressed episodes per pair and method, with initial states, telemetry, and random streams paired across methods and all check-points and correction bounds fixed. We compare TeAR with an assumed-model inverse that compensates commands using the nominal training curves, 
+
+a′ 
+
+> d
+
+= clip( ab,d /q d, −1, 1) , where qd = qp for translation and 
+
+qd = qr for rotation (Eq. 1); the gripper is unchanged. Like TeAR, this inverse has no access to the actual test capacities. We also evaluate DR-TeAR, trained with 64 randomized curve triples using the same supervised procedure. Its test curves use fresh parameters and combinations from families encountered during training. This is a comparison of existing trained variants: the Can checkpoints differ in action-input noise, and the Lift checkpoints differ in training base-policy TABLE V: SO-101 sim-to-real. Lift success rates (%) over 20 trials per method and condition; ∆ is the % gain.                  
+
+> Condition Base TeAR ∆( ↑)
+> Cool ( <45 ◦C) 100 100 ±0
+> Hot (shoulder >50 ◦C) 75 85 +10
+> Hot (shoulder & wrist >50 ◦C) 70 85 +15
+
+metadata, so their differences cannot be attributed to curve randomization alone. TeAR raises mean success under model mismatch from 
+
+25 .6% to 31 .8% , with positive mean gains on all four policy– task pairs (Fig. 9). The assumed-model inverse reaches 
+
+30 .6% ; its gains on Lift and BC-Transformer–Square are accompanied by regressions on Can and IRIS–Square. Randomized-curve training also improves on the base, with DR-TeAR reaching 28 .7% , although it does not consistently improve on TeAR. Across response models, TeAR improves success on six of eight curve draws. The paired gains over the base and assumed inverse are 6.2 and 1.2 percentage points, with 95% curve-bootstrap intervals of [−0.1, 11 .2] 
+
+and [−3.3, 6.1] , respectively. These intervals resample whole curve draws jointly across tasks and include zero: the ob-served gains suggest transfer beyond the training model, but do not establish a conclusive aggregate advantage across response models. TeAR preserves exact nominal actions and trajectories in all 60 paired episodes. 
+
+E. RQ5: Sim-to-real transfer 
+
+To test transfer beyond simulation, we deploy TeAR on a low-cost SO-ARM101 [28] (SO-101) five-DoF arm performing the Lift task (Fig. 5). The base policy is behavior-cloned in simulation, and the adapter is trained using the simulation-derived compensation targets in Eq. 6. Both are deployed without on-robot fine-tuning. We evaluate three operating conditions: cool operation below 45 ◦C, shoulder heating above 50 ◦C, and heating of both the shoulder and wrist above 50 ◦C. The heated conditions are induced by operating the arm under load. Table V shows that TeAR maintains 85% success in both heated conditions, compared with 75% and 70% for the frozen base. These gains of 10 and 15 percentage points correspond to two and three additional successful trials. As heating extends from the shoulder to the wrist, base-policy success decreases while TeAR’s success remains unchanged. Under cool conditions, both methods achieve 100% success. The results therefore provide task-level evidence that a simulation-trained correction can im-prove execution on physical hardware under heating without adapting the base policy. This evaluation quantifies ther-mal transfer on one task; it does not separately measure the effects of physical current or voltage variation. Equal cool-condition success indicates preserved task performance, while exact action identity is established by the gate and the separate nominal checks in simulation. VI. C ONCLUSION 
+
+We introduced Telemetry-Aware Action Rectification (TeAR), which uses onboard temperature, current, and volt-age measurements to correct a frozen manipulation policy’s commands before execution. Trained in simulation with physics-derived supervision, the adapter learns multiplicative and additive corrections while preserving the base command whenever telemetry lies within the nominal bands. Evaluation across 18 policy–task pairs, eight policy families, and five manipulation tasks demonstrates the usefulness of this inter-face across diverse policies. The additional paired evaluation shows positive mean gains under changes to the degradation curves, although recovery varies across tasks and response models. Randomized-curve training also improves on the frozen base, but does not consistently outperform the original TeAR. On a physical SO-101 arm, the simulation-trained adapter raises success from 75% and 70% to 85% under two thermal-stress conditions without on-robot fine-tuning. Together, these results support onboard telemetry as a useful source of deployment-time context for improving manipula-tion under changing actuator conditions. Future work will investigate learning telemetry response relationships from operational data and evaluating transfer across robots under combined thermal, current, and voltage stress. REFERENCES [1] Tony Z Zhao, Vikash Kumar, Sergey Levine, and Chelsea Finn. Learning fine-grained bimanual manipulation with low-cost hardware. 
+
+arXiv preprint arXiv:2304.13705 , 2023. [2] Kevin Black, Manuel Galliker, and Sergey Levine. Real-time execution of action chunking flow policies. Advances in Neural Information Processing Systems , 38:33383–33407, 2026. [3] Jimin Youn, Hyeongjun Kim, Kyeongsu Shi, and Kyoungchul Kong. Thermal characteristic modeling and compensation for the improve-ment of actuator homeostasis. IEEE/ASME Transactions on Mecha-tronics , 29(4):3019–3027, 2024. [4] Xue Bin Peng, Marcin Andrychowicz, Wojciech Zaremba, and Pieter Abbeel. Sim-to-real transfer of robotic control with dynamics ran-domization. In 2018 IEEE international conference on robotics and automation (ICRA) , pages 3803–3810. IEEE, 2018. [5] Tom Silver, Kelsey Allen, Josh Tenenbaum, and Leslie Kaelbling. Residual policy learning. arXiv preprint arXiv:1812.06298 , 2018. [6] Tobias Johannink, Shikhar Bahl, Ashvin Nair, Jianlan Luo, Avinash Kumar, Matthias Loskyll, Juan Aparicio Ojea, Eugen Solowjow, and Sergey Levine. Residual reinforcement learning for robot control. In 
+
+2019 international conference on robotics and automation (ICRA) ,pages 6023–6029. IEEE, 2019. [7] Lars Lien Ankile, Anthony Simeonov, Idan Shenfeld, Marcel Torne Villasevil, and Pulkit Agrawal. From imitation to refinement–residual rl for precise visual assembly. In CoRL 2024 Workshop on Mastering Robot Manipulation in a World of Abundant Data , 2024. [8] Xiu Yuan, Tongzhou Mu, Stone Tao, Yunhao Fang, Zhang Zhang, and Hao Su. Policy decorator: Model-agnostic online refinement for large policy model. In International Conference on Learning Representations , volume 2025, pages 28129–28164, 2025. [9] Andrew Wagenmaker, Mitsuhiko Nakamoto, Yunchu Zhang, Seohong Park, Waleed Yagoub, Anusha Nagabandi, Abhishek Gupta, and Sergey Levine. Steering your diffusion policy with latent space reinforcement learning. arXiv preprint arXiv:2506.15799 , 2025. [10] Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, et al. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246 , 2024. [11] Moo Jin Kim, Chelsea Finn, and Percy Liang. Fine-tuning vision-language-action models: Optimizing speed and success. arXiv preprint arXiv:2502.19645 , 2025. [12] Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, et al. π0: A vision-language-action flow model for general robot control. arXiv preprint arXiv:2410.24164 , 2024. [13] Octo Model Team, Dibya Ghosh, Homer Walke, Karl Pertsch, Kevin Black, Oier Mees, Sudeep Dasari, Joey Hejna, Tobias Kreiman, Charles Xu, et al. Octo: An open-source generalist robot policy. arXiv preprint arXiv:2405.12213 , 2024. [14] Yunfan Jiang, Chen Wang, Ruohan Zhang, Jiajun Wu, and Li Fei-Fei. Transic: Sim-to-real policy transfer by learning from online correction. In Conference on Robot Learning , 2024. [15] Ashish Kumar, Zipeng Fu, Deepak Pathak, and Jitendra Malik. Rma: Rapid motor adaptation for legged robots. In Robotics: Science and Systems , 2021. [16] Wenhao Yu, Jie Tan, C Karen Liu, and Greg Turk. Preparing for the unknown: Learning a universal policy with online system identification. arXiv preprint arXiv:1702.02453 , 2017. [17] Anusha Nagabandi, Ignasi Clavera, Simin Liu, Ronald S Fearing, Pieter Abbeel, Sergey Levine, and Chelsea Finn. Learning to adapt in dynamic, real-world environments through meta-reinforcement learn-ing. arXiv preprint arXiv:1803.11347 , 2018. [18] Wilson J Rugh and Jeff S Shamma. Research on gain scheduling. 
+
+Automatica , 36(10):1401–1425, 2000. [19] Josh Tobin, Rachel Fong, Alex Ray, Jonas Schneider, Wojciech Zaremba, and Pieter Abbeel. Domain randomization for transferring deep neural networks from simulation to the real world. In 2017 IEEE/RSJ international conference on intelligent robots and systems (IROS) , pages 23–30. IEEE, 2017. [20] Ilge Akkaya, Marcin Andrychowicz, Maciek Chociej, Mateusz Litwin, Bob McGrew, Arthur Petron, Alex Paino, Matthias Plappert, Glenn Powell, Raphael Ribas, et al. Solving rubik’s cube with a robot hand. 
+
+arXiv preprint arXiv:1910.07113 , 2019. [21] Lerrel Pinto, James Davidson, Rahul Sukthankar, and Abhinav Gupta. Robust adversarial reinforcement learning. In International conference on machine learning , pages 2817–2826. PMLR, 2017. [22] Wataru Okamoto, Hiroshi Kera, and Kazuhiko Kawamoto. Reinforce-ment learning with adaptive curriculum dynamics randomization for fault-tolerant robot control. arXiv preprint arXiv:2111.10005 , 2021. [23] Oussama Khatib. A unified approach for motion and force control of robot manipulators: The operational space formulation. IEEE Journal on Robotics and Automation , 3(1):43–53, 1987. [24] Johan Bjorck, Fernando Casta˜ neda, Nikita Cherniadev, Xingye Da, Runyu Ding, Linxi Fan, Yu Fang, Dieter Fox, Fengyuan Hu, Spencer Huang, et al. Gr00t n1: An open foundation model for generalist humanoid robots. arXiv preprint arXiv:2503.14734 , 2025. [25] Yuke Zhu, Josiah Wong, Ajay Mandlekar, Roberto Mart´ ın-Mart´ ın, Abhishek Joshi, Kevin Lin, Abhiram Maddukuri, Soroush Nasiriany, and Yifeng Zhu. robosuite: A modular simulation framework and benchmark for robot learning. arXiv preprint arXiv:2009.12293 , 2020. [26] Ajay Mandlekar, Danfei Xu, Josiah Wong, Soroush Nasiriany, Chen Wang, Rohun Kulkarni, Li Fei-Fei, Silvio Savarese, Yuke Zhu, and Roberto Mart´ ın-Mart´ ın. What matters in learning from of-fline human demonstrations for robot manipulation. arXiv preprint arXiv:2108.03298 , 2021. [27] Naira Hovakimyan and Chengyu Cao. L1 adaptive control theory: Guaranteed robustness with fast adaptation . SIAM, 2010. [28] Rob Knight, Pepijn Kooijmans, Remi Cadene, Simon Alibert, Michel Aractingi, Dana Aubakirova, Adil Zouitine, Russi Martino, Steven Palma, Caroline Pascal, and Thomas Wolf. Standard open SO-100 & SO-101 arms. https://github.com/TheRobotStudio/SO-ARM100, 2024. APPENDIX 
+
+A. Degradation model: per-channel forms 
+
+This appendix describes the degradation model used to generate training targets and simulate actuator stress in Section III. Temperature is measured in degrees Celsius; current and voltage are normalized ratios. Capacity decreases linearly with stress, while a separate smoothstep gate controls when TeAR applies a correction. 
+
+Capacity factors. Define the clipped severity coordinates 
+
+uT (T ) = clip 
+
+ T − 43 32 , 0, 1
+
+
+
+, (7) 
+
+uC (C) = clip 
+
+ C − 0.60 0.40 , 0, 1
+
+
+
+, (8) 
+
+uV (V ) = clip 
+
+ 0.90 − V
+
+0.40 , 0, 1
+
+
+
+. (9) The corresponding capacity factors are 
+
+ρc(x) = 1 − (1 − ρc, min )uc(x), c ∈ { T, C, V }, (10) with (ρT, min , ρ C, min , ρ V, min ) = (0 .05 , 0.10 , 0.10) . Thus tem-perature capacity decreases between 43 and 75 ◦C, current capacity decreases between 0.60 and 1.00 , and voltage capacity decreases as voltage falls from 0.90 to 0.50 . These curves provide repeatable simulation conditions and are not fitted to a specific physical actuator. 
+
+Applying degradation to motion commands. We apply degradation to operational-space controller (OSC) commands using translation and rotation groups Gp = {1, 2, 3, 4} and 
+
+Gr = {4, 5, 6, 7}, with joint indices starting at one. For each channel, 
+
+¯ρc,k = 1
+
+|Gk|
+
+X
+
+> j∈Gk
+
+ρc(xc,j ), qk = Y 
+
+> c∈{ T,C,V }
+
+¯ρc,k . (11) The three translation coordinates share qp and the three rota-tion coordinates share qr . The degradation wrapper leaves the gripper command unchanged. The model acts on Cartesian motion commands supplied to the controller, rather than directly on joint torques. 
+
+Noise, ripple, and channel composition. In addition to capacity scaling, temperature and voltage introduce noise, while current introduces ripple. As in Section III, the wrapper applies temperature, current, and voltage effects sequentially: 
+
+aexec = V(C(T (af ))) . (12) Commands are clipped to [−1, 1] after each channel, and the perturbations vanish at unit capacity. The supervised targets below compensate for deterministic capacity loss and omit these perturbations. 
+
+Supervised compensation targets. The SFT target uses index-wise telemetry products for the six arm coordinates, 
+
+eρj =
+
+(
+
+ρT (Tj )ρC (Cj )ρV (Vj ), 1 ≤ j ≤ 6,
+
+1, j = 7 . (13) For demonstration action ad, the target is 
+
+a⋆j = clip 
+
+ ad,j 
+
+max( eρj , 0.05) , −1, 1
+
+
+
+. (14) 25 50 75 Temperature (°C) 0.0 0.2 0.4 0.6 0.8 1.0 Capacity / amplitude 0.5 1.0 Current ratio 0.0 0.2 0.4 0.6 0.8 1.0 Capacity Noise std. Ripple amplitude   
+
+> 0.50 0.75 1.00 Voltage ratio 0.0 0.2 0.4 0.6 0.8 1.0
+
+Fig. 10: Per-channel capacity and perturbation magni-tudes. The implemented capacities are linear ramps. Dashed lines show Gaussian standard deviations; the dotted current trace shows ripple amplitude. All noise and ripple terms vanish at full capacity. This gives a training target directly from each demonstra-tion, without running the environment. The denominator is bounded below by 0.05 , the action stays within [−1, 1] , and the gripper command is preserved. Each arm target uses its corresponding telemetry entry, providing a deterministic approximation to the grouped simulation model. When actuator response has been characterized, the mea-sured capacity curves can be used directly to construct the supervised targets. When the response is uncertain, training can instead sample a range of plausible capacity curves, as in DR-TeAR, to cover variation in how telemetry relates to action execution. In both cases, deployment uses the measured telemetry without requiring access to the true capacity curves. 
+
+B. Hyperparameters and training details 
+
+Architecture. The reference adapter uses three Trans-former encoder layers, model width 128 , four attention heads, feed-forward width 256 , GELU activation, pre-layer normalization, and zero dropout. Seven telemetry–action tokens and one projected robot-state token form the input sequence. Learned positional embeddings distinguish token indices. A final layer normalization precedes the gain and residual heads, which are initialized to zero. Self-attention lets each action token use telemetry from all joints. 
+
+Gate parameters. With h(z) = z2(3 − 2z), the per-index gate is 
+
+zT,j = clip(( Tj − 42) /13 , 0, 1) ,zC,j = clip(( Cj − 0.60) /0.40 , 0, 1) ,zV,j = clip((0 .90 − Vj )/0.40 , 0, 1) , (15) 
+
+gj = min {1, h (zT,j ) + h(zC,j ) + h(zV,j )}. (16) Stress in any channel can activate TeAR. The gate sets when correction begins, while the capacity curves set the simulated loss of actuation. The temperature gate transitions from 42 
+
+to 55 ◦C, whereas the nominal temperature capacity ramp extends from 43 to 75 ◦C. 
+
+Exact pass-through under nominal telemetry. For finite network outputs and normalized base commands, Tj ≤ 42 ,
+
+Cj ≤ 0.60 , and Vj ≥ 0.90 imply gj = 0 . Consequently 40 60 Temperature (°C) 0.2 0.4 0.6 0.8 1.0 Current ratio    
+
+> Combined gate; voltage nominal
+> 0.0 0.5 1.0 Channel severity coordinate zc
+> 0.0 0.2 0.4 0.6 0.8 1.0 Gate contribution  h(zc)
+> Smoothstep activation
+> 0.0 0.2 0.4 0.6 0.8 1.0 Gate  g
+
+Fig. 11: Telemetry gate. Left: the combined temperature– current gate with nominal voltage; the marker lies in the exactly closed nominal region. Right: each channel uses the same smoothstep in its own normalized severity coordinate. Temperature gate corners are 42 –55 ◦C; current and voltage corners are 0.60 –1.00 and 0.90 –0.50 . Gate activation is distinct from the capacity ramps in Fig. 10. TABLE VI: Adapter size comparison. Success (%) under the same seven-condition aggregation.             
+
+> Trunk Can Threading Stack Mean Reference 12 .935 .062 .936 .9
+> XL 13 .630 .766 .436 .9
+
+γj = 1 , δj = 0 , and af,j = ab,j . The gate therefore pre-serves the base command exactly under nominal telemetry, independently of the learned weights. 
+
+Bounded correction. At deployment we use α = 0 .30 
+
+and γmax = 0 .75 . The output parameterization gives 
+
+|af,j − ab,j | ≤ gj
+
+ γmax |ab,j | + α. (17) This follows because | tanh( ·)| ≤ 1 and clipping cannot increase the distance from a base command in [−1, 1] .The gate therefore controls both when TeAR acts and how much it can change each command. This is a bound on the command correction, not a stability guarantee. 
+
+Adapter size. Table VI compares adapter sizes on three policy–task combinations: BC-Transformer–Can, BC– Threading, and BC–Stack, with seed 42 and 20 episodes per condition. The mean covers the seven stress conditions in Appendix E. The compact reference adapter matches the larger model in average success, supporting its use on these tasks. 
+
+C. Supervised training and telemetry curriculum 
+
+Training samples. Each demonstration state–action pair is augmented with one telemetry profile from each of the four tiers in Table VII. Channel values are sampled uniformly within each tier’s ranges for each telemetry index. This produces four supervised examples per demonstration time step, without collecting adapter rollouts. The SFT implementation supplies the demonstration ac-tion as the adapter’s action input and Eq. 14 as the target. At deployment, this input is replaced by the frozen policy’s proposed action. Where enabled, action-input augmentation TABLE VII: Telemetry ranges for SFT augmentation. Cur-rent and voltage are normalized ratios. Each tier contributes equally many examples.                            
+
+> Tier Temperature ( ◦C) Current Voltage Clean [20 ,42] [0 .10 ,0.50] [0 .92 ,1.00]
+> Mild [43 ,55] [0 .50 ,0.75] [0 .80 ,0.92]
+> Moderate [50 ,65] [0 .65 ,0.90] [0 .65 ,0.85]
+> Severe [60 ,75] [0 .80 ,1.05] [0 .45 ,0.70]
+
+Fig. 12: Physical SO-101 platform. (a) The arm used for cube lifting. (b) Thermal-camera spot readings. (c) The thermal image illustrates spatially nonuniform heating. The photographed readings illustrate the setup, rather than the heated evaluation thresholds. adds Gaussian noise and clips the input to [−1, 1] ; the target remains derived from the original demonstration action. 
+
+Objective and optimization. Training minimizes the mean absolute target error plus three times the mean absolute identity error on clean samples. We use AdamW with initial learning rate 5 × 10 −4, weight decay 10 −4, default Adam betas (0 .9, 0.999) , and ϵ = 10 −8. The learning rate follows cosine annealing to zero over the configured SFT duration, without a warm-up stage. Minibatches contain 256 aug-mented state–action samples, and gradient norms are clipped to 1.0.The four reference TeAR checkpoints used in the paired mismatch study were trained for 30 ,000 SFT steps with training seed 42 . They used α = 0 .30 and gain-deviation bound 0.50 during training, with the fixed deployment bound 
+
+0.75 for evaluation. The BC–Can checkpoint used action-input noise with standard deviation 0.15 ; the other three ref-erence checkpoints used unperturbed demonstration-action inputs. These settings apply to the saved checkpoints used in the paired mismatch study; training durations vary across experiments. 
+
+D. SO-101 hardware setup 
+
+The physical evaluation in Section V-E uses the SO-ARM101 five-DoF arm for cube lifting. The behavior-cloned base policy and TeAR are trained in simulation and deployed without on-robot fine-tuning. Heating is induced by operating the arm under load. The three evaluated conditions are cool operation below 45 ◦C, shoulder heating above 50 ◦C, and heating of both shoulder and wrist above 50 ◦C, with 20 trials per method and condition. TeAR preserves all 20 /20 successful lifts under cool operation and improves success under both heating con-ditions: from 15 /20 to 17 /20 with shoulder heating, and TABLE VIII: Severity coverage during training. Stressed success averaged over three cells and seven conditions. Differences are percentage points relative to the four-tier recipe.            
+
+> SFT curriculum Success (%) ∆vs. four tiers Clean only 23 .8−13 .1
+> Clean + mild 39 .5+2 .6
+> Clean + mild + moderate 40 .7+3 .8
+> Four tiers (reference) 36 .90.0
+
+from 14 /20 to 17 /20 with shoulder-and-wrist heating. These results demonstrate transfer of the simulation-trained adapter to thermal stress on the physical arm, without on-robot fine-tuning. Current and voltage stress are evaluated separately in simulation. The hardware cool-condition label is an ex-perimental temperature range, whereas exact action pass-through depends on the measured telemetry satisfying the gate thresholds in Appendix B. 
+
+E. Severity-tier curriculum ablation 
+
+This supplementary study uses BC-Transformer–Can, BC– Threading, and BC–Stack, with 20 episodes per condition and evaluation seed 42 . Each adapter is trained with the first 
+
+n tiers of Table VII. We report the mean success rate over hot, stall, brownout, Tmod , T C mod , T V mod , and T CV mod ,then average equally over the three policy–task combinations. These supplementary means are separate from the three-seed comparisons in the main paper. All three curricula that include stressed telemetry outper-form clean-only training, improving the observed mean by 
+
+13 .1–16 .9 percentage points. The four-tier reference covers the full training range, including severe telemetry; the two-and three-tier variants have slightly higher observed means on these cells. The consistent gain over clean-only training supports including stressed telemetry in supervision. 
+
+F. Alternative adapter trunks 
+
+The supplementary architecture study covers six policy– task combinations: BC on Lift, Can, Threading, and Stack, and BC-Transformer on Can and Square. Each saved config-uration uses 20 episodes per condition and seed 42 . Table IX averages the seven conditions in Appendix E; the standard deviation is across cells. The reference Transformer achieves the highest mean in this comparison across six policy– task combinations, exceeding the alternatives by 2.7–9.0
+
+percentage points. The main paper reports a separate three-seed architecture study using different trained configurations. 
+
+G. Hyperparameter sensitivity grid 
+
+We select the reference setting α = 0 .30 and γmax = 0 .75 
+
+from the 5 × 5 heatmap in Fig. 13. The sweep evaluates the residual and gain bounds on BC-Transformer–Square, using 
+
+20 episodes per condition and seed 42 . Each entry reports the mean success-rate gain over the frozen base across the seven stressed conditions in Appendix E, using the same heatmap as the main paper. The outlined cell marks the selected setting. TABLE IX: Alternative adapter architectures. Mean suc-cess and sample standard deviation across six cells; changes are percentage points from the reference.                                   
+
+> Trunk Success (%) ∆
+> Bottleneck 26 .8±21 .7−8.2
+> Cross-attention 32 .3±24 .4−2.7
+> FiLM 28 .2±22 .0−6.8
+> Hybrid 26 .0±20 .9−9.0
+> Per-index MLP 29 .3±19 .3−5.7
+> Global MLP 28 .8±21 .1−6.2
+> Mixture of experts 27 .5±19 .8−7.5
+> Reference Transformer 35 .0±23 .1+0 .0
+
+0.35 0.5 0.55 0.75 1.0 
+
+## γmax 
+
+0.1 0.15 0.3 0.4 0.5 
+
+## α
+
++17 +12 +20 +17 +17 +15 +16 +7 +12 +20 +13 +15 +9 +20 +15 +17 +12 +17 +20 +10 +8 +10 +11 +8 +17 
+
+> 0510 15 20
+> Δ stressed (\%)
+
+Fig. 13: Selection of correction bounds. Mean stressed success-rate gain over the frozen base (percentage points), reproduced from the main paper. The outlined cell marks the selected configuration, (α, γ max ) = (0 .30 , 0.75) .
+
+H. Inference-time telemetry-channel masking 
+
+We evaluate the full trained adapter with selected channels replaced by nominal values: T = 30 ◦C, C = 0.30 , or 
+
+V = 0 .96 . Masking changes the telemetry supplied to both the learned adapter and its gate; it does not change the environment’s degradation. No adapter is retrained for this study. The ten policy–task combinations are BC on Can, Square, Stack, and Threading; BCQ on Square and Stack; BC-Transformer on Square; HBC on Square and Threading; and IRIS on Square. Each condition uses 20 episodes with seed 
+
+42 . Table X averages the same seven stressed conditions listed in Appendix E. Standard deviations describe how the change from full telemetry varies across policy–task combinations. Full telemetry achieves the highest observed mean, with temperature contributing the most among the individual channels: retaining temperature alone loses 4.0 points, while masking temperature and retaining current and voltage loses 
+
+13 .7 points. These results support using all three telemetry channels in TeAR. 
+
+I. Per-action correction magnitude analysis 
+
+We measure the mean absolute correction for each of the seven OSC action coordinates using the earlier ten-cell roll-out logs. The policy–task combinations match Appendix H; each condition uses 20 episodes and seed 42 . For each TABLE X: Telemetry available at inference. Mean stressed success over ten cells. ∆ is the paired change from full telemetry, reported as mean ± sample standard deviation across cells, in percentage points. 
+
+Visible channels Success (%) ∆ vs. full T only 28 .3 −4.0 ± 4.3
+
+C only 16 .5 −15 .8 ± 6.7
+
+V only 19 .1 −13 .2 ± 7.8
+
+T + C 31 .1 −1.1 ± 5.3
+
+T + V 28 .8 −3.5 ± 4.4
+
+C + V 18 .6 −13 .7 ± 9.6
+
+T + C + V 32 .3 0.0dx dy dz dRoll dPitch dYaw grip OSC action coordinate cool hot stall brownout T_mod TC_mod TV_mod TCV_mod                                                 
+
+> 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.19 0.19 0.23 0.05 0.07 0.11 0.04 0.24 0.23 0.30 0.11 0.13 0.19 0.06 0.20 0.20 0.24 0.08 0.09 0.15 0.08 0.09 0.09 0.12 0.02 0.03 0.05 0.03 0.14 0.13 0.18 0.03 0.04 0.08 0.04 0.11 0.09 0.14 0.02 0.03 0.05 0.03 0.28 0.29 0.37 0.07 0.11 0.20 0.04
+> 0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 Mean absolute correction
+
+Fig. 14: Mean absolute correction by action coordinate. 
+
+Values are recomputed from all ten saved cell summaries. The nominal row is exactly zero; combined stress produces larger corrections, especially in translation. The gripper may receive a learned correction even though the synthetic degra-dation leaves its command unchanged. coordinate, we pool rollout steps within each condition and then average equally across cells, as shown in Fig. 14. The nominal correction is exactly zero. Under stress, corrections are largest on the translation coordinates, particularly the vertical coordinate, and smaller on rotation and the gripper. The measurements describe changes to motion commands, rather than individual joint torques. 
+
+J. Curve-family generalization: paired model mismatch 
+
+Evaluation setup. We test transfer from the nominal linear training model to eight sets of temperature, current, and voltage curves drawn from linear, exponential, sigmoid, and polynomial families (Fig. 15; curve seed 20260909 ). We evaluate BC–Lift, BC–Can, BC-Transformer–Square, and IRIS–Square under hot, Tmod , T C mod , and T CV mod condi-tions. Five episodes per condition with seeds 101 , 202 , and 
+
+303 give 480 stressed episodes per policy–task combination and method, or 1,920 in total. Horizons are 250 steps for Lift and 400 for Can and Square; telemetry is fixed within each episode. 
+
+Matched comparisons. Methods share initial condi-tions, telemetry, and random seeds for policy sampling and disturbances. Under nominal telemetry, (T, C, V ) =(30 , 0.30 , 0.96) , all 240 correction-method/base comparisons 40 60 80 Temperature (°C) 0.0 0.5 1.0 Capacity factor 0.25 0.50 0.75 1.00 Current (normalized) 0.4 0.6 0.8 1.0 Voltage (normalized) Nominal model Linear Exponential Sigmoid Polynomial 
+
+Fig. 15: Evaluated capacity curves. Colored lines show the eight test curve sets; dashed black lines show the nominal training model. Each set changes all three channels jointly, varying curve shape, onset, and minimum capacity. reproduce the base trajectory exactly, verifying nominal pass-through throughout the rollout. 
+
+Model information. TeAR learns from the nominal capac-ity model during training, while the assumed-model inverse applies that model directly at deployment. Neither receives the actual test capacity curves. The privileged inverse re-ceives those curves but does not cancel disturbances. DR-TeAR trains with 64 randomized curve sets and tests on new parameters and combinations from represented families. Can variants also differ in action-input noise and Lift variants in base-policy training settings, so this comparison evaluates the trained variants rather than curve randomization alone.

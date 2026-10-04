@@ -1,0 +1,482 @@
+Title: FP2: Equipping Robotic Foundation Models with Force Control
+
+URL Source: https://arxiv.org/pdf/2609.37433v1
+
+Published Time: Wed, 30 Sep 2026 01:47:49 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# FP2: Equipping Robotic Foundation Models with Force Control 
+
+Hongjie Fang 1,2,4,∗, Shirun Tang 1,2,∗, Junjian Hu 1,2,5, Shidong Zhang 1,2,6, Derek Zhang 1,2,7,Linhao Chen 1,2, Dehai Li 1,2, Mingyu Mei 8, Wanxi Liu 1,2,3, Cewu Lu 2,3,9, and Shiquan Wang 1,2,3,B(A) RFM alone  (B) RFM + FP2 
+
+Foundation Policy (RFM)  
+
+> Task-level Action Generation
+> Broad task understanding
+> Generalizable motion prior
+> No force input
+> RFM action
+> (same as original )
+
+## +
+
+Force-Control Policy 
+
+> Interaction Regulation
+
+(C) Contact-Rich Manipulation Tasks    
+
+> Flip Box Insert EV Charger Insert Peg Wipe Curve
+
+4
+
+> RFM backbones
+
+π0 π0.5 
+
+> up to
+
++65 pp      
+
+> average score
+> Same robotic foundation model. More capable manipulation. From general intelligence
+> to physical intelligence.
+> Wrench
+> Proprioception
+> Regulated action
+> (with force commands) FF
+> FF
+> Task -Level Motion, Unreliable Interaction Same Motion, Precise Interaction
+
+LaWAM 
+
+> reduce up to
+
+85% 
+
+> force error
+> F
+
+Success! Lose Contact  Miss the Hole  Success! 
+
+> F
+
+# +
+
+Foundation P olicy 
+
+Action 
+
+Generation 
+
+Interaction 
+
+Regulation 
+
+Force-Control P olicy 
+
+> evaluated
+
+Fig. 1: FP2: Decoupling Action Generation with Interaction Regulation. (A) A task-adapted RFM can generate appropriate task-level motion yet still fail during physical interaction due to insufficient force regulation. (B) FP2 preserves foundation-policy action generation and adds a lightweight force control policy to regulate the same RFM actions using wrench and proprioceptive feedback, without action re-generation. (C) Across four RFM backbones and four contact-rich manipulation tasks, FP2 substantially improves task performance and force regulation, achieving up to 65 percentage-point gains in average score and reducing force error by up to 85%. 
+
+Abstract — Robotic foundation models (RFMs) are increas-ingly capable of general-purpose manipulation, yet reliable physical interaction remains challenging in contact-rich set-tings. We present FP2, a lightweight downstream interface that equips task-adapted RFMs with explicit force control while preserving their action-generation capability. FP2 adopts an action-regulation decomposition: the task-adapted RFM serves as a foundation policy responsible for task-level action generation, while a high-frequency force control policy focuses solely on interaction regulation. To condition force regulation on the ongoing manipulation, FP2 compresses foundation-policy contextual representations and combines them with wrench and proprioceptive histories to predict structured force-control parameters. We evaluate FP2 with four RFM backbones across four real-world contact-rich manipulation tasks. FP2 consistently improves task performance and force regulation quality over the corresponding foundation policies, while comparing favorably with representative force-aware and force-control baselines. Ablations further show that foundation-policy context and physical feedback are complementary for effective force regulation, while preserving foundation-policy action generation improves both efficiency and novel-object generalization. Project website: http://force-policy.github.io/fp2 
+
+I. I NTRODUCTION 
+
+Robotic foundation models (RFMs), including vision-language-action (VLA) models [4, 5, 6, 32, 35, 44] and world models [2, 36, 60], have made rapid progress toward general manipulation by scaling visuomotor learning across diverse 
+
+> ∗
+
+Equal Contribution. BCorresponding Author. 1FORTE Lab. 
+
+> 2
+
+Noematrix. 3Flexiv. 4SJTU. 5UPenn. 6FDU. 7UIUC. 8ZJU. 9SII. 
+
+tasks and environments [15, 16, 31]. However, knowing what motion to execute does not necessarily imply knowing how to physically interact with the environment. In contact-rich manipulation, even a plausible task-level motion can fail un-der small uncertainties in geometry, friction, or compliance, leading to excessive forces, unstable contact, or jamming [49, 51]. As RFMs become increasingly capable at task-level ac-tion generation, robust physical interaction remains a critical bottleneck toward reliable real-world manipulation. A natural approach is to integrate force feedback into the RFM itself, augmenting its observations with force for action prediction [37, 54, 59, 61]. However, force is typically absent from large-scale RFM pretraining recipes. Introducing this new modality changes the pretrained observation interface and requires the foundation policy to learn its alignment with existing visuomotor representations from downstream data. This raises a key question: does equipping an RFM with force control require modifying the foundation model to incorporate force as an additional sensing modality? 
+
+We take a different view: force control does not need to be learned inside the robotic foundation model . Once adapted to a downstream task, an RFM provides a foundation policy that already generates task-level manipulation actions and rich contextual representations, while what remains missing is explicit regulation of physical interaction during execution. We therefore retain action generation in the foun-dation policy and introduce a separate force-control policy dedicated to interaction regulation. The force-control policy is conditioned on both physical feedback and the context arXiv:2609.37433v1 [cs.RO] 29 Sep 2026 of the foundation policy, allowing interaction regulation to account for the ongoing manipulation behavior. Based on this insight, we introduce FP2, a lightweight framework that follows an action-regulation decomposition: the foundation policy generates task-level actions, while a high-frequency force-control policy predicts only structured parameters for interaction regulation. Building on the force-control formulation of Force Policy [19], FP2 preserves foundation-policy action generation instead of duplicating it downstream. To efficiently provide task context to the force-control policy, FP2 self-supervisedly compresses the RFM contextual token sequence into a compact representation and combines it with wrench and proprioceptive histories. After task adaptation, the foundation policy remains fixed, and force information is introduced only when training the downstream force-control policy. This design preserves the RFM’s task-level action-generation capability while adding explicit force regulation downstream. We evaluate FP2 with four RFM backbones [4, 5, 6, 10] across four real-world contact-rich manipulation tasks. FP2 consistently improves task performance and generally reduces normalized force error relative to the corresponding foundation policies, while also comparing favorably with both task-specific force-control policies and force-aware VLAs. Ablations show that foundation-policy context and physical feedback are complementary for force regulation, and that preserving foundation-policy action generation im-proves efficiency and novel-object generalization over down-stream action re-generation. Failure analysis further shows that FP2 primarily suppresses interaction-related failures, while errors in task-level motion generation remain outside its primary scope. Together, these results support separating task-level action generation from high-frequency interaction regulation as an effective interface for equipping existing RFMs with force control. All data, checkpoints, code, and evaluation videos will be made publicly available. II. R ELATED WORKS 
+
+A. Robotic Foundation Models 
+
+Early precursors to modern RFMs focused on learning general visual representations [43], grounding language for robot decision making [7], high-level planning [26], and extracting object affordances [3]. A subsequent line of work directly predicts robot actions from multimodal observations, with VLAs [8, 15, 29, 32, 44, 63] becoming a prominent paradigm. Recent VLAs [4, 5, 6, 28, 35] further improve generalization across tasks and environments by scaling pre-training on heterogeneous robot datasets [15, 16, 31]. More recently, world models [2, 10, 36, 60] have emerged as a new paradigm, predicting future visual states and using them for action generation, often through inverse dynamics models. Their visual prediction objectives also facilitate learning from large-scale human videos and in-the-wild data [17, 20, 46] that lack robot action annotations. Despite their different formulations, modern RFMs pri-marily target task understanding and action generation from visual, language, and proprioceptive observations, leaving physical interaction largely implicit in the predicted actions. FP2 addresses this complementary problem without chang-ing the standard RFM task-adaptation interface: once task-adapted, the RFM serves as a foundation policy for action generation, while force regulation is introduced downstream. 
+
+B. Force-Aware Policy Learning 
+
+Recent works on contact-rich manipulation incorporate force sensing as an additional observation alongside vision and proprioception for action prediction [13, 34]. Early meth-ods augment imitation policies [14, 53, 62] with multimodal fusion [22, 33], curriculum learning [38], or high-frequency force branches [11, 58]. More recently, force/torque obser-vations have been incorporated into VLAs [37, 54, 59, 61] and world models [21], allowing large robotic policies to directly condition their predictions on physical interaction feedback. These approaches integrate force information into the manipulation policy itself, requiring the foundation policy to be adapted to the additional sensing modality. In contrast, FP2 keeps force feedback outside the RFM: a self-supervised compressor provides a compact foundation-policy context, which is combined with physical feedback only in the downstream force-control policy. 
+
+C. Force Control for Contact-Rich Manipulation 
+
+Force control provides a complementary route to contact-rich manipulation by explicitly regulating physical interac-tion rather than relying on action prediction alone. Learning-based methods have been integrated with impedance or ad-mittance controllers to predict reference motions, interaction forces, or compliance parameters such as stiffness [1, 24, 30, 48, 55]. Several works [19, 37, 39] build on hybrid force-position control [9, 41, 45, 47], which decomposes task space into force- and position-controlled directions and provides a structured interface between learned policies and low-level interaction control. Force Policy [19] combines task context from an upper-level visuomotor policy [18] with local vi-sual and force feedback to predict interaction structure for contact-rich manipulation. FP2 follows this structured force-control formulation but adapts it to foundation policies with a clearer separation of responsibilities: the foundation policy generates task-level actions, while the force-control policy predicts only the parameters for interaction regulation. A recent, concurrent work [27] similarly augments frozen generative policies with a high-frequency reflex module con-ditioned on action-head latents and physical feedback, but the reflex module also re-generates reference actions alongside force-control quantities. FP2 instead (1) compresses the RFM contextual tokens into a compact representation and (2) preserves foundation-policy action generation, restricting the downstream policy to structured interaction regulation; we validate both design choices in §IV-D. III. M ETHOD 
+
+A. Overview and Problem Formulation 
+
+As illustrated in Fig. 2, FP2 equips an RFM with force control without introducing force information into the RFM "Flip the box." "Wipe the curve." "Insert the peg." 
+
+> prompts observations
+> noise
+
+Force Control Policy    
+
+> COM
+> history proprio
+> Mask Frame Wrench
+> action chunk @ 15Hz
+> history wrench compressed token
+> 50Hz
+
+Controller  
+
+> control parameters
+> COM compressed token
+
+(Cross-Attention) Compressor 
+
+Robotic Foundation Model (RFM)   
+
+> e.g. GR00T N1.7, 𝜋 !,𝜋 !.# , LaWAM
+> 2Hz
+> …
+> COM
+> ……
+> reconstruction loss
+
+xxstop-grad    
+
+> Compressor
+> learnable
+> learnable comp. token
+> Cross-Attention Encoder Cross-Attention Decoder
+> Force Control Policy
+> Robotic Foundation Model 🔥 Robotic Foundation Model
+> 🔥
+> ❄
+> Force Control Policy Robotic Foundation Model ❄
+> 🔥
+> ❄Compressor Compressor
+> Training Procedure
+> task adaptation
+> w/o force Task Data self-supervised training
+> Task Data
+> training
+> w/ force
+
+Step 1 Step 2 Step 3 Discard after training Fig. 2: FP2 Framework. (Top left) The task-adapted RFM serves as a foundation policy for action generation, while FP2 compresses its contextual tokens and combines them with wrench and proprioceptive histories to predict structured force-control parameters. (Top right) The contextual token compressor is trained self-supervisedly through reconstruction; the reconstruction decoder is discarded after training. (Bottom) Training proceeds in three stages: (1) standard RFM task adaptation, (2) self-supervised contextual token compression with the RFM frozen, and (3) force-control policy training with both the RFM and compressor frozen. 
+
+itself. We first adapt a pretrained RFM to downstream tasks following its standard task-adaptation procedure (Fig. 2 ( bot-tom ), Step 1 ), where the RFM uses only its native visuomotor interface and does not consume force measurements. After task adaptation, the RFM is frozen and serves as the founda-tion policy π for action generation. Let at:t+Ha = π(ot, l)
+
+denote a foundation policy action chunk [62] of horizon Ha
+
+predicted from observation ot and instruction l.FP2 augments the foundation policy with a contextual to-ken compressor (§III-B) and a lightweight force-control pol-icy (§III-C). The compressor ψ maps the high-dimensional contextual tokens Ct from π into a compact token zt =
+
+ψ(Ct). The force-control policy πF combines zt with recent wrench and proprioceptive history Wt−H:t, Pt−H:t over a horizon H to predict structured force-control parameters: 
+
+(Σt, St, ˆWt) = πF (zt, Wt−H:t, Pt−H:t) . (1) Here, Σt denotes the interaction frame, St the force-position selection mask, and ˆWt the desired wrench. These parame-ters, together with the foundation policy action at, are passed to the robot controller (§III-D) for execution. Overall, the foundation policy determines the task-level motion, while the force-control policy specifies how that motion should be regulated under hybrid force-position con-trol [19, 41, 47] during physical interaction. 
+
+B. Contextual Token Compressor 
+
+RFM hidden representations typically contain many con-textual tokens, making them inefficient to directly feed into a lightweight force-control policy running at high frequency. Following [57], we introduce a learned contextual-token bot-tleneck that compresses the token sequence into a compact representation (Fig. 2 ( bottom ), Step 2 ). Given contextual tokens Ct ∈ RS×D, where S denotes the sequence length and D the hidden dimension, we first project each token into a d-dimensional embedding space. We then introduce a learnable query Q ∈ R1×d, which cross-attends to the projected tokens through a Transformer encoder fenc .Each encoder block consists of multi-head cross-attention followed by an MLP with residual connections. The resulting compressed token is 
+
+zt = ψ(Ct) = fenc (Q, Proj( Ct)) ∈ R1×d. (2) To train ψ in a self-supervised manner, we addition-ally employ a lightweight Transformer reconstruction de-coder [52]. As shown in Fig. 2 ( top right ), learned recon-struction queries attend only to zt to reconstruct the original contextual tokens, 
+
+ˆCt = fdec (zt) ∈ RS×D. (3) Thus, all information required for reconstruction must pass through the compressed bottleneck. We optimize 
+
+L = LMSE 
+
+
+
+Ct, ˆCt
+
+
+
++ λLcos 
+
+
+
+Ct, ˆCt
+
+
+
+, (4) where LMSE and Lcos denote the token-wise MSE recon-struction loss and cosine-distance loss, respectively, and λ
+
+controls their relative weight. After training, the decoder is discarded and only the compressor is retained for down-stream force control. During execution, zt is updated synchronously with the foundation policy at 2 Hz and cached between consecutive predictions. The 50 Hz force-control policy reuses the latest token while continuously updating its wrench and propri-oceptive histories, enabling reactive interaction regulation without repeatedly running the RFM or compressor. Flip Box. Push the box towards the fixture and flip it upright.     
+
+> Initial State Approach the Box Establish Contact Flip the Box Finish
+
+Insert EV Charger. Align the EV charger with the socket, and insert the charger into the socket.     
+
+> Initial State Establish Contact Align the Socket Insert into the Socket Finish
+
+Insert Peg. Grasp the peg, lift it and match it to the target hole, and insert the peg into the target hole.         
+
+> Initial State Grasp the Peg Align with the Hole Insert into the Hole Finish Initial State Establish Contact Wipe along Curve Repeat Wiping Finish
+
+Wipe Curve. Wipe along the curved surface repeatedly to remove all marks. 
+
+> Approach the Socket
+> Move to the Target Hole
+> Repeat Wiping
+> Contact point and applied force direction vary during the flipping process. Surface sliding can cause contact loss and failure.
+> F
+> Charger insertion requires >140 N of force applied along the correct direction. Misalignment can trigger arm overload errors.
+> F
+> Tolerance 0.02mm
+> Tight 0.02 mm tolerance demands precise insertion and force direction. Misalignment can lead to jamming during insertion.
+> F
+> Proper force direction ensures stable surface contact and good wiping. Wrong direction leaves
+> residual marks.
+> ideal
+> Push the Box
+
+Fig. 3: Contact-Rich Manipulation Tasks. We evaluate FP2 on 4 real-world tasks covering diverse physical interactions. Flip Box requires maintaining effective contact as the contact point and force direction vary during flipping; Insert EV Charger requires large insertion forces along the correct direction; Insert Peg demands precise alignment under a tight tolerance; and Wipe Curve requires sustained contact while following a curved surface. Red labels highlight the contact-rich phases, and the right panels illustrate representative challenges. 
+
+C. Force-Control Policy 
+
+Force Policy [19] adopts a global-local architecture, where a global visuomotor policy provides task context and a local force policy jointly predicts robot actions and force-control parameters using wrist vision and physical feedback. FP2 instead adopts an action-regulation decomposition tailored to RFMs: the foundation policy is responsible for task-level action generation, while the high-frequency force-control policy focuses solely on regulating physical interaction. This different division of responsibilities motivates two key changes to the high-frequency force-control policy: (1) Remove action generation. Rather than re-predicting robot actions, the force-control policy predicts only the parameters needed to regulate the actions generated by the foundation policy. (2) Remove the wrist-camera input. Since visual percep-tion and task-level motion generation remain with the foundation policy, its contextual representation already provides the visual and task context needed by the force-control policy. An additional wrist stream would re-quire a separate image encoder, increasing computation and reliance on wrist-specific visual patterns. We then condition the force-control policy only on the compact foundation-policy context and interaction histories. Interaction regulation is parameterized by three structured signals: the interaction frame Σt, which defines the local coordinates for decoupling force and motion; the force-position selection mask St, which specifies the force- and position-controlled directions; and the desired wrench ˆWt,which specifies the target wrench along the force-controlled directions. Together, these signals provide a compact inter-face to the hybrid force-position controller without requiring the downstream policy to re-predict RFM actions. Following [19], supervision for these signals is recovered directly from demonstrations. The force-control policy is trained on the recovered targets while both the foundation policy and contextual token compressor remain frozen (Fig. 2 (bottom ), Step 3 ). Thus, force information is introduced only when training the lightweight force-control policy and is never used to update the foundation policy or compressor. 
+
+D. Robot Controller 
+
+The foundation policy runs at 2 Hz and predicts action chunks sampled at 15 Hz. To account for inference latency, we apply waypoint dropout following [19]: candidate starting waypoints consistent with the recent motion are identified, and dynamic time warping [42] is used to select the best-aligned starting point. Earlier waypoints are discarded. We then fit a quintic spline to the aligned action chunk and re-sample it at a unified 50 Hz, producing a smooth trajectory with continuous position, velocity, and acceleration. The force-control policy also runs at 50 Hz and predicts 
+
+(Σt, St, ˆWt) synchronously with the RFM trajectory. At each step, the 50 Hz action reference and force-control pa-rameters are jointly passed to the hybrid force-position con-troller. The corresponding low-level control law is executed internally at 1 kHz [50]. This multi-rate design combines 2 Hz foundation-policy inference with 50 Hz interaction reg-ulation and 1 kHz low-level control. IV. E XPERIMENTS 
+
+We aim to answer the following research questions: (Q1) 
+
+Can FP2 improve contact-rich manipulation performance across different RFMs and tasks? (Q2) How does FP2 compare with integrating force feedback directly into RFMs? 
+
+(Q3) Are RFM context and physical feedback complemen-tary for effective force control? (Q4) What RFM represen-tation provides the most effective context for force control? Policy Flip Box Insert EV Charger Insert Peg Wipe Curve Average SR ↑ NFE ↓ SR ↑ NFE ↓ SR ↑ NFE ↓ CR ↑ NFE ↓ Score ↑                                                                                                                                                            
+
+> HybridIL [39] 40% 5.496 0% N/A 0% N/A 48% 0.276 22% ACP [24] 80% 14.355 20% 5.202 52% 3.794 77% 1.528 57% Force Policy [19] 84% 1.522 68% 2.157 0% N/A 49% 0.406 50% GR00T N1.7 [4] 12% 5.836 36% 1.559 0% N/A 1% N/A 12% GR00T N1.7 + FP2 (ours) 76% +64 2.076 76% +40 1.061 0% 0N/A 3% +2 N/A 39% +27
+> LaWAM [10] 32% 4.329 0% N/A 4% 1.955 64% 3.024 25% LaWAM + FP2 (ours) 48% +16 1.968 20% +20 4.309 24% +20 1.926 65% +1 1.994 39% +14
+> π0(LoRA )[6] 44% 18.531 0% N/A 12% 9.112 4% 3.085 15% TA-VLA [61] 32% -12 8.525 72% +72 1.968 4% -8 2.587 51% +47 1.241 40% +25
+> ForceVLA [59] 60% +16 6.837 0% 0N/A 36% +24 5.958 10% +6 1.445 27% +12
+> π0(LoRA ) + FP2 (ours) 68% +24 5.278 92% +92 0.249 76% +64 1.287 84% +80 0.666 80% +65
+> π0.5(full ) [5] 40% 3.248 0% N/A 32% 5.116 97% 1.488 42%
+> π0.5(full ) + FP2 (ours) 92% +52 0.899 56% +56 0.438 52% +20 1.647 100% +3 0.495 75% +33
+
+TABLE I: Real-World Evaluation of Task Performance and Physical Interaction Quality. The average score is the arithmetic mean of the four task metrics (SR and CR). Small numbers denote absolute percentage-point changes relative to the corresponding task-adapted RFM. NFE is reported only for valid successful executions; “N/A” indicates that no such execution is available. 
+
+(Q5) Do the FP2-specific redesigns of Force Policy [19], i.e. ,removing wrist input and action re-generation, improve per-formance, generalization, and efficiency in the RFM setting? 
+
+A. Setup 
+
+Platform. Our robot platform consists of a Flexiv Rizon 4 arm equipped with a Flexiv GN-02 gripper and a Flexiv FT-03S 6-DoF force/torque sensor mounted at the robot flange. Visual observations are captured by two Intel RealSense D415 RGB-D cameras, one global and one wrist-mounted. 
+
+Tasks. As shown in Fig. 3, we evaluate FP2 on four real-world contact-rich manipulation tasks: Flip Box , Insert EV Charger , Insert Peg , and Wipe Curve , covering diverse challenges in contact maintenance, force-direction regula-tion, and precise insertion. Their representative interaction difficulties are illustrated in Fig. 3. In particular, Insert Peg 
+
+follows the setup from ManipulationNet [12] and uses a circular hole with only 0.02 mm tolerance, making successful insertion highly sensitive to alignment and force regulation. 
+
+Data. We collect synchronized visuomotor and wrench demonstrations via arm-to-arm teleoperation with force feed-back [40]: 50 demonstrations each for Flip Box , Wipe Curve ,and Insert EV Charger , and 200 for Insert Peg .
+
+Baselines and Backbones. We evaluate FP2 with four RFMs: GR00T N1.7 [4], LaWAM [10], π0 [6], and π0.5 [5], covering both VLA and world-model-based robotic poli-cies. We compare against two complementary groups of baselines. (1) Force-aware visuomotor policies with explicit force control , including HybridIL [39], Adaptive Compliance Policy (ACP) [24], and Force Policy [19]. These task-specific methods provide comparisons against dedicated structured or compliant force-control policies. (2) Force-aware VLAs ,including TA-VLA [61] and ForceVLA [59], which directly incorporate force observations into the foundation policy. For a controlled comparison, TA-VLA, ForceVLA, and FP2 use the same π0 backbone with LoRA adaptation [25], the same task demonstrations, and identical evaluation configurations. 
+
+Metrics. We report success rate (SR) for Flip Box , Insert EV Charger , and Insert Peg , and completion rate (CR) for 
+
+Wipe Curve , defined as the fraction of marked regions suc-cessfully wiped clean. We additionally introduce Normalized Force Error (NFE) to quantify physical interaction quality using the 3D force component. For each task, we temporally normalize demonstration trajectories and compute the mean 
+
+¯f (τ ) and standard deviation σf (τ ) of the demonstrated force profile. We regard ¯f (τ ) ± σf (τ ) as the valid interaction range and penalize only deviations outside this range. For a successful rollout r, the element-wise deviation is 
+
+dr (τt) = max   fr (τt) − ¯f (τt) − σf (τt), 0 . (5) We define NFE as force errors normalized by the demon-strated variability, 
+
+NFE r =
+
+vuut 13T
+
+> T
+
+X
+
+> t=1
+
+dr (τt)
+
+σf (τt) + 10 −8
+
+> 22
+
+. (6) Lower NFE indicates smaller departures from the demon-strated force range and better interaction quality. We report NFE over successful trials only; for Wipe Curve , we consider only successful continuous-wiping executions. 
+
+Evaluation. All policies are deployed on a workstation with an NVIDIA RTX 5090 GPU. Following [56], all methods use the same pre-generated test configurations and workspace, with 25 trials per task unless otherwise specified. 
+
+B. Results 
+
+FP2 substantially improves contact-rich manipulation across diverse foundation policies and tasks, with gains in both task performance and force regulation quality (Q1). As shown in Tab. I, FP2 improves the average perfor-mance of all four evaluated RFM backbones and generally reduces NFE relative to the corresponding foundation policy, demonstrating consistent benefits across different policies and interaction patterns. Fig. 4 further illustrates how this improvement arises during execution: FP2 maintains contact, builds sufficient insertion force, and stabilizes sustained interaction, whereas the foundation policy alone often loses contact or applies inappropriate force. Beyond improving (1) (2) (3) (4) (5)                                 
+
+> (1) Coarse Align (2) Contact Search (3) Contact Search (4) Contact Search (5 )Insertion
+> (1) Flipping (2) Lost Contact (3) Fail
+> (1) (2) (3)
+> Fail to maintain stable contact Maintain contact while searching for hole Maintain contact while flipping the box
+> (1) (2) (3) (1) Flipping (2) Flipping (3) Success
+> (1) Coarse Align (2) Search in Air (3) Insertion Attempt (4) Search in Air (5 )Fail
+> Fail to maintain contact during hole searching
+
+(1) (2) (3) (4) (5)               
+
+> Search w/o contact
+> Insufficient force for insertion
+> (1) (2) (3) (1) Match the Socket (2) Insertion Attempt (3) Fail
+> (1) Match the Socket (2) Insertion (3) Success
+> Ramps up the insertion force
+> (1) (2) (3)
+
+(A) Flip Box (B) Insert EV Charger (C) Insert Peg (D) Wipe Curve          
+
+> 𝝅 𝟎 𝝅 𝟎  + FP2 (ours) 𝝅 𝟎 𝝅 𝟎  + FP2 (ours)
+> 𝝅 𝟎.𝟓 𝝅 𝟎.𝟓  + FP2 (ours) 𝝅 𝟎 𝝅 𝟎  + FP2 (ours)
+> (1) Coarse Align (2) Contact Wipe (3) Contact Wipe (4) Contact Wipe (5 )Fully Wipe 1 Line
+
+(1) (2) (3) (4) (5)          
+
+> Maintain stable contact force during wiping
+> (1) Coarse Align (2) Align w/o Contact (3) Contact (4) Fail to Match (5 )Fail Fail to contact the surface Fail to maintain stable force and match the curve.
+
+(1) (2) (3) (4) (5) Fig. 4: Qualitative Analysis of Physical Interaction with and without FP2. Representative rollouts and measured force profiles are shown for (A) Flip Box , (B) Insert EV Charger , (C) Insert Peg , and (D) Wipe Curve . The foundation policy alone often fails due to lost contact, insufficient force, or unstable interaction, whereas FP2 maintains appropriate force regulation, enabling successful execution. Flip Box              
+
+> 0%
+> 20%
+> 40%
+> 60%
+> 80%
+> 100%
+> 𝝅 𝟎
+> w/o FP2 w/ FP2
+> 𝝅 𝟎.𝟓
+> w/o FP2 w/ FP2
+> GR00T N1.7
+> w/o FP2 w/ FP2
+> LaWAM
+> w/o FP2 w/ FP2
+> 0%
+> 20%
+> 40%
+> 60%
+> 80%
+> 100%
+> 𝝅 𝟎
+> w/o FP2 w/ FP2
+> 𝝅 𝟎.𝟓
+> w/o FP2 w/ FP2
+> GR00T N1.7
+> w/o FP2 w/ FP2
+> LaWAM
+> w/o FP2 w/ FP2
+> 44%
+> 20%
+> 24%
+> 8%
+> 4%
+> 68%
+> 4%
+> 20%
+> 8%
+> 40%
+> 8%
+> 36%
+> 12%
+> 4%
+> 92%
+> 8%
+> 12%
+> 32%
+> 36%
+> 20%
+> 76%
+> 4%
+> 20%
+> 32%
+> 4%
+> 36%
+> 28%
+> 48%
+> 4%
+> 12%
+> 36%
+> 100% 92%
+> 8%
+> 52%
+> 48%
+> 56%
+> 4%
+> 40%
+> 36%
+> 32%
+> 4%
+> 28%
+> 76%
+> 8%
+> 16%
+> 8%
+> 92%
+> 20%
+> 4%
+> 4%
+> 72%
+> Position error Align but no flip Align but half flip Flip but falls back
+> Success Interaction -Related Failure
+
+Insert EV Charger  Position error  Insert halfway  
+
+> Success Interaction -Related Failure
+> Trigger robot error during insertion
+
+Fig. 5: Failure Analysis on Flip Box and Insert EV Charger . Each bar summarizes 25 trials and decomposes the outcomes into successful executions and different failure modes, grouped into position errors and interaction-related causes. 
+
+the immediate interaction, maintaining appropriate contact also keeps subsequent robot states closer to the demonstrated interaction regime, mitigating compounding execution errors; this effect is particularly evident in Insert Peg and Wipe Curve . The gains are naturally smaller when the foundation policy already performs the task well, while failures in task-level motion generation remain beyond the primary scope of FP2. Please refer to §IV-C for detailed discussions. 
+
+FP2 also compares favorably with task-specific force-control policies in both task performance and force regulation quality (Q1). The comparison with explicit force-control baselines [19, 24, 39] isolates the benefit of leverag-ing a foundation policy beyond force control itself. While these task-specific approaches learn manipulation behavior and force regulation jointly, FP2 retains the perception and action capabilities of the foundation policy and learns only downstream interaction regulation. When paired with capa-ble foundation policies such as the π-series, FP2 achieves substantially higher average task performance while main-taining strong force regulation quality. In particular, π-series + FP2 achieves lower NFE than the explicit force-control baselines on three of the four tasks and remains competi-tive on Wipe Curve . These results highlight the benefit of reusing foundation-policy capabilities while learning only downstream interaction regulation. 
+
+Downstream force regulation yields more consistent gains than directly integrating force into the RFM (Q2). 
+
+Under the matched π0 setting in Tab. I, force-aware VLAs that introduce force into the foundation policy show strongly task-dependent behavior: TA-VLA [61] improves some tasks while degrading others, and ForceVLA [59] provides less consistent gains. In contrast, FP2 improves π0 across all four tasks and achieves a substantially higher average score. To rule out limited LoRA adaptation as the main cause, we further fully fine-tune all methods on the challenging 
+
+Insert Peg task. Full fine-tuning raises vanilla π0 from 12% to 60%, yet TA-VLA and ForceVLA achieve only 36% and 32%, respectively, while FP2 reaches 76% under both LoRA and full fine-tuning. This suggests that directly introducing force into the RFM is not guaranteed to preserve its task-level behavior, whereas FP2 leaves action generation in the foundation policy and adds force regulation downstream. Force Control Policy πF Design Latency SR SR @ Novel Object Input Output color texture stiffness geometry Average                                                                                                        
+
+> (A) RFM Context and Physical Feedback
+> z(Σ,S,ˆW)2.27ms 4% 0/10 2/10 0/10 0/10 5%
+> (W,P)(Σ,S,ˆW)4.28ms 36% 4/10 2/10 1/10 0/10 18%
+> (B) RFM Context Representation
+> AvgPool (C),(W,P)(Σ,S,ˆW)4.49ms 84% 10/10 8/10 7/10 5/10 75% Latent (a),(W,P)(Σ,S,ˆW)4.46ms 88% 10/10 9/10 7/10 6/10 80%
+> (C) Wrist Vision and Action Re-generation in Force Control Policy
+> z,(W,P),Iwrist (Σ,S,ˆW)5.97ms 92% 9/10 8/10 5/10 7/10 73%
+> z,(W,P)(Σ,S,ˆW),aF13.03ms 76% 7/10 8/10 5/10 1/10 53%
+> z,(W,P),Iwrist (Σ,S,ˆW),aF14.44ms 88% 9/10 9/10 6/10 5/10 73%
+> Ours: FP2 Force Control Policy Design
+> z,(W,P)(Σ,S,ˆW)4.48ms 92% 10/10 9/10 9/10 7/10 88% color texture stiffness geometry
+
+Novel Objects Training Object 
+
+TABLE II: Ablation of FP2 Force Control Policy Design on the Flip Box Task with π0.5. (Left) We compare different inputs (A) ,RFM context representations (B) , wrist vision usage (C) , and action re-generation (C) , and report both training object and novel object success rates. Latency is measured per inference on an RTX 5090 GPU. (Right) Illustrations of the training object and novel objects. These novel objects differ from the training object in terms of color, texture, stiffness, and geometry, respectively. 
+
+The separation also enables interaction regulation to run independently at 50 Hz, faster than the RFM action loop, which is desirable for rapidly evolving contact dynamics [19, 23]. Overall, the results support preserving task-level action generation in the foundation policy while introducing force through a dedicated downstream regulation policy. 
+
+C. Failure Analysis 
+
+Failure analysis further explains where the gains of FP2 come from and where its capability is limited (Q1). 
+
+As shown in Fig. 5, adding FP2 consistently shifts failures away from interaction-related causes, such as insufficient force and unstable contact. The remaining failures are more often associated with position mismatch and geometric align-ment, which lie outside the primary role of the force control policy. This indicates that FP2 is most effective when the foundation policy provides a viable task-level motion: it stabilizes its physical execution and suppresses interaction-induced deviations, but does not replace the foundation pol-icy for task-level action generation or geometric reasoning. 
+
+D. Ablations 
+
+RFM context and physical feedback are complemen-tary, and both are essential for effective force control (Q3). As shown in Tab. II(A), using either the compressed RFM context z or proprioceptive histories (W, P) alone leads to poor performance, while combining them substan-tially improves both seen- and novel-object success. This confirms that robust force regulation requires both the ma-nipulation intent provided by RFM context and the realized interaction captured by physical feedback. 
+
+The compressed contextual token provides the most ef-fective RFM representation for conditioning force control (Q4). As shown in Tab. II(B), both average-pooled contextual tokens and action-expert latents provide useful condition-ing, while the learned compressed token achieves the best performance with comparable latency. This suggests that RFM contextual tokens retain richer manipulation context than the action-expert latent, and that the learned bottleneck preserves this information more effectively than simple token aggregation [27] for downstream force control. 
+
+Removing wrist vision and decoupling action gener-ation from the force-control policy πF improve both generalization and efficiency (Q5). As shown in Tab. II(C), adding wrist observations to πF provides no benefit on seen objects, while reducing novel-object generalization and increasing inference latency. More importantly, allowing πF
+
+to re-generate actions [27] substantially degrades both seen-and novel-object performance and nearly triples inference latency. Joint action and force regulation prediction with wrist vision [19] also remains inferior to FP2. These results support the action-regulation decomposition of FP2: the foundation policy retains responsibility for action generation, while the lightweight force-control policy focuses solely on physical interaction regulation. V. C ONCLUSION 
+
+Our results show that effective force control for robotic foundation models benefits from separating action gener-ation from interaction regulation . FP2 retains task-level action generation in the foundation policy and introduces a lightweight, high-frequency force control policy that condi-tions on foundation-policy context and physical feedback to regulate interaction. Across multiple foundation policies and diverse contact-rich tasks, this decomposition consistently improves task performance and force regulation quality. These results highlight a practical path for equipping existing RFMs with force control without modifying their native sensing or action-generation interface. 
+
+Limitations and Future Work. FP2 assumes that the foundation policy provides a viable task-level motion and cannot fully recover from incorrect action generation or geometric reasoning. Its force regulation is also currently learned at the task level; a shared multi-task force control policy could enable reusable interaction skills across tasks and embodiments. More broadly, future RFMs could sup-port a bidirectional interface with force control, providing interaction intent for downstream regulation while using summarized physical feedback to adapt subsequent actions. ACKNOWLEDGEMENT 
+
+We would like to thank Wenbo Tang at Flexiv for tun-ing the non-real-time hybrid force-position controller, and Zhipeng Zhang at Flexiv for tuning the arm-to-arm teleop-eration system. We also thank Jinghong Liu, Ting Yin, and Yi Wu at Flexiv, and Dong Liu, Yuanyuan Jia at Noematrix, for designing and printing the fixtures used in our experi-ments. We thank Shangning Xia at Noematrix for valuable discussions, Peishen Yan at Shanghai Jiao Tong University for proofreading, and Junchao Zhang at Noematrix for his assistance in data collection. REFERENCES [1] Malek Aburub et al. “Learning Diffusion Policies from Demonstra-tions for Compliant Contact-Rich Manipulation”. In: SII . 2026. [2] Niket Agarwal et al. “Cosmos 3: Omnimodal World Models for Physical AI”. In: arXiv preprint arXiv:2606.02800 (2026). [3] Shikhar Bahl et al. “Affordances from Human Videos as a Versatile Representation for Robotics”. In: CVPR . 2023. [4] Johan Bjorck et al. “GR00T N1: An Open Foundation Model for Generalist Humanoid Robots”. In: arXiv preprint arXiv:2503.14734 
+
+(2025). [5] Kevin Black et al. “ π0.5: A Vision-Language-Action Model with Open-World Generalization”. In: CoRL . 2025. [6] Kevin Black et al. “ π0: A Vision-Language-Action Flow Model for General Robot Control”. In: RSS . 2025. [7] brian ichter brian et al. “Do As I Can, Not As I Say: Grounding Language in Robotic Affordances”. In: CoRL . 2022. [8] Anthony Brohan et al. “RT-1: Robotics Transformer for Real-World Control at Scale”. In: RSS . 2023. [9] Herman Bruyninckx and Joris De Schutter. “Specification of Force-Controlled Actions in the ”Task Frame Formalism” - a Synthesis”. In: IEEE Transactions on Robotics and Automation (1996). [10] Jialei Chen et al. “LaWAM: Latent World Action Models for Efficient Dynamics-Aware Robot Policies”. In: CoRL . 2026. [11] Wendi Chen et al. “ImplicitRDP: An End-to-End Visual-Force Dif-fusion Policy with Structural Slow-Fast Learning”. In: RA-L (2026). [12] Yiting Chen et al. “ManipulationNet: An Infrastructure for Bench-marking Real-World Robot Manipulation with Physical Skill Chal-lenges and Embodied Multimodal Reasoning”. In: arXiv preprint arXiv:2603.04363 (2026). [13] Yizhou Chen et al. “Visuo-Tactile Transformers for Manipulation”. In: CoRL . 2022. [14] Cheng Chi et al. “Diffusion Policy: Visuomotor Policy Learning via Action Diffusion”. In: Robotics: Science and Systems . 2023. [15] Open X-Embodiment Collaboration et al. “Open X-Embodiment: Robotic Learning Datasets and RT-X Models”. In: ICRA . 2024. [16] Hao-Shu Fang et al. “RH20T: A Comprehensive Robotic Dataset for Learning Diverse Skills in One-Shot”. In: ICRA . 2024. [17] Hongjie Fang et al. “AirExo: Low-Cost Exoskeletons for Learning Whole-Arm Manipulation in the Wild”. In: ICRA . 2024. [18] Hongjie Fang et al. “AirExo-2: Scaling up Generalizable Robotic Imitation Learning with Low-Cost Exoskeletons”. In: CoRL . 2025. [19] Hongjie Fang et al. “Force Policy: Learning Hybrid Force-Position Control Policy under Interaction Frame for Contact-Rich Manipula-tion”. In: RSS . 2026. [20] Kristen Grauman et al. “Ego4d: Around the World in 3,000 Hours of Egocentric Video”. In: CVPR . 2022. [21] Haotian He et al. “FAWAM: Force-Aware World Action Models for Closed-Loop Contact-Rich Manipulation”. In: CoRL . 2026. [22] Zihao He et al. “FoAR: Force-Aware Reactive Policy for Contact-Rich Robotic Manipulation”. In: RA-L (2025). [23] Zihao He et al. “Asynchronous Multimodal Diffusion Policy Com-position via Latency-Aware Guidance Fusion”. In: arXiv preprint arXiv:2607.17257 (2026). [24] Yifan Hou et al. “Adaptive Compliance Policy: Learning Approxi-mate Compliance for Diffusion Guided Control”. In: ICRA . 2025. [25] Edward J. Hu et al. “LoRA: Low-Rank Adaptation of Large Lan-guage Models”. In: ICLR . 2022. [26] Wenlong Huang et al. “VoxPoser: Composable 3D Value Maps for Robotic Manipulation with Language Models”. In: CoRL . 2023. [27] Yan Huang et al. “UniReflex: Plug-and-Play Force Control for Pre-trained Generative Policies via Fast-Slow Reflex”. In: arXiv preprint arXiv:2608.17432 (2026). [28] Physical Intelligence et al. “ π0.7: a Steerable Generalist Robotic Foundation Model with Emergent Capabilities”. In: arXiv preprint arXiv:2604.15483 (2026). [29] Eric Jang et al. “BC-Z: Zero-Shot Task Generalization with Robotic Imitation Learning”. In: CoRL . 2021. [30] Tatsuya Kamijo, Cristian C Beltran-Hernandez, and Masashi Hamaya. “Learning Variable Compliance Control from a Few Demonstrations for Bimanual Robot with Haptic Feedback Teleop-eration System”. In: IROS . 2024. [31] Alexander Khazatsky et al. “DROID: A Large-Scale In-the-Wild Robot Manipulation Dataset”. In: RSS . 2024. [32] Moo Jin Kim et al. “OpenVLA: An Open-Source Vision-Language-Action Model”. In: CoRL . 2024, pp. 2679–2713. [33] Geonhyup Lee et al. “ManipForce: Force-Guided Policy Learning with Frequency-Aware Representation for Contact-Rich Manipula-tion”. In: ICRA . 2026. [34] Michelle A. Lee et al. “Making Sense of Vision and Touch: Self-Supervised Learning of Multimodal Representations for Contact-Rich Tasks”. In: ICRA . 2019. [35] Fuhao Li et al. “Spatial Forcing: Implicit Spatial Representation Alignment For Vision-Language-Action Model”. In: ICLR . 2026. [36] Lin Li et al. “Causal World Modeling for Robot Control”. In: RSS .2026. [37] Yang Li et al. “ForceVLA2: Unleashing Hybrid Force-Position Control with Force Awareness for Contact-Rich Manipulation”. In: 
+
+CVPR . 2026. [38] Jason Jingzhou Liu et al. “FACTR: Force-Attending Curriculum Training for Contact-Rich Policy Learning”. In: RSS . 2025. [39] Wenhai Liu et al. “ForceMimic: Force-Centric Imitation Learning with Force-Motion Capture System for Contact-Rich Manipulation”. In: ICRA . 2025. [40] Flexiv Ltd. Flexiv Teleoperation Development Kit (TDK) . Accessed Sept. 2026. URL : https://github.com/flexivrobotics/ flexiv_tdk .[41] Matthew T Mason. “Compliance and Force Control for Computer Controlled Manipulators”. In: T-SMC (2007). [42] Meinard M¨ uller. “Dynamic Time Warping”. In: Information Re-trieval for Music and Motion . 2007. [43] Suraj Nair et al. “R3M: A Universal Visual Representation for Robot Manipulation”. In: CoRL . 2022. [44] Octo Model Team et al. “Octo: An Open-Source Generalist Robot Policy”. In: RSS . 2024. [45] Alex Harm Gert-Jan Overbeek et al. “Identifying Physical Inter-actions in Contact-Based Robot Manipulation for Learning from Demonstration”. In: Advanced Robotics Research (2025). [46] Ryan Punamiya et al. “EgoVerse: An Egocentric Human Dataset for Robot Learning from Around the World”. In: arXiv preprint arXiv:2604.07607 (2026). [47] Marc H Raibert and John J Craig. “Hybrid Position/Force Control of Manipulators”. In: Journal of Dynamic Systems, Measurement, and Control (1981). [48] Joohwan Seo et al. “EquiContact: A Hierarchical SE(3) Vision-to-Force Equivariant Policy for Spatially Generalizable Contact-Rich Tasks”. In: arXiv preprint arXiv:2507.10961 (2025). [49] Markku Suomalainen, Yiannis Karayiannidis, and Ville Kyrki. “A Survey of Robot Manipulation in Contact”. In: RAS (2022). [50] Wenbo Tang, Weiming Wang, and Shiquan Wang. “Partially de-coupled impedance motion force control using prioritized inertia shaping”. In: RA-L (2024). [51] Toshiaki Tsuji et al. “A Survey on Imitation Learning for Contact-Rich Tasks in Robotics”. In: IJRR (2025). [52] Ashish Vaswani et al. “Attention is All you Need”. In: NeurIPS .2017. [53] Chenxi Wang et al. “RISE: 3D Perception Makes Real-World Robot Imitation Simple and Effective”. In: IROS . 2024. [54] Yi Wang et al. “Never Too Late for Force: Accelerating VLA Post-Training with Reactive Force Injection”. In: 2026. [55] Yansong Wu et al. “TacDiffusion: Force-Domain Diffusion Policy for Precise Tactile Manipulation”. In: ICRA . 2025. [56] Shangning Xia et al. “CAGE: Causal Attention Enables Data-Efficient Generalizable Robotic Manipulation”. In: ICRA . 2025. [57] Charles Xu et al. “RL Token: Bootstrapping Online RL with Vision-Language-Action Models”. In: arXiv preprint arXiv:2604.23073 
+
+(2026). [58] Han Xue et al. “Reactive Diffusion Policy: Slow-Fast Visual-Tactile Policy Learning for Contact-Rich Manipulation”. In: RSS . 2025. [59] Jiawen Yu et al. “ForceVLA: Enhancing VLA Models with a Force-Aware MoE for Contact-Rich Manipulation”. In: NeurIPS . 2025. [60] Tianyuan Yuan et al. “Fast-WAM: Do World Action Models Need Test-Time Future Imagination?” In: arXiv preprint arXiv:2603.16666 
+
+(2026). [61] Zongzheng Zhang et al. “Elucidating the Design Space of Torque-Aware Vision-Language-Action Models”. In: CoRL . 2025. [62] Tony Z Zhao et al. “Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware”. In: RSS . 2023. [63] Brianna Zitkovich et al. “RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control”. In: CoRL . 2023.
