@@ -1,235 +1,62 @@
 {
   "mode": "standard",
-  "generated_at": "2026-10-06T00:56:08.154507+00:00",
+  "generated_at": "2026-10-06T23:19:18.767244+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 2,
     "deep_divecandidates": 21,
     "deep_cap": 7,
-    "deep_selected": 14,
-    "quick_candidates": 18,
+    "deep_selected": 11,
+    "quick_candidates": 25,
     "quick_skim_target": 12,
     "quick_selected": 12
   },
   "deep_dive": [
     {
-      "id": "2609.36588v1",
+      "id": "2610.05230v1",
       "source": "arxiv",
-      "title": "Cooperative Multi-Agent Vision-Language-Action Models via Reinforced Fine Tuning",
-      "abstract": "We study reinforcement learning (RL) methods for cooperative multi-agent Vision-Language-Action (VLA) models. This problem is challenging because VLAs are pretrained on large-scale single-agent data and therefore lack the fine-grained coordination skills required for inter-robot collaboration. Supervised fine-tuning (SFT) on multi-robot demonstrations partially bridges this gap, but its performance is bounded by the demonstration data and cannot improve from its own experience. We present a three-stage reinforced fine-tuning (RFT) pipeline for multi-agent VLAs. First, initialization-aware data collection sweeps over initial configurations and invokes human demonstrations only when the pretrained VLA repeatedly fails, yielding robustness to initialization shift with reduced human cost. Second, offline credit-filtered tuning assigns credit to individual agents and fine-tunes on per-agent trajectories with positive advantage rather than on entire joint rollouts. Third, we find existing online RL for VLAs are less effective for hard multi-agent tasks, which we attribute to noisy co-exploration and unstable updates. We instead use online latent-space fine tuning, which freeze the VLA and perform RL in its latent noise space. We evaluate our multi-agent VLA with both $π_0$ and $π_{0.5}$ backbones across 11 tasks in RoboTwin, RoboFactory and real-world manipulation with two Franka robots. Our multi-agent VLA improves the average success rate by $+23.1\\%$, $+16.4\\%$, and $+44\\%$ on RoboTwin, RoboFactory, and real-world tasks, respectively. Code available at https://anonymous.4open.science/r/mavla_rft-2BC0/.",
+      "title": "Vela: Scaling Vision-Language-Action Models with Adaptive Action Curve Parametrization",
+      "abstract": "Most vision-language-action models represent future motion as fixed-rate action chunks, tying temporal resolution and prediction horizon to a fixed output budget. This pointwise representation wastes capacity on highly correlated neighboring actions, leaves temporal continuity and smoothness to be learned implicitly, and forces a tradeoff between long-horizon coverage and the local precision required for contact-rich manipulation. To address these limitations, we introduce Vela, a vision-language-action foundation model that represents future robot behavior as continuous trajectories. Vela combines a compact spline-based action representation with motion-dependent temporal support and a shared action interface for heterogeneous embodiments, allowing a fixed output budget to adapt its temporal resolution across motions. We pretrain Vela on large-scale multi-embodiment robot data and evaluate it on LIBERO-X, EBench, and two real-world long-horizon tasks, egg-cake cooking and potato shredding, obtaining promising results across simulation and physical manipulation. These results highlight the potential of continuous action representations as a foundation for future embodied foundation models. Project page and more results: https://clementine24.github.io/Vela/ .",
       "authors": [
-        "Ruixiao Xu",
-        "Wong Lik Hang Kenny",
-        "Zhiqian Liu",
-        "Jianing Guo",
-        "Hanxiao Li",
-        "Kejian Shi",
-        "Shuning Zhang",
-        "Pu Feng",
-        "Yongjia Ma",
-        "Yuqing Ma",
-        "Kai Chen",
-        "Qi Dou",
-        "Yaodong Yang",
-        "Xianglong Liu",
-        "Simin Li"
+        "Yifan Li",
+        "Jiaxu Wang",
+        "Dongming Wu",
+        "Yicheng Jiang",
+        "Ryan Ji",
+        "Xiangyu Yue",
+        "Yanwei Fu"
       ],
       "primary_category": "cs.RO",
       "categories": [
         "cs.RO",
-        "cs.AI",
-        "cs.MA"
+        "cs.AI"
       ],
-      "published": "2026-09-29T03:05:50+00:00",
-      "link": "https://arxiv.org/pdf/2609.36588v1",
+      "published": "2026-10-04T13:50:59+00:00",
+      "link": "https://arxiv.org/pdf/2610.05230v1",
       "tags": [
         "keyword:VLA",
-        "query:VLA"
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
       ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Reinforced fine-tuning pipeline for multi-agent VLA models",
-      "llm_evidence_cn": "多智能体VLA模型的强化微调流水线",
-      "llm_evidence": "多智能体VLA模型的强化微调流水线",
-      "canonical_evidence": "多智能体VLA模型的强化微调流水线",
-      "llm_tldr_en": "Three-stage RFT pipeline enables multi-agent VLA models to improve coordination from experience beyond supervised fine-tuning.",
-      "llm_tldr_cn": "针对多智能体协作中VLA模型缺乏细粒度协调能力且监督微调受限于示范数据的问题，提出三阶段强化微调流水线。首先进行初始化感知数据收集，在预训练VLA反复失败时请求人类示范，然后利用强化学习从自身经验中提升协作技能。实验表明该方法在多机器人任务中显著优于监督微调，增强了VLA的协作能力。",
-      "llm_tldr": "针对多智能体协作中VLA模型缺乏细粒度协调能力且监督微调受限于示范数据的问题，提出三阶段强化微调流水线。首先进行初始化感知数据收集，在预训练VLA反复失败时请求人类示范，然后利用强化学习从自身经验中提升协作技能。实验表明该方法在多机器人任务中显著优于监督微调，增强了VLA的协作能力。",
+      "llm_score": 10.0,
+      "llm_evidence_en": "VLA foundation model with spline-based continuous action curves for heterogeneous embodiments.",
+      "llm_evidence_cn": "基于样条连续动作曲线的VLA基础模型，适用于异构机器人。",
+      "llm_evidence": "基于样条连续动作曲线的VLA基础模型，适用于异构机器人。",
+      "canonical_evidence": "基于样条连续动作曲线的VLA基础模型，适用于异构机器人。",
+      "llm_tldr_en": "Introduces Vela, a VLA foundation model representing robot behavior as continuous trajectories with spline-based action representation and motion-dependent temporal support, overcoming fixed-rate chunk limitations for contact-rich manipulation.",
+      "llm_tldr_cn": "针对现有VLA模型采用固定频率动作块导致时间分辨率和预测范围受限的问题，提出Vela基础模型，将机器人行为表示为连续轨迹，结合紧凑样条动作表示和运动相关的时间支持，实现异构机器人共享动作接口。实验表明Vela在长程覆盖和局部精度上优于固定块表示，为接触丰富操作提供更优方案。",
+      "llm_tldr": "针对现有VLA模型采用固定频率动作块导致时间分辨率和预测范围受限的问题，提出Vela基础模型，将机器人行为表示为连续轨迹，结合紧凑样条动作表示和运动相关的时间支持，实现异构机器人共享动作接口。实验表明Vela在长程覆盖和局部精度上优于固定块表示，为接触丰富操作提供更优方案。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
-      "matched_query_text": "Vision-Language-Action models in embodied AI",
-      "matched_requirement_id": "req-1",
+      "matched_query_text": "State of the art Vision Language Action models for embodied intelligence",
+      "matched_requirement_id": "req-5",
       "selection_source": "fresh_fetch"
     },
     {
-      "id": "2609.36774v1",
-      "source": "arxiv",
-      "title": "LexiconVLA: Learning Reusable Atomic Action Codebooks for Unseen Tasks",
-      "abstract": "Vision-language-action (VLA) models struggle to reuse recurring interactions in unseen tasks. Our diagnostic study reveals that reliable task completion does not imply consistent execution of constituent atomic actions across task contexts. We present LexiconVLA, a retrievable atomic-action lexicon for cross-task reuse. Global and detail codebooks capture shared interaction structure and fine-grained execution variation, respectively, preserving both reusable patterns and execution details. Visual-Atomic Action Alignment couples trajectory reconstruction from visual state changes with visual outcome prediction from action codes, grounding the lexicon in motion and its effects. We learn these codebooks with trajectory reconstruction and visual alignment on our AtomAction Dataset of 57,803 segments from 69 tasks. A planner and scene-aware adapter translate new goals into code-conditioned subtasks for a shared policy, without skill-specific experts or deployment-time parameter updates. Across five policy backbones on 26 RLBench tasks, LexiconVLA largely maintains performance on 18 seen tasks while improving success on 8 tasks held out from policy training. With BridgeVLA, unseen-task success rises from 16.67% to 34.17% (+17.50 percentage points), and overall success reaches 71.08%, the highest among methods with reported results. Real-robot experiments demonstrate stepwise execution and failure recovery.",
-      "authors": [
-        "Zeming Wei",
-        "Jianheng Ye",
-        "Xinshuai Song",
-        "Sirui Chen",
-        "Yang Liu",
-        "Liang Lin"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO"
-      ],
-      "published": "2026-09-29T05:45:52+00:00",
-      "link": "https://arxiv.org/pdf/2609.36774v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Presents LexiconVLA, a retrievable atomic-action lexicon for cross-task reuse in VLA",
-      "llm_evidence_cn": "提出LexiconVLA，一种可检索的原子动作词典用于VLA跨任务复用",
-      "llm_evidence": "提出LexiconVLA，一种可检索的原子动作词典用于VLA跨任务复用",
-      "canonical_evidence": "提出LexiconVLA，一种可检索的原子动作词典用于VLA跨任务复用",
-      "llm_tldr_en": "Addresses VLA models' struggle to reuse recurring interactions by learning retrievable atomic-action codebooks. Visual-Atomic Action Alignment grounds the lexicon in motion and effects, improving generalization to unseen tasks.",
-      "llm_tldr_cn": "该论文针对VLA模型在未见任务中难以复用反复出现的交互原语的问题，提出LexiconVLA，一种可检索的原子动作词典。全局与细节码本分别捕获共享交互结构和执行变化，视觉-原子动作对齐将轨迹重建与视觉结果预测耦合，将词典扎根于运动和效果。实验表明，LexiconVLA提升了跨任务复用能力，在未见任务上表现更优，为VLA模型的可组合性提供了新机制。",
-      "llm_tldr": "该论文针对VLA模型在未见任务中难以复用反复出现的交互原语的问题，提出LexiconVLA，一种可检索的原子动作词典。全局与细节码本分别捕获共享交互结构和执行变化，视觉-原子动作对齐将轨迹重建与视觉结果预测耦合，将词典扎根于运动和效果。实验表明，LexiconVLA提升了跨任务复用能力，在未见任务上表现更优，为VLA模型的可组合性提供了新机制。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Vision-Language-Action models in embodied AI",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2609.37165v1",
-      "source": "arxiv",
-      "title": "Disentangling Spurious Correlations in Vision-Language-Action Models via Predicting Domain-Invariant Latent Lookahead",
-      "abstract": "Vision-Language-Action (VLA) models remain brittle under visual distribution shifts, often relying on spurious correlations tied to domain-specific factors rather than task-relevant structure. We propose Domain-Invariant Latent Lookahead (DILL), a representation-learning framework that mitigates shortcut learning in VLA policies. Our key idea is to supervise policies with domain-invariant future latents learned from domain-transformed trajectory data. A Task-Domain Encoder is trained with contrastive objectives and Gaussian disentanglement regularization to separate task-relevant structure from domain-specific visual variation. The learned encoder then provides future latents for VLA policy learning through lookahead prediction and domain disentanglement, encouraging the policy to focus on task-relevant structure rather than incidental visual factors. Counterfactual task-view evaluations show that DILL reduces shortcut reliance, while LIBERO-Plus evaluations demonstrate improved visual robustness, with 69.1% average success, 11.4 percentage points above the strongest baseline. Real-world manipulation experiments further support DILL's applicability beyond controlled simulation. Complementary latent-space diagnostics show that these behavioral gains are accompanied by representations that better preserve task-consistent structure while suppressing domain-specific variation. Our project page is available at https://dill-vla.github.io/.",
-      "authors": [
-        "Junghyun Kim",
-        "Ngseo Kim",
-        "ChungWoo Lee",
-        "Seoyeon Lee",
-        "Woo-Jeong Baek",
-        "Adam Zhou",
-        "Chip Huyen",
-        "Jun-Ki Lee",
-        "Gi-Cheon Kang",
-        "Byoung-Tak Zhang"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.LG"
-      ],
-      "published": "2026-09-29T09:56:17+00:00",
-      "link": "https://arxiv.org/pdf/2609.37165v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Domain-invariant latent lookahead to disentangle spurious correlations in VLA models",
-      "llm_evidence_cn": "通过域不变潜在前瞻解耦VLA模型中的虚假相关性",
-      "llm_evidence": "通过域不变潜在前瞻解耦VLA模型中的虚假相关性",
-      "canonical_evidence": "通过域不变潜在前瞻解耦VLA模型中的虚假相关性",
-      "llm_tldr_en": "DILL supervises VLA policies with domain-invariant future latents from domain-transformed trajectories to mitigate shortcut learning under distribution shifts.",
-      "llm_tldr_cn": "该论文针对视觉-语言-动作模型在视觉分布偏移下依赖虚假相关性的脆弱性问题，提出DILL表示学习框架，通过域变换轨迹数据学习域不变未来潜在，训练任务-域编码器分离任务相关结构与域特定变化，并用其监督VLA策略学习，从而提升分布外鲁棒性。",
-      "llm_tldr": "该论文针对视觉-语言-动作模型在视觉分布偏移下依赖虚假相关性的脆弱性问题，提出DILL表示学习框架，通过域变换轨迹数据学习域不变未来潜在，训练任务-域编码器分离任务相关结构与域特定变化，并用其监督VLA策略学习，从而提升分布外鲁棒性。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Vision-Language-Action models in embodied AI",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2609.38616v1",
-      "source": "arxiv",
-      "title": "Correcting WHERE, Preserving HOW: Compositional Generalization for Vision-Language-Action Models via Referential Guidance",
-      "abstract": "While Vision-Language-Action (VLA) models enable flexible action generation, their generalization across diverse environmental elements, including manipulated objects, destinations, and backgrounds, is limited by the lack of diversity in robotic training data. Trained end-to-end on such data, VLAs tend to exploit visual shortcuts, associating actions with task-irrelevant visual features rather than the intended task semantics. These shortcuts block recomposition of elements already seen by the policy, that is, compositional generalization. Existing approaches mitigate such entanglement through task-relevant perception or targeted data diversification, but offer no explicit mechanism for unseen recomposition and require backbone-specific modifications with retraining. We observe that under such recomposition, VLAs often fail at global grounding while retaining local manipulation skills that recover near the correct target in familiar configurations. Therefore, we propose Referential Guidance (ReGuide), a training-free wrapper that, given object poses from a grounding module, combines semantic and geometric rebinding to guide the end-effector into demonstration-supported configurations of the instructed referent, where the frozen policy can resume execution. Experiments in simulation across multiple VLA backbones as well as on a real robot show that ReGuide improves success rates under compositional shifts by up to 56.8 and 75.0 percentage points, respectively, while preserving standard-task performance.",
-      "authors": [
-        "Yanyan Zhang",
-        "Disheng Liu",
-        "Xinpeng Li",
-        "Chaoda Song",
-        "Mohsen Hariri",
-        "Debargha Ganguly",
-        "Wang Yang",
-        "Kai Ye",
-        "Bryce Grant",
-        "Vipin Chaudhary",
-        "Yu Yin"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.CV",
-        "cs.LG"
-      ],
-      "published": "2026-09-29T22:20:32+00:00",
-      "link": "https://arxiv.org/pdf/2609.38616v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "compositional generalization for Vision-Language-Action models",
-      "llm_evidence_cn": "视觉-语言-动作模型的组合泛化",
-      "llm_evidence": "视觉-语言-动作模型的组合泛化",
-      "canonical_evidence": "视觉-语言-动作模型的组合泛化",
-      "llm_tldr_en": "This paper addresses limited compositional generalization in Vision-Language-Action (VLA) models by introducing referential guidance to correct where actions apply while preserving how they execute. The method reduces visual shortcut reliance and enables recomposition of seen elements.",
-      "llm_tldr_cn": "VLA模型在机器人训练数据多样性不足时容易利用视觉捷径，导致组合泛化能力受限。该工作提出指称引导方法，在保留动作执行方式的同时纠正动作作用位置，显式支持环境元素的重组。实验表明，该方法能提升VLA模型对未见组合的泛化性能，为具身智能中的可泛化动作生成提供新思路。",
-      "llm_tldr": "VLA模型在机器人训练数据多样性不足时容易利用视觉捷径，导致组合泛化能力受限。该工作提出指称引导方法，在保留动作执行方式的同时纠正动作作用位置，显式支持环境元素的重组。实验表明，该方法能提升VLA模型对未见组合的泛化性能，为具身智能中的可泛化动作生成提供新思路。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Vision-Language-Action models in embodied AI",
-      "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2609.39324v1",
-      "source": "arxiv",
-      "title": "MotionWeave: Learning Motion-Centered Future Dynamics for Vision-Language-Action Policies",
-      "abstract": "Vision-Language-Action (VLA) models have recently incorporated world models to provide richer dynamic supervision beyond sparse action labels. However, explicitly predicting future images or videos may include control-irrelevant appearance, while guidance derived from holistic future visual representations and shared global action features may fail to establish timestep-specific correspondence between actions and local visual changes. To address this issue, we propose MotionWeave, a motion-centric future-dynamics framework for action-chunk prediction with two modules: the Action-Induced Motion Grounder (AIMG) and the Horizon Residual Composer (HRC). Specifically, AIMG conditions on action and proprioceptive representations to construct horizon-specific queries that localize interaction regions associated with each future action timestep from current visual tokens. HRC extracts differences between interaction representations at adjacent horizons, encodes them as temporal motion cues, and injects them into action tokens through a gated residual. During training, robot-arm masks rendered from future frames are used to construct KL-based motion-grounding supervision, while inference uses only the current observation. On six MetaWorld tasks, MotionWeave achieves a 75.3% average success rate, an absolute gain of 8.6% over π0 (66.7%), especially on sustained-interaction tasks. Our code is available at https://github.com/autu-mn/MotionWeave.",
-      "authors": [
-        "Jingqiu Wang",
-        "Yan Wang"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.CV",
-        "cs.LG"
-      ],
-      "published": "2026-09-30T09:00:28+00:00",
-      "link": "https://arxiv.org/pdf/2609.39324v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "motion-centric future dynamics for VLA action-chunk prediction",
-      "llm_evidence_cn": "面向VLA动作块预测的运动中心未来动态",
-      "llm_evidence": "面向VLA动作块预测的运动中心未来动态",
-      "canonical_evidence": "面向VLA动作块预测的运动中心未来动态",
-      "llm_tldr_en": "Proposes MotionWeave, a motion-centric future-dynamics framework for VLA policies, using Action-Induced Motion Grounder and Horizon Residual Composer to establish timestep-specific correspondence between actions and local visual changes.",
-      "llm_tldr_cn": "针对VLA模型引入世界模型时预测未来图像包含控制无关外观、且整体特征缺乏时间步对应的问题，提出MotionWeave框架，包含动作诱导运动接地器和水平残差组合器两个模块，以动作和本体感受为条件构建运动中心表示。实验表明该方法能提升动作块预测的精度和效率，为VLA策略学习提供更有效的动态监督。",
-      "llm_tldr": "针对VLA模型引入世界模型时预测未来图像包含控制无关外观、且整体特征缺乏时间步对应的问题，提出MotionWeave框架，包含动作诱导运动接地器和水平残差组合器两个模块，以动作和本体感受为条件构建运动中心表示。实验表明该方法能提升动作块预测的精度和效率，为VLA策略学习提供更有效的动态监督。",
-      "llm_tags": [
-        "query:vla:composite"
-      ],
-      "matched_query_tag": "query:vla:composite",
-      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
-      "matched_requirement_id": "req-composite-vla",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2609.39870v1",
+      "id": "2609.39870v2",
       "source": "arxiv",
       "title": "Magic-W0: A Structured World-Action Foundation Model for Physical Intelligence",
       "abstract": "World-action models (WAMs) augment robot policies with action-conditioned environment dynamics, yet existing approaches largely rely on future observation reconstruction or generic latent prediction and lack structured, control-oriented world representations tightly coupled with action generation. We introduce Magic-W0, a world-action foundation model that jointly models structured physical state evolution and continuous actions. Magic-W0 represents interaction as a Structured World Transition consisting of Current State, Transition, and Future State. Current State combines vision-language context with Current 3D Geometry; Transition is represented by 3D Motion capturing action-induced three-dimensional changes; and Future State is represented by Future Semantics describing task-relevant outcomes. To couple prediction and control, we propose a layer-aligned world-action interaction architecture in which evolving action hypotheses condition world-transition prediction, while predicted world representations continuously inform action generation. Magic-W0 is pre-trained on large-scale egocentric human manipulation, UMI, real-robot, and simulation data, with latent supervision for geometry, 3D motion, and future semantics from pre-trained visual models. Inference-time interventions show that structured world representations respond systematically to changes in candidate actions and that action-related information propagates through shared 3D representations into future semantic predictions. On RoboDojo-Sim, Magic-W0 achieves an average Score of 27.10, the highest among the compared WAMs. Across multiple real-robot tasks, it also demonstrates strong downstream performance after fine-tuning with limited downstream data, supporting generalization and rapid adaptation.",
@@ -258,20 +85,21 @@
         "cs.RO"
       ],
       "published": "2026-09-30T14:49:55+00:00",
-      "link": "https://arxiv.org/pdf/2609.39870v1",
+      "link": "https://arxiv.org/pdf/2609.39870v2",
       "tags": [
         "keyword:VLA",
+        "keyword:tf",
         "query:VLA",
         "query:tf"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "structured world-action foundation model for physical intelligence",
-      "llm_evidence_cn": "面向物理智能的结构化世界-动作基础模型",
-      "llm_evidence": "面向物理智能的结构化世界-动作基础模型",
-      "canonical_evidence": "面向物理智能的结构化世界-动作基础模型",
-      "llm_tldr_en": "Introduces a world-action foundation model that jointly models structured physical state evolution and continuous actions using vision-language context and 3D geometry.",
-      "llm_tldr_cn": "针对现有世界-动作模型缺乏结构化、面向控制的表示的问题，提出世界-动作基础模型Magic-W0。该模型将交互表示为结构化世界转移，融合视觉-语言上下文、当前三维几何、三维运动与未来状态，同时建模连续动作。实验验证其在物理智能任务中优于以往仅依赖未来观测重建的方法。该工作推动了世界-动作基础模型在机器人操控中的应用。",
-      "llm_tldr": "针对现有世界-动作模型缺乏结构化、面向控制的表示的问题，提出世界-动作基础模型Magic-W0。该模型将交互表示为结构化世界转移，融合视觉-语言上下文、当前三维几何、三维运动与未来状态，同时建模连续动作。实验验证其在物理智能任务中优于以往仅依赖未来观测重建的方法。该工作推动了世界-动作基础模型在机器人操控中的应用。",
+      "llm_evidence_en": "Structured world-action foundation model tightly coupling physical state evolution and continuous actions",
+      "llm_evidence_cn": "结构化世界-动作基础模型紧密耦合物理状态演化与连续动作",
+      "llm_evidence": "结构化世界-动作基础模型紧密耦合物理状态演化与连续动作",
+      "canonical_evidence": "结构化世界-动作基础模型紧密耦合物理状态演化与连续动作",
+      "llm_tldr_en": "Introduces Magic-W0, a world-action foundation model representing interaction as structured world transitions including 3D geometry, motion, and future state, tightly coupling with action generation.",
+      "llm_tldr_cn": "针对现有世界-动作模型依赖未来观测重建且缺乏结构化控制导向表示的问题，提出基础模型Magic-W0。它将交互表示为结构化世界转移，包含当前状态、转移和未来状态，结合视觉语言上下文与3D几何和运动。实验表明该结构化表示能有效支撑物理智能任务，提升动作生成的连贯性和物理合理性。",
+      "llm_tldr": "针对现有世界-动作模型依赖未来观测重建且缺乏结构化控制导向表示的问题，提出基础模型Magic-W0。它将交互表示为结构化世界转移，包含当前状态、转移和未来状态，结合视觉语言上下文与3D几何和运动。实验表明该结构化表示能有效支撑物理智能任务，提升动作生成的连贯性和物理合理性。",
       "llm_tags": [
         "query:vla:composite"
       ],
@@ -324,98 +152,19 @@
         "query:tf"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "unified embodied model combining VLA semantic understanding and WAM predictive representations",
-      "llm_evidence_cn": "结合VLA语义理解与WAM预测表征的统一具身模型",
-      "llm_evidence": "结合VLA语义理解与WAM预测表征的统一具身模型",
-      "canonical_evidence": "结合VLA语义理解与WAM预测表征的统一具身模型",
-      "llm_tldr_en": "Presents EWAM, an action-centric unified embodied model with asymmetric joint attention that enables emergent depth-wise specialization, allowing action tokens to read semantic, visual, predicted-future, and action information.",
-      "llm_tldr_cn": "针对VLA策略强调语义理解而世界-动作模型学习预测表征，但融合系统仍集中于单一专家的问题，提出EWAM行动中心的统一具身模型，通过非对称联合注意力让动作令牌在每层读取语义、当前视觉、预测未来和动作信息。无需层间监督，EWAM展现出深度专业化：浅层主要关注视觉-语言特征，深层关注预测信息。实验表明该模型能有效融合两种建模优势，提升具身智能性能。",
-      "llm_tldr": "针对VLA策略强调语义理解而世界-动作模型学习预测表征，但融合系统仍集中于单一专家的问题，提出EWAM行动中心的统一具身模型，通过非对称联合注意力让动作令牌在每层读取语义、当前视觉、预测未来和动作信息。无需层间监督，EWAM展现出深度专业化：浅层主要关注视觉-语言特征，深层关注预测信息。实验表明该模型能有效融合两种建模优势，提升具身智能性能。",
+      "llm_evidence_en": "Unified embodied model combining VLA and WAM with emergent depth-wise specialization",
+      "llm_evidence_cn": "结合VLA与WAM的统一具身模型并涌现深度专业化",
+      "llm_evidence": "结合VLA与WAM的统一具身模型并涌现深度专业化",
+      "canonical_evidence": "结合VLA与WAM的统一具身模型并涌现深度专业化",
+      "llm_tldr_en": "Presents EWAM, an action-centric unified embodied model that merges VLA semantic understanding and WAM predictive dynamics, achieving emergent depth-wise specialization without layer-wise supervision.",
+      "llm_tldr_cn": "针对VLA策略侧重语义而WAM侧重环境动力学预测，现有系统难以有效融合的问题，提出动作中心统一具身模型EWAM。EWAM通过非对称联合注意力让动作令牌同时读取语义、视觉和预测未来信息。实验显示无需逐层监督即可涌现深度专业化，浅层关注视觉语言特征，深层关注预测特征，从而提升动作生成的综合能力。",
+      "llm_tldr": "针对VLA策略侧重语义而WAM侧重环境动力学预测，现有系统难以有效融合的问题，提出动作中心统一具身模型EWAM。EWAM通过非对称联合注意力让动作令牌同时读取语义、视觉和预测未来信息。实验显示无需逐层监督即可涌现深度专业化，浅层关注视觉语言特征，深层关注预测特征，从而提升动作生成的综合能力。",
       "llm_tags": [
         "query:vla:composite"
       ],
       "matched_query_tag": "query:vla:composite",
       "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
       "matched_requirement_id": "req-composite-vla",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2610.01698v1",
-      "source": "arxiv",
-      "title": "ActiveWAM: Evidence-Aware Active Vision for World-Action Models",
-      "abstract": "Active vision manipulation requires a policy to control both its camera and its end-effectors, yet camera motion determines which evidence remains visible within finite observation windows. Acquiring a new view can displace task-critical cues, while retaining a view forgoes potentially useful observations. We formulate this as an evidence-aware retain--acquire problem and present ActiveWAM, a unified world--action model that learns observation and manipulation jointly. To this end, we propose training-time inversion which constrains a frozen video prior by task-bearing source evidence and visible temporal changes, eliminating the need for test-time inversion or candidate ranking. At deployment, the policy generates bimanual and pan/tilt actions-including stay and reacquisition behaviors-from view-aware history, and updates context from newly measured RGB observations. Future-video prediction serves as a co-training signal, while action generation requires neither future-video decoding nor optimal viewpoint annotations. We introduce RoboTwin-AV, a 50-task benchmark with executable pan/tilt control and automatically generated demonstrations. ActiveWAM improves TAVIS out-of-distribution success by up to 17.0 percentage points over the strongest baselines, achieves 20.0 additional points over Fast-WAM on RoboTwin-AV, and outperforms it by 26.7 points on real-world physical kitchen tasks.",
-      "authors": [
-        "Renjun Wu",
-        "Luzhou Ge",
-        "Xuesong Li"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO"
-      ],
-      "published": "2026-10-01T13:48:29+00:00",
-      "link": "https://arxiv.org/pdf/2610.01698v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "unified world-action model for active vision manipulation",
-      "llm_evidence_cn": "用于主动视觉操作的世界-动作模型",
-      "llm_evidence": "用于主动视觉操作的世界-动作模型",
-      "canonical_evidence": "用于主动视觉操作的世界-动作模型",
-      "llm_tldr_en": "Addresses active vision manipulation by proposing ActiveWAM, a unified world-action model that learns observation and manipulation jointly via training-time inversion, improving evidence-aware control.",
-      "llm_tldr_cn": "针对主动视觉操作中相机运动与证据保留的矛盾，提出ActiveWAM统一世界-动作模型，通过训练时反演约束冻结视频先验，实现观察与操纵的联合学习。部署时策略可生成双机械臂和云台动作，无需测试时反演。实验表明该方法能有效解决证据感知的保留-获取问题，提升操作性能。",
-      "llm_tldr": "针对主动视觉操作中相机运动与证据保留的矛盾，提出ActiveWAM统一世界-动作模型，通过训练时反演约束冻结视频先验，实现观察与操纵的联合学习。部署时策略可生成双机械臂和云台动作，无需测试时反演。实验表明该方法能有效解决证据感知的保留-获取问题，提升操作性能。",
-      "llm_tags": [
-        "query:vla:composite"
-      ],
-      "matched_query_tag": "query:vla:composite",
-      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
-      "matched_requirement_id": "req-composite-vla",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2610.02338v1",
-      "source": "arxiv",
-      "title": "SoTa: Soft Tactile Skins for Dexterous Manipulation",
-      "abstract": "A growing body of work suggests that tactile sensing gives robot policies contact information that complements vision in dexterous manipulation. However, visuo-tactile robot data remains scarce: dexterous demonstrations require teleoperating robots, which limits dataset scale. Human demonstrations are far cheaper to collect and offer a path to scale this data, but only if human and robot hands carry tactile sensors with corresponding signals. This requires sensors that conform to different hand geometries, cover the full hand, and share a common layout across embodiments. We present SoTa, a low-cost capacitive tactile skin that provides full-hand coverage on humans and robots while preserving a shared layout of 202 taxels across corresponding finger and palm regions. Our multilayer design with fabric electrodes enables in-house fabrication of thin, soft skins with customizable geometry for under $10 in materials per skin. The sensor retains over 97% of its initial response span after 10,000 loading-unloading cycles with traces retaining continuity through 1,280 tight-fist folding cycles. The shared taxel layout supports human-robot co-training with a common tactile encoder and no learned cross-sensor mapping. Across three contact-rich manipulation tasks, tactile observations improve in-distribution success over vision-only policies. With a fixed robot demonstration budget, adding human demonstrations more than doubles mean success across eight evaluation conditions, from 22.8% to 45.9%, improving success in all five out-of-distribution conditions. We plan to open-source the resources needed to fabricate and operate these skins.",
-      "authors": [
-        "Jingyun Yang",
-        "Baiyu Shi",
-        "Timothy Yu",
-        "Haitian Liu",
-        "Alberta Longhini",
-        "Weichen Wang",
-        "Rika Antonova",
-        "Zhenan Bao",
-        "Jeannette Bohg"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.LG"
-      ],
-      "published": "2026-10-01T18:08:59+00:00",
-      "link": "https://arxiv.org/pdf/2610.02338v1",
-      "tags": [
-        "keyword:tf",
-        "query:tf"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "Full-hand soft tactile skin for human and robot dexterous manipulation data collection",
-      "llm_evidence_cn": "全手软触觉皮肤用于人类与机器人灵巧操作数据采集",
-      "llm_evidence": "全手软触觉皮肤用于人类与机器人灵巧操作数据采集",
-      "canonical_evidence": "全手软触觉皮肤用于人类与机器人灵巧操作数据采集",
-      "llm_tldr_en": "SoTa provides low-cost capacitive tactile skins with shared taxel layout across human and robot hands to scale visuo-tactile data collection.",
-      "llm_tldr_cn": "针对灵巧操作中视觉-触觉机器人数据稀缺、人类示范数据虽易采集但需跨本体触觉对应的问题，提出SoTa软触觉皮肤，以低成本电容式传感器覆盖人类与机器人全手，并在对应手指和手掌区域保持一致的202个触觉点布局。该设计使人类示范可直接迁移到机器人，有望规模化采集灵巧操作数据，推动触觉感知在操作策略中的应用。",
-      "llm_tldr": "针对灵巧操作中视觉-触觉机器人数据稀缺、人类示范数据虽易采集但需跨本体触觉对应的问题，提出SoTa软触觉皮肤，以低成本电容式传感器覆盖人类与机器人全手，并在对应手指和手掌区域保持一致的202个触觉点布局。该设计使人类示范可直接迁移到机器人，有望规模化采集灵巧操作数据，推动触觉感知在操作策略中的应用。",
-      "llm_tags": [
-        "query:tf"
-      ],
-      "matched_query_tag": "query:tf",
-      "matched_query_text": "tactile sensing",
-      "matched_requirement_id": "req-12",
       "selection_source": "fresh_fetch"
     },
     {
@@ -452,67 +201,24 @@
       "link": "https://arxiv.org/pdf/2610.02368v1",
       "tags": [
         "keyword:VLA",
-        "query:VLA"
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Proposes hierarchical WAM with visual subgoal planning for compositional manipulation",
-      "llm_evidence_cn": "提出层级世界动作模型含视觉子目标规划用于组合操作",
-      "llm_evidence": "提出层级世界动作模型含视觉子目标规划用于组合操作",
-      "canonical_evidence": "提出层级世界动作模型含视觉子目标规划用于组合操作",
-      "llm_tldr_en": "ViGAR factorizes long-horizon manipulation into visual subgoal planning and execution, improving WAMs with explicit subtask reasoning.",
-      "llm_tldr_cn": "针对长程组合操作中现有世界动作模型缺乏子任务级推理的问题，提出ViGAR层级框架，将操作分解为视觉子目标规划器和子目标执行器。子目标规划器预测下一子任务的视觉目标，执行器联合生成视觉轨迹与动作。实验表明该分解显著提升组合操作性能，为WAM在真实机器人部署提供了新方案。",
-      "llm_tldr": "针对长程组合操作中现有世界动作模型缺乏子任务级推理的问题，提出ViGAR层级框架，将操作分解为视觉子目标规划器和子目标执行器。子目标规划器预测下一子任务的视觉目标，执行器联合生成视觉轨迹与动作。实验表明该分解显著提升组合操作性能，为WAM在真实机器人部署提供了新方案。",
+      "llm_evidence_en": "World-action model for compositional robotic manipulation",
+      "llm_evidence_cn": "世界-动作模型用于组合机器人操作",
+      "llm_evidence": "世界-动作模型用于组合机器人操作",
+      "canonical_evidence": "世界-动作模型用于组合机器人操作",
+      "llm_tldr_en": "ViGAR addresses long-horizon compositional manipulation by factorizing world-action models into a visual subgoal planner and subgoal executor, enabling explicit subtask reasoning and improved generalization.",
+      "llm_tldr_cn": "针对长序列组合操作任务，该文提出ViGAR框架，将操作分解为视觉子目标规划与子目标执行两级结构。子目标规划器根据当前观测和全局指令预测下一子目标，执行器联合生成未来视觉轨迹与动作。实验表明该方法提升了组合任务与上下文学习的性能，为世界-动作模型在机器人操作中的应用提供了新思路。",
+      "llm_tldr": "针对长序列组合操作任务，该文提出ViGAR框架，将操作分解为视觉子目标规划与子目标执行两级结构。子目标规划器根据当前观测和全局指令预测下一子目标，执行器联合生成未来视觉轨迹与动作。实验表明该方法提升了组合任务与上下文学习的性能，为世界-动作模型在机器人操作中的应用提供了新思路。",
       "llm_tags": [
         "query:vla:composite"
       ],
       "matched_query_tag": "query:vla:composite",
       "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
       "matched_requirement_id": "req-composite-vla",
-      "selection_source": "fresh_fetch"
-    },
-    {
-      "id": "2610.02717v1",
-      "source": "arxiv",
-      "title": "RoboBridge: A Self-Evolving Embodied Agent Framework for Sim-to-Real Transfer",
-      "abstract": "A key challenge in bringing embodied intelligence into the real world is transferring capabilities from simulation to reality and enabling agents to continually adapt after deployment. End-to-end vision-language-action policies provide strong manipulation capabilities, but their transfer to physical environments typically relies on calibrating simulated visual and dynamical conditions, collecting additional target-domain demonstrations, and optimizing the policy through further training. Tool-using embodied agents offer flexible task orchestration, yet existing systems primarily emphasize task execution and experience reuse within a given environment, with limited support for transferring procedural knowledge and continuously adapting it across simulation and reality. We propose RoboBridge, a framework that treats sim-to-real transfer as the continued adaptation of executable task skills. The agent represents task knowledge as procedures connecting task intent, observations, tool operations, and outcome verification. Interaction feedback is used to generate candidate skill revisions, which are evaluated before being persisted or rejected. A pretrained vision-language-action policy is exposed as a reusable action tool and enhanced with inference-time guidance, enabling fine-grained execution without retraining the underlying policy. RoboBridge grounds transferable skills in task semantics and interaction interfaces shared across simulation and reality. This representation preserves reusable task structure while allowing environment-dependent operations to be selectively revised through real-world execution feedback. We evaluate the framework on LIBERO-PRO and corresponding physical tasks, studying both skill evolution and post-transfer adaptation. Our framework provides a route from one-shot policy deployment to continual procedural learning across environments.",
-      "authors": [
-        "Chenxi Li",
-        "Zhangrui Zhao",
-        "Rui Li",
-        "Yuan Gao",
-        "Kehui Liu",
-        "Jiarui Li",
-        "Dong Wang",
-        "Tong Si",
-        "Minting Pan",
-        "Wanli Ouyang",
-        "Dongzhan Zhou"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO"
-      ],
-      "published": "2026-10-02T02:53:57+00:00",
-      "link": "https://arxiv.org/pdf/2610.02717v1",
-      "tags": [
-        "keyword:VLA",
-        "keyword:tf",
-        "query:tf"
-      ],
-      "llm_score": 9.0,
-      "llm_evidence_en": "self-evolving embodied agent framework for sim-to-real transfer; uses end-to-end vision-language-action policies",
-      "llm_evidence_cn": "自进化具身智能体框架，面向VLA策略的仿真到现实迁移",
-      "llm_evidence": "自进化具身智能体框架，面向VLA策略的仿真到现实迁移",
-      "canonical_evidence": "自进化具身智能体框架，面向VLA策略的仿真到现实迁移",
-      "llm_tldr_en": "Proposes a self-evolving embodied agent framework that combines end-to-end vision-language-action policies with tool-using orchestration and experience reuse for continuous adaptation after deployment.",
-      "llm_tldr_cn": "针对具身智能从仿真迁移到现实后难以持续适应的问题，提出自进化具身智能体框架RoboBridge。该框架将端到端视觉-语言-动作策略与工具型智能体结合，支持跨环境程序性知识迁移与在线适应。实验表明其能在部署后利用经验不断优化策略，提升物理环境中的操控表现。该工作为VLA策略的实际落地提供了新路径。",
-      "llm_tldr": "针对具身智能从仿真迁移到现实后难以持续适应的问题，提出自进化具身智能体框架RoboBridge。该框架将端到端视觉-语言-动作策略与工具型智能体结合，支持跨环境程序性知识迁移与在线适应。实验表明其能在部署后利用经验不断优化策略，提升物理环境中的操控表现。该工作为VLA策略的实际落地提供了新路径。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Vision-Language-Action models in embodied AI",
-      "matched_requirement_id": "req-1",
       "selection_source": "fresh_fetch"
     },
     {
@@ -539,23 +245,69 @@
       "published": "2026-10-02T04:19:13+00:00",
       "link": "https://arxiv.org/pdf/2610.02784v1",
       "tags": [
+        "keyword:VLA",
         "keyword:tf",
+        "query:VLA",
         "query:tf"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Introduces SimpleTouch, a VLA extension with tactile expert for contact-rich manipulation",
-      "llm_evidence_cn": "提出SimpleTouch，一种带触觉专家的VLA扩展用于接触丰富操作",
-      "llm_evidence": "提出SimpleTouch，一种带触觉专家的VLA扩展用于接触丰富操作",
-      "canonical_evidence": "提出SimpleTouch，一种带触觉专家的VLA扩展用于接触丰富操作",
-      "llm_tldr_en": "Tests whether large-scale tactile pretraining or alignment is needed to incorporate touch into VLA models. SimpleTouch augments π0.5 with frozen pretrained tactile tokens, showing that simple integration can master contact-rich tasks without extra stages.",
-      "llm_tldr_cn": "该论文针对将触觉感知引入预训练VLA模型时通常依赖大规模触觉预训练或单独对齐的挑战，提出SimpleTouch方法，将π0.5与冻结的预训练触觉专家简单结合。SimpleTouch利用全部token，无需额外的触觉策略预训练或对齐阶段。实验表明，这种简单扩展足以掌握接触丰富的操作任务，质疑了额外训练阶段的必要性，为触觉VLA集成提供了高效路径。",
-      "llm_tldr": "该论文针对将触觉感知引入预训练VLA模型时通常依赖大规模触觉预训练或单独对齐的挑战，提出SimpleTouch方法，将π0.5与冻结的预训练触觉专家简单结合。SimpleTouch利用全部token，无需额外的触觉策略预训练或对齐阶段。实验表明，这种简单扩展足以掌握接触丰富的操作任务，质疑了额外训练阶段的必要性，为触觉VLA集成提供了高效路径。",
+      "llm_evidence_en": "VLA extension with tactile expert for contact-rich manipulation without tactile pretraining",
+      "llm_evidence_cn": "将触觉专家融入VLA模型，无需触觉预训练即可处理接触丰富操作",
+      "llm_evidence": "将触觉专家融入VLA模型，无需触觉预训练即可处理接触丰富操作",
+      "canonical_evidence": "将触觉专家融入VLA模型，无需触觉预训练即可处理接触丰富操作",
+      "llm_tldr_en": "SimpleTouch augments a pretrained VLA with a tactile expert to test whether tactile policy pretraining is necessary for contact-rich manipulation, showing that simple fine-tuning can bridge the cross-modal gap and achieve competitive performance.",
+      "llm_tldr_cn": "针对将触觉传感融入预训练视觉-语言-动作（VLA）模型的挑战，SimpleTouch 通过为 π0.5 添加触觉专家来测试是否必须进行大规模触觉策略预训练。实验表明，简单微调即可跨越模态鸿沟，在接触丰富操作任务上获得有竞争力的成功率，从而减少数据需求和训练阶段。该工作为低成本触觉增强 VLA 提供了证据，推动了具身智能中多模态感知的实用化。",
+      "llm_tldr": "针对将触觉传感融入预训练视觉-语言-动作（VLA）模型的挑战，SimpleTouch 通过为 π0.5 添加触觉专家来测试是否必须进行大规模触觉策略预训练。实验表明，简单微调即可跨越模态鸿沟，在接触丰富操作任务上获得有竞争力的成功率，从而减少数据需求和训练阶段。该工作为低成本触觉增强 VLA 提供了证据，推动了具身智能中多模态感知的实用化。",
       "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.02840v1",
+      "source": "arxiv",
+      "title": "PointWAM: 3D World Action Modeling for Dexterous Robotic Manipulation",
+      "abstract": "World action models jointly learn to forecast world dynamics and predict robot actions, such that the learned internal world dynamics guide accurate actions. Existing approaches typically represent the world as RGB frames or latent counterparts while predicting actions as end-effector poses or joint angles, but they often struggle to capture the 3D spatial structure and contact geometry central to dexterous manipulation. We introduce Point World Action Model (PointWAM), a 3D world action model that decomposes the world into a scene (i.e., environment) and hands (i.e., actor), and jointly forecasts both as 3D point trajectories within a shared space-time coordinate frame. This explicit, disentangled representation enables effective pre-training on large-scale human demonstration videos without requiring any task-specific object or keypoint selection. Given a colored point cloud and a language instruction, PointWAM predicts how the scene and hands co-evolve in 3D space over time, then retargets the forecast hand motion to robot actions. Pre-training on human videos improves average DexJoCo success by 56.9 percentage points, and scene-trajectory supervision adds 10.9 points over forecasting the hands alone. With both, PointWAM surpasses the prior state of the art on ten DexJoCo tasks by 11.7 points and outperforms strong VLAs on a real robot.",
+      "authors": [
+        "Chunghyun Park",
+        "Beomjun Kim",
+        "Seungcheol Park",
+        "Heeseung Kwon",
+        "Yashu Shukla",
+        "Seunghoon Sim",
+        "Jinwoo Shin",
+        "Minsu Cho"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-10-02T05:31:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.02840v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
         "query:tf"
       ],
-      "matched_query_tag": "query:tf",
-      "matched_query_text": "tactile sensing",
-      "matched_requirement_id": "req-12",
+      "llm_score": 9.0,
+      "llm_evidence_en": "3D world action model for dexterous manipulation, forecasting scene and hand trajectories.",
+      "llm_evidence_cn": "用于灵巧操作的3D世界动作模型，预测场景与手部轨迹。",
+      "llm_evidence": "用于灵巧操作的3D世界动作模型，预测场景与手部轨迹。",
+      "canonical_evidence": "用于灵巧操作的3D世界动作模型，预测场景与手部轨迹。",
+      "llm_tldr_en": "Proposes PointWAM, a 3D world action model that decomposes the world into scene and hands, forecasting both as 3D point trajectories in a shared space-time frame, enabling better capture of spatial structure and contact geometry for dexterous manipulation.",
+      "llm_tldr_cn": "针对现有世界动作模型难以捕捉3D空间结构和接触几何的问题，提出PointWAM，将世界分解为场景和手，在共享时空坐标系中联合预测3D点轨迹，实现显式解耦表示。该模型支持大规模预训练，在灵巧操作任务上展现更好的空间理解和动作预测能力，为机器人操作基础模型提供新思路。",
+      "llm_tldr": "针对现有世界动作模型难以捕捉3D空间结构和接触几何的问题，提出PointWAM，将世界分解为场景和手，在共享时空坐标系中联合预测3D点轨迹，实现显式解耦表示。该模型支持大规模预训练，在灵巧操作任务上展现更好的空间理解和动作预测能力，为机器人操作基础模型提供新思路。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Robotic foundation models for manipulation",
+      "matched_requirement_id": "req-3",
       "selection_source": "fresh_fetch"
     },
     {
@@ -584,22 +336,65 @@
       "link": "https://arxiv.org/pdf/2610.02898v1",
       "tags": [
         "keyword:VLA",
-        "query:VLA"
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "adaptive mixing of non-invariant information to improve VLA generalization",
-      "llm_evidence_cn": "自适应混合非不变信息，提升VLA泛化",
-      "llm_evidence": "自适应混合非不变信息，提升VLA泛化",
-      "canonical_evidence": "自适应混合非不变信息，提升VLA泛化",
-      "llm_tldr_en": "Proposes a model-agnostic training framework that adaptively mixes non-invariant representations to regularize VLA models and improve zero-shot generalization under out-of-distribution conditions without extra OOD data.",
-      "llm_tldr_cn": "针对VLA模型在分布外条件下零样本泛化受限的问题，提出模型无关的训练框架MixVLA。其核心组件AMI随机混合非不变表示，对模型进行正则化，防止策略依赖虚假外观线索。实验表明MixVLA无需额外OOD数据或架构修改即可提升VLA模型在不同视觉条件下的泛化能力。该工作为增强VLA模型的鲁棒性和泛化性提供了通用解决方案。",
-      "llm_tldr": "针对VLA模型在分布外条件下零样本泛化受限的问题，提出模型无关的训练框架MixVLA。其核心组件AMI随机混合非不变表示，对模型进行正则化，防止策略依赖虚假外观线索。实验表明MixVLA无需额外OOD数据或架构修改即可提升VLA模型在不同视觉条件下的泛化能力。该工作为增强VLA模型的鲁棒性和泛化性提供了通用解决方案。",
+      "llm_evidence_en": "adaptive mixing of non-invariant information for VLA generalization",
+      "llm_evidence_cn": "自适应混合非不变信息以提升VLA泛化性",
+      "llm_evidence": "自适应混合非不变信息以提升VLA泛化性",
+      "canonical_evidence": "自适应混合非不变信息以提升VLA泛化性",
+      "llm_tldr_en": "This paper addresses OOD generalization in VLA models by proposing MixVLA, a training framework that adaptively mixes non-invariant information, improving zero-shot generalization without extra data.",
+      "llm_tldr_cn": "针对视觉-语言-动作模型在分布外条件下泛化有限的问题，本文提出MixVLA训练框架，通过自适应混合非不变信息正则化。该方法无需额外OOD数据或架构修改，能提升VLA模型的零样本泛化能力，在机器人操作任务上表现更鲁棒。",
+      "llm_tldr": "针对视觉-语言-动作模型在分布外条件下泛化有限的问题，本文提出MixVLA训练框架，通过自适应混合非不变信息正则化。该方法无需额外OOD数据或架构修改，能提升VLA模型的零样本泛化能力，在机器人操作任务上表现更鲁棒。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
       "matched_query_text": "Vision-Language-Action models in embodied AI",
       "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.03516v1",
+      "source": "arxiv",
+      "title": "XGenAct: Geometry-Enhanced World Action Models through Cross-Task Generation",
+      "abstract": "World action models (WAMs) have advanced robot control by predicting how observations and actions evolve over time. Despite this progress, RGB and action based future prediction does not explicitly address the spatial understanding needed for robot manipulation. Existing efforts often add a limited set of spatial prediction tasks through specialized heads or branches, leaving both the range of spatial supervision and the model architecture fragmented. We introduce XGenAct, a world action model that represents RGB observations, robot actions, metric depth, surface normals, and functional role segmentation as RGB videos through deterministic codecs. By sampling perception and action tasks during training, XGenAct uses one video diffusion transformer and one objective to learn temporal prediction across these spaces without modality specific learned heads. On held out RLBench tasks, structured perception training improves average closed loop success over RGB only training, and XGenAct achieves 52% success in the five task external comparison, versus 26% for the strongest evaluated baselines. It also predicts future depth and segmentation more accurately than the evaluated pipelines that generate RGB first and then apply a frozen perception expert.",
+      "authors": [
+        "Tingting Du",
+        "Ziyao Wang",
+        "Guoheng Sun",
+        "Ang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-10-02T16:10:53+00:00",
+      "link": "https://arxiv.org/pdf/2610.03516v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "introduces XGenAct, a world action model representing RGB, actions, depth, normals, segmentation as videos for cross-task generation",
+      "llm_evidence_cn": "提出XGenAct，一种将RGB、动作、深度、法线、分割表示为视频的世界动作模型用于跨任务生成",
+      "llm_evidence": "提出XGenAct，一种将RGB、动作、深度、法线、分割表示为视频的世界动作模型用于跨任务生成",
+      "canonical_evidence": "提出XGenAct，一种将RGB、动作、深度、法线、分割表示为视频的世界动作模型用于跨任务生成",
+      "llm_tldr_en": "Proposes XGenAct, a geometry-enhanced world action model that uses one video diffusion transformer to jointly generate RGB, actions, depth, normals, and segmentation for robot manipulation.",
+      "llm_tldr_cn": "针对现有世界动作模型缺乏空间理解的问题，提出XGenAct。将RGB观察、机器人动作、度量深度、表面法线和功能角色分割通过确定性编解码器表示为RGB视频，并用单一视频扩散变换器进行跨任务生成。实验表明XGenAct能提升空间感知与操作性能。",
+      "llm_tldr": "针对现有世界动作模型缺乏空间理解的问题，提出XGenAct。将RGB观察、机器人动作、度量深度、表面法线和功能角色分割通过确定性编解码器表示为RGB视频，并用单一视频扩散变换器进行跨任务生成。实验表明XGenAct能提升空间感知与操作性能。",
+      "llm_tags": [
+        "query:vla:composite"
+      ],
+      "matched_query_tag": "query:vla:composite",
+      "matched_query_text": "Papers central to 具身智能领域VLA与WAM相关论文检索, especially work that connects or combines: Vision-Language-Action models in embodied AI; Embodied intelligence and robotic learning; Robotic foundation models for manipulation; End-to-end robotic manipulation tasks; State of the art Vision Language Action models for embodied intelligence; Integration of large language models with robotic action spaces; End to end learning for complex robotic manipulation tasks.",
+      "matched_requirement_id": "req-composite-vla",
       "selection_source": "fresh_fetch"
     },
     {
@@ -628,19 +423,107 @@
         "query:tf"
       ],
       "llm_score": 9.0,
-      "llm_evidence_en": "Proposes Risk-Aware Tactile Encoding (RATE) for contact-rich manipulation",
-      "llm_evidence_cn": "提出风险感知触觉编码方法用于接触丰富操作",
-      "llm_evidence": "提出风险感知触觉编码方法用于接触丰富操作",
-      "canonical_evidence": "提出风险感知触觉编码方法用于接触丰富操作",
-      "llm_tldr_en": "Addresses ambiguity in tactile observations by learning task-conditioned risk representations. RATE encodes interaction risk, improving downstream policies' responses to benign vs risky contacts.",
-      "llm_tldr_cn": "该论文针对触觉观察在不同交互条件下可能承载不同风险但难以区分的问题，提出风险感知触觉编码方法RATE。RATE学习编码任务条件下的交互风险，使相似触觉观察能够被下游策略正确区分，避免对良性变化过度纠正或对危险接触响应延迟。实验表明，RATE提升了接触丰富操作中策略的鲁棒性和安全性，为触觉表征学习提供了风险维度。",
-      "llm_tldr": "该论文针对触觉观察在不同交互条件下可能承载不同风险但难以区分的问题，提出风险感知触觉编码方法RATE。RATE学习编码任务条件下的交互风险，使相似触觉观察能够被下游策略正确区分，避免对良性变化过度纠正或对危险接触响应延迟。实验表明，RATE提升了接触丰富操作中策略的鲁棒性和安全性，为触觉表征学习提供了风险维度。",
+      "llm_evidence_en": "risk-aware tactile encoding for contact-rich manipulation",
+      "llm_evidence_cn": "面向接触丰富操作的风险感知触觉编码",
+      "llm_evidence": "面向接触丰富操作的风险感知触觉编码",
+      "canonical_evidence": "面向接触丰富操作的风险感知触觉编码",
+      "llm_tldr_en": "This paper addresses ambiguity in tactile observations for contact-rich manipulation by proposing risk-aware tactile encoding that incorporates task-conditioned interaction risk, improving policy decisions.",
+      "llm_tldr_cn": "针对接触丰富操作中相似触觉观测可能对应不同任务风险的问题，本文提出风险感知触觉编码方法，学习编码任务条件下的交互风险。该方法能帮助下游策略区分良性变化与危险接触，避免不必要纠正或延迟响应，提升接触丰富任务的安全性。",
+      "llm_tldr": "针对接触丰富操作中相似触觉观测可能对应不同任务风险的问题，本文提出风险感知触觉编码方法，学习编码任务条件下的交互风险。该方法能帮助下游策略区分良性变化与危险接触，避免不必要纠正或延迟响应，提升接触丰富任务的安全性。",
       "llm_tags": [
         "query:tf"
       ],
       "matched_query_tag": "query:tf",
       "matched_query_text": "tactile sensing",
       "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04363v1",
+      "source": "arxiv",
+      "title": "TacOT: Learning Contact-Rich Dexterous Manipulation from Human Demonstrations via Tactile-Guided Optimal Transport",
+      "abstract": "Learning contact-rich dexterous manipulation from human demonstrations provides a scalable source of interaction data, yet transferring such skills to robots remains challenging due to unreliable human--robot correspondence. Existing human-to-robot transfer methods typically rely on visual appearance or motion similarity, which may associate similar motions with different contact states and force patterns. Tactile dynamics provide interaction-aware cues to distinguish manipulation processes with similar motions but different contact states. We introduce tactile-guided optimal transport (TacOT), a framework for human-to-robot contact-rich manipulation. TacOT leverages action--tactile dynamic time warping to identify human--robot demonstration correspondences with consistent interaction dynamics and uses these correspondences to guide soft optimal transport alignment in a shared policy representation space. This enables human demonstrations to provide contact-rich supervision for robot policy learning without requiring predefined frame-level human--robot pairing. Across four real-world dexterous manipulation tasks, TacOT improves closed-loop success rates over action-guided OT by up to 17 points on in-distribution tasks and 20 points under targeted human-to-robot out-of-distribution transfer. Further analyses show that tactile-guided correspondence selects demonstration pairs with more consistent contact dynamics and produces latent representations that better reflect interaction-state evolution. These results demonstrate that tactile dynamics provide an effective semantic signal for establishing reliable human-to-robot correspondence in contact-rich dexterous manipulation.",
+      "authors": [
+        "Xingting Li",
+        "Yifan Han",
+        "Zijian Lin",
+        "Wei Hou",
+        "Chuqiao Lyu",
+        "Shoujie Li",
+        "Wenbo Ding"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-10-03T08:00:56+00:00",
+      "link": "https://arxiv.org/pdf/2610.04363v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Uses tactile-guided optimal transport to transfer contact-rich manipulation skills from human demos, leveraging tactile dynamics and force patterns",
+      "llm_evidence_cn": "利用触觉引导最优传输，从人类演示迁移接触丰富操作技能，利用触觉动力学与力模式",
+      "llm_evidence": "利用触觉引导最优传输，从人类演示迁移接触丰富操作技能，利用触觉动力学与力模式",
+      "canonical_evidence": "利用触觉引导最优传输，从人类演示迁移接触丰富操作技能，利用触觉动力学与力模式",
+      "llm_tldr_en": "TacOT leverages action-tactile dynamic time warping for human-to-robot contact-rich manipulation transfer, improving correspondence beyond visual/motion similarity.",
+      "llm_tldr_cn": "针对从人类演示学习接触丰富灵巧操作时人-机器人对应不可靠的问题，提出触觉引导最优传输框架TacOT。该方法利用动作-触觉动态时间规整，通过触觉动力学区分相似运动下的不同接触状态和力模式，实现更准确的技能迁移。实验表明TacOT在接触丰富操作任务中优于仅依赖视觉或运动的方法，为跨实体触觉力觉迁移提供有效方案。",
+      "llm_tldr": "针对从人类演示学习接触丰富灵巧操作时人-机器人对应不可靠的问题，提出触觉引导最优传输框架TacOT。该方法利用动作-触觉动态时间规整，通过触觉动力学区分相似运动下的不同接触状态和力模式，实现更准确的技能迁移。实验表明TacOT在接触丰富操作任务中优于仅依赖视觉或运动的方法，为跨实体触觉力觉迁移提供有效方案。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "tactile force fusion for robot manipulation",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.05418v1",
+      "source": "arxiv",
+      "title": "EvoMem-VLA: State-Evolution Memory for Long-Horizon Robot Manipulation",
+      "abstract": "Most vision-language-action (VLA) models rely on current observations and lose task-relevant evidence once it leaves view, limiting performance on long-horizon, memory-dependent tasks. Existing efforts incorporate compressed historical features or sparse visual keyframes. However, isolated snapshots can leave the policy uncertain about what changed during past interactions and which action should follow. To overcome this limitation, we propose EvoMem-VLA, which constructs state-evolution memory by explicitly encoding and retaining observed changes between historical states. These change representations preserve evidence of interaction outcomes, allowing the policy to track task progress beyond isolated snapshots. Specifically, we introduce conditional delta tokenization to encode ordered frame pairs into directional, source-conditioned delta tokens, each associated with its corresponding state evidence. A shared VLM backbone supports task-adaptive routing: normal long-horizon tasks follow a direct action route, whereas multi-stage tasks use a subtask route that generates an executable subtask as an additional input for action generation. With a single jointly trained policy for each simulation benchmark, EvoMem-VLA achieves success rates of 80.7\\% on RMBench, 82.0\\% on RoboMME and 83.8\\% across four real-world tasks spanning two robot embodiments. These results represent substantial improvements over the previous state of the art in all three evaluation settings.",
+      "authors": [
+        "Yuheng Na",
+        "Zhide Zhong",
+        "Junjie He",
+        "Junfeng Li",
+        "Haodong Yan",
+        "Jiaan Wang",
+        "Jiaguan Zhu",
+        "Yangyang Zheng",
+        "Tianyu Huang",
+        "Haoang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-10-04T17:59:43+00:00",
+      "link": "https://arxiv.org/pdf/2610.05418v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "State-evolution memory for long-horizon VLA manipulation",
+      "llm_evidence_cn": "状态演化记忆增强长时程VLA操作",
+      "llm_evidence": "状态演化记忆增强长时程VLA操作",
+      "canonical_evidence": "状态演化记忆增强长时程VLA操作",
+      "llm_tldr_en": "EvoMem-VLA constructs state-evolution memory by encoding changes between historical states, preserving interaction evidence for long-horizon manipulation, and improving policy performance on memory-dependent tasks.",
+      "llm_tldr_cn": "针对VLA模型在长时程操作中因仅依赖当前观测而丢失历史任务证据的问题，EvoMem-VLA 显式编码并保留历史状态间的变化表示，构建状态演化记忆。该记忆让策略跟踪任务进展，在需要记忆的长期任务中显著提升成功率。实验表明，与压缩特征或稀疏关键帧相比，变化表示能更好地支持决策。这项工作为长时程机器人操作中的记忆机制提供了有效方案。",
+      "llm_tldr": "针对VLA模型在长时程操作中因仅依赖当前观测而丢失历史任务证据的问题，EvoMem-VLA 显式编码并保留历史状态间的变化表示，构建状态演化记忆。该记忆让策略跟踪任务进展，在需要记忆的长期任务中显著提升成功率。实验表明，与压缩特征或稀疏关键帧相比，变化表示能更好地支持决策。这项工作为长时程机器人操作中的记忆机制提供了有效方案。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Vision-Language-Action models in embodied AI",
+      "matched_requirement_id": "req-1",
       "selection_source": "fresh_fetch"
     }
   ],
@@ -670,16 +553,18 @@
       "link": "https://arxiv.org/pdf/2609.39507v1",
       "tags": [
         "keyword:VLA",
-        "keyword:tf"
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "benchmark for evaluating general-purpose agents in robot manipulation with native action commands",
-      "llm_evidence_cn": "用于评估通用智能体在机器人操作中直接执行动作指令的基准",
-      "llm_evidence": "用于评估通用智能体在机器人操作中直接执行动作指令的基准",
-      "canonical_evidence": "用于评估通用智能体在机器人操作中直接执行动作指令的基准",
-      "llm_tldr_en": "Introduces LIBERO-Agent, an interactive benchmark for general-purpose agents in embodied manipulation, allowing them to select observations, process with own tools, and issue native action commands across 200 tasks.",
-      "llm_tldr_cn": "针对通用智能体从数字环境迁移到具身操作的能力不明确的问题，提出LIBERO-Agent基准，提供交互式机器人环境，智能体可选择观察、使用自身工具处理信息并发出原生动作命令。该基准整合200个任务，并提供30任务主套件。实验表明该基准能有效评估通用智能体在直接具身操作中的规划、工具使用和反馈修正能力。",
-      "llm_tldr": "针对通用智能体从数字环境迁移到具身操作的能力不明确的问题，提出LIBERO-Agent基准，提供交互式机器人环境，智能体可选择观察、使用自身工具处理信息并发出原生动作命令。该基准整合200个任务，并提供30任务主套件。实验表明该基准能有效评估通用智能体在直接具身操作中的规划、工具使用和反馈修正能力。",
+      "llm_evidence_en": "Interactive benchmark for general-purpose agents issuing native action commands in robot manipulation.",
+      "llm_evidence_cn": "面向通用智能体在机器人操作中直接发原生动作指令的交互基准。",
+      "llm_evidence": "面向通用智能体在机器人操作中直接发原生动作指令的交互基准。",
+      "canonical_evidence": "面向通用智能体在机器人操作中直接发原生动作指令的交互基准。",
+      "llm_tldr_en": "Introduces LIBERO-Agent, an agent-native benchmark where general-purpose agents interact with a robotic environment, select observations, use tools, and issue native action commands, with 200 tasks for evaluating embodied manipulation.",
+      "llm_tldr_cn": "针对通用智能体从数字环境迁移到具身操作能力不明确的问题，提出LIBERO-Agent基准，提供交互式机器人环境，智能体可自主选择观测、使用工具并发出原生动作指令，集成200个任务。该基准分离出30任务主套件，用于系统评估智能体的操作能力，为LLM驱动的具身智能提供评测平台。",
+      "llm_tldr": "针对通用智能体从数字环境迁移到具身操作能力不明确的问题，提出LIBERO-Agent基准，提供交互式机器人环境，智能体可自主选择观测、使用工具并发出原生动作指令，集成200个任务。该基准分离出30任务主套件，用于系统评估智能体的操作能力，为LLM驱动的具身智能提供评测平台。",
       "llm_tags": [
         "query:vla"
       ],
@@ -690,79 +575,86 @@
       "quick_tier": "8plus"
     },
     {
-      "id": "2609.38709v1",
+      "id": "2609.39665v2",
       "source": "arxiv",
-      "title": "CEER2: Directional and Tunable End-Effector and Root Compliance for Humanoid Loco-Manipulation",
-      "abstract": "Humanoids are increasingly capable of tracking complex whole-body motions, but physical interaction introduces a different challenge. When a robot makes contact with a person or the environment, it needs to respond to external forces while preserving the motion needed for the task. This response can vary across directions in the end-effectors and on the body. For example, an end effector may need to accommodate contact force in one direction while maintaining motion accuracy in another, while the robot body may resist an external force or move with it. We present a compliance framework for humanoid loco-manipulation that combines directional and tunable end-effector (EE) compliance with selectable root compliance for external force rejection or force following. A hierarchical reinforcement learning controller modulates a fixed whole-body tracking policy through high-level EE and root commands, while interaction forces are estimated from proprioceptive history. Our simulation and real-world experiments on a humanoid demonstrate directional stiffness control, online stiffness adjustment, distinct root compliance, compliant manipulation, and collaborative carrying.",
+      "title": "ChronoGraph: Functional 4D Scene Graphs with Vision-Language Models for Interaction Understanding and Grounded Planning",
+      "abstract": "Embodied agents must determine where to act, anticipate the resulting scene changes, and interpret observed outcomes to guide subsequent actions. This requires connecting 4D interaction understanding, which explains how past actions changed the scene, with spatially grounded planning, which determines how and where to act toward a goal and anticipates the resulting scene changes. We introduce ChronoGraph, a functional 4D scene graph that links actions on affordance parts to semantic and geometric state changes. By representing observed and anticipated transitions in the same form, it provides a shared basis for understanding and planning. We construct ChronoGraphBench through an automatic data engine that converts human-interaction videos and simulated robot trajectories into graph-annotated questions for training and evaluating Vision-Language Models (VLMs) on both tasks. Using these annotations, we train ChronoGraphVLM by adapting pretrained VLMs in two stages. Graph-as-Chain-of-Thought supervised fine-tuning teaches the models to reconstruct observed transitions and predict future ones as graph traces before answering. Subsequent joint 4D graph reinforcement learning directly rewards graph properties and answer correctness. Experiments across model scales show improvements over the corresponding pretrained baselines and zero-shot transfer to VLM4D. Real-world demonstrations further show that graph-based planning and affordance grounding support mobile manipulation through existing robot skills without additional fine-tuning.",
       "authors": [
-        "Xinyuan Luo",
-        "Chunyuan Yang",
-        "Boyuan Chen",
-        "Xianyi Cheng"
+        "Chenyangguang Zhang",
+        "Malgorzata Gwiazda",
+        "Guanlong Jiao",
+        "Yuanchen Ju",
+        "Federico Tombari",
+        "Koushil Sreenath",
+        "Marc Pollefeys",
+        "Sunghwan Hong"
       ],
-      "primary_category": "cs.RO",
+      "primary_category": "cs.AI",
       "categories": [
-        "cs.RO"
+        "cs.AI"
       ],
-      "published": "2026-09-30T00:48:09+00:00",
-      "link": "https://arxiv.org/pdf/2609.38709v1",
-      "tags": [
-        "keyword:tf",
-        "query:VLA"
-      ],
-      "llm_score": 7.0,
-      "llm_evidence_en": "Compliance framework responds to external forces in humanoid loco-manipulation",
-      "llm_evidence_cn": "人形机器人力反馈顺应框架响应外部力",
-      "llm_evidence": "人形机器人力反馈顺应框架响应外部力",
-      "canonical_evidence": "人形机器人力反馈顺应框架响应外部力",
-      "llm_tldr_en": "CEER2 combines directional end-effector compliance and selectable root compliance for humanoid loco-manipulation under external forces.",
-      "llm_tldr_cn": "人形机器人在与外部接触时需要保持任务所需的运动，同时对外力作出响应。本文提出CEER2顺应性框架，结合方向可调的末端执行器顺应性和可选择的根部顺应性。实验表明该框架能够在不同方向上容许接触力，同时在其它方向上保持运动精度，提升了人形机器人的物理交互能力。",
-      "llm_tldr": "人形机器人在与外部接触时需要保持任务所需的运动，同时对外力作出响应。本文提出CEER2顺应性框架，结合方向可调的末端执行器顺应性和可选择的根部顺应性。实验表明该框架能够在不同方向上容许接触力，同时在其它方向上保持运动精度，提升了人形机器人的物理交互能力。",
-      "llm_tags": [
-        "query:tf"
-      ],
-      "matched_query_tag": "query:tf",
-      "matched_query_text": "force feedback",
-      "matched_requirement_id": "req-11",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "7"
-    },
-    {
-      "id": "2609.33165v1",
-      "source": "arxiv",
-      "title": "Beyond Tasks: A Vision for Reproducing an Animal-like Behavioral Substrate Using Modern Robot Learning Techniques",
-      "abstract": "Recent advances in robot learning have produced increasingly capable embodied agents. Yet comparatively less attention has been given to a more basic form of competence that animals exhibit continuously: the ability to remain situated, responsive, and behaviorally coherent as physical, environmental, and social demands change over time. We propose the ethological behavioral substrate as a conceptual lens for studying this form of competence in artificial agents. Rather than treating these behaviors that animals exhibit as a set of isolated skills, we argue that their continual coordination under competing demands constitutes an important and underexplored target for modern robot learning. We further propose robotic animal companions as a useful research setting for studying sustained interaction and adaptation in human-centered environments. Such systems provide an opportunity to investigate how social behavior, memory, and continual learning develop over long periods of interaction. This perspective motivates further investigation of how such persistent behavioral competence may complement higher-level capabilities in embodied agents.",
-      "authors": [
-        "Samiyuru Menik",
-        "Hemadri Jayalath"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.AI",
-        "cs.HC"
-      ],
-      "published": "2026-09-27T03:41:32+00:00",
-      "link": "https://arxiv.org/pdf/2609.33165v1",
+      "published": "2026-09-30T13:03:45+00:00",
+      "link": "https://arxiv.org/pdf/2609.39665v2",
       "tags": [
         "keyword:VLA",
         "keyword:tf",
+        "query:VLA",
         "query:tf"
       ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "Vision for reproducing animal-like behavioral substrate using robot learning",
-      "llm_evidence_cn": "利用机器人学习重现类动物行为基质的愿景",
-      "llm_evidence": "利用机器人学习重现类动物行为基质的愿景",
-      "canonical_evidence": "利用机器人学习重现类动物行为基质的愿景",
-      "llm_tldr_en": "Proposes ethological behavioral substrate as a conceptual lens for robot learning to achieve continuous situated competence beyond isolated tasks.",
-      "llm_tldr_cn": "该论文针对现有机器人学习聚焦孤立技能而忽视持续情境适应与行为协调的问题，提出以动物行为学为基础的行为基质概念，将其作为现代机器人学习的重要目标，推动智能体在物理、环境和社会需求变化下保持情境化和行为连贯性。",
-      "llm_tldr": "该论文针对现有机器人学习聚焦孤立技能而忽视持续情境适应与行为协调的问题，提出以动物行为学为基础的行为基质概念，将其作为现代机器人学习的重要目标，推动智能体在物理、环境和社会需求变化下保持情境化和行为连贯性。",
+      "llm_score": 7.0,
+      "llm_evidence_en": "functional 4D scene graphs with VLMs for interaction understanding and planning",
+      "llm_evidence_cn": "结合视觉语言模型的功能性4D场景图用于交互理解与规划",
+      "llm_evidence": "结合视觉语言模型的功能性4D场景图用于交互理解与规划",
+      "canonical_evidence": "结合视觉语言模型的功能性4D场景图用于交互理解与规划",
+      "llm_tldr_en": "This paper addresses embodied agents' need to connect 4D interaction understanding with spatially grounded planning by introducing ChronoGraph, a functional 4D scene graph, and a benchmark ChronoGraphBench.",
+      "llm_tldr_cn": "针对具身智能体需要关联4D交互理解与空间规划的问题，本文提出ChronoGraph功能4D场景图，将动作与语义几何状态变化联系起来。通过自动数据引擎构建ChronoGraphBench基准。该工作为交互理解和规划提供了统一表示，推动具身智能研究。",
+      "llm_tldr": "针对具身智能体需要关联4D交互理解与空间规划的问题，本文提出ChronoGraph功能4D场景图，将动作与语义几何状态变化联系起来。通过自动数据引擎构建ChronoGraphBench基准。该工作为交互理解和规划提供了统一表示，推动具身智能研究。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
       "matched_query_text": "Embodied intelligence and robotic learning",
       "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.01826v1",
+      "source": "arxiv",
+      "title": "Token Communication-Assisted Collaborative Embodied Artificial Intelligence: Concepts, Framework, and Opportunities",
+      "abstract": "Collaborative embodied artificial intelligence (CEAI) enables multiple physical agents to perceive, reason, and act cooperatively in dynamic environments. Effective communication is essential for CEAI, yet CEAI agents must exchange not only large multimodal observations but also task-relevant insights, intents, and interactive information over long horizons. This article investigates token communication (TokCom) as a native intelligence interface for CEAI, in which tokens serve jointly as compact semantic carriers for communication and fundamental inference units for generative foundation models (GFMs). We first discuss how TokCom supports insight sharing, intent alignment, and interactive control among embodied agents. We then propose a TokCom-assisted CEAI framework driven by a task-adaptive communication protocol. Comprising a compact codebook, syntax rules, and contextual examples, this protocol guides GFM-based transceivers to distill messages into compact tokens and reconstruct them after wireless transmission. A case study on collaborative object transport demonstrates that the proposed TokCom framework substantially reduces the source payload bit consumption while preserving task efficiency and showing robustness under noisy channels. Finally, we outline future research directions.",
+      "authors": [
+        "Peng Yi",
+        "Ying-Chang Liang"
+      ],
+      "primary_category": "eess.SP",
+      "categories": [
+        "eess.SP",
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-10-01T15:01:50+00:00",
+      "link": "https://arxiv.org/pdf/2610.01826v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Discusses token communication for collaborative embodied artificial intelligence with generative foundation models",
+      "llm_evidence_cn": "探讨基于生成基础模型的协作式具身人工智能中的令牌通信",
+      "llm_evidence": "探讨基于生成基础模型的协作式具身人工智能中的令牌通信",
+      "canonical_evidence": "探讨基于生成基础模型的协作式具身人工智能中的令牌通信",
+      "llm_tldr_en": "This article introduces token communication as a native intelligence interface for collaborative embodied AI, enabling insight sharing, intent alignment, and interactive control.",
+      "llm_tldr_cn": "针对协作式具身人工智能中多物理智能体需在长时程内交换大量多模态观测与任务相关洞察的通信难题，文章提出令牌通信TokCom概念与框架。令牌同时作为紧凑语义载体和生成基础模型的推理单元，支持洞察共享、意图对齐与交互控制。文章讨论TokCom在具身智能协作中的机遇，为多智能体系统通信提供新范式。",
+      "llm_tldr": "针对协作式具身人工智能中多物理智能体需在长时程内交换大量多模态观测与任务相关洞察的通信难题，文章提出令牌通信TokCom概念与框架。令牌同时作为紧凑语义载体和生成基础模型的推理单元，支持洞察共享、意图对齐与交互控制。文章讨论TokCom在具身智能协作中的机遇，为多智能体系统通信提供新范式。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "embodied intelligence",
+      "matched_requirement_id": "req-9",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     },
@@ -790,16 +682,17 @@
       "tags": [
         "keyword:VLA",
         "keyword:tf",
+        "query:VLA",
         "query:tf"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "incorporates touch into epistemic uncertainty-driven exploration for RL",
-      "llm_evidence_cn": "将触觉融入认知不确定性驱动的强化学习探索",
-      "llm_evidence": "将触觉融入认知不确定性驱动的强化学习探索",
-      "canonical_evidence": "将触觉融入认知不确定性驱动的强化学习探索",
-      "llm_tldr_en": "TacEx framework decomposes model uncertainty to leverage tactile feedback as a natural signal for exploration, making RL sample-efficient by focusing on contact-rich interactions.",
-      "llm_tldr_cn": "针对强化学习在机器人操作中样本效率低、随机探索浪费训练于自由空间的问题，提出TacEx框架。该框架将触觉反馈纳入认知不确定性驱动的探索，通过分解模型不确定性，使智能体优先探索与接触相关的状态。实验表明TacEx能显著提升样本效率，加速操作技能学习。该工作证明了触觉信号在机器人学习中的探索价值，为触觉与强化学习的结合提供了有效方法。",
-      "llm_tldr": "针对强化学习在机器人操作中样本效率低、随机探索浪费训练于自由空间的问题，提出TacEx框架。该框架将触觉反馈纳入认知不确定性驱动的探索，通过分解模型不确定性，使智能体优先探索与接触相关的状态。实验表明TacEx能显著提升样本效率，加速操作技能学习。该工作证明了触觉信号在机器人学习中的探索价值，为触觉与强化学习的结合提供了有效方法。",
+      "llm_evidence_en": "introduces TacEx, incorporating touch into epistemic uncertainty-driven exploration for sample-efficient RL",
+      "llm_evidence_cn": "提出TacEx，将触觉融入认知不确定性驱动的探索以实现样本高效强化学习",
+      "llm_evidence": "提出TacEx，将触觉融入认知不确定性驱动的探索以实现样本高效强化学习",
+      "canonical_evidence": "提出TacEx，将触觉融入认知不确定性驱动的探索以实现样本高效强化学习",
+      "llm_tldr_en": "Proposes TacEx, which uses tactile feedback to guide epistemic uncertainty-driven exploration in RL, focusing on contact-rich interactions for more efficient manipulation skill learning.",
+      "llm_tldr_cn": "针对强化学习在机器人操作中样本效率低的问题，提出TacEx框架。通过分解模态不确定性，将触觉信号纳入认知不确定性驱动的探索，引导智能体关注接触丰富的关键状态。实验表明TacEx能显著提高操作技能学习的样本效率。",
+      "llm_tldr": "针对强化学习在机器人操作中样本效率低的问题，提出TacEx框架。通过分解模态不确定性，将触觉信号纳入认知不确定性驱动的探索，引导智能体关注接触丰富的关键状态。实验表明TacEx能显著提高操作技能学习的样本效率。",
       "llm_tags": [
         "query:tf"
       ],
@@ -810,24 +703,154 @@
       "quick_tier": "8plus"
     },
     {
-      "id": "2610.02802v1",
+      "id": "2610.01943v2",
       "source": "arxiv",
-      "title": "ManiPhysicsBench: Physics-Based Assessment of Object Preservation in VLA Manipulation",
-      "abstract": "Vision-language-action (VLA) models aim to perform diverse manipulation tasks, but task success in existing rigid-body benchmarks does not indicate whether they preserve objects. We introduce ManiPhysicsZoo, which consolidates literature-supported material properties, 3D meshes, and supporting references into reusable object assets. Using these assets, a solver-based assessment computes grasp-specific damage thresholds from object geometry, material properties, and recorded grasp conditions and compares them with recorded contact forces to assess potential deformation and fracture. Building on these components, ManiPhysicsBench evaluates object preservation in LIBERO and SimplerEnv across three physics axes and three difficulty levels. Public VLA checkpoints show a substantial gap between task success and safe success, defined as task completion while preserving the object. Their gripper commands concentrate near full opening and closure, with largely similar aggregate distributions across objects, consistent with binary gripper supervision. We examine how object-specific continuous gripper labels change model behavior by retraining a VLA model. The retrained model shows more object-dependent gripping and higher safe success, but lower task success and limited generalization of object-preserving behavior.",
+      "title": "TouchTherm: Building Multimodal Digital Twins of Objects for Tactile and Thermal Rendering",
+      "abstract": "Robotic simulation and virtual reality increasingly require object assets that capture not only visual geometry but also the physical cues underlying tactile and thermal interaction. Existing 3D datasets and reconstruction methods primarily represent object-scale geometry and visual appearance, overlooking microscale surface structure for high-fidelity haptic rendering and transient temperature dynamics for temperature-aware interaction. We present TouchTherm, a framework for constructing simulation-ready visuo-tactile-thermal object assets from real-world objects. For visual and tactile reconstruction, we combine structured-light scanning with multiview normal maps obtained from photometric stereo. The normal maps are registered to the scanned geometry and transformed into tangent space to recover local micro-height fields for optical tactile rendering, while the coarse mesh handles collision detection. For thermal reconstruction, we capture synchronized multiview infrared videos of natural cooling following controlled heating and reconstruct a physics-regularized dynamic thermal field. Experiments on 20 objects show that the reconstructed micro-height fields preserve dominant surface structures and recover higher-frequency details beyond the coarse geometry, while the thermal fields achieve held-out surface-temperature MAEs of 0.465 degrees C and 0.592 degrees C at 30 s and 45 s, respectively. The resulting tactile assets support synthetic-to-real object recognition from tactile observations, while a glove-based VR system demonstrates spatially and temporally varying thermal feedback. These results highlight the potential of TouchTherm for multimodal sensory simulation and temperature-aware virtual interaction.",
       "authors": [
-        "Sangwu Park",
-        "Yeonjun In",
-        "Wonjoong Kim",
-        "Sungwon Kim",
-        "Sein Kim",
-        "Chanyoung Park"
+        "Yitao Zhang",
+        "Hong Ying",
+        "Haoran Guo",
+        "Xiaoying Zhou",
+        "Guanyu Chen",
+        "Chenxi Xiao"
       ],
       "primary_category": "cs.RO",
       "categories": [
         "cs.RO"
       ],
-      "published": "2026-10-02T04:49:46+00:00",
-      "link": "https://arxiv.org/pdf/2610.02802v1",
+      "published": "2026-10-01T16:10:08+00:00",
+      "link": "https://arxiv.org/pdf/2610.01943v2",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Constructs simulation-ready visuo-tactile-thermal assets for haptic rendering",
+      "llm_evidence_cn": "构建用于触觉渲染的视觉-触觉-热仿真资产",
+      "llm_evidence": "构建用于触觉渲染的视觉-触觉-热仿真资产",
+      "canonical_evidence": "构建用于触觉渲染的视觉-触觉-热仿真资产",
+      "llm_tldr_en": "TouchTherm builds multimodal digital twins of objects with visual, tactile, and thermal properties, enabling high-fidelity haptic rendering for robotic simulation and VR.",
+      "llm_tldr_cn": "针对现有3D资产缺乏微观表面结构与温度动态的问题，TouchTherm提出结合结构光扫描与光度立体法重建视觉-触觉-热物体资产。该框架可生成仿真就绪的数字孪生，支持高保真触觉渲染与温度感知交互。实验表明其能够有效捕捉真实物体的物理线索，为机器人仿真和虚拟现实中的多模态交互提供了资产基础。",
+      "llm_tldr": "针对现有3D资产缺乏微观表面结构与温度动态的问题，TouchTherm提出结合结构光扫描与光度立体法重建视觉-触觉-热物体资产。该框架可生成仿真就绪的数字孪生，支持高保真触觉渲染与温度感知交互。实验表明其能够有效捕捉真实物体的物理线索，为机器人仿真和虚拟现实中的多模态交互提供了资产基础。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "tactile sensing",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.04301v1",
+      "source": "arxiv",
+      "title": "EnvDreamer: Large-Scale Multimodal-to-Environment Generation for Embodied AI",
+      "abstract": "Large datasets and high capacity models have accelerated progress in vision and language. This work introduces a platform aimed at bringing comparable gains to embodied learning, world models, and robotics. We present EnvDreamer, a framework that uses large language and vision language models to generate Unreal Engine 5 environments for embodied AI and robot training. EnvDreamer enables sampling of large, diverse, interactive, customizable, and validator passed virtual environments for training and evaluation across navigation, interaction, and manipulation. We illustrate the platform with a large set of generated scenes and simple baselines. Policies trained on EnvDreamer generated environments, without explicit mapping or human task supervision, achieve competitive results on multiple embodied benchmarks spanning navigation, rearrangement, and manipulation. EnvDreamer also supports image-conditioned reconstruction for real-to-sim studies. Finally, we release EnvDreamer-20k, a dataset of 20,000 validator passed environments with task programs, scene graphs, trajectories, and metadata to support reproducible benchmarking.",
+      "authors": [
+        "Kabir Swain",
+        "Sijie Han",
+        "Antonio Torralba"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-03T05:28:33+00:00",
+      "link": "https://arxiv.org/pdf/2610.04301v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Large-scale multimodal-to-environment generation for embodied AI training",
+      "llm_evidence_cn": "大规模多模态生成虚拟环境，用于具身AI训练",
+      "llm_evidence": "大规模多模态生成虚拟环境，用于具身AI训练",
+      "canonical_evidence": "大规模多模态生成虚拟环境，用于具身AI训练",
+      "llm_tldr_en": "EnvDreamer uses LLMs and VLMs to generate diverse, interactive Unreal Engine 5 environments for embodied AI and robot training, enabling policy learning without explicit mapping or human supervision.",
+      "llm_tldr_cn": "针对具身学习、世界模型和机器人领域缺乏大规模多样化训练环境的问题，EnvDreamer 提出利用大语言和视觉语言模型生成虚拟现实环境（Unreal Engine 5）的平台。该平台可采样大量多样、可交互、可定制且通过验证的环境，用于导航、交互和操作任务训练。实验表明，在生成环境中训练的策略无需显式映射或人类任务监督即可获得良好性能。该平台为具身AI提供了可扩展的环境生成基础设施。",
+      "llm_tldr": "针对具身学习、世界模型和机器人领域缺乏大规模多样化训练环境的问题，EnvDreamer 提出利用大语言和视觉语言模型生成虚拟现实环境（Unreal Engine 5）的平台。该平台可采样大量多样、可交互、可定制且通过验证的环境，用于导航、交互和操作任务训练。实验表明，在生成环境中训练的策略无需显式映射或人类任务监督即可获得良好性能。该平台为具身AI提供了可扩展的环境生成基础设施。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.02338v1",
+      "source": "arxiv",
+      "title": "SoTa: Soft Tactile Skins for Dexterous Manipulation",
+      "abstract": "A growing body of work suggests that tactile sensing gives robot policies contact information that complements vision in dexterous manipulation. However, visuo-tactile robot data remains scarce: dexterous demonstrations require teleoperating robots, which limits dataset scale. Human demonstrations are far cheaper to collect and offer a path to scale this data, but only if human and robot hands carry tactile sensors with corresponding signals. This requires sensors that conform to different hand geometries, cover the full hand, and share a common layout across embodiments. We present SoTa, a low-cost capacitive tactile skin that provides full-hand coverage on humans and robots while preserving a shared layout of 202 taxels across corresponding finger and palm regions. Our multilayer design with fabric electrodes enables in-house fabrication of thin, soft skins with customizable geometry for under $10 in materials per skin. The sensor retains over 97% of its initial response span after 10,000 loading-unloading cycles with traces retaining continuity through 1,280 tight-fist folding cycles. The shared taxel layout supports human-robot co-training with a common tactile encoder and no learned cross-sensor mapping. Across three contact-rich manipulation tasks, tactile observations improve in-distribution success over vision-only policies. With a fixed robot demonstration budget, adding human demonstrations more than doubles mean success across eight evaluation conditions, from 22.8% to 45.9%, improving success in all five out-of-distribution conditions. We plan to open-source the resources needed to fabricate and operate these skins.",
+      "authors": [
+        "Jingyun Yang",
+        "Baiyu Shi",
+        "Timothy Yu",
+        "Haitian Liu",
+        "Alberta Longhini",
+        "Weichen Wang",
+        "Rika Antonova",
+        "Zhenan Bao",
+        "Jeannette Bohg"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.LG"
+      ],
+      "published": "2026-10-01T18:08:59+00:00",
+      "link": "https://arxiv.org/pdf/2610.02338v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:tf"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Soft capacitive tactile skin for full-hand coverage on humans and robots",
+      "llm_evidence_cn": "用于人手和机器人手全覆盖的软电容触觉皮肤",
+      "llm_evidence": "用于人手和机器人手全覆盖的软电容触觉皮肤",
+      "canonical_evidence": "用于人手和机器人手全覆盖的软电容触觉皮肤",
+      "llm_tldr_en": "SoTa presents a low-cost capacitive tactile skin with 202 taxels providing full-hand coverage and shared layout across human and robot hands to enable scalable visuo-tactile data collection for dexterous manipulation.",
+      "llm_tldr_cn": "针对灵巧操作中视觉-触觉机器人数据稀缺的问题，SoTa提出一种低成本电容式触觉皮肤，可在人手和机器人手上提供全手覆盖，并在对应手指和手掌区域保持202个触觉单元的共享布局。该设计使人类演示可以携带与机器人一致的触觉信号，从而扩大数据规模。实验表明，SoTa能实现跨具身的触觉数据对齐，为灵巧操作学习提供支持。",
+      "llm_tldr": "针对灵巧操作中视觉-触觉机器人数据稀缺的问题，SoTa提出一种低成本电容式触觉皮肤，可在人手和机器人手上提供全手覆盖，并在对应手指和手掌区域保持202个触觉单元的共享布局。该设计使人类演示可以携带与机器人一致的触觉信号，从而扩大数据规模。实验表明，SoTa能实现跨具身的触觉数据对齐，为灵巧操作学习提供支持。",
+      "llm_tags": [
+        "query:tf"
+      ],
+      "matched_query_tag": "query:tf",
+      "matched_query_text": "tactile sensing",
+      "matched_requirement_id": "req-12",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.02717v1",
+      "source": "arxiv",
+      "title": "RoboBridge: A Self-Evolving Embodied Agent Framework for Sim-to-Real Transfer",
+      "abstract": "A key challenge in bringing embodied intelligence into the real world is transferring capabilities from simulation to reality and enabling agents to continually adapt after deployment. End-to-end vision-language-action policies provide strong manipulation capabilities, but their transfer to physical environments typically relies on calibrating simulated visual and dynamical conditions, collecting additional target-domain demonstrations, and optimizing the policy through further training. Tool-using embodied agents offer flexible task orchestration, yet existing systems primarily emphasize task execution and experience reuse within a given environment, with limited support for transferring procedural knowledge and continuously adapting it across simulation and reality. We propose RoboBridge, a framework that treats sim-to-real transfer as the continued adaptation of executable task skills. The agent represents task knowledge as procedures connecting task intent, observations, tool operations, and outcome verification. Interaction feedback is used to generate candidate skill revisions, which are evaluated before being persisted or rejected. A pretrained vision-language-action policy is exposed as a reusable action tool and enhanced with inference-time guidance, enabling fine-grained execution without retraining the underlying policy. RoboBridge grounds transferable skills in task semantics and interaction interfaces shared across simulation and reality. This representation preserves reusable task structure while allowing environment-dependent operations to be selectively revised through real-world execution feedback. We evaluate the framework on LIBERO-PRO and corresponding physical tasks, studying both skill evolution and post-transfer adaptation. Our framework provides a route from one-shot policy deployment to continual procedural learning across environments.",
+      "authors": [
+        "Chenxi Li",
+        "Zhangrui Zhao",
+        "Rui Li",
+        "Yuan Gao",
+        "Kehui Liu",
+        "Jiarui Li",
+        "Dong Wang",
+        "Tong Si",
+        "Minting Pan",
+        "Wanli Ouyang",
+        "Dongzhan Zhou"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-10-02T02:53:57+00:00",
+      "link": "https://arxiv.org/pdf/2610.02717v1",
       "tags": [
         "keyword:VLA",
         "keyword:tf",
@@ -835,151 +858,61 @@
         "query:tf"
       ],
       "llm_score": 7.0,
-      "llm_evidence_en": "Benchmarks object preservation in VLA manipulation with physics-based force and damage assessment",
-      "llm_evidence_cn": "用基于物理的力和损伤评估基准测试VLA操作中的物体保存",
-      "llm_evidence": "用基于物理的力和损伤评估基准测试VLA操作中的物体保存",
-      "canonical_evidence": "用基于物理的力和损伤评估基准测试VLA操作中的物体保存",
-      "llm_tldr_en": "Introduces ManiPhysicsBench, a physics-based benchmark that assesses whether VLA models preserve objects during manipulation by comparing contact forces to damage thresholds from material properties and geometry.",
-      "llm_tldr_cn": "针对现有VLA操作基准仅关注刚体任务成功、忽略物体损坏的问题，提出 ManiPhysicsBench，整合材料属性、3D网格和夹持力数据，通过求解器计算损伤阈值并与接触力比较。在 LIBERO 和 SimplerEnv 上从三个物理轴和三个难度级别评估物体保存。该基准揭示了VLA模型在物理安全方面的不足，为鲁棒操作提供评估标准。",
-      "llm_tldr": "针对现有VLA操作基准仅关注刚体任务成功、忽略物体损坏的问题，提出 ManiPhysicsBench，整合材料属性、3D网格和夹持力数据，通过求解器计算损伤阈值并与接触力比较。在 LIBERO 和 SimplerEnv 上从三个物理轴和三个难度级别评估物体保存。该基准揭示了VLA模型在物理安全方面的不足，为鲁棒操作提供评估标准。",
+      "llm_evidence_en": "Self-evolving embodied agent framework for sim-to-real transfer of VLA policies",
+      "llm_evidence_cn": "自进化具身智能体框架，用于VLA策略的仿真到现实迁移",
+      "llm_evidence": "自进化具身智能体框架，用于VLA策略的仿真到现实迁移",
+      "canonical_evidence": "自进化具身智能体框架，用于VLA策略的仿真到现实迁移",
+      "llm_tldr_en": "RoboBridge addresses sim-to-real transfer for embodied agents by enabling continuous adaptation after deployment, linking end-to-end VLA policies with tool-using agents to transfer procedural knowledge across environments.",
+      "llm_tldr_cn": "针对具身智能从仿真到现实迁移困难及部署后持续适应需求，RoboBridge 提出自进化具身智能体框架。该框架结合端到端视觉-语言-动作策略与工具使用智能体，支持过程性知识的跨环境迁移和持续适应。实验显示，该方法能有效减少对目标域演示和领域随机化校准的依赖，在多种操作任务中实现更稳健的迁移性能。这项工作为具身智能的实际部署提供了新框架。",
+      "llm_tldr": "针对具身智能从仿真到现实迁移困难及部署后持续适应需求，RoboBridge 提出自进化具身智能体框架。该框架结合端到端视觉-语言-动作策略与工具使用智能体，支持过程性知识的跨环境迁移和持续适应。实验显示，该方法能有效减少对目标域演示和领域随机化校准的依赖，在多种操作任务中实现更稳健的迁移性能。这项工作为具身智能的实际部署提供了新框架。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
-      "matched_query_text": "Vision-Language-Action models in embodied AI",
-      "matched_requirement_id": "req-1",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
       "selection_source": "fresh_fetch",
       "quick_tier": "7"
     },
     {
-      "id": "2609.34319v1",
+      "id": "2610.05062v1",
       "source": "arxiv",
-      "title": "Text-Vision Synergistic Token Caching: A Training-Free Framework for Efficient Vision-Language-Action Inference",
-      "abstract": "Vision-Language-Action (VLA) models enable generalizable robotic control but remain computationally expensive. Token caching provides a training-free, plug-and-play acceleration alternative. However, existing VLA caching does not fully exploit a key inductive bias of VLA models: text-vision synergy, wherein textual semantics guide the precise visual grounding of task-relevant regions. In particular, existing designs insufficiently account for head-wise reliability in attention aggregation and layer-wise stability in cache reuse. To address this, we propose Text-Vision Synergistic Token Caching (TVCache), a training-free framework for efficient VLA inference. TVCache filters attention heads based on text-vision information focus to improve task-relevant and physically consistent visual grounding. Concurrently, we introduce a reuse-layer selection mechanism guided by text-vision entropy differences to avoid caching unstable representations and improve cache resource allocation. Extensive experiments across four representative VLA models, two simulation benchmarks, and real-world robotic tasks demonstrate the effectiveness and generality of TVCache. At matched token-retention ratios, TVCache consistently improves task success over existing VLA caching with comparable computational cost. On OpenVLA-OFT, it improves average success by up to 14.5 percentage points over VLA-Cache at 12.5% retention while reducing FLOPs by 2.45x relative to full-token inference.",
+      "title": "Beyond LLM Serving: Characterizing Vision-Language-Action Workloads for Embodied AI System Design",
+      "abstract": "Vision-language-action (VLA) models translate multimodal observations into low-level robot actions. During robot operation, each control period sets an inference deadline, and overruns leave the robot acting on stale observations, reducing task success. Meeting this deadline motivates on-device or nearby edge execution, where a single robot requires batch-1 inference outside the design point of LLM serving systems. Although VLA architectures combine familiar vision-language, autoregressive, and diffusion-style components, their runtime behavior in this batch-1 control setting remains uncharacterized. We characterize four representative VLA models on an edge GPU server and two onboard SoCs, using single-inference profiling and 43,200 closed-loop episodes. Action tensor dimensionality determines whether a stage is memory- or compute-bound, platform balance can shift that bottleneck, and GPU frequency scaling yields a platform-dependent energy-latency sweet spot. In closed-loop operation, overlapping inference with action execution creates an accuracy-speed-energy tradeoff, and no configuration is Pareto-dominant across deployment SLOs. These results guide joint design of VLA model architectures, hardware, and runtime policies.",
       "authors": [
-        "Qianer Li",
-        "Chengjie Zhang",
-        "Jingwen Chen",
-        "Zanjia Tong",
-        "Jiyuan Zhang",
-        "Hong Zhang"
+        "Seonghun Jung",
+        "Sieun Moon",
+        "Jiyoung Jeong",
+        "Jimin Lee",
+        "Jaehyuk Huh"
       ],
-      "primary_category": "cs.CV",
+      "primary_category": "cs.AR",
       "categories": [
-        "cs.CV",
+        "cs.AR",
         "cs.RO"
       ],
-      "published": "2026-09-28T04:59:40+00:00",
-      "link": "https://arxiv.org/pdf/2609.34319v1",
+      "published": "2026-10-04T09:05:46+00:00",
+      "link": "https://arxiv.org/pdf/2610.05062v1",
       "tags": [
         "keyword:VLA",
-        "query:VLA"
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "Training-free token caching for efficient VLA inference exploiting text-vision synergy",
-      "llm_evidence_cn": "利用文本-视觉协同的无训练令牌缓存提升VLA推理效率",
-      "llm_evidence": "利用文本-视觉协同的无训练令牌缓存提升VLA推理效率",
-      "canonical_evidence": "利用文本-视觉协同的无训练令牌缓存提升VLA推理效率",
-      "llm_tldr_en": "TVCache exploits text-vision synergy in VLA models for training-free token caching to accelerate inference.",
-      "llm_tldr_cn": "VLA模型计算昂贵，现有缓存方法未充分利用文本-视觉协同的归纳偏置。本文提出TVCache，一种无训练的高效VLA推理框架，基于注意力头的可靠性和层的稳定性进行文本-视觉协同的令牌缓存。实验表明该方法在保持性能的同时显著加速推理，为VLA模型的实时部署提供支持。",
-      "llm_tldr": "VLA模型计算昂贵，现有缓存方法未充分利用文本-视觉协同的归纳偏置。本文提出TVCache，一种无训练的高效VLA推理框架，基于注意力头的可靠性和层的稳定性进行文本-视觉协同的令牌缓存。实验表明该方法在保持性能的同时显著加速推理，为VLA模型的实时部署提供支持。",
+      "llm_evidence_en": "Characterizes VLA model inference workloads for edge execution in embodied AI systems.",
+      "llm_evidence_cn": "刻画VLA模型在具身AI边缘推理中的工作负载特征。",
+      "llm_evidence": "刻画VLA模型在具身AI边缘推理中的工作负载特征。",
+      "canonical_evidence": "刻画VLA模型在具身AI边缘推理中的工作负载特征。",
+      "llm_tldr_en": "Characterizes four representative VLA models on edge GPU and SoCs for batch-1 control inference, revealing runtime behavior and deadline constraints to guide embodied AI system design.",
+      "llm_tldr_cn": "针对VLA模型在机器人控制中需满足推理截止时间但缺乏批处理优化的问题，论文在边缘GPU和板载SoC上对四个代表性VLA模型进行单推理剖析，刻画其运行时行为。结果显示，VLA推理具有不同于LLM服务的批处理需求，为具身AI系统的硬件与软件设计提供依据，保障实时控制可靠性。",
+      "llm_tldr": "针对VLA模型在机器人控制中需满足推理截止时间但缺乏批处理优化的问题，论文在边缘GPU和板载SoC上对四个代表性VLA模型进行单推理剖析，刻画其运行时行为。结果显示，VLA推理具有不同于LLM服务的批处理需求，为具身AI系统的硬件与软件设计提供依据，保障实时控制可靠性。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
       "matched_query_text": "Vision-Language-Action models in embodied AI",
       "matched_requirement_id": "req-1",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "6"
-    },
-    {
-      "id": "2609.40153v1",
-      "source": "arxiv",
-      "title": "Dream4ACT: A Shared Visual Action Interface for Multi-Embodiment Video-Action Modeling",
-      "abstract": "Video generation models (VGMs) offer strong spatiotemporal priors for embodied observation--action modeling. However, joint-space action vectors lack explicit image-space structure and vary in dimensionality and semantics across embodiments, making it challenging to directly leverage the rich spatiotemporal priors of VGMs. End-effector visualizations provide an alternative but do not specify the full articulated configuration needed for robot execution. We present Dream4ACT, a world model built for joint video-action modeling across embodiments. To unify action representations across embodiments, we introduce a shared visual action interface, called action views, which render target joint configurations from four prescribed virtual cameras using URDF-based forward kinematics. This shared visual representation preserves embodiment-specific articulated geometry while allowing observation and action sequences to share a video autoencoder and diffusion transformer. Through masked flow-matching, our model supports forward dynamics, inverse dynamics, and joint observation--action generation within a single jointly trained model by varying which future sequences are corrupted. To recover executable action sequences from predicted action views, we propose a training-free, URDF-constrained multiview recovery mechanism, without a learned embodiment-specific decoder. Dream4ACT achieves an average success rate of 88.98\\% on RoboTwin~2.0 and an overall score of 65.66 on TriWorldBench, supporting effective closed-loop manipulation and competitive action-conditioned multiview prediction through the visual action interface.",
-      "authors": [
-        "Xiangyu Zhu",
-        "Jin Xu",
-        "Yue Guo",
-        "Xin Wu",
-        "Yifan Sun",
-        "Xiancong Ren",
-        "Jianxin Sun",
-        "Yong Dai",
-        "Xiaozhu Ju"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO"
-      ],
-      "published": "2026-09-30T16:55:14+00:00",
-      "link": "https://arxiv.org/pdf/2609.40153v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA",
-        "query:tf"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "a shared visual action interface for multi-embodiment video-action modeling",
-      "llm_evidence_cn": "用于多具身视频-动作建模的共享视觉动作接口",
-      "llm_evidence": "用于多具身视频-动作建模的共享视觉动作接口",
-      "canonical_evidence": "用于多具身视频-动作建模的共享视觉动作接口",
-      "llm_tldr_en": "Dream4ACT introduces a world model that unifies action representations across embodiments via action views, rendering target joint configurations from prescribed virtual cameras to leverage video generation priors for joint video-action modeling.",
-      "llm_tldr_cn": "针对不同具身之间动作空间差异导致无法直接利用视频生成模型先验的问题，提出Dream4ACT世界模型。通过定义共享视觉动作接口（动作视图），从四个预设虚拟相机渲染目标关节构型，实现跨具身的统一动作表示。实验表明该方法能有效进行联合视频-动作建模，提升多具身策略学习效率。该工作为通用具身智能中的动作表示提供了新思路。",
-      "llm_tldr": "针对不同具身之间动作空间差异导致无法直接利用视频生成模型先验的问题，提出Dream4ACT世界模型。通过定义共享视觉动作接口（动作视图），从四个预设虚拟相机渲染目标关节构型，实现跨具身的统一动作表示。实验表明该方法能有效进行联合视频-动作建模，提升多具身策略学习效率。该工作为通用具身智能中的动作表示提供了新思路。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Embodied intelligence and robotic learning",
-      "matched_requirement_id": "req-2",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "8plus"
-    },
-    {
-      "id": "2609.37181v1",
-      "source": "arxiv",
-      "title": "EgoHumanoid-V2: Human-to-Humanoid Transfer of Coordinated Whole-Body Skills for Loco-Manipulation",
-      "abstract": "Human demonstrations capture diverse scenes and rich whole-body skills without requiring robot teleoperation. Prior work on egocentric transfer has emphasized scene generalization in loco-manipulation under decoupled control, leaving direct transfer of coordinated whole-body skills less explored. We present EgoHumanoid-V2, the first egocentric human-to-humanoid skill transfer framework for coordinated whole-body loco-manipulation. At its core, coarse-to-fine action alignment combines kinematic reference correction with dynamics-aware refinement. It improves end-effector pose accuracy while preserving whole-body coordination. We also use robot-arm rendering and training-time image augmentation to reduce the visual embodiment gap and improve viewpoint robustness. On four real-world tasks, vision-language-action (VLA) policies trained on aligned human data show zero-shot skill transfer without target-task robot demonstrations. Task scores are comparable to those of policies trained on teleoperation data at a lower collection cost. These results support human data as direct skill supervision.",
-      "authors": [
-        "Jin Chen",
-        "Yiming Jiang",
-        "Chongyang Xu",
-        "Modi Shi",
-        "Shijia Peng",
-        "Li Chen",
-        "Tianyu Li",
-        "Mu Xu",
-        "Yilun Chen",
-        "Steven Hoi",
-        "Hongyang Li"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.AI"
-      ],
-      "published": "2026-09-29T10:05:10+00:00",
-      "link": "https://arxiv.org/pdf/2609.37181v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA",
-        "query:tf"
-      ],
-      "llm_score": 6.0,
-      "llm_evidence_en": "egocentric human-to-humanoid transfer of whole-body loco-manipulation skills",
-      "llm_evidence_cn": "人类到人形机器人的全身移动操作技能迁移",
-      "llm_evidence": "人类到人形机器人的全身移动操作技能迁移",
-      "canonical_evidence": "人类到人形机器人的全身移动操作技能迁移",
-      "llm_tldr_en": "Presents the first egocentric human-to-humanoid skill transfer framework for coordinated whole-body loco-manipulation, using coarse-to-fine action alignment and visual embodiment gap reduction.",
-      "llm_tldr_cn": "针对现有以自我为中心迁移偏重场景泛化而忽略全身协调技能直接迁移的问题，提出EgoHumanoid-V2框架。该框架采用粗细结合的动作对齐，结合运动学参考校正与动力学感知优化，并通过机器人手臂渲染和图像增强减少视觉外观差异。实验表明其提高了末端执行器位姿精度并保持全身协调。该工作实现了人类演示到人形机器人移动操作技能的端到端迁移。",
-      "llm_tldr": "针对现有以自我为中心迁移偏重场景泛化而忽略全身协调技能直接迁移的问题，提出EgoHumanoid-V2框架。该框架采用粗细结合的动作对齐，结合运动学参考校正与动力学感知优化，并通过机器人手臂渲染和图像增强减少视觉外观差异。实验表明其提高了末端执行器位姿精度并保持全身协调。该工作实现了人类演示到人形机器人移动操作技能的端到端迁移。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Embodied intelligence and robotic learning",
-      "matched_requirement_id": "req-2",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
     },
@@ -1006,46 +939,84 @@
       "link": "https://arxiv.org/pdf/2610.02788v1",
       "tags": [
         "keyword:VLA",
-        "query:VLA"
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Agentic skill learning with LLM for zero-shot sim-to-real manipulation",
-      "llm_evidence_cn": "利用LLM进行智能体技能学习实现零样本Sim-to-Real操作",
-      "llm_evidence": "利用LLM进行智能体技能学习实现零样本Sim-to-Real操作",
-      "canonical_evidence": "利用LLM进行智能体技能学习实现零样本Sim-to-Real操作",
-      "llm_tldr_en": "Skill2Real uses a Proposer-Verifier-Governor loop with shared API and privileged simulation to learn composable skills that transfer zero-shot to real robots.",
-      "llm_tldr_cn": "该论文针对技能从仿真到真实世界迁移需要跨感知、动力学和具身差异保持可用性的问题，提出Skill2Real智能体策略框架，通过Proposer-Verifier-Governor循环利用特权仿真证据诊断和验证更新，Cerebellum获取局部操作技能，Brain学习任务级组合，无需微调即可零样本迁移至真实机器人。",
-      "llm_tldr": "该论文针对技能从仿真到真实世界迁移需要跨感知、动力学和具身差异保持可用性的问题，提出Skill2Real智能体策略框架，通过Proposer-Verifier-Governor循环利用特权仿真证据诊断和验证更新，Cerebellum获取局部操作技能，Brain学习任务级组合，无需微调即可零样本迁移至真实机器人。",
+      "llm_evidence_en": "Agentic skill learning framework for zero-shot sim-to-real robot manipulation",
+      "llm_evidence_cn": "面向零样本仿真到真实的智能体技能学习框架",
+      "llm_evidence": "面向零样本仿真到真实的智能体技能学习框架",
+      "canonical_evidence": "面向零样本仿真到真实的智能体技能学习框架",
+      "llm_tldr_en": "Skill2Real introduces an agentic policy framework with a Proposer-Verifier-Governor loop and API-shared skills, enabling zero-shot transfer of learned manipulation skills from simulation to reality.",
+      "llm_tldr_cn": "针对仿真到真实技能迁移中的感知、动力学与本体差异，Skill2Real提出基于共享API的智能体策略框架，通过提议-验证-治理循环利用仿真特权证据诊断学习。小脑先获取局部操作技能，大脑再学习任务级组合，冻结小脑。实验显示无需任务策略微调即可零样本迁移到真实机器人，验证了其有效性。",
+      "llm_tldr": "针对仿真到真实技能迁移中的感知、动力学与本体差异，Skill2Real提出基于共享API的智能体策略框架，通过提议-验证-治理循环利用仿真特权证据诊断学习。小脑先获取局部操作技能，大脑再学习任务级组合，冻结小脑。实验显示无需任务策略微调即可零样本迁移到真实机器人，验证了其有效性。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
-      "matched_query_text": "Integration of large language models with robotic action spaces",
-      "matched_requirement_id": "req-6",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
       "selection_source": "fresh_fetch",
       "quick_tier": "8plus"
     },
     {
-      "id": "2609.39665v1",
+      "id": "2610.02811v1",
       "source": "arxiv",
-      "title": "ChronoGraph: Functional 4D Scene Graphs with Vision-Language Models for Interaction Understanding and Grounded Planning",
-      "abstract": "Embodied agents must determine where to act, anticipate the resulting scene changes, and interpret observed outcomes to guide subsequent actions. This requires connecting 4D interaction understanding, which explains how past actions changed the scene, with spatially grounded planning, which determines how and where to act toward a goal and anticipates the resulting scene changes. We introduce ChronoGraph, a functional 4D scene graph that links actions on affordance parts to semantic and geometric state changes. By representing observed and anticipated transitions in the same form, it provides a shared basis for understanding and planning. We construct ChronoGraphBench through an automatic data engine that converts human-interaction videos and simulated robot trajectories into graph-annotated questions for training and evaluating Vision-Language Models (VLMs) on both tasks. Using these annotations, we train ChronoGraphVLM by adapting pretrained VLMs in two stages. Graph-as-Chain-of-Thought supervised fine-tuning teaches the models to reconstruct observed transitions and predict future ones as graph traces before answering. Subsequent joint 4D graph reinforcement learning directly rewards graph properties and answer correctness. Experiments across model scales show improvements over the corresponding pretrained baselines and zero-shot transfer to VLM4D. Real-world demonstrations further show that graph-based planning and affordance grounding support mobile manipulation through existing robot skills without additional fine-tuning.",
+      "title": "Learning Reflexive Behavior for Contact-Rich Manipulation",
+      "abstract": "During contact-rich manipulation, interactions between a robot and its environment carry information about local geometry: a surface prevents penetration, a bore guides a peg. A controller that exploits these interactions can comply with environmental constraints while preserving task intent. Robot-earning systems commonly use position, hybrid force-position, or Cartesian impedance control. Their prescribed tracking objectives, stiffness, or force-control directions may not match local constraints and may degrade performance. We learn a proprioceptive reflex policy in simulation on three simple interaction primitives: a spring, a plane, and a rail. The policy maps task-space commands to joint-position targets using state history, without direct force or geometrical measurements. Once trained, it serves as a frozen execution layer beneath higher-level controllers. We evaluate it in dual-arm box lifting, peg insertion, and surface following. In box lifting, the reflex kept the force below the threshold while the baseline failed. In rough-surface following it stayed below the 10 N reference, on par with tuned hybrid force-position control. In 0.02 mm peg insertion It reduced mean estimated contact force to less than half that of the baseline while increasing hardware success rates from at most 22 % to 36-58 %. By separating contact response from command generation, the reflex policy provides motion planners, learned policies, and teleoperators with robust contact-rich execution.",
       "authors": [
-        "Chenyangguang Zhang",
-        "Malgorzata Gwiazda",
-        "Guanlong Jiao",
-        "Yuanchen Ju",
-        "Federico Tombari",
-        "Koushil Sreenath",
-        "Marc Pollefeys",
-        "Sunghwan Hong"
+        "Quan Nguyen",
+        "Yunho Kim",
+        "Joonho Lee"
       ],
-      "primary_category": "cs.AI",
+      "primary_category": "cs.RO",
       "categories": [
-        "cs.AI"
+        "cs.RO"
       ],
-      "published": "2026-09-30T13:03:45+00:00",
-      "link": "https://arxiv.org/pdf/2609.39665v1",
+      "published": "2026-10-02T05:01:23+00:00",
+      "link": "https://arxiv.org/pdf/2610.02811v1",
+      "tags": [
+        "keyword:VLA",
+        "keyword:tf",
+        "query:VLA",
+        "query:tf"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Learned proprioceptive reflex policy for contact-rich manipulation",
+      "llm_evidence_cn": "面向接触丰富操作学习本体感觉反射策略",
+      "llm_evidence": "面向接触丰富操作学习本体感觉反射策略",
+      "canonical_evidence": "面向接触丰富操作学习本体感觉反射策略",
+      "llm_tldr_en": "Proposes learning a proprioceptive reflex policy in simulation for contact-rich manipulation, mapping task-space commands to joint-position targets using state history, without explicit force or geometry.",
+      "llm_tldr_cn": "针对接触丰富操作中传统位置或力控难以匹配局部约束的问题，论文提出在仿真中学习本体感觉反射策略。该策略利用状态历史将任务空间指令映射到关节位置目标，无需直接力或几何信息。在弹簧、平面和轨道三个简单交互原语上验证了策略的可行性。该工作为接触丰富操作提供了一种无需力传感器的合规控制方法。",
+      "llm_tldr": "针对接触丰富操作中传统位置或力控难以匹配局部约束的问题，论文提出在仿真中学习本体感觉反射策略。该策略利用状态历史将任务空间指令映射到关节位置目标，无需直接力或几何信息。在弹簧、平面和轨道三个简单交互原语上验证了策略的可行性。该工作为接触丰富操作提供了一种无需力传感器的合规控制方法。",
+      "llm_tags": [
+        "query:vla"
+      ],
+      "matched_query_tag": "query:vla",
+      "matched_query_text": "End-to-end robotic manipulation tasks",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.06331v1",
+      "source": "arxiv",
+      "title": "DexForge: High-Fidelity Physics-Informed Dexterous Retargeting",
+      "abstract": "Human demonstrations offer rich examples of precise dexterous manipulation and a promising source of robot training data. However, high-fidelity reproduction of demonstrated motions and hand-object interactions across robot embodiments remains challenging under physical constraints. We present DexForge, a differentiable physics-grounded framework for converting human video demonstrations into high-fidelity robot trajectories. We reconstruct spherical-Gaussian object models and hand-object motion from visual observations, then build a differentiable simulator combining efficient Gaussian collision detection with existing differentiable dynamics. Based on this simulator, DexForge combines contact-aware kinematic retargeting with force-aware dynamics retargeting: robot-adapted stable contacts guide kinematic reference construction and subsequent gradient-based control refinement for precise physical motion reproduction. Experiments on 130 DexYCB and HOT3D demonstrations across seven dexterous hands show success-rate gains of approximately 35-53 percentage points over the baseline, with object position and orientation tracking errors on successful trajectories reduced by approximately 34-67% and 71-78%, respectively. Further experiments demonstrate open-loop transfer to MuJoCo and real-robot execution. Our project page is available at https://wmz1226.github.io/DexForge/",
+      "authors": [
+        "Meizhong Wang",
+        "Kun Cao",
+        "Ruiqi Ni",
+        "Lihua Xie",
+        "Yiguang Hong"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-10-05T13:40:54+00:00",
+      "link": "https://arxiv.org/pdf/2610.06331v1",
       "tags": [
         "keyword:VLA",
         "keyword:tf",
@@ -1053,109 +1024,21 @@
         "query:tf"
       ],
       "llm_score": 6.0,
-      "llm_evidence_en": "VLM-based functional 4D scene graphs for embodied interaction understanding and grounded planning",
-      "llm_evidence_cn": "基于VLM的功能性4D场景图用于具身交互理解与空间规划",
-      "llm_evidence": "基于VLM的功能性4D场景图用于具身交互理解与空间规划",
-      "canonical_evidence": "基于VLM的功能性4D场景图用于具身交互理解与空间规划",
-      "llm_tldr_en": "Introduces a functional 4D scene graph linking actions to state changes, using VLM to enable embodied agents to understand interactions and plan grounded actions.",
-      "llm_tldr_cn": "针对具身代理需要连接4D交互理解与空间规划的问题，提出功能性4D场景图，将动作与语义几何状态变化关联，并用VLM实现理解和规划。构建了ChronoGraphBench自动数据引擎，验证了该方法在交互理解与规划中的有效性，为具身代理提供统一场景表示。",
-      "llm_tldr": "针对具身代理需要连接4D交互理解与空间规划的问题，提出功能性4D场景图，将动作与语义几何状态变化关联，并用VLM实现理解和规划。构建了ChronoGraphBench自动数据引擎，验证了该方法在交互理解与规划中的有效性，为具身代理提供统一场景表示。",
+      "llm_evidence_en": "Physics-informed framework to convert human video demos into robot trajectories for dexterous manipulation",
+      "llm_evidence_cn": "基于物理信息框架将人类视频演示转换为机器人轨迹用于灵巧操作",
+      "llm_evidence": "基于物理信息框架将人类视频演示转换为机器人轨迹用于灵巧操作",
+      "canonical_evidence": "基于物理信息框架将人类视频演示转换为机器人轨迹用于灵巧操作",
+      "llm_tldr_en": "Introduces DexForge, a differentiable physics-grounded framework for high-fidelity retargeting of human dexterous manipulation demonstrations across robot embodiments.",
+      "llm_tldr_cn": "针对人类演示跨机器人形态难以高保真迁移的问题，提出可微分物理框架DexForge。该框架重建物体模型和手物运动，利用可微分模拟器结合接触感知运动学重定向和力感知动力学重定向。实验表明能高保真地生成机器人轨迹，为灵巧操作数据生成提供新方法。",
+      "llm_tldr": "针对人类演示跨机器人形态难以高保真迁移的问题，提出可微分物理框架DexForge。该框架重建物体模型和手物运动，利用可微分模拟器结合接触感知运动学重定向和力感知动力学重定向。实验表明能高保真地生成机器人轨迹，为灵巧操作数据生成提供新方法。",
       "llm_tags": [
         "query:vla"
       ],
       "matched_query_tag": "query:vla",
-      "matched_query_text": "Integration of large language models with robotic action spaces",
-      "matched_requirement_id": "req-6",
+      "matched_query_text": "Embodied intelligence and robotic learning",
+      "matched_requirement_id": "req-2",
       "selection_source": "fresh_fetch",
       "quick_tier": "6"
-    },
-    {
-      "id": "2610.02840v1",
-      "source": "arxiv",
-      "title": "PointWAM: 3D World Action Modeling for Dexterous Robotic Manipulation",
-      "abstract": "World action models jointly learn to forecast world dynamics and predict robot actions, such that the learned internal world dynamics guide accurate actions. Existing approaches typically represent the world as RGB frames or latent counterparts while predicting actions as end-effector poses or joint angles, but they often struggle to capture the 3D spatial structure and contact geometry central to dexterous manipulation. We introduce Point World Action Model (PointWAM), a 3D world action model that decomposes the world into a scene (i.e., environment) and hands (i.e., actor), and jointly forecasts both as 3D point trajectories within a shared space-time coordinate frame. This explicit, disentangled representation enables effective pre-training on large-scale human demonstration videos without requiring any task-specific object or keypoint selection. Given a colored point cloud and a language instruction, PointWAM predicts how the scene and hands co-evolve in 3D space over time, then retargets the forecast hand motion to robot actions. Pre-training on human videos improves average DexJoCo success by 56.9 percentage points, and scene-trajectory supervision adds 10.9 points over forecasting the hands alone. With both, PointWAM surpasses the prior state of the art on ten DexJoCo tasks by 11.7 points and outperforms strong VLAs on a real robot.",
-      "authors": [
-        "Chunghyun Park",
-        "Beomjun Kim",
-        "Seungcheol Park",
-        "Heeseung Kwon",
-        "Yashu Shukla",
-        "Seunghoon Sim",
-        "Jinwoo Shin",
-        "Minsu Cho"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.CV"
-      ],
-      "published": "2026-10-02T05:31:01+00:00",
-      "link": "https://arxiv.org/pdf/2610.02840v1",
-      "tags": [
-        "keyword:VLA",
-        "query:VLA"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "3D world action model for dexterous manipulation using point trajectories",
-      "llm_evidence_cn": "用于灵巧操作的3D世界动作模型，使用点轨迹表示",
-      "llm_evidence": "用于灵巧操作的3D世界动作模型，使用点轨迹表示",
-      "canonical_evidence": "用于灵巧操作的3D世界动作模型，使用点轨迹表示",
-      "llm_tldr_en": "Proposes PointWAM, a 3D world action model that represents scene and hands as point trajectories to capture spatial structure and contact geometry for dexterous manipulation.",
-      "llm_tldr_cn": "针对现有世界动作模型难以捕捉3D空间结构与接触几何的问题，提出PointWAM，将世界分解为场景和手，以共享时空坐标中的3D点轨迹联合预测，并利用大规模预训练。实验表明该方法在灵巧操作任务中更好地建模3D结构和接触几何，为机器人操作提供更有效的世界动作表示。",
-      "llm_tldr": "针对现有世界动作模型难以捕捉3D空间结构与接触几何的问题，提出PointWAM，将世界分解为场景和手，以共享时空坐标中的3D点轨迹联合预测，并利用大规模预训练。实验表明该方法在灵巧操作任务中更好地建模3D结构和接触几何，为机器人操作提供更有效的世界动作表示。",
-      "llm_tags": [
-        "query:vla"
-      ],
-      "matched_query_tag": "query:vla",
-      "matched_query_text": "Robotic foundation models for manipulation",
-      "matched_requirement_id": "req-3",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "8plus"
-    },
-    {
-      "id": "2610.03333v1",
-      "source": "arxiv",
-      "title": "Equivariant Visual-Tactile Diffusion Policy for Contact-Rich Manipulation",
-      "abstract": "Imitation learning for contact-rich manipulation requires high-quality expert data that is expensive to obtain. This makes learning a sample-efficient policy a key issue. To address this, we propose VISTA, a workspace-level equivariant visuotactile diffusion policy for data-efficient contact-rich imitation learning. VISTA projects visual and tactile observations into spherical tokens, injects tactile contact cues into visual spherical directions through permutation-equivariant spherical fusion, and rotates the fused harmonic representation using the end-effector orientation. The resulting representation conditions an equivariant diffusion policy to predict spatially consistent actions. Extensive experiments in both simulation and real-world robotic settings show that VISTA substantially improves data efficiency over strong visuotactile imitation learning baselines. Project website: https://vista-paper.github.io/",
-      "authors": [
-        "Lik Hang Kenny Wong",
-        "Yiyao Ma",
-        "Xiu-Shen Wei",
-        "Zelong Tan",
-        "Zhuheng Song",
-        "Dongsheng Xie",
-        "Kai Chen",
-        "Qi Dou"
-      ],
-      "primary_category": "cs.RO",
-      "categories": [
-        "cs.RO",
-        "cs.AI"
-      ],
-      "published": "2026-10-02T14:04:41+00:00",
-      "link": "https://arxiv.org/pdf/2610.03333v1",
-      "tags": [
-        "keyword:VLA",
-        "keyword:tf",
-        "query:VLA",
-        "query:tf"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Equivariant visual-tactile diffusion policy for contact-rich manipulation",
-      "llm_evidence_cn": "面向接触丰富操作的等变视觉-触觉扩散策略",
-      "llm_evidence": "面向接触丰富操作的等变视觉-触觉扩散策略",
-      "canonical_evidence": "面向接触丰富操作的等变视觉-触觉扩散策略",
-      "llm_tldr_en": "VISTA is an equivariant visuotactile diffusion policy that projects visual and tactile observations to spherical tokens and injects tactile cues for data-efficient contact-rich manipulation.",
-      "llm_tldr_cn": "该论文针对接触丰富操作模仿学习对高质量专家数据需求高、样本效率低的问题，提出VISTA等变视觉-触觉扩散策略，将视觉和触觉观测投影到球形令牌，通过置换等变球形融合注入触觉接触线索，旋转谐波表示以利用末端执行器方向，实现数据高效的空间一致动作预测。",
-      "llm_tldr": "该论文针对接触丰富操作模仿学习对高质量专家数据需求高、样本效率低的问题，提出VISTA等变视觉-触觉扩散策略，将视觉和触觉观测投影到球形令牌，通过置换等变球形融合注入触觉接触线索，旋转谐波表示以利用末端执行器方向，实现数据高效的空间一致动作预测。",
-      "llm_tags": [
-        "query:tf"
-      ],
-      "matched_query_tag": "query:tf",
-      "matched_query_text": "tactile sensing",
-      "matched_requirement_id": "req-12",
-      "selection_source": "fresh_fetch",
-      "quick_tier": "8plus"
     }
   ]
 }
