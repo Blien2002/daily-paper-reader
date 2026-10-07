@@ -1,0 +1,351 @@
+Title: Robotizing Human Videos with Physically Consistent Interactions
+
+URL Source: https://arxiv.org/pdf/2610.06137v1
+
+Published Time: Tue, 06 Oct 2026 02:48:01 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# Robotizing Human Videos with Physically Consistent Interactions 
+
+Ching-Lam Cheng, Shengfeng He †, and Bin Zhu †
+
+Singapore Management University cl.cheng.2024@phdcs.smu.edu.sg, shengfenghe@smu.edu.sg, binzhu@smu.edu.sg 
+
+https://jacquescheng.github.io/robotize-consistent-interaction/  
+
+> Fig. 1. We propose an interaction-aware, depth-consistent human-to-robot video-editing pipeline that preserves both grasp geometry and robot–object visibility. Existing editing methods such as Masquerade [1] can produce grippers that miss the demonstrated contacts and violate scene occlusions, whereas our method better preserves the physical interaction in the original human demonstration.
+
+Abstract — Human videos offer scalable manipulation data, but the embodiment gap between human hands and robot manipulators limits their direct use. Existing video-editing methods replace hands with rendered robots, yet inaccu-rate interaction reconstruction and compositing can produce inconsistent grasps and implausible robot–object occlusions. We address these failures from two complementary physi-cal aspects: interaction geometry and scene visibility. First, an interaction-aware contact reconstruction module combines hand–object segmentation with mesh-level contact prediction to recover dense 3D contacts, then converts them into tem-porally stabilized grasps for parallel-jaw grippers. Second, a depth-aware compositing module uses scene and robot depth to enforce physically consistent robot–object occlusions. The resulting videos preserve the interaction structure of human demonstrations in a robot-compatible form and are co-trained with robot demonstrations. Using identical human videos and robot data, we compare against robot-only training and the original Masquerade pipeline. Across four RoboTwin tasks and two Diffusion Policy visual encoders, our method achieves the highest average success rates, with especially strong gains un-der out-of-distribution scene variation. Real-world deployment further shows that the proposed co-training approach improves robustness to visual distractors when the task geometry is ob-servable, while performance on depth-sensitive grasps remains limited by the single-camera setup. 
+
+I. I NTRODUCTION 
+
+The advancement in robot learning has increasingly bene-fited from large and diverse demonstration datasets [2], [3]. However, collecting robot demonstrations at scale remains fundamentally expensive because each trajectory requires physical hardware, environment interaction, and often human teleoperation or supervision [4], [5]. Consequently, robot datasets remain far smaller and less diverse than the image, text, and video corpora that have driven progress in large 
+
+> †Corresponding author and project lead.
+
+language models [6], [7] and video generation models [8]. This data bottleneck limits the diversity of interactions avail-able during training and, in turn, the ability of manipulation policies to generalize across objects, tasks, and environments. Human videos offer a compelling alternative source of manipulation experience. Large-scale egocentric video col-lections [9], [10], [11] capture everyday interactions across diverse objects, scenes, and behaviors at a scale that is difficult to reproduce with physical robots. In principle, these videos could provide robot policies with substantially broader manipulation experience. In practice, however, hu-man demonstrations differ fundamentally from robot demon-strations [12], [13]. Human hands differ from robot manip-ulators in appearance, kinematics, and contact mechanisms, while human videos typically lack robot-compatible action labels. This embodiment gap prevents conventional robot learning pipelines from directly treating human videos as robot demonstrations. Recent work has begun to bridge this gap by con-verting human demonstrations into robot-compatible visual data [12], [13]. In particular, Phantom [14] and Masquer-ade [1] introduce a video-editing paradigm that reconstructs human hand motion from egocentric video, removes the human hand through inpainting, and renders a robot manip-ulator along the recovered trajectory, as shown in the middle of Fig. 1. The resulting robotized videos reduce the visual embodiment discrepancy and can be incorporated into robot policy training. This offers a promising route for scaling robot learning with abundant human video. However, successful human-to-robot conversion requires more than replacing the visual embodiment. A manipulation demonstration is informative because it encodes a physically coherent interaction between the agent, object, and scene. arXiv:2610.06137v1 [cs.RO] 5 Oct 2026 If the conversion process alters this interaction structure, the edited video may look robot-like while providing in-consistent supervision. This issue is particularly important because human-to-robot editing is a multi-stage process in which errors from hand reconstruction, grasp retargeting, and scene compositing can accumulate. For example, retargeting a robot gripper from hand pose or motion alone does not explicitly preserve where the human contacts the object, and can therefore produce a gripper pose that is kinematically plausible but inconsistent with the demonstrated grasp. Like-wise, naively overlaying a rendered robot onto the edited scene ignores scene geometry and can place gripper pixels in front of object regions that should physically occlude them. Such artifacts create disagreement between robot motion, ob-ject interaction, and visual evidence, weakening the value of the converted video as policy supervision. We therefore argue that the key challenge is not only to reduce the appearance gap between humans and robots, but also to preserve the physical consistency of the demonstrated interaction. To this end, we propose an interaction-faithful human-to-robot video-editing pipeline that addresses physical consis-tency from two complementary aspects: interaction geometry 
+
+and scene visibility . First, we explicitly reconstruct hand– object contact rather than deriving the robot grasp from hand motion alone. Our interaction-aware contact reconstruction combines hand–object segmentation with mesh-level contact prediction to recover dense 3D contact regions on the hu-man hand. We then reduce these contacts to a temporally stabilized thumb–opposing-finger contact pair that can be naturally mapped to a parallel-jaw gripper. Surface-normal constraints further favor contact pairs that correspond to geometrically plausible opposing grasp surfaces. This formu-lation grounds robot retargeting in the demonstrated hand– object interaction itself, rather than only in the reconstructed hand configuration. Second, we introduce depth-aware robot– scene compositing to preserve physically correct visibility. By comparing the predicted depth of the hand-inpainted scene with the rendered robot depth, we identify gripper regions that should lie behind the manipulated object and remove them from the final composite. Together, as shown in the right of Fig. 1, these components preserve both where the robot should interact with the object and how that interaction should appear in the scene. We evaluate the resulting robotized demonstrations by co-training manipulation policies with real robot demonstra-tions. Using the same source human videos and robot training data, we compare our pipeline against robot-only training and the original Masquerade editing pipeline. Experiments span four RoboTwin manipulation tasks and two visual encoders within Diffusion Policy. Our edited demonstrations consis-tently improve policy performance, achieving the highest av-erage success rates across settings. The gains are particularly pronounced under out-of-distribution scene variation, sug-gesting that physically consistent human-video supervision provides useful interaction cues beyond the visual conditions observed in the robot training data. We further validate the approach on a physical robot, where it improves robustness to visual distractors for tasks with sufficiently observable interaction geometry. Results on a depth-sensitive grasp also reveal the limitations imposed by ambiguous geometric cues in a single-camera setup. Our main contributions are:  
+
+> •
+
+We identify interaction consistency as a key requirement for converting human videos into reliable robot-learning supervision.  
+
+> •
+
+We introduce interaction-aware contact reconstruction that recovers dense 3D hand–object contacts and retargets them into stable, geometrically plausible parallel-jaw grasps.  
+
+> •
+
+We propose depth-aware compositing that preserves phys-ically consistent robot–object occlusions in edited videos.  
+
+> •
+
+We show across four RoboTwin tasks, two Diffusion Policy visual encoders, and real-robot experiments that our edited demonstrations improve average performance and robustness to out-of-distribution scene variation. II. R ELATED WORK 
+
+Learning from egocentric human video. Egocentric video offers a scalable source of human manipulation experience from a viewpoint closely aligned with robot observations. Large-scale datasets such as EPIC-KITCHENS [9], HD-EPIC [11], and EgoVerse [10] capture diverse everyday interactions across objects, tasks, and environments. Despite this scale and diversity, directly using such videos for robot learning remains difficult because they depict human hands rather than robot manipulators and generally lack robot-compatible action labels, creating both embodiment and action-space gaps. Several works address these gaps by in-corporating human demonstrations directly into robot policy learning. EgoMimic [15] tracks human hand motion and aligns egocentric human demonstrations with robot data for joint imitation learning. EgoVLA [12] leverages egocentric human video as supervision for vision–language–action mod-els, while EgoScale [13] studies how diverse egocentric data can scale dexterous manipulation learning. These approaches demonstrate that human videos can complement expensive robot-collected trajectories, but require learning mechanisms that explicitly accommodate the mismatch between human and robot embodiments. 
+
+Human-to-robot video editing. A complementary line of work addresses the embodiment gap at the data level by converting human videos into robotized demonstrations be-fore policy training. Phantom [14] explores learning robot manipulation from human videos without requiring robot demonstrations. Masquerade [1] reconstructs human hand motion, removes the human hand through video inpainting, and renders a target robot along the recovered trajectory. The resulting videos visually resemble robot demonstrations and can be co-trained with conventional robot data, providing a direct way to reuse human manipulation experience within standard robot-learning pipelines. Our work follows this data-editing and co-training paradigm, but focuses on a com-plementary problem: whether the converted video preserves the physical interaction encoded in the original demonstra-tion. Existing editing pipelines primarily bridge the visual Fig. 2. Overview of our framework. (a) Interaction-aware contact reconstruction combines hand–object segmentation and mesh-level contact prediction to recover temporally stable opposing contacts for robot grasp retargeting. (b) Depth-consistent compositing compares scene and rendered-robot depth to enforce physically correct robot–object occlusions. The resulting robotized videos are co-trained with real robot demonstrations for policy learning. 
+
+embodiment gap, while errors in grasp retargeting and scene compositing can still produce robotized demonstrations with inconsistent interaction geometry or visibility. We address these limitations from two complementary aspects. First, we incorporate explicit hand–object contact geometry when retargeting human grasps to robot grippers. Second, we use depth-based occlusion reasoning when compositing the rendered robot into the scene. Together, these components improve both the physical interaction and its visual con-sistency, producing more faithful robot-learning supervision from the same egocentric source videos. III. M ETHODOLOGY 
+
+A. Problem Formulation and Overview 
+
+We consider the problem of converting egocentric human manipulation videos into robotized demonstrations for policy co-training with conventional robot demonstrations. Given an RGB video sequence V = {It}Tt=1 and a target robot equipped with parallel-jaw grippers, our goal is to recover robot-compatible motion and grasp information and generate an edited video in which the robot replaces the human hands. The conversion should preserve the contact geometry of the human demonstration and the visibility relationships between the rendered gripper and the surrounding scene. Following the data-editing framework of Masquerade [1], we use reconstructed 3D hand motion as the basis for robot retargeting. At frame t, the hand states are denoted by 
+
+Ht = {Hlt, Hrt }, where Hht specifies the pose and articu-lation of hand h ∈ { l, r } through a reconstructed MANO mesh. To obtain interaction cues, we use the sparse VISOR annotations [16] associated with EPIC-KITCHENS [9] and augment them with CaRe-Ego [17] to obtain dense hand and interacting-object masks. We denote these masks by M ht and 
+
+M ot , respectively, with M ot referring to the object associated with the hand under consideration. The subsequent contact reconstruction is applied to each hand, and we omit the hand superscript where the context is clear. As shown in Fig. 2, our method addresses two aspects of this conversion. First, interaction-aware contact reconstruc-tion (Sec. III-B) uses the object-mask centroid and recon-structed hand geometry to estimate mesh-level contact. The estimated contact region is reduced to a temporally stabilized thumb–opposing-finger contact pair and an opposing-finger identity for retargeting. Second, depth-based robot occlusion estimation (Sec. III-C) compares the depth of the hand-inpainted scene with that of the rendered robot to determine gripper visibility during compositing. The output is a robotized demonstration 
+
+DR = {(Iedit  
+
+> t
+
+, Rt)}Tt=1 , (1) where Iedit  
+
+> t
+
+is the composited robotized frame and Rt
+
+denotes the corresponding retargeted robot state, including its gripper configuration. These demonstrations augment the original robot dataset for policy co-training. Our focus is on improving demonstration generation; the downstream policy architecture and training configuration are held fixed within each experimental comparison. 
+
+B. Interaction-Aware Contact Reconstruction 
+
+Accurate hand–object contact is essential for transferring human manipulation to a robot, as it determines not only when the robot gripper should be activated, but also which re-gions of the human hand provide the most relevant geometric constraints for retargeting. To recover this information from egocentric video, we construct a dense 3D contact represen-tation by combining contact-aware hand–object segmentation with mesh-level contact estimation. As illustrated in Fig. 2, our contact reconstruction pipeline consists of three main stages. First, we obtain dense hand and interacting-object masks by augmenting VISOR [16] with CaRe-Ego [17]. Sec-ond, the centroid of the segmented interacting-object mask is used as an image-space contact cue for LatentAct [18], which predicts a dense contact map over the reconstructed MANO hand mesh. Finally, the predicted contact region is partitioned into thumb and non-thumb regions and reduced to two representative 3D contact points, which provide a compact grasp representation compatible with a parallel-jaw robot gripper. Temporal stabilization and surface-normal filtering are further applied to improve the consistency of the extracted contacts across frames. 
+
+a) Contact-Aware Hand–Object Segmentation.: VI-SOR [16] provides pixel-level annotations for hands and active objects; however, the annotations are temporally sparse and do not directly provide dense 3D hand contact. We aug-ment the VISOR annotations using CaRe-Ego [17], which explicitly models the contact relationship between hands and interacting objects. In particular, CaRe-Ego employs hand features to enhance the representation of interacting objects and decouples contact-centric object features associated with different hands. We use the resulting segmentation to obtain dense hand and interacting-object masks for each frame, denoted by M ht and M ot , respectively. For each frame, we compute the centroid of the interacting-object mask as 
+
+qot = 1
+
+|M ot |
+
+X 
+
+> x∈Mot
+
+x, (2) where x ∈ R2 denotes a foreground pixel in the object mask. This centroid provides a compact image-space representation of the object location associated with the current interaction. Rather than treating the entire object mask as a contact region, we use qot as the contact input to LatentAct. The centroid is first expressed in the image coordinate system expected by LatentAct and is then combined with the reconstructed MANO hand pose and camera parameters. Thus, the model receives the estimated hand configuration together with the image-space location of the interacting object, allowing it to infer which regions of the hand mesh are most likely to be in contact with the object. Following LatentAct [18], the model predicts a contact map over the reconstructed MANO hand mesh. Let vt,i ∈
+
+R3 denote the i-th MANO vertex and let Π( vt,i ) denote its projection onto the image plane. LatentAct uses the projected hand geometry and the object-centroid contact input qot to produce a per-vertex contact prediction, 
+
+ct = LatentAct  {vt,i }778 
+
+> i=1
+
+, {Π( vt,i )}778 
+
+> i=1
+
+, qot
+
+ , (3) where ct ∈ [0 , 1] 778 is the predicted contact map. Each value 
+
+ct,i represents the estimated likelihood that MANO vertex i
+
+participates in the hand–object interaction. We convert this continuous prediction into a binary contact state using a threshold δ,
+
+ˆct,i = I[ct,i > δ ], (4) and construct the corresponding dense 3D contact mesh as 
+
+Pt = {vt,i | ˆct,i = 1 }. (5) This procedure uses the object-mask centroid as the spa-tial cue that anchors LatentAct’s contact prediction to the current interaction. The centroid does not itself specify the contacting finger or a precise 3D point; instead, LatentAct propagates this image-space cue through the reconstructed hand geometry to estimate a distributed contact region on the MANO surface. Retaining this dense contact mesh preserves information about the spatial extent and finger configuration of the human grasp, in contrast to estimating a single contact point directly from the image. 
+
+b) Gripper Contact Point Extraction.: The human hand may establish contact with an object using multiple fingers and a large surface area, whereas the target parallel-jaw gripper requires only two representative contact points. We therefore reduce Pt into a thumb-side contact point and an opposing-finger contact point. We first partition the contact mesh according to the MANO vertex-to-finger assignment into the thumb contact set Pth 
+
+> t
+
+and the remaining non-thumb contact set Pnt  
+
+> t
+
+. When thumb contact is detected, the thumb-side contact point is computed as the centroid of the corresponding contact vertices, 
+
+pth  
+
+> t
+
+= 1
+
+|P th  
+
+> t
+
+|
+
+X
+
+> v∈P th
+> t
+
+v. (6) If no valid thumb contact is detected, we instead use the reconstructed thumb fingertip as a fallback. Not all non-thumb contact vertices form a meaningful opposing surface for a parallel-jaw grasp. We therefore addi-tionally consider the surface normal nt,i of each non-thumb contact vertex. For a candidate vertex vt,i , we compute the unit direction toward the thumb contact as dt,i = ( pth  
+
+> t
+
+−
+
+vt,i )/∥pth  
+
+> t
+
+− vt,i ∥2. We retain only vertices whose surface normals sufficiently face the thumb, 
+
+ePnt  
+
+> t
+
+= vt,i ∈ P nt  
+
+> t
+
+| n⊤
+
+> t,i
+
+dt,i > τ , τ = 0 .3. (7) This filtering suppresses contact vertices located on surfaces whose orientation is inconsistent with an opposing grasp. If no vertex satisfies the normal constraint, we revert to the complete non-thumb contact set Pnt  
+
+> t
+
+.The opposing contact point is then obtained from the centroid of the filtered vertices, 
+
+pnt  
+
+> t
+
+= 1
+
+| ePnt  
+
+> t
+
+|
+
+X 
+
+> v∈ePnt
+> t
+
+v. (8) When no non-thumb contact is available, we use the middle-finger fingertip as the fallback contact point. c) Temporal Contact Stabilization.: Frame-wise contact estimation can fluctuate due to segmentation errors, hand reconstruction noise, and small changes in the estimated object-mask centroid or LatentAct contact map. Such fluc-tuations are undesirable when the extracted contacts are subsequently converted into robot trajectories. We therefore temporally smooth each valid contact point with its cor-responding contact from the previous valid frame. Given the current estimate pt and previous valid contact pt− , the stabilized contact is computed as 
+
+¯pt = λpt− + (1 − λ)pt, λ = 0 .3. (9) We apply the same procedure independently to the thumb and non-thumb contacts. 
+
+d) Grip Finger Selection.: Finally, we determine which non-thumb human finger should be mapped to the opposing side of the robot gripper. Since the centroid pnt  
+
+> t
+
+does not necessarily coincide with a MANO mesh vertex, we identify its nearest vertex within the filtered contact set, 
+
+i∗ 
+
+> t
+
+= arg min  
+
+> i:vt,i ∈ePnt
+> t
+
+∥vt,i − pnt  
+
+> t
+
+∥2. (10) Using the predefined MANO vertex-to-finger mapping, the finger associated with i∗ 
+
+> t
+
+is selected as the active opposing finger. If no valid non-thumb contact is detected, we default to the middle finger. The final human grasp is therefore represented by the pair (¯ pth  
+
+> t
+
+, ¯pnt  
+
+> t
+
+) together with the identity of the opposing finger. This compact representation preserves the dominant human contact geometry inferred by LatentAct while being directly compatible with subsequent retargeting to a two-finger parallel-jaw gripper. 
+
+C. Depth-Consistent Robot–Scene Compositing 
+
+After retargeting the recovered human hand trajectory to the robot embodiment, we render the robot into the egocentric scene to generate robotized demonstrations. A key challenge in this step is handling occlusion between the rendered robot gripper and the real manipulated object. Directly overlaying the rendered robot on the raw frame can produce physically implausible images, because object regions that should appear in front of the robot may be incorrectly covered by the rendered gripper. To address this issue, we estimate occlusion using the inpainted video frame rather than the raw egocentric frame. Following the visual editing procedure of Masquerade [1], we remove the segmented human hands using E2FGVI video inpainting [19]. Let eIt denote the resulting hand-inpainted frame. As illustrated in Fig. 2, we predict a depth map Dinp 
+
+> t
+
+from eIt, so that the depth estimate corresponds to the scene after human-hand removal. We also render the retargeted robot in simulation and obtain its depth map Drob  
+
+> t
+
+together with a robot-body mask M rob  
+
+> t
+
+excluding the gripper, and a separate gripper mask M grip  
+
+> t
+
+.For each pixel x covered by the rendered gripper, we compare the inpainted-scene depth with the rendered robot depth. If Dinp  
+
+> t
+
+(x) < D rob  
+
+> t
+
+(x), the scene point is closer to the camera than the rendered gripper and should therefore occlude it. The final overlay mask is computed as 
+
+M overlay  
+
+> t
+
+(x) = M rob  
+
+> t
+
+(x)∨
+
+
+
+M grip  
+
+> t
+
+(x) ∧ Dinp  
+
+> t
+
+(x) ≥ Drob  
+
+> t
+
+(x)
+
+
+
+.
+
+(11) This depth comparison removes gripper pixels that lie behind the inpainted scene while keeping the visible robot body in the overlay. Using the inpainted frame is important because the raw frame still contains the human hands, whose depth would incorrectly compete with the rendered robot and introduce spurious occlusions after the hands have been removed. 
+
+D. Robotized Demonstrations for Policy Co-Training 
+
+We follow the policy-learning procedure of Masquer-ade [1]. Let 
+
+Dedit = {(Iedit  
+
+> t
+
+, p2D  
+
+> t:t+H
+
+)}, Drobot = {(ort , art )}, (12) denote the robotized human-video dataset and task-specific robot demonstration dataset, respectively. The visual encoder is first pre-trained on Dedit to predict future 2D robot waypoints p2D  
+
+> t:t+H
+
+. During policy learning, this auxiliary objective is retained while the encoder and policy head are optimized on the robot observations ort and actions art . The overall objective is 
+
+L = L2D (Dedit ) + λpolicy Lpolicy (Drobot ). (13) Thus, the edited videos provide visual representation su-pervision, whereas the robot demonstrations provide robot-action supervision. We keep this training procedure fixed and modify only the human-to-robot editing pipeline, allowing the experiments to isolate the effect of improving the quality of the robotized demonstrations. IV. E XPERIMENT 
+
+A. Experimental Setup a) Comparison Methods.: We compare three training settings to separate the benefit of adding human-video-derived demonstrations from the benefit of improving their conversion quality. 
+
+Baseline (w/o Co-training). The policy is trained only on the original robot demonstrations. This represents the stan-dard robot-learning setting and provides a baseline without human-video co-training. 
+
+Masquerade. Following Masquerade [1], we augment the robot data with egocentric human videos converted to the target robot embodiment using its original data-editing pipeline. The robot and converted human demonstrations are then used jointly for policy training. 
+
+Ours. We use the same human videos and robot demon-strations as Masquerade, but process the videos with our interaction-aware pipeline. Our conversion incorporates contact-aware hand–object segmentation, 3D contact recon-struction, contact-guided grasp retargeting, and depth-based robot–scene compositing. Both simulation and real-world experiments use 50 robot demonstrations per task. Masquerade and our method also TABLE I TASK SUCCESS RATES (%) ON ROBO TWIN OVER 100 EVALUATION ROLLOUTS . A LL POLICIES ARE TRAINED IN THE ID SCENE . ID AND OOD DENOTE EVALUATION WITHOUT AND WITH VISUAL DISTRACTORS , RESPECTIVELY . A VERAGE VALUES ARE COMPUTED ACROSS THE FOUR TASKS . B OLD INDICATES THE BEST RESULT FOR EACH POLICY BACKBONE AND EVALUATION SETTING .
+
+Policy Training data Adjust Bottle Grab Roller Place Burger Fries Shake Bottle Average ID OOD ID OOD ID OOD ID OOD ID OOD DP-ViT Baseline 33 15 27 1 40 21 69 29 42.25 16.50 Masquerade 76 37 85 12 37 23 64 22 65.50 23.50 Ours 82 70 75 33 46 43 69 37 68.00 45.75 
+
+DP-Swin Baseline 73 30 80 22 39 10 84 10 69.00 18.00 Masquerade 94 57 94 43 69 39 84 36 85.25 43.75 Ours 97 84 95 74 72 58 85 21 87.25 59.25  
+
+> Fig. 3. RoboTwin simulation evaluation scenes for Adjust Bottle, Grab Roller, Place Burger Fries, and Shake Bottle (top to bottom). The left column shows the ID scenes containing only task-relevant objects, while the right column shows the OOD scenes with additional visual distractors.
+
+use the same source human videos. We hold the policy architecture and training configuration fixed within each comparison, so differences between these two settings pri-marily reflect the human-to-robot conversion pipeline. 
+
+b) Evaluation Scenes.: For each task, the in-distribution (ID) scene contains only task-relevant objects, whereas the out-of-distribution (OOD) scene adds irrelevant objects as visual distractors. All policies are trained using ID-scene demonstrations and evaluated in both scenes. This protocol measures performance under the training distribution and robustness to changes in visual context. 
+
+B. Simulation Experiments 
+
+We first conduct controlled experiments on the four RoboTwin [20] tasks shown in Fig. 3: Adjust Bottle, Grab Roller, Place Burger Fries, and Shake Bottle. These tasks cover grasping, object adjustment, placement, and dynamic manipulation. The clean and randomized RoboTwin scenes correspond to our ID and OOD settings, respectively. For each task, all settings use the same 50 robot demon-strations. Masquerade and ours augment these demonstra-tions with robotized versions of the same human videos, allowing us to isolate the effect of editing quality while keeping the amount and source of training data fixed. We evaluate Diffusion Policy (DP) [21] with ViT [22] and Swin Transformer [23] visual encoders, denoted DP-ViT and DP-Swin, to test whether the observed trends hold across visual representations. We report task success rates over 100 rollouts for every policy, task, and scene. Evaluation conditions and initial-state distributions are matched across the three training settings within each scene. As shown in Tab. I, both co-training methods improve average ID and OOD success over the robot-only baseline for both encoders, confirming that robotized human videos provide useful additional supervision. Our method performs best on average, reaching 68.00%/45.75% ID/OOD success with DP-ViT and 87.25%/59.25% with DP-Swin. Relative to Masquerade, the average OOD gains are 22.25 and 15.50 percentage points, whereas the corresponding ID gains are only 2.50 and 2.00 points. The larger OOD improvement suggests that more physically consistent demonstrations are especially useful when the visual context differs from the robot training scene. The gains remain task-dependent. Our method improves OOD success over Masquerade on all four tasks with DP-ViT and on three of four tasks with DP-Swin. For DP-Swin, the OOD gains on Adjust Bottle, Grab Roller, and Place Burger Fries are 27, 31, and 19 points, respectively, but Shake Bottle falls from 36% to 21%. DP-ViT also drops from 85% to 75% ID success on Grab Roller despite improving OOD success from 12% to 33%. Thus, the average gains generalize across both encoders, but not uniformly across tasks and scene conditions. TABLE II ABLATION RESULTS ON ROBO TWIN USING DP-V IT. A LL VARIANTS ARE TRAINED IN THE ID SCENE . ID AND OOD DENOTE EVALUATION WITHOUT AND WITH VISUAL DISTRACTORS , RESPECTIVELY . S UCCESS RATES (%) ARE MEASURED OVER 100 ROLLOUTS , AND AVERAGES ARE COMPUTED ACROSS THE FOUR TASKS .
+
+Variant Adjust Bottle Grab Roller Place Burger Fries Shake Bottle Average ID OOD ID OOD ID OOD ID OOD ID OOD Ours 82 70 75 33 46 43 69 37 68.00 45.75 w/o Contact Reconstruction 83 41 84 24 47 26 69 30 70.75 30.25 w/o Depth-Based Occlusion 83 65 83 13 46 36 53 29 66.25 35.75 
+
+C. Ablation Studies 
+
+We ablate the two main components of our editing pipeline: interaction-aware contact reconstruction and depth-based robot occlusion estimation. To keep the comparison controlled and computationally efficient, all ablations use DP-ViT with the same source videos, robot demonstrations, architecture, and training configuration. Each variant re-moves one component while retaining the other and follows the ID/OOD protocol in Sec. IV-B. 
+
+w/o Contact Reconstruction. We replace our contact reconstruction (Sec. III-B) with the original Masquerade grasp representation while retaining the reconstructed hand motion and depth-based occlusion estimation. This variant isolates the contribution of contact-guided grasp retargeting. 
+
+w/o Depth-Based Occlusion. We composite the rendered robot directly onto the hand-inpainted frame, without com-paring the inpainted-scene and rendered-robot depths as in Sec. III-C. Contact reconstruction and retargeting remain unchanged, isolating the contribution of depth-aware com-positing. As shown in Tab. II, removing contact reconstruction reduces average OOD success from 45.75% to 30.25%, despite increasing ID success from 68.00% to 70.75%. Removing depth-based occlusion lowers average success to 66.25%/35.75% in ID/OOD scenes. Both components therefore improve OOD generalization, with contact recon-struction providing the larger contribution and depth-aware compositing providing a complementary gain. 
+
+D. Real-World Experiments 
+
+We further evaluate all three settings on a physical robot setup comprising a Franka Research 3 (FR3) robot and an Intel RealSense D435if camera, using the two tasks shown in Fig. 4. Pick Up Box requires a downward grasp and precise depth alignment, whereas Pick Up Sponge uses a horizontal grasp. Each task uses the same 50 real-robot demonstrations; Masquerade and ours additionally use robotized versions of the same egocentric human videos. Both co-training methods use identical human and robot data. Following the scene definitions in Sec. IV-A, we evaluate each policy in both ID and OOD scenes. We conduct 10 independent trials for every combination of training setting, task, and scene and report the number of successful trials. As shown in Tab. III, co-training is most effective for Pick Up Sponge. Our method achieves 9/10 ID and 8/10 OOD  
+
+> Fig. 4. Real-world evaluation scenes for Pick Up Sponge (top) and Pick Up Box (bottom). The left column shows the ID scenes containing only task-relevant objects, while the right column shows the OOD scenes with additional visual distractors.
+
+successes, compared with 8/10 and 5/10 for the baseline and 9/10 and 7/10 for Masquerade. The three-point OOD improvement over robot-only training indicates greater ro-bustness to the added visual distractors. Pick Up Box remains difficult for all methods: ours achieves 4/10 ID and 2/10 OOD successes. Unlike the horizontal sponge grasp, the downward box grasp demands precise depth estimation for gripper alignment. Because the setup uses only a single egocentric camera, limited depth cues constrain performance even with co-training. Overall, our method improves real-world OOD performance for the horizontal sponge grasp, but the box results show that bet-ter demonstrations cannot fully compensate for insufficient geometric observability. Overall, the real-world results support the value of phys-ically consistent human-video co-training, particularly for improving robustness to visual distractors. However, its benefit depends on the perceptual demands of the task: better edited demonstrations help when the required geom-etry is observable, but cannot resolve ambiguities caused by insufficient depth information. These findings highlight that scalable human-video supervision and reliable geometric perception are complementary requirements for robust real-world manipulation. V. C ONCLUSION 
+
+In this work, we introduced an interaction-aware human-to-robot data-editing pipeline that converts egocentric human TABLE III REAL -WORLD TASK SUCCESS OVER 10 TRIALS PER TASK AND EVALUATION SCENE . ID AND OOD DENOTE EVALUATION WITHOUT AND WITH VISUAL DISTRACTORS , RESPECTIVELY . B OLD INDICATES THE BEST RESULT IN EACH SETTING .
+
+Training data Pick Up Box Pick Up Sponge ID OOD ID OOD Baseline 4/10 1/10 8/10 5/10 Masquerade 3/10 2/10 9/10 7/10 Ours 4/10 2/10 9/10 8/10 
+
+videos into robot-compatible demonstrations while preserv-ing physical consistency. Our method combines contact-based grasp reconstruction for stable parallel-jaw retarget-ing with depth-aware compositing for correct robot–object visibility. Across simulation and real-world experiments, the resulting demonstrations improve policy learning over robot-only training and Masquerade-based editing, with par-ticularly clear gains under out-of-distribution scene varia-tion. These results suggest that the value of human-video supervision depends not only on scale, but also on how faithfully the original interaction is preserved during em-bodiment conversion. By improving both grasp geometry and scene consistency, our approach provides a practical path toward higher-quality robot-learning supervision from abundant human videos. More broadly, our findings highlight that the value of human-video supervision depends not only on data scale, but also on how faithfully the original interaction is preserved during embodiment conversion. Contact reconstruction im-proves the geometric validity of grasp retargeting, while depth-aware compositing preserves the visual evidence of object interaction. By addressing both, our method provides a practical path toward converting abundant human videos into higher-quality robot-learning supervision. Future work will extend this framework to dexterous hands, more complex object geometries, and larger collections of unconstrained human videos. REFERENCES [1] M. Lepert, J. Fang, and J. Bohg, “Masquerade: Learning from in-the-wild human videos using data-editing,” in 2026 IEEE International Conference on Robotics and Automation (ICRA) , IEEE, 2026. [2] K. Black, N. Brown, J. Darpinian, K. Dhabalia, D. Driess, A. Esmail, M. R. Equi, C. Finn, N. Fusai, M. Y. Galliker, D. Ghosh, L. Groom, K. Hausman, b. ichter, S. Jakubczak, T. Jones, L. Ke, D. LeBlanc, S. Levine, A. Li-Bell, M. Mothukuri, S. Nair, K. Pertsch, A. Z. Ren, L. X. Shi, L. Smith, J. T. Springenberg, K. Stachowicz, J. Tanner, Q. Vuong, H. Walke, A. Walling, H. Wang, L. Yu, and U. Zhilinsky, “π0.5: a vision-language-action model with open-world generaliza-tion,” in Proceedings of The 9th Conference on Robot Learning ,pp. 17–40, 2025. [3] S. Ye, Y. Ge, K. Zheng, S. Gao, S. Yu, G. Kurian, S. Indupuru, Y. L. Tan, C. Zhu, J. Xiang, A. Malik, K. Lee, W. Liang, N. Ranawaka, J. Gu, Y. Xu, G. Wang, F. Hu, A. Narayan, J. Bjorck, J. Wang, G. Kim, D. Niu, R. Zheng, Y. Xie, J. Wu, Q. Wang, R. Julian, D. Xu, Y. Du, Y. Chebotar, S. Reed, J. Kautz, Y. Zhu, L. J. Fan, and J. Jang, “World action models are zero-shot policies,” 2026. [4] A. O’Neill, A. Rehman, A. Maddukuri, A. Gupta, A. Padalkar, A. Lee, A. Pooley, A. Gupta, A. Mandlekar, A. Jain, et al. , “Open x-embodiment: Robotic learning datasets and rt-x models: Open x-embodiment collaboration 0,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , pp. 6892–6903, IEEE, 2024. [5] A. Khazatsky, K. Pertsch, S. Nair, A. Balakrishna, S. Dasari, S. Karam-cheti, S. Nasiriany, M. K. Srirama, L. Y. Chen, K. Ellis, P. D. Fagan, J. Hejna, M. Itkina, M. Lepert, Y. J. Ma, P. T. Miller, J. Wu, S. Belkhale, S. Dass, H. Ha, A. Jain, A. Lee, Y. Lee, M. Memmel, S. Park, I. Radosavovic, K. Wang, A. Zhan, K. Black, C. Chi, K. B. Hatch, S. Lin, J. Lu, J. Mercat, A. Rehman, P. R. Sanketi, A. Sharma, C. Simpson, Q. Vuong, H. R. Walke, B. Wulfe, T. Xiao, J. H. Yang, A. Yavary, T. Z. Zhao, C. Agia, R. Baijal, M. G. Castro, D. Chen, Q. Chen, T. Chung, J. Drake, E. P. Foster, J. Gao, V. Guizilini, D. A. Herrera, M. Heo, K. Hsu, J. Hu, M. Z. Irshad, D. Jackson, C. Le, Y. Li, K. Lin, R. Lin, Z. Ma, A. Maddukuri, S. Mirchandani, D. Morton, T. Nguyen, A. O’Neill, R. Scalise, D. Seale, V. Son, S. Tian, E. Tran, A. E. Wang, Y. Wu, A. Xie, J. Yang, P. Yin, Y. Zhang, O. Bastani, G. Berseth, J. Bohg, K. Goldberg, A. Gupta, A. Gupta, D. Jayaraman, J. J. Lim, J. Malik, R. Mart´ ın-Mart´ ın, S. Ramamoorthy, D. Sadigh, S. Song, J. Wu, M. C. Yip, Y. Zhu, T. Kollar, S. Levine, and C. Finn, “Droid: A large-scale in-the-wild robot manipulation dataset,” 2024. [6] J. Achiam, S. Adler, S. Agarwal, L. Ahmad, I. Akkaya, F. L. Aleman, D. Almeida, J. Altenschmidt, S. Altman, S. Anadkat, et al. , “Gpt-4 technical report,” arXiv preprint arXiv:2303.08774 , 2023. [7] A. Yang, A. Li, B. Yang, B. Zhang, B. Hui, B. Zheng, B. Yu, C. Gao, C. Huang, C. Lv, et al. , “Qwen3 technical report,” arXiv preprint arXiv:2505.09388 , 2025. [8] T. Wan, A. Wang, B. Ai, B. Wen, C. Mao, C.-W. Xie, D. Chen, F. Yu, H. Zhao, J. Yang, et al. , “Wan: Open and advanced large-scale video generative models,” arXiv preprint arXiv:2503.20314 , 2025. [9] D. Damen, H. Doughty, G. M. Farinella, S. Fidler, A. Furnari, E. Kazakos, D. Moltisanti, J. Munro, T. Perrett, W. Price, and M. Wray, “Scaling egocentric vision: The epic-kitchens dataset,” in European Conference on Computer Vision (ECCV) , 2018. [10] R. Punamiya, S. Kareer, Z. Liu, J. Citron, R.-Z. Qiu, X. Cai, A. Gavryushin, J. Chen, D. Liconti, L. Y. Zhu, et al. , “Egoverse: An egocentric human dataset for robot learning from around the world,” 
+
+arXiv preprint arXiv:2604.07607 , 2026. [11] T. Perrett, A. Darkhalil, S. Sinha, O. Emara, S. Pollard, K. K. Parida, K. Liu, P. Gatti, S. Bansal, K. Flanagan, et al. , “Hd-epic: A highly-detailed egocentric video dataset,” in 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 23901–23913, IEEE, 2025. [12] R. Yang, Q. Yu, Y. Wu, R. Yan, B. Li, A.-C. Cheng, X. Zou, Y. Fang, X. Cheng, R.-Z. Qiu, et al. , “Egovla: Learning vision-language-action models from egocentric human videos,” arXiv preprint arXiv:2507.12440 , 2025. [13] R. Zheng, D. Niu, Y. Xie, J. Wang, M. Xu, Y. Jiang, F. Casta˜ neda, F. Hu, Y. L. Tan, L. Fu, et al. , “Egoscale: Scaling dexterous manipulation with diverse egocentric human data,” arXiv preprint arXiv:2602.16710 , 2026. [14] M. Lepert, J. Fang, and J. Bohg, “Phantom: Training robots without robots using only human videos,” in Conference on Robot Learning ,pp. 4545–4565, 2025. [15] S. Kareer, D. Patel, R. Punamiya, P. Mathur, S. Cheng, C. Wang, J. Hoffman, and D. Xu, “Egomimic: Scaling imitation learning via egocentric video,” 2024. [16] A. Darkhalil, D. Shan, B. Zhu, J. Ma, A. Kar, R. Higgins, S. Fidler, D. Fouhey, and D. Damen, “Epic-kitchens visor benchmark: Video segmentations and object relations,” in Proceedings of the Neural Information Processing Systems (NeurIPS) Track on Datasets and Benchmarks , 2022. [17] Y. Su, Y. Wang, and L.-P. Chau, “CaRe-Ego: Contact-aware relation-ship modeling for egocentric interactive hand-object segmentation,” 
+
+Expert Systems with Applications , vol. 296, p. 129148, 2026. [18] A. Prakash, B. Lundell, D. Andreychuk, D. Forsyth, S. Gupta, and H. Sawhney, “How do i do that? synthesizing 3d hand motion and contacts for everyday interactions,” in Computer Vision and Pattern Recognition (CVPR) , 2025. [19] Z. Li, C.-Z. Lu, J. Qin, C.-L. Guo, and M.-M. Cheng, “Towards an end-to-end framework for flow-guided video inpainting,” in Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 17562–17571, June 2022. [20] Y. Mu, T. Chen, Z. Chen, S. Peng, Z. Lan, Z. Gao, Z. Liang, Q. Yu, Y. Zou, M. Xu, L. Lin, Z. Xie, M. Ding, and P. Luo, “Robotwin: Dual-arm robot benchmark with generative digital twins,” in Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR) ,pp. 27649–27660, June 2025. [21] C. Chi, Z. Xu, S. Feng, E. Cousineau, Y. Du, B. Burchfiel, R. Tedrake, and S. Song, “Diffusion policy: Visuomotor policy learning via action diffusion,” The International Journal of Robotics Research , 2024. [22] A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly, J. Uszkoreit, and N. Houlsby, “An image is worth 16x16 words: Trans-formers for image recognition at scale,” in International Conference on Learning Representations (ICLR) , 2021. [23] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and B. Guo, “Swin transformer: Hierarchical vision transformer using shifted windows,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2021.

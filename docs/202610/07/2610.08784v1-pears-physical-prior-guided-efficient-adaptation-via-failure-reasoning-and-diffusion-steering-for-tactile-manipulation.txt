@@ -1,0 +1,598 @@
+Title: PEARS: Physical-Prior-Guided Efficient Adaptation via Failure Reasoning and Diffusion Steering for Tactile Manipulation
+
+URL Source: https://arxiv.org/pdf/2610.08784v1
+
+Published Time: Wed, 07 Oct 2026 01:58:25 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# PEARS: Physical-Prior-Guided Efficient Adaptation via Failure Reasoning and Diffusion Steering for Tactile Manipulation 
+
+Kun Song 1,∗, Yiming Wang 2,3,∗, Yilin Chen 4,∗, Tianyi Ding 2,∗,Jiaxin Tian 2, Tianqi Gong 2, Daolin Ma 2,3,†, Jia Pan 1,†Onli ne  Ro ll out 
+
+## VLA  \ VTLA 
+
+Contact Phase  Last Contact 
+
+> Frame
+
+Visual 
+
+Tactile 
+
+Tactile -Aware DSRL  VLM -Based Failure Reasoning πw 
+
+> 
+> VLM Output :
+> “failure_cause ”: “Under -force ”,
+> “force_range ”:[8.95, 10.95] ,
+> “confidence”:0.87
+
+Stage-aware  Hybrid  Force –position  Control 
+
+Simulation Task 
+
+Real -world Task 
+
+Place 
+
+Misalignment 
+
+Improper 
+
+Force 
+
+Wipe 
+
+Whiteboard 
+
+Data Collection & Deploy  PEARS  Online Adaptation  Performance 
+
+> VLM Reasoning
+> Target Force Update
+> Pipette Liquid
+> Aspiration
+> Pipette Liquid Aspiration Wipe Whiteboard
+> Thin Sheet
+> Transfer
+> Fragile Fruit
+> Picking
+> Bottle Cap
+> Twisting
+
+Result 
+
+> Latent Space Adaptation
+
+Fig. 1. Overview of PEARS. Tactile-aware DSRL and the physics-guided force reasoning (PFR) module jointly accelerate online adaptation. 
+
+Abstract — Pretrained robotic policies can suffer sub-stantial performance degradation under out-of-distribution (OOD) conditions encountered during deployment, motivat-ing post-training through real-world interaction. However, reinforcement-learning (RL)-based post-training typically re-quires substantial environment interactions, a burden that is especially significant in manipulation, where each trial can be slow, costly, or destructive. Therefore, we present PEARS, a physics-prior-guided hybrid RL framework for sample-efficient online adaptation of pretrained policies with tactile feedback. After each episode, its physics-guided force reasoning (PFR) module uses physical priors encoded in a vision–language model (VLM) to diagnose failures from the visual outcome and tactile interaction history and update task-appropriate contact-force bounds. A high-frequency hybrid force–position controller then enforces these bounds during contact. Complementarily, tactile-conditioned diffusion steering reinforcement learning adjusts the latent noise of the frozen flow-matching policy to correct errors in free-space motion and contact timing without updating the base model. In simulation, PEARS improves success rates by 12.4–37.4 percentage points over the strongest per-task baselines. PEARS also reduces the number of interaction episodes required for a certain success threshold by up to 53.2% relative to the fastest baseline. In real-world experiments, PEARS achieves success rates of 95% on Whiteboard Erasing and 90% on Pipette Liquid Aspiration. These results show that combining the PFR module with policy steering can accelerate 
+
+This work was supported by the National Natural Science Foundation of China (NSFC) under Grant Nos. 12522202 and 12272220. 
+
+> 1
+
+The University of Hong Kong; 2Shanghai Jiao Tong University; 3Xense Robotics; 4University of Pennsylvania. 
+
+> ∗
+
+These authors contributed equally to this work. †Co-corresponding authors: Daolin Ma and Jia Pan. 
+
+adaptation while reducing costly interactions. The project web-site is available at https://song-kun.github.io/pears .
+
+I. I NTRODUCTION 
+
+Large-scale pretrained vision–language–action (VLA) models [1], [2] have recently emerged as an important paradigm for robotic manipulation, achieving remarkable progress in task generalization across diverse real-world environments. For contact-rich tasks, such as surface wiping and grasping fragile objects, vision–tactile–language–action (VTLA) models [3] extend this paradigm by incorporating tactile feedback to sense and regulate physical interactions with the environment. However, pretrained VLA and VTLA policies can perform poorly during deployment when scene configurations, object properties, or contact dynamics dif-fer from those encountered during training. Such out-of-distribution (OOD) shifts can lead to positioning errors, mistimed contact, or inappropriate interaction forces [4]. Reinforcement learning (RL) post-training with tactile feedback [5], [6] provides a direct route for adapting pretrained policies to the target deployment environment through autonomous interaction. However, traditional RL-based algorithms demand substantial interaction with the en-vironment, which can be time-inefficient and high-cost. For example, a failed online interaction in an industrial operation or chemical laboratory procedure may damage equipment or compromise the experimental setup. This interaction cost is compounded by conventional online RL algorithms, which arXiv:2610.08784v1 [cs.RO] 6 Oct 2026 often rely on stochastic trial-and-error exploration and must visit a sufficiently diverse set of task-relevant states before effective behaviors can be learned. Therefore, how to develop an efficient real-world RL fine-tuning method for contact-rich manipulation with tactile feedback is still an open-problem. To this end, we introduce PEARS , a physics-prior-guided framework for interaction-efficient real-world adap-tation in tactile manipulation. Its physics-guided force rea-soning (PFR) module uses physical priors encoded in a vision–language model (VLM) to reason about episode-level failures and guide contact-force adaptation, rather than relying solely on random RL exploration. After each episode, the PFR module jointly interprets the visual outcome and measured interaction forces to diagnose the failure cause and update task-specific contact-force bounds. During contact, a high-frequency hybrid force–position controller enforces these bounds along the force-control axes while maintaining position tracking in the remaining directions. Complemen-tarily, tactile-conditioned DSRL [7] steers the frozen policy through latent-noise adaptation to correct positioning and contact-timing errors without updating the base model. By separating force adaptation through PFR from latent policy steering, PEARS reduces its reliance on costly real-world trial-and-error exploration. We evaluated PEARS on three simulated tasks and two real-world manipulation tasks. Experimental results demon-strate that PEARS achieves superior performance, signifi-cantly outperforming representative policy adaptation base-lines. Our contributions are threefold:  
+
+> •
+
+We present PEARS , an interaction-efficient online fine-tuning framework that combines noise-space steering with VLM-based force reasoning using tactile sensing.  
+
+> •
+
+We develop the PFR module , which uses physical priors encoded in VLMs to diagnose failure causes and adapt task-specific contact-force bounds, reducing interaction numbers required for policy fine-tuning.  
+
+> •
+
+We conduct extensive experiments across simulated and real-world contact-rich manipulation tasks, demonstrat-ing the effectiveness and efficiency of PEARS. II. R ELATED WORK 
+
+A. Tactile-Aware Visuomotor Policies 
+
+Recent studies have increasingly incorporated tactile sens-ing into visuomotor policies. These approaches employ tactile encoders [8], [9], [10], [11] cross-modal align-ment [12], [13], [14] or auxiliary tactile supervision [15] to leverage learned tactile representations to guide ac-tion generation. [16], [17], [3], [18] further pretrain vi-sion–tactile–language–action (VTLA) models on tactile datasets collected across diverse tasks and heterogeneous tactile sensor configurations, enabling VTLA models to learn more unified and transferable tactile representations. 
+
+B. Reactive Tactile Policies for Contact-Rich Manipulation 
+
+Contact-rich manipulation requires high-frequency re-sponses to tactile feedback. FOAR [19] uses predicted con-tact states to dynamically modulate vision-force fusion and trigger local action corrections. RDP [20] introduces a slow-fast architecture that pairs slow action chunk generation with a fast tactile-conditioned decoder, enabling within-chunk cor-rections. ForcePolicy [21] and ForceVLA2 [22] employ force feedback to perform high-frequency hybrid force-position control. This reactive design has been extended to tactile-aware VLA models. VLA-Touch [23] uses tactile feedback to support both semantic replanning and action refinement. AT-VLA [24] separates slow vision-language reasoning from fast tactile control. FAVLA [25] adaptively adjusts the action expert invocation frequency based on predicted force varia-tions. UniTacVLA [26] combines predicted and measured tactile signals to apply high-frequency corrections to low-frequency action chunks. 
+
+C. Reinforcement Learning for Tactile Policy Adaptation 
+
+Beyond behavior cloning (BC), RL can further improve tactile policies through autonomous interaction with the environment. VLA-RL [27] optimizes autoregressive VLAs through trajectory-level RL. SimpleVLA-RL [28] presents an efficient and scalable RL framework tailored to VLAs. 
+
+π∗ 
+
+> 0.6
+
+proposes RECAP [29], which trains a value function on demonstrations, autonomous rollouts, and expert inter-ventions. Rather than directly updating VLA parameters, DSRL [7] treats the initial noise of a diffusion or flow-matching policy as the RL latent action space and learns a noise policy, enabling effective autonomous policy im-provement in the real world. RL Token [30] compresses task-relevant internal VLA representations into a compact RL token and trains a lightweight actor-critic head on this representation to refine actions while anchoring behavior to the base VLA, enabling sample-efficient online adaptation on real robots. Recent work extends RL-based VLA adaptation to contact-rich manipulation through tactile feedback. Tac-CoRL [5] improves tactile-conditioned VLA policies through simulation-based RL. OmniTacTune [6] learns a tactile resid-ual policy through online RL to provide contact-aware action corrections. TORL-VLA [31] freezes a pretrained tactile-aware VLA during online RL and employs an intervention-censored critic for real-world adaptation. However, most ex-isting RL approaches require substantial environment inter-action for stochastic exploration and lack explicit directional guidance, limiting their sample efficiency. To address these limitations, we propose the PEARS framework. III. P RELIMINARIES AND PROBLEM FORMULATION 
+
+A. Flow Matching Policy for Imitation Learning 
+
+Behavior cloning (BC) learns a policy from a demonstra-tion dataset D = {(st, at)}, where st ∈ S is the state and 
+
+at is the demonstrated action chunk. For a vision–language– action (VLA) policy, st contains visual observations, pro-prioception, and the language instruction [32]; a vision– tactile–language–action (VTLA) policy additionally includes tactile observations [3]. In both cases, diffusion and flow-matching policies learn the conditional action distribution by mapping a noise w to the demonstrated action distribution. 
+
+πBC : S × W → A . At inference time, the policy first samples an initial noise action and then transforms it into a clean action chunk through an iterative sampling process [7]. 
+
+B. Diffusion Steering Reinforcement Learning 
+
+A Markov decision process (MDP) can be denoted using 
+
+M = ( S, A, P, R, γ ), where st ∈ S is the state, at ∈ A is the physical action, and P , R, and γ denote the transition function, reward function, and discount factor, respectively. Following DSRL [7], we do not optimize the physical action directly. Instead, the RL policy selects the initial noise of the frozen BC policy. Conditioned on the current state, the noise policy and the resulting action are defined as 
+
+wt ∼ πw 
+
+> θ
+
+(wt | st), at = πBC (st, wt). (1) Under the original full-dimensional noise parameteriza-tion, sampling wt ∼ N (0 , I) recovers the original BC behavior. Learning πw 
+
+> θ
+
+instead changes the noise distri-bution and thereby steers the action generated by πBC 
+
+without updating the pretrained policy. The objective is 
+
+max θ EπWθ
+
+PTt=0 γtR(st, at). Tactile feedback can be used by πw 
+
+> θ
+
+to adapt the frozen BC policy toward successful and contact-safe behaviors. IV. M ETHODOLOGY 
+
+PEARS combines tactile-conditioned DSRL with physics-guided force reasoning (PFR) to adapt the behavior of a frozen BC policy. DSRL refines position alignment and contact timing, while PFR uses physical priors encoded in a VLM to update a task-specific contact-force goal gt based on the interaction history ht after each episode. At each planning step, the actor πw 
+
+> θ
+
+samples latent noise wt con-ditioned on ot, including visual, proprioceptive, and tactile information. The frozen BC policy maps the noise tensor and its observations to an action chunk. During contact stage, a tactile-gated low-level force controller adjusts the nominal action at according to gt to produce the executed action ut.The executed action ut is jointly determined by the RL policy πw 
+
+> θ
+
+and the contact-force goal inferred by PFR. We treat the original environment and the low-level force controller as a single effective environment under partial observability. The force goal gt is fixed within each episode (gt = ge) and updated by PFR between episodes, providing contextual adaptation. We use zt = ( ot, g t) as a context-augmented observation for the critic Q(zt, wt), while the actor remains conditioned on ot. We thus model the in-teraction as a partially observable Markov decision process (POMDP) and approximate action values using the current context-augmented observation zt.
+
+A. Real-World Tactile-Informed Latent RL Actor a) VLA and VTLA base policies.: We initialize the behavior-cloning policy from GR00T N1.7 [2] and fine-tune it on task demonstrations. Each observation contains an image from the wrist-mounted camera Iwrist  
+
+> t
+
+and a third-person image Iext  
+
+> t
+
+, both resized to 224 × 224 pixels. We represent the end-effector pose by its Cartesian position and a continuous 6D orientation representation formed by the first two rows of its rotation matrix. Together with the current gripper width, the proprioceptive vector is defined as 
+
+pt = (xee  
+
+> t
+
+)⊤, vec( Ree 
+
+> t, 1:2 ,:
+
+)⊤, d t
+
+⊤ ∈ R10 . (2) The VLA policy is conditioned on the two images, pt,and the language instruction. For the VTLA policy, we additionally concatenate the 6D force–torque measurements from the left and right fingertips, f Lt , f Rt ∈ R6, with pt. Thus, the proprioceptive–tactile state has 22 dimensions. At each planning step t, the base policy predicts an action chunk spanning time steps t through t + H − 1,
+
+At = [ at, . . . , at+H−1]⊤ ∈ RH×10 ,
+
+aτ =
+
+h
+
+(ˆ xee  
+
+> τ
+
+)⊤, vec( ˆRee 
+
+> τ, 1:2 ,:
+
+)⊤, ˆdτ
+
+i⊤ (3) Each row contains the target position, target orientation, and target gripper width. We train the policy with an action horizon H = 32 . During deployment, we use receding-horizon control and execute the first K = 10 actions before acquiring a new observation and replanning. 
+
+b) Tactile-informed latent actor: Directly processing raw images in the online RL actor would be computa-tionally expensive. We therefore reuse visual tokens from the frozen VLM backbone and pool them into a 2048-dimensional feature ¯vt. For the actor, ot is represented by this visual feature, the proprioceptive vector pt, and the two fingertip wrenches f Lt and f Rt . After modality-specific linear projections, a Transformer fuses the visual, proprioceptive, and tactile features. Its output head parameterizes a 10-dimensional latent-noise distribution and samples wt ∈ R10 .GR00T expects a latent-noise tensor in RH×132 for each 
+
+H-step action chunk. We repeat the same 10-dimensional actor output across all H chunk positions, producing an intermediate tensor in RH×10 . At each position, these ten values occupy the first ten channels. The remaining 122 channels retain their corresponding entries from a sample drawn once from a standard Gaussian distribution and held fixed. We include this fixed input expansion in the notation 
+
+πBC (ot, wt) for the frozen policy’s output. The critics take 
+
+wt directly as their action input, so both actor and critic optimization remain in the 10-dimensional noise space. 
+
+c) Actor–critic optimization.: Following DSRL-SAC [7], we treat each executed action chunk as one RL transition. At chunk index n, the replay buffer stores 
+
+(zn, wn, r n, zn+1 , δ n), where rn is the reward accumulated over the executed chunk and δn is the terminal flag. We use a standard critic ensemble {Qηi }i∈I and its corresponding target networks {Q¯ηi }i∈I . For a sampled transition, we draw wn+1 ∼ πw 
+
+> θ
+
+(· | on+1 ) and form the chunk-level temporal-difference target without entropy backup 
+
+yn = rn + γ(1 − δn) min  
+
+> i∈I
+
+Q¯ηi (zn+1 , wn+1 ). (4) where γ is the discount factor between successive action chunks. The critics are updated by minimizing 
+
+LQ({ηi}i∈I ) = 1
+
+|I| 
+
+X
+
+> i∈I
+
+EB
+
+h
+
+(Qηi (zn, wn) − yn)2i
+
+. (5) We then update the actor through reparameterized samples of wn while keeping the critics fixed. The actor objective is 
+
+Lπ (θ) = E zn∼B ,
+
+> wn∼πw
+> θ
+
+h
+
+α log πw 
+
+> θ
+
+(wn | on)
+
+− min  
+
+> i∈I
+
+Qηi (zn, wn)
+
+i
+
+,
+
+(6) where α controls the exploration entropy and is adjusted toward a target entropy during training. 
+
+B. PFR-Guided Contact-Force Control 
+
+We combine task-specific contact-force bounds inferred by the PFR module with low-level hybrid force–position control. Different manipulation tasks require different forms of force regulation. Fragile-object grasping requires sufficient but non-destructive grasp force, whereas whiteboard wiping requires an appropriate normal force. Fragile fruit harvesting, like raspberry, requires both a gentle grasp and sufficient pulling force to detach the fruit from its stem. This combi-nation provides task-specific force feedback during contact. We formulate force regulation over contact phases involv-ing gripper–object interaction, object–environment interac-tion, or both. Let ft = [ F⊤ 
+
+> t
+
+, τ ⊤ 
+
+> t
+
+]⊤ ∈ R6 denote the object– environment wrench in the end-effector frame, comprising 3D force and 3D torque. When gripper–object interaction must be constrained, such as to avoid crushing a fragile object, we append the scalar grasp force f g 
+
+> t
+
+to obtain ˜ft =[( ft)⊤, f g 
+
+> t
+
+]⊤ ∈ R7. We project this vector onto the task-relevant force-control axes as 
+
+f ′ 
+
+> t
+
+= A¯ft, A ∈ Rm×D , (7) where each row of A defines one regulated force or torque channel and m is the number of regulated channels. During contact, the projected wrench must satisfy the component-wise constraint 
+
+fmin ⪯ f ′ 
+
+> t
+
+⪯ fmax . (8) We initialize A before RL training using VLM estimates and manual correction. The PFR module infers the task-conditioned bounds fmin and fmax . The hybrid force–position controller then regulates the selected axes within these bounds during task execution. 
+
+1) Force-Control Axis Estimation : When object– environment force regulation is required, we constrain in-teraction along a single task-relevant force or torque axis. Gripper–object interaction is regulated through the scalar grasp force f g 
+
+> t
+
+when required. Thus, m = 1 for either object– environment regulation alone or grasp-force regulation alone, and m = 2 when both channels are regulated. Before RL training, we use the VLM to estimate the task-relevant prin-cipal force-control axis in the robot’s end-effector coordinate frame. At this stage, we manually review the estimate and correct any erroneous axis. The resulting force or torque axis defines the corresponding row of A. When grasp-force regulation is required, A includes a row selecting f g 
+
+> t
+
+.(a) Contact force Contact force                
+
+> Force control Release
+> ‖aF
+> t,−aVLA
+> t,‖∞> Δ amax
+> fmax
+> fmin
+> ρf min
+> Lower bound 0246810 12 14
+> 0
+> Normal force  Fn
+> Time t
+> Control on
+
+(b) Whiteboard eraser motion   
+
+> Approach Retract Tangential motion
+> Gripper Eraser
+> Fn
+> Contact
+> Fn
+> Wiping
+> Fn
+> Release
+> Whiteboard
+> Hybrid force–position control
+> DSRL
+> Fig. 2. Stage-aware force control during whiteboard wiping.
+
+2) PFR Module: After each episode, PFR queries the VLM with the final contact-phase image, the measured force trajectory, and the force bounds used during execution. The VLM assesses whether the interaction force was insufficient, excessive, or adequate, while distinguishing force-related failures from positioning, trajectory, or force-tracking errors. These diagnoses provide evidence for estimating the task-specific force bounds. The diagnosis determines whether and how the force bounds are updated. An insufficient-force diagnosis shifts the corresponding interval toward a larger force, whereas an excessive-force diagnosis shifts it toward a smaller force. When the evidence is indeterminate, the current estimate is retained. Likewise, if the failure is attributed to positioning or trajectory execution, the force bounds remain unchanged. This outcome-conditioned update has a direct task-dependent interpretation. If visible marks remain on a whiteboard after wiping, PFR increases the admissible normal-force range. If a fragile fruit is crushed during harvesting, it reduces the grasp-force range; if the fruit remains attached to the stem, it instead increases the pulling-force range. To make PFR decision cumulative rather than myopic, we compress the complete interaction history into the VLM con-text. The history records the force bounds of each episode, whether the episode succeeded or failed, the diagnosed failure cause, and the resulting update. Consequently, each new estimate is conditioned on both the latest multimodal evidence and the outcomes of all preceding interactions. 
+
+3) Stage-aware Force Control: Fig. 2 illustrates the framework of contact-stage transitions using the whiteboard wiping task. The low-level force controller runs at 50 Hz ,while the policy runs at 30 Hz . Force regulation is activated when the manipulation enters a contact stage, thereby avoid-ing interference with the policy during free-space motion. For tasks with a single contact stage, let cbi  
+
+> t
+
+∈ { 0, 1} indicate that a stable bilateral grasp has been established, and let f ′ 
+
+> t,k
+
+be the interaction force along the principal control axis k. The contact-stage indicator χt is activated when both the grasp and load conditions are satisfied, 
+
+χt : 0 → 1 if cbi  
+
+> t
+
+= 1 ∧ | f ′
+
+> t,k
+
+| ≥ ρf min ,k , ρ = 0 .7. (9) Once activated, an admittance controller modifies the action coordinates selected by A, while the remaining coordinates continue to follow the VLA action. For each regulated channel k, the force or torque reference is set to the midpoint of the PFR-inferred interval, f ref  
+
+> k
+
+= ( fmin ,k + fmax ,k )/2.We also use the VLA output to determine when force control should be released. Let aVLA  
+
+> t, F
+
+and aF 
+
+> t, F
+
+denote, respectively, the VLA command and the force-controller command on the force-controlled coordinates F. Their dis-agreement is the correction required to preserve force control. If this correction exceeds the controller’s admissible range, 
+
+aF 
+
+> t, F
+
+− aVLA   
+
+> t, F∞
+
+> ∆amax , (10) we set χt+1 = 0 and return control of these coordinates to the VLA. This rule treats a sufficiently large policy command as evidence that the current contact stage has ended, rather than forcing the controller to oppose the intended task motion. During an active contact stage, the low-level controller regulates the selected axes within the force bounds inferred by PFR. If the measured force reaches the smaller of fmax ,k 
+
+and the hard safety limit, the controller issues an unloading command. The executed hybrid action is 
+
+aexec  
+
+> t
+
+= Ψ( aVLA  
+
+> t
+
+, aF 
+
+> t
+
+, A, χ t), (11) where Ψ decomposes motion in task space into the force-controlled subspace specified by A and its complement. When χt = 1 , motion along the selected axes follows aF 
+
+> t
+
+,while motion in the complementary directions follows aVLA  
+
+> t
+
+.When χt = 0 , Ψ returns aVLA  
+
+> t
+
+.For tasks involving multiple contact stages, the VLA policy can be extended to explicitly predict the current contact stage from its observations. This prediction allows the controller to select the appropriate force-control axes and PFR-inferred force bounds, enabling finer force regulation at each stage. For example, during fruit harvesting, the con-troller can regulate grasp force when establishing gripper– fruit contact and additionally regulate pulling force during fruit–stem detachment, while maintaining a gentle grasp. 
+
+C. The Complete System of PEARS 
+
+Algorithm 1 summarizes the complete pipeline, including force-axis initialization, online latent RL, stage-aware force arbitration, and episode-level force adaptation through PFR. V. E XPERIMENTS 
+
+We organize the experiments around three questions: Q1: Adaptation efficiency. Does PEARS enable more sample-efficient online adaptation than existing policy fine-tuning methods? Q2: PFR module. Can the PFR module in PEARS 
+
+infer task-appropriate contact-force bounds, and how robust are these predictions? Q3: Real-world deployment. Can 
+
+PEARS be deployed effectively on physical robotic systems? 
+
+Algorithm 1 PEARS                                                                                                                
+
+> Require: Demonstrations D; pretrained VLA πBC ; VLM V
+> 1: Estimate task-relevant control axes in the end-effector frame
+> 2: Manually review and correct the axes; construct Afrom the selected control channels
+> 3: [fmin ,fmax ]←PFRI NFER BOUNDS (V,task metadata )
+> 4: Initialize πw
+> θ, critics, replay buffer B, and history Hepi
+> 5: for e= 1 , . . . , E do
+> 6: Reset the environment; t←0;Te←∅
+> 7: while the episode is not terminated do
+> 8: Observe otand tactile wrench ¯ft; form zt= ( ot, g e)
+> 9: Sample wt∼πw
+> θ(· | ot)
+> 10: AVLA
+> t←πBC (ot,wt)
+> 11: for j=t, . . . , t +K−1do
+> 12: aVLA
+> j←AVLA
+> t[j−t]
+> 13: f′
+> j←A¯fj
+> 14: (χj, k j)←CONTACT STAGE (Te,f′
+> j,aVLA
+> j)
+> 15: if χj= 1 then
+> 16: uj←FORCE CONTROL (aVLA
+> j,f′
+> j, k j)
+> 17: else
+> 18: uj←aVLA
+> j
+> 19: Execute ujand append the transition to Te
+> 20: Store the chunk transition with wtin B
+> 21: Update the critics, latent actor, entropy coefficient, and target critics from B
+> 22: t←t+K
+> 23: PFRU PDATE BOUNDS (V,Te,Hepi )
+
+A. Experimental Setup 1) Evaluation Tasks: We consider three simulation tasks: Thin Sheet Transfer, Bottle Cap Twisting, and Fragile Fruit Picking. In Thin Sheet Transfer, the robot must transport a fragile thin sheet to the target and regulating its grasp force to avoid crushing it. The object position is randomized within a 
+
+0.2 m ×0.2 m region, and the maximum allowable interaction force is 1.1–1.6 N . In Bottle Cap Twisting, the robot must tighten a bottle cap and establish an appropriate normal force between the cap and the bottle after tightening. This task evaluates whether the PFR module can infer an appropriate interaction torque. The object position is randomized within a 0.1 m × 0.1 m region, and the target torque range for successful completion is 0.35 –0.50 N m . In Fragile Fruit Picking, the robot must detach a raspberry from its vine. It must apply a gentle grasp to avoid crushing the fruit while exerting sufficient pulling force for detachment. The object position is randomized by up to ±[8 , 10 , 12] mm along the 
+
+x-, y-, and z-axes, respectively. The crushing-force threshold is 3.2 N , and the minimum force required for detachment is 
+
+0.8 N . The preset open-loop pulling offset is zero. For real-world evaluation, we consider two tasks: White-board Erasing and Pipette Liquid Aspiration. In Whiteboard Erasing, the robot must learn to apply an appropriate contact force between the eraser and the whiteboard to remove the marker traces. In Pipette Liquid Aspiration, the robot must regulate the fingertip contact force on the pipette: the force must be sufficient to lift the pipette while remaining low enough to prevent the liquid inside from being expelled. For each task, we use 50 offline demonstration trajectories. Base policies are obtained by fine-tuning GR00T N1.7 [2] TABLE I ONLINE ADAPTATION AND FINAL -POLICY PERFORMANCE COMPARISON . “/” DENOTES AN UNREACHED E80 .                                                                                                                        
+
+> Method Thin Sheet Transfer Bottle Cap Twisting Fragile Fruit Picking
+> SR (%) Mean ±Std. ↑
+> nAUC (%)
+> ↑
+> E80
+> ↓
+> Force failure (%)
+> ↓
+> SR (%) Mean ±Std. ↑
+> nAUC (%)
+> ↑
+> E80
+> ↓
+> Force failure (%)
+> ↓
+> SR (%) Mean ±Std. ↑
+> nAUC (%)
+> ↑
+> E80
+> ↓
+> Force failure (%)
+> ↓
+> Base Policy 73 .7±0.673 .7/5.043 .0±1.043 .0/46 .023 .7±1.223.7 /52 .3
+> Residual RL [6] 75 .7±0.676 .012 6.768 .0±20 .368 .047 20 .337 .3±2.123 .2/44 .7
+> AWR [33] 67 .7±2.568 .237 7.721 .0±13 .120 .3/61 .715 .7±1.216 .4/55 .7
+> DPPO [34] 4.7±3.52.5/5.732 .7±1.531 .7/55 .322 .3±2.316 .3/48 .0
+> DSRL [7] 82 .3±4.572 .229 9.757 .7±1.557 .9/31 .340 .3±4.225 .3/36 .3
+> PEARS 94 .7±1.594 .710 2.087 .7±1.590 .122 10 .377 .7±1.273 .425 3.3
+
+on the corresponding offline demonstrations. For Thin Sheet Transfer and real-world tasks, the base policies do not use tactile features. For Bottle Cap Twisting and Fragile Fruit Picking, the state additionally includes the 6D force– torque measurements from both fingertips. All simulation experiments are conducted in NVIDIA Isaac Sim. 
+
+2) Training and Evaluation Detail: The GR00T-based policies are trained on an NVIDIA H100 GPU for a fixed 30 epochs, and the checkpoint from the final epoch is used as the base policy. Training takes approximately five hours per task. For the baseline comparisons, simulation-based RL training is performed on an NVIDIA GeForce RTX 5090 GPU, with GPT-5.6 Sol configured at extra-high reasoning effort as the VLM backbone of PFR. For the real-world experiments, policy inference and online RL training are also performed on an NVIDIA GeForce RTX 5090 GPU. 
+
+3) Baselines: We compare PEARS with a frozen base policy and four representative online policy-adaptation meth-ods. Residual RL [6], [35] uses a lightweight residual network to correct the actions generated by the frozen base policy, whereas DSRL [7] learns a tactile-conditioned actor in the policy’s latent noise space. AWR [33] up-dates the policy through advantage-weighted regression, and 
+
+DPPO [34] uses a PPO-style objective to update the diffusion policy. PEARS , Residual RL , and DSRL combine a tactile-conditioned actor. For all RL algorithms, we use a sparse terminal reward of +10 for a successful episode and −10 
+
+for a failed episode, with a discount factor of γ = 0 .9. In simulation, success or failure is determined automatically by the simulator, whereas real-world outcomes are labeled manually by a human operator. 
+
+B. Comparison with Baselines ( Q1 )
+
+Each adaptive method used three 100-episode online runs, followed by 100 test trials per run. Final-policy success rate (SR) is reported as mean ± sample SD. Let SR e ∈
+
+[0 , 1] denote trailing-10 online success averaged across runs (Fig. 3). Normalized area under the learning curve (nAUC) is the mean of SR e for e = 10 , . . . , 100 , expressed as a percentage; E80 is the first episode with SR e ≥ 0.8 (“/” if unreached). nAUC measures overall online performance, while a smaller E80 indicates faster attainment of a high success rate. Force-related failure rate is the percentage of all episodes ending in task-specific force or contact failures, pooled across runs. PEARS achieved the highest SR on Thin Sheet Transfer, Bottle Cap Twisting, and Fragile Fruit Picking: 94 .7% ,
+
+87 .7% , and 77 .7% (Table I). These exceed the strongest per-task baselines by 12.4, 19.7, and 37.4 percentage points. It also led in nAUC ( 94 .7% , 90 .1% , and 73 .4% ), indicating higher success throughout online adaptation. The largest SR gain occurs on Fragile Fruit Picking, which requires coordinated grasping and pulling without damaging the fruit. PEARS reached E80 at episodes 10, 22, and 25. On Thin Sheet Transfer, episode 10 is the earliest evaluable window, compared with 12 for the fastest baseline, Residual RL. On Bottle Cap Twisting, Residual RL required 47 episodes, so PEARS reduced interactions to the threshold by 53 .2% . No baseline reached 80% on Fragile Fruit Picking within 100 episodes. Higher success was accompanied by the lowest force-related failure rates ( 2.0% , 10 .3% , and 3.3% ), compared with 9.7% , 20 .3% , and 36 .3% for the strongest SR baselines. The mean waiting time for a VLM response was 26.8 s, which is acceptable because this wait can overlap with other steps, such as environment resets. 
+
+C. Evaluation of the PFR Module ( Q2 )
+
+Fig. 4 shows how PFR corrects initially inaccurate force and torque intervals in two tasks. Over the first 12 episodes, predicted force and torque intervals stabilize within ground-truth ranges, illustrating refinement of initial estimates from interaction outcomes. Table II compares five variants. DSRL only omits PFR and external force control; w/o DSRL combines PFR and force control with the frozen base policy. Fixed Range and Rand Search retain DSRL and force control, respectively holding the first PFR-inferred intervals fixed or randomly searching intervals online. For Rand Search , the checkpoint with the highest mean online success is used for evaluation. Qwen3 
+
+replaces GPT-5.6 Sol with Qwen3-VL-2B [36] in PFR. On Thin Sheet Transfer, DSRL alone achieved 82 .3% 
+
+SR, compared with 77 .0% for PFR-guided force control without DSRL. Combining both increased SR to 94 .7% ,versus 84 .7% with fixed intervals. On Bottle Cap Twisting, PFR-guided force control without DSRL retained 84 .7% 
+
+SR, whereas DSRL alone achieved 57 .7% and Fixed Range 
+
+62 .3% . The full method reached 87 .7% , indicating a greater benefit from adapting interaction torque. The different ab-10 20 40 60 80 100 
+
+> Online training episode
+> 0% 20% 40% 60% 80% 100%
+> Success Rate
+
+a Thin Sheet Transfer      
+
+> 10 20 40 60 80 100
+> Online training episode
+> 0% 20% 40% 60% 80% 100%
+
+b Bottle Cap Twisting      
+
+> 10 20 40 60 80 100
+> Online training episode
+> 0% 20% 40% 60% 80% 100%
+
+c Fragile Fruit Picking      
+
+> Base Policy Residual RL AWR DPPO DSRL PEARS (Ours)
+
+Fig. 3. Online adaptation success across three simulation tasks. Curves show mean trailing-10 success rates across three 100-episode runs, using complete windows ending at episodes 10–100. Shaded bands denote mean ± one sample standard deviation (SD) 0 2 4 6 8 10 12        
+
+> Episodes completed
+> 1.0 1.5 2.0 2.5 3.0
+> Predicted force interval (N)
+> Inside after 7 episodes Wrong start
+> a
+> 0246810 12
+> Episodes completed
+> 0.2 0.3 0.4 0.5
+> Predicted torque interval (N m)  Inside after 3 episodes Wrong start
+> b
+> Ground-truth task constraint VLM predicted interval
+
+Fig. 4. Example of force and torque intervals predicted by PFR during online interaction. a) Thin Sheet Transfer. b) Bottle Cap Twisting. TABLE II ABLATION OF PFR, DSRL, FORCE -RANGE SELECTION , AND THE VLM  
+
+> BACKBONE USED IN
+
+PFR ACROSS THREE SIMULATION TASKS .SR (%) DSRL only w/o DSRL Fixed Range Rand Search Qwen3 PEARS                                     
+
+> Sheet 82 .3±4.577 .0±1.084 .7±3.888 .3±6.093 .0±1.794 .7±1.5
+> Cap 57 .7±1.584 .7±1.562 .3±2.577 .0±5.686 .7±0.687 .7±1.5
+> Fruit 40 .3±4.261 .7±2.144 .0±2.640 .3±2.567 .0±2.677 .7±1.2
+
+lation rankings suggest that motion adaptation contributes more to Thin Sheet Transfer, whereas force control is more important for Bottle Cap Twisting. On Fragile Fruit Pick-ing, removing PFR and force control or removing DSRL reduced SR from 77 .7% to 40 .3% or 61 .7% , respectively; fixed intervals yielded 44 .0% . Fixed intervals provide only modest gains over DSRL across tasks, suggesting that online correction is important when initial bounds are inaccurate. These results support complementary roles for learned mo-tion adaptation and online force-interval correction. 
+
+Rand Search increased SR over DSRL on the two single-interval tasks, but remained below PEARS. Random search can find partially suitable bounds in these tasks. For example, in one Thin Sheet Transfer run, its interval [1 .32 , 1.98] N 
+
+partially overlaps the ground-truth range [1 .1, 1.6] N . This permits useful forces, while the excessive upper bound helps explain the remaining performance gap. On two-stage Fragile 
+
+TABLE III REAL -WORLD PERFORMANCE (SUCCESSFUL TRIALS / TOTAL TRIALS ). Task Base Policy DSRL [7] PEARS 
+
+Whiteboard Erasing 11 / 20 15 / 20 19 / 20 Pipette Liquid Aspiration 8 / 20 12 / 20 18 / 20 
+
+Fruit Picking, its 40 .3% mean SR matches DSRL, consistent with the difficulty of randomly identifying suitable grasping and pulling intervals jointly. A usable grasping interval alone cannot ensure success if pulling remains ineffective, so useful updates must account for both contact stages. The difference is also evident in adaptation speed. On Thin Sheet Transfer and Bottle Cap Twisting, PEARS reached E80 = 10 and 
+
+22 , versus 55 and 83 for Rand Search . Earlier attainment of 80% mean online success suggests that VLM reasoning provides useful direction for interval updates and improves online sample efficiency. Qwen3 achieved SRs of 93 .0% , 86 .7% , and 67 .0% ,trailing PEARS by 1.7, 1.0, and 10.7 percentage points, respectively. Both VLM backbones improve over DSRL alone across tasks, indicating that the lightweight model still provides useful force guidance. The larger gap on Fragile Fruit Picking suggests that reasoning quality matters more when inferring force bounds with multiple stages. 
+
+D. Real-world Experiment ( Q3 )
+
+For each real-world task, DSRL and PEARS are allocated 40 episodes of online interaction. We then evaluate each adapted policy and the frozen base policy over 20 test trials (Table III). In Whiteboard Erasing, sufficient normal force is needed to remove marker traces, whereas excessive force can dislodge the eraser from the gripper. The base policy succeeds in 11 /20 trials; its failures comprise three wiping misalignments, two contact-timing errors that leave residual marks, and four cases of insufficient force. DSRL improves success to 15 /20 , with two misalignment failures and three insufficient-force failures. PEARS reaches 19 /20 ,with the sole failure caused by misalignment. In Pipette Liquid Aspiration, any liquid leakage during transfer counts as a failure. The base policy succeeds in 8/20 trials, with four initial grasping misalignments, six cases of leakage during transfer, and two failures during final dispensing. DSRL reaches 12 /20 , with two grasping misalignments, five cases of liquid expulsion during transfer, and one dispensing failure. PEARS succeeds in 18 /20 , with both failures caused by initial grasping misalignment. These results suggest that DSRL alone struggles to learn precise force regulation within 40 episodes, particularly for liquid transfer. The absence of force-related failures with PEARS in these tests supports the benefit of using PFR to adapt force bounds from tactile feedback and enforcing them through low-level force control. VI. C ONCLUSION & F UTURE WORK 
+
+We presented PEARS, a framework for rapid post-training of pretrained policies that combines PFR with traditional DSRL. PFR uses tactile feedback and visual outcomes to diagnose failure causes and adapt contact-force bounds, which are enforced by a low-level controller, while DSRL refines the behavior of the frozen base policy. Across three simulation tasks, PEARS improved success rates by 12.4– 37.4 percentage points over the strongest baseline for each task, with faster online adaptation and fewer force-related failures. In real-world tasks, PEARS achieved 19 /20 and 
+
+18 /20 successful test trials on Whiteboard Erasing and Pipette Liquid Aspiration, respectively. Currently, PFR provides corrective guidance only for failures caused by inappropriate force; other errors still rely on conventional RL for correction. Future work will explore integrating failure reasoning more broadly into RL to guide exploration and policy updates beyond force regulation. This could reduce costly trial-and-error interaction and improve the efficiency of learning on physical robots. REFERENCES [1] P. Intelligence, et al. , “ π0.5: a vision-language-action model with open-world generalization,” arXiv preprint arXiv:2504.16054 , 2025. [2] NVIDIA, et al. , “GR00T N1: An open foundation model for generalist humanoid robots,” in ArXiv Preprint , March 2025. [3] C. Yuan, et al. , “Ftp-1: A generalist foundation tactile policy across tactile sensors for contact-rich manipulation,” arXiv preprint arXiv:2606.13102 , 2026. [4] C. Par´ es-Morlans, N. Kuhn, I. Liu, A. Longhini, and J. Bohg, “Demystifying when and why vlas fail in contact-rich tasks and how to fix them,” arXiv preprint arXiv:2608.01402 , 2026. [5] S. Ma, et al. , “Taccorl: Integrating tactile feedback into vla via simulation,” arXiv preprint arXiv:2606.11743 , 2026. [6] K. Yu, H. Zhang, H. Ravichandar, Y. Han, and R. Gao, “OmniTacTune: Policy-agnostic real-world RL for tactile residual adaptation of visual policies,” arXiv preprint arXiv:2607.03723 , 2026. [7] A. Wagenmaker, et al. , “Steering your diffusion policy with latent space reinforcement learning,” in Proceedings of the 9th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 305. PMLR, 2025, pp. 258–282. [8] J. Zhao, N. Kuppuswamy, S. Feng, B. Burchfiel, and E. H. Adelson, “PolyTouch: A robust multi-modal tactile sensor for contact-rich manipulation using tactile-diffusion policies,” in Proceedings of the IEEE International Conference on Robotics and Automation , 2025, pp. 104–110. [9] C. Higuera, et al. , “Sparsh: Self-supervised touch representations for vision-based tactile sensing,” in Proceedings of the 8th Conference on Robot Learning , ser. Proceedings of Machine Learning Research, vol. 270. PMLR, 2025, pp. 885–915. [10] B. Chen, et al. , “Univtac: A unified simulation platform for visuo-tactile manipulation data generation, learning, and benchmarking,” 
+
+arXiv preprint arXiv:2602.10093 , 2026. [11] C. Xu, et al. , “VT-MUSE: Multimodal unified sequential visuo-tactile representation learning for manipulation,” arXiv preprint arXiv:2608.21290 , 2026. [12] J. Jones, O. Mees, C. Sferrazza, K. Stachowicz, P. Abbeel, and S. Levine, “Beyond sight: Finetuning generalist robot policies with heterogeneous sensors via language grounding,” in Proceedings of the IEEE International Conference on Robotics and Automation , 2025, pp. 5961–5968. [13] Z. Zhang, et al. , “TouchGuide: Inference-time steering of visuomotor policies via touch guidance,” in Proceedings of Robotics: Science and Systems , Sydney, Australia, July 2026. [14] Y. Huang, et al. , “TaF-VLA: Tactile-force alignment in vision-language-action models for force-aware manipulation,” arXiv preprint arXiv:2601.20321 , 2026. [15] L. Heng, H. Geng, K. Zhang, P. Abbeel, and J. Malik, “ViTacFormer: Learning cross-modal representation for visuo-tactile dexterous ma-nipulation,” in Proceedings of Robotics: Science and Systems , Sydney, Australia, July 2026. [16] Y. Zheng, et al. , “OmniVTA: Visuo-tactile world modeling for contact-rich robotic manipulation,” arXiv preprint arXiv:2603.19201 , 2026. [17] N. Team and F. T. Team, “ n0-vtla: Scaling vision-tactile-language-action model with latent tactile tokens,” 2026. [18] D. Niu, et al. , “T-rex: Tactile-reactive dexterous manipulation,” arXiv preprint arXiv:2606.17055 , 2026. [19] Z. He, H. Fang, J. Chen, H.-S. Fang, and C. Lu, “FoAR: Force-aware reactive policy for contact-rich robotic manipulation,” IEEE Robotics and Automation Letters , vol. 10, no. 6, pp. 5625–5632, 2025. [20] H. Xue, et al. , “Reactive diffusion policy: Slow-fast visual-tactile policy learning for contact-rich manipulation,” in Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, June 2025. [21] H. Fang, et al. , “Force policy: Learning hybrid force-position control policy under interaction frame for contact-rich manipulation,” in 
+
+Proceedings of Robotics: Science and Systems , Sydney, Australia, July 2026. [22] Y. Li, et al. , “ForceVLA2: Unleashing hybrid force-position control with force awareness for contact-rich manipulation,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recog-nition , June 2026. [23] J. Bi, K. Y. Ma, C. Hao, M. S. Zheng, and H. Soh, “VLA-Touch: Enhancing vision-language-action model with dual-level tactile feed-back,” IEEE Robotics and Automation Letters , vol. 11, no. 7, pp. 8487– 8494, 2026. [24] X. Li, et al. , “AT-VLA: Adaptive tactile injection for enhanced feed-back reaction in vision-language-action models,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,June 2026. [25] Y. Li, et al. , “Favla: A force-adaptive fast-slow vla model for contact-rich robotic manipulation,” arXiv preprint arXiv:2602.23648 , 2026. [26] X.-D. Zhang, et al. , “Unitacvla: Unified tactile understanding and prediction in vision language action models,” arXiv preprint arXiv:2606.31723 , 2026. [27] G. Lu, et al. , “VLA-RL: Towards masterful and general robotic manipulation with scalable reinforcement learning,” arXiv preprint arXiv:2505.18719 , May 2025. [28] H. Li, et al. , “SimpleVLA-RL: Scaling VLA training via reinforcement learning,” in The Fourteenth International Conference on Learning Representations , 2026. [Online]. Available: https://openreview.net/ forum?id=TQhSodCM4r [29] A. Amin, et al. , “ π∗
+
+> 0.6
+
+: A VLA that learns from experience,” in 
+
+Proceedings of Robotics: Science and Systems , Sydney, Australia, July 2026. [30] C. Xu, et al. , “Rl token: Bootstrapping online rl with vision-language-action models,” arXiv preprint arXiv:2604.23073 , 2026. [31] H. Zheng, et al. , “Torl-vla: Tactile guided online reinforcement learn-ing for contact-rich manipulation,” arXiv preprint arXiv:2606.09337 ,2026. [32] K. Black, et al. , “ π0: A vision-language-action flow model for general robot control,” in Proceedings of Robotics: Science and Systems , Los Angeles, CA, USA, June 2025. [33] X. B. Peng, A. Kumar, G. Zhang, and S. Levine, “Advantage-weighted regression: Simple and scalable off-policy reinforcement learning,” 
+
+arXiv preprint arXiv:1910.00177 , 2019. [34] A. Ren, et al. , “Diffusion policy policy optimization,” in International Conference on Learning Representations , vol. 2025, 2025, pp. 77 288– 77 329. [35] L. Ankile, Z. Jiang, R. Duan, G. Shi, P. Abbeel, and A. Nagabandi, “Residual off-policy rl for finetuning behavior cloning policies,” arXiv preprint arXiv:2509.19301 , 2025. [36] S. Bai, et al. , “Qwen3-vl technical report,” arXiv preprint arXiv:2511.21631 , 2025.
