@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-07</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-09</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 24 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 34 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>12</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>22</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>12</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-10-07 23:44:27 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-10-09 00:40:12 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共生成 24 篇推荐（精读 12 篇，速读 12 篇）</p>
-<p>精读：《MVG-WAM: Multiple View Geometry-Aware World-Action Modeling for Robotic Manipulation》（9.0/10）, 《MotionWeave: Learning Motion-Centered Future Dynamics for Vision-Language-Action Policies》（9.0/10）</p>
-<p>速读：《ManiPhysicsBench: Physics-Based Assessment of Object Preservation in VLA Manipulation》（8.0/10）, 《Equivariant Visual-Tactile Diffusion Policy for Contact-Rich Manipulation》（8.0/10）, 《World Action Learning via Interaction-Centric Spectral Latent Guidance》（8.0/10）</p>
+<p>今日共生成 34 篇推荐（精读 22 篇，速读 12 篇）</p>
+<p>精读：《EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action》（10.0/10）, 《Continuous Conditioning of VLAs with Augmenting EMG and Visual Task Descriptors》（9.0/10）</p>
+<p>速读：《Rethinking World-Action Model for Compositional and In-Context Robotic Manipulation》（8.0/10）, 《CHASE-VLA: Post-Training Quantization Framework for Vision-Language-Action Models with Chunk-Aware Scale Estimation》（8.0/10）, 《Grounded in Time: A Multi-Source Dataset and Benchmark for Temporal Grounding in Robotic Manipulation》（8.0/10）</p>
 <p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
@@ -81,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">12 篇</strong>
+    <strong class="dpr-home-dashboard-count">22 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="MVG-WAM: Multiple View Geometry-Aware World-Action Modeling for Robotic Manipulation">MVG-WAM: Multiple View Geometry-Aware World-Action Modeling for Robotic Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="MotionWeave: Learning Motion-Centered Future Dynamics for Vision-Language-Action Policies">MotionWeave: Learning Motion-Centered Future Dynamics for Vision-Language-Action Policies</span></li><li><span class="dpr-home-dashboard-paper-title" title="Magic-W0: A Structured World-Action Foundation Model for Physical Intelligence">Magic-W0: A Structured World-Action Foundation Model for Physical Intelligence</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action">EWAM: Emergent Depth-Wise Specialization in a Unified Embodied Model -- From Semantic Understanding through Visual Foresight to Action</span></li><li><span class="dpr-home-dashboard-paper-title" title="Continuous Conditioning of VLAs with Augmenting EMG and Visual Task Descriptors">Continuous Conditioning of VLAs with Augmenting EMG and Visual Task Descriptors</span></li><li><span class="dpr-home-dashboard-paper-title" title="World-Calibrated Proposal-to-Action Flow for Vision-Language-Action Models">World-Calibrated Proposal-to-Action Flow for Vision-Language-Action Models</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>10</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>16</strong></span><span class="dpr-home-dashboard-tag">tf <strong>6</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -97,9 +97,9 @@
     <strong class="dpr-home-dashboard-count">12 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="ManiPhysicsBench: Physics-Based Assessment of Object Preservation in VLA Manipulation">ManiPhysicsBench: Physics-Based Assessment of Object Preservation in VLA Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Equivariant Visual-Tactile Diffusion Policy for Contact-Rich Manipulation">Equivariant Visual-Tactile Diffusion Policy for Contact-Rich Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="World Action Learning via Interaction-Centric Spectral Latent Guidance">World Action Learning via Interaction-Centric Spectral Latent Guidance</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Rethinking World-Action Model for Compositional and In-Context Robotic Manipulation">Rethinking World-Action Model for Compositional and In-Context Robotic Manipulation</span></li><li><span class="dpr-home-dashboard-paper-title" title="CHASE-VLA: Post-Training Quantization Framework for Vision-Language-Action Models with Chunk-Aware Scale Estimation">CHASE-VLA: Post-Training Quantization Framework for Vision-Language-Action Models with Chunk-Aware Scale Estimation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Grounded in Time: A Multi-Source Dataset and Benchmark for Temporal Grounding in Robotic Manipulation">Grounded in Time: A Multi-Source Dataset and Benchmark for Temporal Grounding in Robotic Manipulation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>10</strong></span><span class="dpr-home-dashboard-tag">tf <strong>2</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">vla <strong>7</strong></span><span class="dpr-home-dashboard-tag">tf <strong>5</strong></span></div>
 </section>
 </div>
 

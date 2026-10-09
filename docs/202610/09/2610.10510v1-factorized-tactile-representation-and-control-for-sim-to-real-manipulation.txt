@@ -1,0 +1,294 @@
+Title: Factorized Tactile Representation and Control for Sim-to-Real Manipulation
+
+URL Source: https://arxiv.org/pdf/2610.10510v1
+
+Published Time: Thu, 08 Oct 2026 01:52:25 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# Factorized Tactile Representation and Control for Sim-to-Real Manipulation 
+
+Siqi Shang 1,2 , Bianca Aumann 1, Tye Brady 1, Joshua Migdal 1, Tas ¸kın Padır 1EG  
+
+> encoder
+
+zG mG EF  
+
+> encoder
+
+zF mF EC  
+
+> encoder
+
+zC mC 
+
+Simulation 
+
+Real Sensor r 
+
+> Effective Contact Response
+> action LSTM Policy at
+> Zero-shot sim-to-real transfer
+
+## G Contact Geometry F Force Distribution C Temporal Contact Change     
+
+> r(t) r(t −1) C
+
+Fig. 1: Simulated contact and real tactile sensor readings are mapped to a common effective contact response r, providing a shared tactile interface across the two domains. The response is factorized into contact geometry (G), force distribution (F), and temporal contact change (C). To preserve this factorization through control, the Tactile Gated Policy encodes each representation separately and uses a tactile mask m to select which latents reach the LSTM policy. All eight mask configurations are trained within one policy per task, allowing the active tactile representations to be changed without retraining. The policies trained in simulation transfer zero-shot to real-world Tactile Alignment, Grasp-Force Regulation, and Adversarial Peg Insertion, revealing that different tactile representations benefit different interactions. 
+
+Abstract —Tactile sim-to-real learning must bridge simulated contact and device-specific sensor responses while preserving information needed for control. We propose a factorized tactile representation and control framework that maps normal force and contact patch to an effective contact response recoverable from sensor readings. The response is separated into contact geometry, force distribution, and temporal contact change, with representation-specific encoding and randomization. A Tactile Gated Policy preserves these representations separately through control and operates over all mask configurations without retraining. We evaluate the approach through response reconstruction, spatial alignment, force regulation, and contact-rich adversarial peg insertion in simulation and the real world, enabling the utility and transfer reliability of different tactile representations to be assessed independently. The approach achieves <1 mm contact localization, 1.69 N force-tracking error on unseen geometries, and a 35% improvement in real-world adversarial peg insertion over the unfactorized response, with different tactile representations benefiting different interactions. 
+
+I. I NTRODUCTION 
+
+Learning reliable contact-rich manipulation remains a central challenge in robotics. Large-scale demonstration datasets have enabled substantial progress, but acquiring diverse physical interactions requires considerable hardware  
+
+> 1
+
+Amazon Fulfillment Technologies & Robotics, Westborough, MA, USA. 
+
+{biancjur, bradytye, jmigdal, ptaskin }@amazon.com.  
+
+> 2
+
+Department of Electrical and Computer Engineering, The University of Texas at Austin, Austin, TX, USA. siqi.shang@utexas.edu. *This work was done when Siqi Shang was an intern at Amazon. Tas ¸kın Padır holds concurrent appointments as a Professor of Electrical and Computer Engineering at Northeastern University and as an Amazon Scholar. This paper describes work performed at Amazon and is not associated with Northeastern University. 
+
+resources and human effort [1]. Sim-to-real reinforcement learning offers a scalable alternative through autonomous interaction in simulation. For tactile manipulation, however, transferring a policy requires transferring the contact feedback on which its behavior depends. Physical tactile measurements reflect contact mechanics and sensor-specific responses that are difficult to reproduce in simulation. Enabling simulation-trained policies to use this feedback reliably is therefore an important step toward scalable contact-rich manipulation. Recent advances such as TacSL and HydroShear demon-strate the potential of tactile simulation for learning transfer-able contact-rich behaviors [2], [3]. An important remaining challenge is making the information available from compact capacitive arrays equally useful for sim-to-real control. These arrays provide sparse measurements, yet their distributed responses can carry fine-grained information about contact geometry, force distribution, and temporal evolution. Simpli-fying touch into binary contact or compact force-and-location summaries can facilitate transfer, but reduces the information exposed to the controller [4], [5]. We instead seek to retain distributed contact information in a common representation across simulation and hardware, and to use that information in a factorized manner throughout sensing and control. This distinction matters because the information needed for a behavior and the uncertainty it should tolerate are not the same for every component of touch: geometric inference should tolerate variation in response magnitude, force regulation requires loading magnitude to remain informative, and relative temporal changes can remain useful despite uncertainty in absolute sensor gain. Our objective is therefore not only to transfer a richer tactile response, but also to keep different arXiv:2610.10510v1 [cs.RO] 7 Oct 2026 forms of tactile information separately accessible to the policy rather than commit to one representation for every interaction. We introduce factorized tactile representation and control for capacitive tactile arrays (Fig. 1). Normal force and contact patch define an effective contact response r, while per-taxel calibration recovers the same response from sensor readings. From this common response, we construct three tactile representations: contact geometry (G), force distribution (F), and temporal contact change (C). To preserve this factorization through control, we introduce the Tactile Gated Policy. It encodes the three representations separately and supports representation-specific randomization. A tactile mask keeps their latent features independently selectable before they enter the policy. For each task, one policy is trained across all eight mask configurations, allowing us to evaluate each representation and change the active representations at deployment without retraining. Using a parallel gripper equipped with two 28-taxel capacitive pads, we validate the approach from held-out response reconstruction to real manipulation. The representation supports sub-millimeter contact localization with 6.25 × 5.71 mm taxel spacing, while the best force-aware mask achieves 1.69 N real-world force-tracking MAE on unseen geometries. Tactile alignment, grasp-force regulation, and adversarial peg insertion further demonstrate how this common response supports precise and contact-rich control through separately and jointly usable tactile information. Our contributions are: 1) An effective contact response defined from normal force and contact patch and recoverable from capacitive sensor readings, providing a shared sim-to-real tactile interface while retaining distributed spatial and loading information. 2) Factorized tactile representation and control that pre-serve contact geometry, force distribution, and temporal contact change through representation-specific encoding and randomization, while the Tactile Gated Policy keeps them independently selectable within one unified policy. 3) A real-world evaluation on a parallel gripper with two sparse capacitive pads, demonstrating response recon-struction on unseen contact geometries, sub-mm contact localization, grasp-force regulation, and challenging adversarial peg insertion. II. R ELATED WORK 
+
+A. Tactile Simulation and Sim-to-Real Transfer 
+
+Tactile simulation has advanced rapidly for vision-based sensors, where the measurement is an image that can be rendered directly. TACTO [6] and Taxim [7] model GelSight-style sensors, while TacSL [2] and Tac2Real [8] bring visuotactile simulation to GPU-parallel policy learning. Taxel arrays require a different mapping from simulated contact to distributed sensor responses. Kasolowsky and B¨ auml [9] model a soft tactile skin by reconstructing local penetration from contact geometry and force, allowing contact to spread across multiple taxels in a rigid-body simulator. A recent digital twin of the TSF-85 instead simulates a deformable sensing field and learns a mapping to physical tactile counts [10]. Our approach avoids reconstructing a deformation field. We define an effective contact response from normal force and contact patch that is recoverable from sensor readings and retains distributed information for policy learning. 
+
+B. Tactile Representations for Sim-to-Real Manipulation 
+
+Tactile representation is itself an important design choice for sim-to-real manipulation. TactileRL shows that abstractions of simulated tactile observations can transfer better than full tactile images [4]. Beyond Binary introduces a physics-grounded center-of-pressure representation that retains force and contact-location information while supporting zero-shot transfer [5]. These works show that successful transfer need not require reproducing the full sensor observation. A parallel line learns transferable tactile embeddings across sensors and modalities, including AnyTouch [11] and TacX [12]. Our objective is different. Rather than compressing touch into one transferable representation, we preserve contact geometry, force distribution, and temporal contact change separately through encoding and control. This allows their utility and sim-to-real behavior to be evaluated independently and their availability to the policy to be changed without retraining. III. F ACTORIZED TACTILE INTERFACE 
+
+Our tactile interface connects simulated contact to sensor readings through a common effective contact response. We first define the contact quantities used to construct this response, then factorize it into geometry, force, and temporal contact information. 
+
+A. Shared Contact State 
+
+We describe contact using two physically interpretable quantities: total normal force F and contact patch A. In simulation, both are obtained from the contact solver. For real-world response identification, they are measured from controlled contacts. This abstraction is appropriate for the relatively stiff tactile pads studied here. Gripper-position measurements indicate less than 1 mm of indentation at grasp forces up to approximately 60 N. We assume uniform pressure over the patch, P = F/ |A| .
+
+B. Effective Contact Response 
+
+We map the pressure field to a per-taxel response through spatial spreading and nonlinear aggregation. For taxel j with region Aj , we define the effective contact response rj as: 
+
+rj =
+
+"
+
+1
+
+|A j |
+
+Z
+
+> Aj
+
+ Kσ ∗ P η dx
+
+#γ/η 
+
+. (1) The anisotropic Gaussian kernel Kσ models spatial spreading across the pad. The exponent η controls the pointwise nonlinearity, while γ controls the overall force scaling. Real sensor Simulated compliant contact with penetration Nonlinear aggregation forward ×β     
+
+> inverse ÷β
+> Shared contact state Force Contact patch
+> Physical deformation Simulation Tactile array reading Effective contact response Spread pressure fi eld Pressure mapping tactile response identi fi cation policy training real-world deployment Fig. 2: The response pipeline in both directions on a single calibration contact. From physical deformation on a real sensor or simulated compliant contact with penetration, force and contact patch produce a spread pressure field via an anisotropic Gaussian kernel, which is nonlinearly aggregated into the per-taxel effective contact response r. The forward path multiplies by per-taxel gain βto predict raw counts; the inverse path divides measured counts by β
+> to recover r, separating the shared nonlinear contact response from unit-specific electronic gain.
+
+The contact response rj is a phenomenological response variable rather than an estimate of pad deformation, pressure, stress, or strain. Once F and A are specified, the model does not use simulator-specific penetration magnitude. The simulated and physical pads therefore do not need to share the same deformation field. Per-taxel sensor readings cj are related to the response by cj = βj rj + εj , where per-taxel gain βj > 0 captures sensitivity and εj denotes measurement noise. We estimate the response as ˆrj = cj /β j . Simulation therefore computes r from contact quantities, while sensor readings recover the same response through the calibrated map, as illustrated in Fig. 2. 
+
+C. Response Identification and Operating Range 
+
+We identify the response model from controlled real-world contacts with known F and A and measured cj . A single set of shared parameters (σ, η, γ ) is used for both pads and all taxels. For each candidate (σ, η, γ ), Equation (1) computes 
+
+rj , and the optimal βj is solved in closed form from cj . We select (σ, η, γ ) by reconstruction error across both pads and retain the corresponding βj for each taxel. The identified values are σ = (1 .5, 1.25) mm , η = 0 .7, and γ = 0 .5.The same shared response model is used for both pads throughout the paper. Each pad’s taxel-specific sensitivity is captured only through βj . Section V-B verifies that this shared model reconstructs held-out contacts on both pads and generalizes to unseen contact geometries. The calibrated mapping between rj and cj remains approximately linear up to 20 N per taxel. Above this range, cj compresses relative to the model prediction. We therefore identify and evaluate the tactile interface within this operating range. 
+
+D. Tactile Representations 
+
+We factorize r into three tactile representations that expose different contact information to the policy. 
+
+a) Contact geometry (G): G represents all 56 taxels as a point set with pad-local coordinates and global pad pose. For pad s ∈ { L, R }, let os ∈ R3 denote its center and ˆus, ˆvs ∈
+
+R3 its in-plane unit axes in the global frame. For taxel i on pad s, we compute the local coordinates ui = ( pi − os)⊤ ˆus
+
+and vi = ( pi − os)⊤ ˆvs.The normalized point coordinate is qi = [¯ ui, ¯vi, s i] ∈ R3,where si ∈ { 0, 1} identifies the pad. The point feature is 
+
+hi = [ ri, os, ˆus, ˆvs] ∈ R10 . We define G = {(qi, hi)}56 
+
+> i=1
+
+.This 13-D representation per taxel preserves fine pad-local contact location together with the global pose of each pad. 
+
+b) Force distribution (F): F retains the absolute response and its spatial distribution as two 7 × 4 response grids, one for each pad. 
+
+c) Temporal contact change (C): C captures temporal change in contact through the per-taxel normalized contrast of successive responses, 
+
+Ct = rt − rt−1
+
+rt + rt−1 + ϵ . (2) The contrast is bounded in [−1, 1] . Responses below the noise floor and the first observation of each episode are set to zero. Substituting cj,t = βj rj,t gives 
+
+cj,t − cj,t −1
+
+cj,t + cj,t −1
+
+= rj,t − rj,t −1
+
+rj,t + rj,t −1
+
+, (3) in the ideal noise-free case. Thus, C is invariant to the static per-taxel gain βj .IV. T ACTILE GATED POLICY 
+
+To preserve the tactile factorization through control, we introduce the Tactile Gated Policy (Fig. 3). Each representation is encoded separately and selected by a tactile mask before entering the recurrent policy. 
+
+A. Representation-Specific Encoders 
+
+All three representations are encoded into 64-D latents (Fig. 3). The geometry encoder EG hierarchically processes the taxel point set following PointNet++ [13]. Two set-abstraction stages reduce the 56 taxels to 32 and then 8 points using farthest-point sampling and local neighborhoods. Within each neighborhood, learned features are summarized by both max pooling and a response-weighted mean. A final global aggregation uses the same pooling operations, followed by an MLP that produces zG ∈ R64 . The force and change encoders, EF and EC , operate on the two per-pad grids. Each grid first passes through a pad-specific affine adapter and then a CNN shared across the two pads. A fusion MLP combines the two pad features into zF , zC ∈ R64 . EF and EC use the same architecture with separate weights. Fig. 3: Tactile Gated Policy. Separate encoders produce geometry, force, and temporal-change latents. The mask m gates these latents before concatenation with the encoded robot state and mask itself as input to the LSTM actor. 
+
+B. Tactile Mask 
+
+A three-bit tactile mask m = [ mG, m F , m C ] ∈ { 0, 1}3
+
+selects which representation latents are available to the policy. The selected latents are concatenated with the encoded robot state and m, then passed to an LSTM actor. The mask is fixed within each episode, and all eight configurations are sampled during training. The all-zero mask uses proprioception only. One policy is trained per task across all eight configurations, allowing the contribution of each tactile representation to be evaluated and the active representations to be changed at deployment without retraining. 
+
+C. Representation-Specific Randomization 
+
+Factorization also allows tactile uncertainty to be ran-domized selectively during policy training. We perturb each representation along dimensions that preserve its intended information. For G, the normal force is scaled independently on each pad by λs ∼ U (0 .7, 1.3) once per episode, while the contact patch remains unchanged. This perturbs response magnitude while preserving spatial contact structure. For F, the normal force is preserved while the contact patch is rigidly misregistered in the pad plane. Each pad receives an independent rotation and translation sampled once per episode. The transformed patch is used to recompute the pressure field with the original force. This perturbs the spatial distribution while preserving absolute loading. Task-specific ranges are given in Section V-D. C receives no episode-level tactile randomization. Its normalized temporal contrast is already invariant to the static per-taxel gain βj , as shown in Equation (3). Sensor noise is applied upstream of all three representations at every policy step. We sample independent count-space noise 
+
+εj,t ∼ N (0 , σ 2 
+
+> c
+
+) with σc = 4 .2 ct and map it to response space through βj .V. E XPERIMENTS 
+
+We evaluate three questions: RQ1: Can the effective contact response bridge simulation and real tactile measurements? 
+
+RQ2: Does the response preserve contact geometry, force, and temporal change? RQ3: How do the factorized representations affect sim-to-real RL policy performance, separately and jointly? 
+
+A. Experimental Setup a) Hardware and measurements: Experiments use a UR5e arm with a Robotiq 2F-85 gripper and two TSF-85 capacitive tactile pads (Fig. 4). Each pad has a 7 × 4 array over a measured 25 ×40 mm active area with 6.25 ×5.71 mm 
+
+taxel spacing and noise of around 5 reading counts. Readings are acquired at 500 Hz and median-filtered over 21 samples. Tactile data are collected with localized indentation and grasp-based loading (Fig. 4) [14]. For localized indentation (Fig. 4a), a hexagonal tip is pressed manually along the pad normal while a ForceN force/torque sensor measures the applied force with a reported error of 0.2 N. For grasp-based measurements (Fig. 4b), the gripper compresses an instrumented fixture with interchangeable contact geometries, referenced by a 20 kg-range load cell at 80 Hz, with reported accuracy below 0.01 N .The rig base accepts interchangeable contact tiles. For response identification and evaluation (Section V-B), six shapes are used (Fig. 4c): a full-face, an edge, two circu-lar indenters (diameters 4 and 6 mm), and two spherical indenters (radii 5 and 20 mm). Localized indentation and full-face loading identify the response model; edge grasps test generalization to contact family; flat-punches and spheres validate the simulated compliant-pad contact model. For grasp-force evaluation (Section V-D), five different printed shapes replace the contact tiles (Fig. 6b). 
+
+b) Simulation and learning: We use Isaac Sim 5.1.0 and Isaac Lab 2.3.2 [15]. Policies are trained with recurrent TSF-85 pad F/T sensor     
+
+> poking motion
+> 10 mm
+> full face edge
+> dot Ø4 dot Ø6 sphere R5 sphere R20
+> sensor pad (a) (b) (c) Fig. 4: Contact data collection and pad-contact validation. Localized pokes use a wrist F/T reference; edge and whole-pad grasps use the load-cell rig. Separate grasping tests with flat punches (diameters 4 and 6 mm) and spheres (radii 5 and 20 mm) validate the simulated compliant pad-contact model. The simulated rig matches the physical geometry and loading; no direct physical contact-patch measurement is assumed.
+
+PPO [16], [17]. The actor uses an LSTM and only deployment-available observations. The asymmetric, mask-conditioned critic uses privileged simulation observations. Policies run at 10 Hz, with 12 physics steps per policy step. The full tactile response stack accounts for approximately 9 % of simulation step time at 4096 environments per A100 GPU. 
+
+c) Policy evaluation: Each experiment uses the mask convention defined in Section IV-B. Within a checkpoint, mask comparisons change only the available tactile information, not the policy weights. 
+
+B. Effective Contact Response a) Contact datasets and evaluation protocol: We collect synchronized tactile and force measurements from 280 local-ized pokes (five per taxel), 45 edge grasps, and 20 whole-pad grasps (Fig. 4c). Localized pokes use a 3.8 mm hexagonal indenter. Edge grasps use a 4 mm bar in horizontal and vertical orientations stepped across the pad surface. Whole-pad loading is recorded with the full-face contact, with 10 grasps per rig orientation. Each contact is recorded for 5 s, yielding approximately 29 min of raw contact data. We evaluate two generalization settings. Spatial holdout uses training pokes, selected edge lines, and whole-pad contacts, with evaluation on unseen contact positions. Family holdout excludes all edge contacts from identification and model selection, providing a stricter test on an unseen contact family. 
+
+b) Pad-contact model validation: The grasping rig is reproduced in simulation with a compliant pad-contact model with stiffness k = 5 × 10 4 N/m. Validation covers 92 grasps on both pads with two flat punches and two spheres, over 1.5 N to 20 N per taxel. The simulated twin achieves approximately 30-count RMSE with median response-level deviation below 3 %, and remains within 10 % RMSE across a 20 × range of 
+
+k, so precise stiffness identification is not required. 
+
+c) Response reconstruction: Table I separates held-out contact positions from an unseen contact family. Under spatial holdout, learned encoders and k-NN achieve lower poke error than the proposed model but higher edge error. Removing all edges from fitting gives a stricter test: the single response model shared across both pads achieves 31.4/30.8 counts on the left/right pads, compared with 92.4/73.8 for the MLP and 114.8/85.7 for the CNN. The advantage is generalization to unseen contact geometries, not minimizing interpolation error on training pokes. 
+
+> TABLE I: Median per-contact taxel RMSE in counts (left/right pad; lower is better). Spatial holdout fits on training pokes, selected edge lines, and whole-pad data. Family holdout excludes all edge data from fitting and model selection. Both edge evaluations use the same 20 held-out positions. Ablations use the spatial-holdout protocol. Methods within each block use matched fitting and evaluation splits.
+
+Model Poke (L/R) Edge (L/R) 
+
+Baseline comparisons 
+
+Spatial holdout 
+
+Proposed r 18.7 / 18.1 28.6 / 30.9 MLP encoder 13.3 / 13.9 83.5 / 63.6 CNN encoder 15.1 / 13.9 75.1 / 52.8 Kernel ridge 59.0 / 53.8 140.3 / 119.4 
+
+k-NN lookup 13.7 / 11.0 142.7 / 122.1 Depth proxy 49.1 / 49.0 84.2 / 74.3 
+
+Family holdout 
+
+Proposed r 20.4 / 19.1 31.4 / 30.8 
+
+MLP encoder 15.0 / 12.3 92.4 / 73.8 CNN encoder 17.3 / 11.5 114.8 / 85.7 
+
+Ablations: spatial holdout 
+
+Proposed r (reference) 18.7 / 18.1 28.6 / 30.9 No spreading 22.4 / 25.2 43.9 / 50.3 Linear response 23.0 / 37.8 40.2 / 57.3 Hertz-dome profile 18.2 / 19.0 32.5 / 33.8 
+
+The ablations test the main assumptions in the response model. Removing spatial spreading or the nonlinear response substantially increases edge reconstruction error. In contrast, replacing uniform pressure with a Hertz-like pressure profile provides no improvement, so we retain the simpler uniform-pressure assumption. 
+
+C. Information Preserved by the Factorization 
+
+We assess the spatial, force, and temporal information available from the tactile response, independently of policy performance (Fig. 5), using five-fold cross-validation grouped by contact and stratified by source and pad. Per-taxel cali-bration is fitted within each fold; whole-pad data remain in training. These probes measure recoverable information, not statistical independence between G, F, and C. 
+
+a) Contact geometry: A matched-filter probe localizes held-out contacts with 0.48 ± 0.20 mm error (mean and standard deviation of fold-wise median errors). A response-centroid probe achieves 0.54 ± 0.08 mm . Both are below the 6.25 × 5.71 mm taxel spacing. These are response-level localization tests; the alignment task below tests whether a learned controller can exploit this spatial information. 
+
+b) Force distribution: A recurrent force decoder esti-mates normal force with 1.7 N to 1.9 N RMSE over 0.5 N to 15 N, with variation across fold seeds. Over the wider 0.5 N to 80 N range, RMSE is 3.03 ± 0.57 N for the reported five-fold evaluation. The wider-range result includes high-load response compression beyond the declared operating regime (Section III-C). This is supervised force recovery from held-out physical contacts, not a zero-shot transfer result. 
+
+c) Temporal contact change: After the static gain can-cellation in Equation (3), we evaluate the remaining variation in C over 144 constant-force plateaus. The observed contrast Fig. 5: The effective response bridges physical tactile measurement while retaining task-relevant contact information. (a) measured and modeled count patterns for a localized poke, edge, and distributed pad contacts. (b) held-out force error by true force bin, in total force and per activated taxel; error stays low inside the identified operating range and rises as the sensor approaches compression. (c) contact localization recovered from counts on a held-out fine scan, substantially finer than the taxel pitch.    
+
+> Fig. 6: Controlled tactile manipulation. (a) Tactile Alignment: the policy aligns a cylinder with an unknown in-hand pose. Hardware evaluation records the deepest level reached in a fixture with 6, 4, 2, and 1 mm radial clearance.
+> (b) Grasp-Force Regulation: the policy commands gripper increments during a scripted hold-and-lift motion. The simulated object’s two plates are coupled by a prismatic spring with randomized stiffness. An independent load cell supplies the hardware force reference. Scale bars: 2 cm.
+
+standard deviation is 0.85–0.93 times that predicted by the measured additive-noise model across a 100 × range of contact levels. This agreement shows that the residual variation under static contact is well explained by sensor noise. 
+
+D. Factorized Tactile Control 
+
+We evaluate the factorized representations through three sim-to-real RL tasks. Tactile Alignment isolates spatial infor-mation, Grasp-Force Regulation isolates force information, and Adversarial Peg Insertion tests their integration under changing contact constraints. All tasks use the Tactile Gated Policy, with task-specific action spaces and low-level robot control. 
+
+1) Tactile Alignment: The gripper holds an 80 mm cylinder with an unknown in-hand offset and tilt, and the policy commands Cartesian pose increments to align its tip with a fixed target (Fig. 6a). Training randomizes offsets within 
+
+±5 mm and tilts within ±30 ◦ across the shown cylinder radii. For F, the contact-patch registration is additionally randomized independently on each pad by up to ±5◦ rotation and ±3 mm                                               
+
+> TABLE II: Tactile Alignment. Simulation reports terminal position/orientation error [mm/ ◦] on unseen interpolation and out-of-range radii (100 held-out resets per radius). Real-world reports successful 1 mm- and 2 mm-clearance trials out of 10 for r10 /r18 , with r18 unseen during training. Taxel-line is an oracle-calibrated discrete taxel readout; its simulation entries are recovered in-hand pose RMSE rather than terminal policy error. Sim. [mm/ ◦]Real [success/10] Input Interp. Out-of-range 1 mm ( r10 /r 18 )2 mm ( r10 /r 18 )Prop. 14.31/20.35 13.77/19.67 0/0 0/0
+> G0.62/0.65 1.06/1.49 9/7 10/10
+> F1.83/1.97 2.50/2.74 3/3 9/8 C9.91/14.25 9.77/14.04 0/0 0/0 GF 0.69/0.67 0.98/1.23 5/5 10/10
+> GC 0.60/0.62 0.94/1.20 9/8 10/10
+> FC 1.69/1.80 2.15/2.31 2/3 8/9 GFC 0.74/0.65 1.15/1.40 9/2 10/8 Taxel-line 2.20/3.97 2.21/4.46 1/0 2/1
+
+translation per axis. The object pose is hidden from the actor and must be inferred from tactile feedback. Simulation reports terminal position and orientation errors across the radius sets. Real-world evaluation uses the 10 mm and unseen 18 mm radii. Alignment is evaluated by passage through the 1 mm and 2 mm clearance levels. Table II shows that G provides the spatial information required for precise alignment. G and GC remain near or below 1 mm in simulation on unseen radii and achieve the strongest hardware performance, with GC reaching the 1 mm clearance in 9/10 and 8/10 trials on r10 and r18 . F provides only coarse alignment, while C alone is comparable to proprioception. The taxel-line reference performs substantially worse, showing that the distributed tactile response supports spatial estimation beyond a discrete taxel readout. 
+
+2) Grasp-Force Regulation: The policy regulates grasp force to a given target while the arm executes a scripted hold-and-lift motion (Fig. 6b). It controls the Robotiq 2F-85 in position mode using its integer 0–255 position register, where one tick corresponds to approximately 3.42 mrad of finger motion. The action specifies an incremental change to this position setpoint at each policy step. Training uses 2048 environments and 404 object meshes from EGAD! [18] and YCB [19], with 50 validation and 50 test meshes held out. To capture the varying compliance of real objects and make gripper position an unreliable proxy for force, the simulated object consists of two plates coupled by a prismatic spring whose stiffness is randomized over a 25 × range (Fig. 6b). We additionally randomize gripper dynamics, friction, object mass, and grasp pose. System identification measures approximately 100 ms of gripper-command latency, which is reproduced in simulation. Training targets span 2 N to 40 N. For evaluation in simulation, we run 512 episodes per gate on the 50 unseen test meshes and include tactile count noise corresponding to 0.4 N to 0.6 N force uncertainty. In real-world, five unseen test shapes are printed and mounted to the load-cell fixture (Fig. 6b), providing ground-truth contact force. Each shape is tested at targets of 1, 2.5, 5, 10, and 15 N, with three grasps per shape, target, and gate (600 trials total). TABLE III: Grasp-Force Regulation. Simulation reports error on 50 unseen test meshes; real-world evaluation reports pointwise settle MAE as mean ±                                                       
+
+> SD across five printed test shapes. Reference uses privileged true force in simulation and the best fixed gripper setpoint selected with load-cell hindsight on hardware. Bold highlights the consistently strong F-containing gates. Sim. MAE [N] Real MAE [N] Input ≤15 N15–30 N ≤15 NProp. 1.61 3.87 6.09 ±1.03
+> G1.66 2.26 3.80 ±1.02
+> F0.95 1.33 1.91 ±0.47
+> C5.48 6.13 11 .78 ±13 .25
+> GF 1.15 1.50 1.69 ±0.25
+> GC 1.45 2.72 4.45 ±1.04
+> FC 1.03 1.38 1.84 ±0.44
+> GFC 1.25 1.84 2.28 ±1.15
+> Reference 0.29 0.37 1.32 ±0.33
+
+Table III shows that F provides the information needed for force regulation. F, GF, and FC achieve below 2 N mean real-world error and form the strongest group in simulation, while removing F increases hardware error to 
+
+3.80 –11 .78 N . GFC reaches 2.28 ± 1.15 N , showing that using every tactile representation is not optimal for this force-dominated task. Simulation error remains nonzero even with privileged force feedback, as the policy regulates force indirectly through gripper position under randomized object dynamics and the identified 100 ms actuation latency. Tactile policies additionally receive sensor noise corresponding to approximately 0.4 N to 0.6 N force uncertainty. 
+
+3) Adversarial Peg Insertion: The final task combines uncertain grasp and fixture poses with changing contact constraints. A 30 × 30 × 80 mm square peg enters a 1 mm-clearance bore tilted 10° from vertical and passes two internal protrusions before becoming fully seated (Fig. 7). Both grasp and fixture pose vary and are hidden from the actor. Training uses 8192 environments with compliant operational-space control. Following reset-based exploration methods [20], [21], we generate diverse states along the insertion process to facilitate RL exploration. Fixture yaw varies within ±15 ◦, planar position within approximately 
+
+±25 mm , and grasp pose is also randomized. Arm system identification follows [21]. For real-world evaluation, the robot picks up the peg under ±15 ◦ rotational and ±2.5 mm 
+
+positional variation. We test six fixture poses: two positions 5 mm apart at −15 ◦, 0◦, and +15 ◦ yaw. Success requires full seating. Simulation evaluates 1024 held-out starts per condition. We compare three alternative tactile representations. Binary 
+
+retains only active-taxel locations. CoP , adapted from [5], summarizes each pad by its total response and response-weighted centroid. Response directly encodes the complete effective response r without G/F/C factorization. For the +DR 
+
+baselines, all tactile domain randomizations are applied jointly to the single representation; GFC applies them separately to each representation. Table IV shows a clear difference between simulation and physical transfer. The unfactorized Response r achieves a)  b) 
+
+c) 
+
+# __                                          
+
+> Fig. 7: Adversarial Peg Insertion. (a) The square peg must enter a tilted bore and pass two internal protrusions before becoming fully seated; grasp height, offset, and in-hand tilt vary between trials. (b) Cross-section of the tilted bore and internal protrusions. (c) The fixture is evaluated at two positions 5 mm apart and three yaw angles ( −15 ◦,0◦,+15 ◦), yielding six poses. TABLE IV: Adversarial Peg Insertion. Simulation reports success over 1024 held-out starts; hardware reports 30 trials per condition. Representation baselines compare proprioception only (Prop.; no tactile input), Binary Contact, CoP [5], and the complete unfactorized Response ragainst GFC. CoP summarizes each pad by total response and its response-weighted centroid; rdirectly encodes the complete response field. For CoP-DR and r-DR, all tactile domain randomizations are applied jointly to the single representation, whereas GFC applies them representation-specifically.
+> Factorization ablation compares all non-empty proper subsets of G/F/C with GFC. Bold indicates the highest result in each domain.
+> Representation Baselines
+> Input Sim. [%] Real [%] Prop. 52.6 5/30 (16.7) Binary 59.9 9/30 (30.0) CoP 64.3 2/30 (6.7) CoP-DR 42.7 1/30 (3.3)
+> r70.1 14/30 (46.7)
+> r-DR 65.7 14/30 (46.7)
+> GFC 61.3 19/30 (63.3) Factorization Ablation
+> Input Sim. [%] Real [%] G53.4 11/30 (36.7) F60.8 14/30 (46.7) C57.2 8/30 (26.7) GF 59.4 12/30 (40.0) GC 60.4 14/30 (46.7) FC 58.5 14/30 (46.7)
+> GFC 61.3 19/30 (63.3)
+
+the highest simulation success (70.1%), confirming that the effective response contains sufficient information to learn the task. On hardware, however, GFC achieves the highest observed success at 19/30 (63.3%), compared with 14/30 (46.7%) for Response r, 9/30 (30.0%) for Binary, and 5/30 (16.7%) for proprioception alone. The representation favored in simulation is not the one that performs best after transfer. The factorization ablation shows a consistent pattern. Removing any one representation from GFC reduces hardware success: GF reaches 12/30, while GC and FC each reach 14/30. C is weak alone (8/30), but adding it does not reduce success in any of the four matched comparisons and improves three, consistent with temporal change providing complementary information during transfer. Jointly applying all randomizations to an unfactorized representation does not recover the GFC result: r remains at 14/30 with DR, while CoP changes from 2/30 to 1/30. CoP reaches 64.3% success in simulation but only 6.7% on hardware, below proprioception-only. Simulated collisions produce abrupt lateral centroid shifts that are absent on hardware, suggesting that CoP exposes contact transients that transfer poorly. Proprioception-only still retains indirect contact cues through OSC tracking deviations, which appears to be more reliable in this setting. GFC instead preserves distributed spatial and loading patterns across the pads, providing complementary cues beyond a single magnitude and centroid. Its higher hardware success (19/30) supports retaining richer contact information over a compact summary that may be sensitive to collision-response mismatch. Together, the three tasks show that tactile utility depends on the interaction: G-containing masks support precise alignment, F-containing masks support accurate force regulation, and the complete representation achieves the highest success in integrated insertion. Full tactile input is therefore not uniformly optimal across tasks. Preserving the factorization through the policy keeps these different forms of tactile information independently accessible without retraining. VI. D ISCUSSION 
+
+The effective response r is a phenomenological quantity, not a measurement of the pad’s deformation, pressure, stress, strain, or mechanical state. Its justification is operational: over the declared range it reconstructs held-out physical measurements and preserves usable information, certified only below approximately 20 N per taxel. The property we exploit is recoverability from the real sensor together with the separation of the three kinds of information, not fidelity of appearance. A more faithful forward model could replace the compact response without disturbing anything downstream, which consumes r rather than the model that produced it. Because r follows from a net force and a contact patch rather than a deformable pad state, it is compatible with GPU-parallel policy training. More broadly, tactile information with different transfer properties need not be collapsed into one policy representation: keeping it separately addressable is what turns a representation choice into a deployment option. ACKNOWLEDGMENTS 
+
+The authors used Claude and ChatGPT to assist with coding and to improve the manuscript narrative, sentence structure, and vocabulary. All core algorithmic concepts, experimental findings, and final interpretations were verified and remain the sole responsibility of the authors. REFERENCES [1] A. Khazatsky, K. Pertsch, S. Nair, A. Balakrishna, S. Dasari, S. Karam-cheti, S. Nasiriany, M. K. Srirama, L. Y. Chen, K. Ellis et al. , “DROID: A large-scale in-the-wild robot manipulation dataset,” arXiv preprint arXiv:2403.12945 , 2024. [2] I. Akinola, J. Xu, J. Carius, D. Fox, and Y. Narang, “TacSL: A library for visuotactile sensor simulation and learning,” IEEE Transactions on Robotics , vol. 41, pp. 2645–2661, 2025. [3] A. Dang, J. Lee, M. Mukadam, X. A. Wu, B. Bucher, M. Nambi, and N. Fazeli, “HydroShear: Hydroelastic shear simulation for tactile sim-to-real reinforcement learning,” 2026. [4] E. Su, C. Jia, Y. Qin, W. Zhou, A. Macaluso, B. Huang, and X. Wang, “Sim2real manipulation on unknown objects with tactile-based reinforcement learning,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) , 2024, pp. 9234–9241. [5] J. Pan, S. Coros, J. Malik, and T. Lin, “Beyond binary: Sim-to-real dexterous manipulation with physics-grounded contact representation,” 2026. [Online]. Available: https://arxiv.org/abs/2605.28812 [6] S. Wang, M. Lambeta, P.-W. Chou, and R. Calandra, “TACTO: A fast, flexible, and open-source simulator for high-resolution vision-based tactile sensors,” IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 3930–3937, 2022. [7] Z. Si and W. Yuan, “Taxim: An example-based simulation model for gelsight tactile sensors,” IEEE Robotics and Automation Letters , vol. 7, no. 2, pp. 2361–2368, 2022. [8] N. Yan, S. Wang, X. Shen, H. Wang, H. Wang, Y. Xiang, and J. Pang, “Tac2Real: Reliable and GPU visuotactile simulation for online reinforcement learning and zero-shot real-world deployment,” 2026. [9] U. Kasolowsky and B. B¨ auml, “Fine manipulation using a tactile skin: Learning in simulation and sim-to-real transfer,” in 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) ,2024, pp. 13 120–13 127. [10] B. A. De la Cruz S´ anchez and J.-P. Roberge, “A capacitive tactile sensor digital twin for real-time synthetic data generation and sim-to-real transfer in NVIDIA Isaac Sim,” Applied Sciences ,vol. 16, no. 15, p. 7708, 2026. [Online]. Available: https: //www.mdpi.com/2076-3417/16/15/7708 [11] R. Feng, J. Hu, W. Xia, T. Gao, A. Shen, Y. Sun, B. Fang, and D. Hu, “AnyTouch: Learning unified static-dynamic representation across multiple visuo-tactile sensors,” in International Conference on Learning Representations (ICLR) , 2025. [12] C. Higuera, A. Sharma, T. Fan, C. K. Bodduluri, B. Boots, M. Kaess, M. Lambeta, T. Wu, Z. Liu, F. R. Hogan et al. , “Tactile beyond pixels: Multisensory touch representations for robot manipulation,” in 
+
+Conference on Robot Learning . PMLR, 2025, pp. 105–123. [13] C. R. Qi, L. Yi, H. Su, and L. J. Guibas, “PointNet++: Deep hierarchical feature learning on point sets in a metric space,” in Advances in Neural Information Processing Systems , vol. 30, 2017, pp. 5099–5108. [14] S. Shang, M. Seo, Y. Zhu, and L. Chin, “FORTE: Tactile force and slip sensing on compliant fingers for delicate manipulation,” IEEE Robotics and Automation Letters , vol. 11, pp. 4473–4480, 2026. [15] M. Mittal, C. Yu, Q. Yu, J. Liu, N. Rudin, D. Hoeller, J. L. Yuan, R. Singh, Y. Guo, H. Mazhar, A. Mandlekar, B. Babich, G. State, M. Hutter, and A. Garg, “Orbit: A unified simulation framework for interactive robot learning environments,” IEEE Robotics and Automation Letters , vol. 8, no. 6, pp. 3740–3747, 2023. [16] S. Huang, R. F. J. Dossa, C. Ye, J. Braga, D. Chakraborty, K. Mehta, and J. G. M. Ara´ ujo, “CleanRL: High-quality single-file implementations of deep reinforcement learning algorithms,” Journal of Machine Learning Research , vol. 23, no. 274, pp. 1–18, 2022. [Online]. Available: http://jmlr.org/papers/v23/21-1342.html [17] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, “Prox-imal policy optimization algorithms,” arXiv preprint arXiv:1707.06347 ,2017. [18] D. Morrison, P. Corke, and J. Leitner, “EGAD! an evolved grasping analysis dataset for diversity and reproducibility in robotic manipulation,” 
+
+IEEE Robotics and Automation Letters , vol. 5, no. 3, pp. 4368–4375, 2020. [19] B. Calli, A. Singh, A. Walsman, S. Srinivasa, P. Abbeel, and A. M. Dollar, “The YCB object and model set: Towards common benchmarks for manipulation research,” in 2015 IEEE International Conference on Advanced Robotics (ICAR) , 2015, pp. 510–517. [20] G. Khandate, S. Shang, E. T. Chang, T. L. Saidi, J. Adams, and M. Ciocarlie, “Sampling-based exploration for reinforcement learning of dexterous manipulation,” in Proceedings of Robotics: Science and Systems , Daegu, Republic of Korea, July 2023. [21] P. Yin, T. Westenbroek, Z. Zhang, I. Dagnino, E. Shilamkar, N. Mbiziwo-Tiapo, S. Bagaria, X. Liu, G. Mullins, A. Kolobov, and A. Gupta, “Emergent dexterity via diverse resets and large-scale reinforcement learning,” in International Conference on Learning Representations ,vol. 2026, 2026, pp. 88 343–88 356.

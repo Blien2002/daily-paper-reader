@@ -1,0 +1,367 @@
+Title: Distributed Cascade Force Control of Soft-Tactile-Based Multi-robot System for Object Transportation
+
+URL Source: https://arxiv.org/pdf/2610.04775v1
+
+Published Time: Tue, 06 Oct 2026 01:11:01 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+# Distributed Cascade Force Control of Soft-Tactile-Based Multi-robot System for Object Transportation 
+
+Duy Anh Nguyen 1, Nhat Minh Dinh Le 2, Nhan Huu Nguyen 2, Pham Duy Hung 3,Van Anh Ho 2,4 and Trung Dung Ngo 1
+
+Abstract — In this paper, we present a distributed cascade force control system (DCFC) for multiple robots with the aim of pushing a rigid object towards a desired moving target without their inter-robot communication. These mobile robots are equipped with 360-degree vision-based soft tactile sensors utilized to determine contact location and resultant impact force. By investigating the dynamics of moving rigid objects on the flat, we proposed a distributed cascade control. The inner loop control incorporates contact force and positioning, ensuring the robots’ pushing contact and application of the desired force to the object. The outer loop control coordinates the robots to push the object in a desired direction without inter-robot communication, regardless of the unknown object mass. The stability and convergence of the system are verified using the Lyapunov stability theory. We also conducted simulation and real-word experiments to validate the performance of the proposed control method, and the experimental results showcase the successful coordination of multiple robots in pushing an object towards a moving desired direction. 
+
+I. INTRODUCTION Collective object transportation by multiple robots can be employed in many practical applications, such as smart warehouses, construction sites, and search and rescue mis-sions. To achieve collaborative tasks, a distributed control system for consensus decision-making among the robots conducted at the individual level based on local information and interactions with neighbouring robots is required. The advantages of a distributed control system for multi-robot systems are known as scalability, robustness, and adaptability when deployed in dynamic and uncertain environments. This allows the robotic system to handle the complexity of a given task and the number of robots required for the task, such as heavy object transportation, inspired by the ants as illustrated in Fig. 1. Research on object transportation by multi-robot systems is roughly categorized into two groups named pushing and 
+
+grasping . In general, the pushing method involves exerting force on an object through physical contact but physical           
+
+> Trung Ngo acknowledges the support of the Natural Sciences and Engineering Council of Canada, NSERC-RGPIN-2023-05961, DGDND-2023-05961, and NSERC-CREATE 528099-2019.
+> 1D.A. Nguyen and T.D. Ngo are with the More-Than-One Robotics Laboratory, Faculty of Sustainable Design Engineering, University of Prince Edward Island, Charlottetown, Canada.
+> 2N.M.D. Le, N.H. Nguyen, and V.A. Ho are with the Soft Haptics Lab., School of Materials Science, Japan Advanced Institute of Science and Technology, Asahidai 1-1, Nomi, Ishikawa, 923-1292 Japan.
+> 3P.D. Hung is with University of Engineering and Technology, Vietnam.
+> 4V.A. Ho is with Japan Science and Technology Agency, PRESTO, Kawaguchi, Saitama, 332-0012 Japan.
+> ∗Corresponding author. Email:
+
+tngo@upei.ca 
+
+attachment, while the grasping approach requires a physical connection between the robot and the transported object. In general, pushing is more challenging than grasping because no additional gripping tool is needed while the dynamics of rigid objects are critically required. The primitive strategy for multiple mobile robots to trans-port an object involves controlling robots’ velocity and/or formation while dealing with forces between the object, robots, and the surface as disturbances. Inspired by collective behaviours in social insects in [1], the authors proposed simple group behaviour-based algorithms for pushing a box forward without communication. These algorithms were ex-tended by employing sensors to detect the goal, allowing the robots to relocate around and push the object when the goal was detected [2]. Further studies analyzed the stagnation recovery based on ants’ behavior and tested the box-pushing algorithm by tracking changing goals with different types of boxes [3], [4]. However, these kinetic strategies have limitations as they did not account for the physical interaction between the object and the surface, which plays a critical role in object transportation, especially across various terrains or slopes [5]. Uncontrollable forces between the object and the robots can exceed safety limits and harm both the robots and the object, particularly fragile ones. These methods may lead to inaccuracy in task performance as they do not incorporate rigid-body object dynamics to represent object behaviour. Recent studies addressed the above-mentioned problems by considering object dynamics and robot forces . Grasping techniques with controllable exerted force provided greater control freedom for robots to push or pull objects with the motion of local objects measured by each robot as implicit information for force coordination [6]–[8]. In [6], it was proved that all the robots’ contact forces converged to a leader force direction, resulting in a force-amplifying effect. An extension of this work considered both force and torque consensus [7], as well as steering the leader’s force to navigate the system in narrow spaces [8]. In other directions, decentralized adaptive control leveraged the theory of adaptive control method to estimate system parameters and manipulate the object simultaneously [9], [10]. The desired object states, such as linear and angular velocity and desired trajectories, were achieved and proved through the Lyapunov stability theory. Within the scope of pushing methods, some researchers proposed collective transportation strategies based on occlusion, where robots only pushed the object when their vision of the goal was obscured [11], [12]. Maintaining continuous pushing on the arXiv:2610.04775v1 [cs.RO] 3 Oct 2026 soft skins equipped on mobile robots 
+
+> to exert desired force and
+> maintain pushing contact
+
+Fig. 1: Real-world experiment (top) and simulation (bottom) of multiple soft-tactile-based mobile robots performing an object transportation task. object while transporting it towards the desired direction is always challenging with pushing methods. In [13], object transportation was performed by employing explicit force control of two pushing robots while cluster space control for the formation and relative positioning was maintained through continuous intercommunication. This paper introduces a distributed cascade control system for multiple soft-tactile-based robots specialized in transport-ing rectangle-shaped objects without communication. Using the soft tactile sensors developed in our previous work [14], real-time tactile information on each robot is obtained from physical interaction within a multi-agent robotic system and with the surroundings. The proposed control strategy enables the robots to exert pushing forces while maintaining constant contact with the object. The proposed approach demonstrates adaptability and versatility in cascade distributed control for soft-tactile-based robot systems, accommodating various ob-ject masses and dealing with moving in the desired direction. The paper is organized as follows. Section II overviews rigid-body object dynamics and introduces our mobile robot platform. Section III outlines the problem and objectives. Section IV examines our proposed DCFC and includes proof of its stability. Section V presents the results and the discussion of both simulation and real-world experiments. Finally, the conclusions are presented in Section VI. II. PRELIMINARIES 
+
+A. Modeling Rigid-Body Object Dynamics and Pushing Forces 
+
+In this section, we consider a rigid-body object capable of both translation and rotation in a 2D frictional environ-ment as described in Fig. 2. The translational velocity and rotational velocity of the object are represented by vG ∈ R2,and ωωω(t), respectively. To describe these motions under the influence of n external pushing forces fff i ∈ R2, we use Newton’s law of motion and Euler’s rigid-body equation, respectively, as: 
+
+m˙vG =
+
+> n
+
+# ∑
+
+> i=1
+
+fff i + FFF f , (1) h
+
+Fig. 2: Free-body diagram of an object under a pushing force 
+
+fff i .
+
+I ˙ωωω =
+
+> n
+
+# ∑
+
+> i=1
+
+(rrri × fff i) + MMM f , (2) where m and I are denoted as the object’s mass and inertia mass, respectively. FFF f and MMM f representing the frictional force and torque between the object’s surface and the ground are modelled as zeroth and first-order functions of motion, respectively: 
+
+FFF f = −μ0,t mσσσ (((˙vvvGGG))) − μ1,t vvvG, (3) 
+
+MMM f = −μ0,rIσσσ (((ωωω))) − μ1,rωωω, (4) where σσσ (((˙xxx))) = ˙xxx///|||˙xxx||| represents the sign function, and μ0,t ,
+
+μ1,t , μ0,r, and μ1,r are the friction parameters accordingly. 
+
+B. Visual-based Tactile Sensor Modeling 
+
+Our mobile robot platform, developed as in [14], is equipped with a 360-degree polymer material capable of de-formation and exerting pushing force on objects. When force is applied to the tactile sensor, 24 markers located inside are displaced and captured by the fisheye camera mounted on the center of the sensor. Through a pre-calibration system, each robot can accurately estimate the applied force fi and contact angle θi with high precision (the mean absolute error of 0.12 
+
+N and 1.12 ◦, respectively). We approximate the robot’s shape as a circle with a radius to model the pushing force exerted by the robot. Within the scope of this paper, we simplify the force magnitude model as a simple spring model that is applied for control system design: 
+
+fff i(∆i) = k∆∆∆i, (5) where ∆∆∆i ∈ R2 is a deformation distance ( m), and k is a constant, which is estimated at around 400 ( N/m) in this study. Note that, by the third Newton law, the strength of applied perpendicular force to the robot surface equals the perpendicular pushing force to the object. Denote Ai as the nearest point of robot i to the object, we have: 
+
+∆∆∆i = xxxAi − xxxi. (6) Fig. 3: The Visual-based tactile model with contact angle and contact force. 
+
+C. Interaction force between robot and object surface 
+
+When a robot touches or pushes an object, there exists an interactive force between the robot and the object’s surface. This force includes both the perpendicular force to the object’s surface and the frictional force between them. It is important to note that this friction prevents the sliding between the tactile sensor and the object’s surface. Furthermore, if there is minimal relative motion between the robot and the object (i.e., vi ≈ vG), especially in the steady state when ω ≈ 0, the friction between the two surfaces can be ignored. III. PROBLEM DESCRIPTION Consider a set of n soft-tactile-based mobile robots with a given task of transporting a rectangular-shaped rigid object of indeterminate mass and inertia toward a specified direction, denoted as bng. Each robot is capable of measuring the relative orientation αi ∈ [−π, π] between its heading brx,i
+
+and bng. Furthermore, each robot can estimate the pushing force fi exerted on the object. Given their limited sensory capabilities, it is assumed that these pushing forces act perpendicularly to the object’s surface. In the initiation of the pushing phase, two distinct robot groups are designated. Both groups are situated on the same edge of the object so that their relative angles satisfy αi ∈ [− π 
+
+> 2
+
+, π 
+
+> 2
+
+]. These groups are positioned on opposing sides of the projection of the center of mass, G, on the above edge: nL robots are on the left, and nR robots are on the right. The positioning of these groups can result from user intervention or emerge from simple behavior-based control of robots, which may or may not require inter-robot communication. The primary challenge is to enable the robots to con-sistently maintain pushing contact with the object, thus providing stability to the entire system of the object and robots. This problem can be divided into two key objectives:  
+
+> •
+
+(1) To synchronize the object’s velocity along with the targeted direction.  
+
+> •
+
+(2) To make each robot maintain its pushing contact and apply the necessary force to facilitate the object’s transportation. The direction orthogonal to bng is represented by bnp. In scenarios where the object’s velocity is not measurable, the first objective can be redefined: the pushing force vectors should be in alignment with the targeted direction, and the total robot force in bnp should be zero: 
+
+> n
+
+# ∑
+
+> i=1
+
+fff i · bng =
+
+> n
+
+# ∑
+
+> i=1
+
+fi > 0, (7) 
+
+> n
+
+# ∑
+
+> i=1
+
+fff i · bnp = 0. (8) Under these conditions, the object’s velocity can be adjusted to the desired direction. By projecting Newton’s second law given by Eq. 1 onto the bnp axis, we derive: 
+
+m˙vG · bnp =
+
+> n
+
+# ∑
+
+> i=1
+
+fff i · bnp + FFF f · bnp. (9) Incorporating Eqs. 3, 8, and 9, we establish: ˙vvvG · bnp +
+
+ μ1,t
+
+m + μ0,t
+
+∥vG∥
+
+
+
+vvvG · bnp = 0. (10) Given a frictional environment, where μ0,t + μ1,t > 0, it follows that ˙ vvvG · bnp converges toward zero. Similarly, the object’s velocity toward bng stabilizes at a constant magnitude if the ∑ni=1 fi is constant. IV. DISTRIBUTED CASCADE FORCE CONTROL FOR SOFT-TACTILE-BASED ROBOTS (DCFC) With two given objectives, we propose a DCFC control consisting of two control systems equivalent to the following sub-objectives:  
+
+> •
+
+The outer loop is distributed control with the force pol-icy that is applied to stabilize object rotation and make the pushing force direction aligned with the desired direction. lim  
+
+> t→∞
+
+ω(t) = 0. (11) lim  
+
+> t→∞
+
+αi(t) = 0, ∀i ∈ n. (12)  
+
+> •
+
+The inner loop is a multiple input multiple output (MIMO) control that is used to maintain pushing contact and exert the desired force fdi from the above policy. lim  
+
+> t→∞
+
+fi = fdi , ∀i ∈ n. (13) lim  
+
+> t→∞
+
+θi = 0, ∀i ∈ n. (14) The cascade control graph is described in Fig. 4. 
+
+A. Outer loop control - Distributed force policy making force direction aligned with the desired direction 
+
+We proposed a distributed control policy for each robot in two groups, named left group and right group, respectively, as follows: 
+
+f Lj (t) = 1
+
+nL
+
+
+
+f0 −
+
+
+
+KPo αi(t) + KIo  
+
+> Zt
+> 0
+
+αi(t) + KDo ˙αi(t)
+
+ 
+
+,
+
+(15) 
+
+f Rk (t) = 1
+
+nR
+
+
+
+f0 + KPo αi(t) + KIo  
+
+> Zt
+> 0
+
+αi(t) + KDo ˙αi(t)
+
+
+
+.
+
+(16) where f0, KPo , and KIo are the control parameters of the outer loop. Fig. 4: Distributed Cascade control (DCFC) graph including an inner loop to maintain pushing contact and force, and an outer loop to align force vector to the desired direction. 
+
+Stability proof : For a rectangular-shaped object, robots on the left group always produce a negative moment, and robots on the right group produce a positive moment. The moment produced by robot i can be written as: 
+
+rrri × fff i = fidi, (17) where di is the lever arm of the pushing force, di = dLj < 0if the robot is on the left edge, and di = dRk > 0 if the robot is on the right edge. Moreover, the rate of the relative angle measured by each robot is equal to the angular rate of the object since the desired distance is slowly changed or even constant. ˙αi = ˙(bng,brx,i) ≈ − ω, ∀i ∈ n. (18) From Eqs. 2, 4, 15, 16, 17, 18, we derive: ¨αi +
+
+ μ0,r
+
+∥ ˙αi∥ + μ1,r
+
+I + g(di)KDo 
+
+
+
+˙αi +g(di)KPo αi +b( f0, di) = 0(19) where g(di) = 1 
+
+> nL
+
+∑nL 
+
+> j=1
+
+|dLj | + 1 
+
+> nR
+
+∑nR 
+
+> k=1
+
+|dRk | > 0, b( f0, di) = 
+
+f0( 1 
+
+> nL
+
+∑nL 
+
+> j=1
+
+dLj + 1 
+
+> nR
+
+∑nR 
+
+> k=1
+
+dRk ) + R t 
+
+> 0
+
+αi(t)g(di)KIo . If the object mass is uniform and the number of robots in each group is equal, 1 
+
+> nL
+
+∑nL 
+
+> j=1
+
+dLj + 1 
+
+> nR
+
+∑nR 
+
+> k=1
+
+dRk ≈ 0. In other cases, the integral part is added to compensate for the constant moment 
+
+f0( 1 
+
+> nL
+
+∑nL 
+
+> j=1
+
+dLj + 1 
+
+> nR
+
+∑nR 
+
+> k=1
+
+dRk ). From Eq. 19, if all of the coefficients are greater than zero and b( f0, di) ≈ 0, the system is stabilized based on the global invariant set theorem with Lyapunov stability approach [15], the angle error or relative angle αi is converged to 0 with the rate that can be adjusted by KPo and KDo .
+
+B. Inner loop control - Distributed contact maintenance and force control 
+
+In the beginning, the skin of the robots is already in contact with the object, and the friction between the object and the robots helps minimize sliding between the robot and the object. However, rolling without slipping can occur when the object is moving. In the differential drive robot model, two components, including transitional and rotational behaviour, are required as vi and ωi, respectively. The rolling motion from the robot’s heading is represented by contact angle 
+
+θi, while the transitional motion helps the robots maintain a certain deformation distance to exert the desired force. We propose a control law for the inner loop: 
+
+ωi = Kω θi, (20) 
+
+e f i (t) = fdi (t) − fi(t), (21) 
+
+vi(t) = KP,in e f i (t) + KI,in  
+
+> Zt
+> 0
+
+e f i (t), (22) where Kω , KP,in , and KI,in are the control parameters of the inner loop. Consequently, the differential drive kinematic equations for the left and right wheel velocities are as follows: 
+
+vLi = vi − ωiL
+
+2 and vRo = vi + ωiL
+
+2 . (23) 
+
+Stability proof: From Eqs. 5 and 6, the model of the robot force magnitude can be described as: ˙fi = k(vAi − vi). (24) Taking the derivative of the Eq. 24, substituting the control law Eq. 22, force error Eq. 21, and assuming that vAi reaches constant over a period of time, we derive: ¨e f i + kK P,in ˙e f i + kK I,in e f i = 0. (25) The force error e f i converges to zero with the rate that can be adjusted by KP,in and KI,in .V. EXPERIMENT RESULT AND DISCUSSION We present the effectiveness of our proposed DCFC in both simulation and real-world experiments with a group of differential-drive tactile-based mobile robots transporting a rectangular-shaped object, as shown in Fig. 1. The object and environment parameters used for simulation are described in Table I. Object mass m and kinetic friction μ0,1 in the real-world experiment are approximated as in the simulation. The parameters we used in the simulation and real-world experi-ment are described in Table II. The PI control parameters are tunned by Ziegler-Nichol’s second method for the inner loop first, then the outer loop. The offset force f0 in this scope is set to be 1 .5N for each robot to overcome static friction (∥∑ni=1 fff i∥ = n ∗ f0 > mg μ0,t as 3 > 1.64 (N)). Note that, it is feasible for each robot to adaptively find f0 at the beginning of the pushing phase by an integral control with the robot’s velocity feedback. TABLE I: Object and environment Parameters             
+
+> Parameters mIμ0,tμ1,tμ0,rμ1,r
+> Scenario 1 0.67 kg 1kgm 20.25 511
+
+TABLE II: Robot and Control Parameters                                     
+
+> Robot Para. n1n2kfmax −−−
+> Values 11400 4N ---
+> Control Para. f0KPo KIo KDo KωKP,in KI,in
+> Values 1.5N 30.5 010 20 4
+> (a) The convergence of estimated forces of two robots to desired forces.
+> (b) Identical convergence of con-tact angles θi(robot heading er-rors) for Robots 1 and 2 to zero.
+> (c) The convergence of motion direction error αiand object’s angular velocity ωto zero.
+
+Fig. 5: Simulation results demonstrating the convergence to zero. 
+
+A. Simulation and Results 
+
+We conducted a Matlab simulation to model the behaviour of robots and objects based on the rigid object dynamics equations, differential drive robot models, and our proposed control DCFC. The simulation results are depicted in Fig. 5 and the stability and convergence of both the inner and outer loop control objectives were validated. Regarding the inner loop control, the measured force consistently converged towards the desired force signal, as shown in Fig. 5a, represented by Eq. 13. In Fig. 5b, the contact angles θi of both robots also converge to zero as in Eq. 14. As shown in Fig. 5c, the object’s motion direction is closely aligned with the desired direction, meaning the angle error converges to zero. Meanwhile, the object’s rotational behavior remains stable as its angular velocity approaches zero. Note that the settling time of the entire system is approximately 6 seconds. 
+
+B. Real-world experiments and Results 
+
+The real-world experiment setup details are outlined in our previous work [14]. Each robot has a Zumo platform and a Raspberry Pi 4 mini-computer, enabling individual decision-making based on local contact force and angle data. These robots do not use inter-agent communication capabilities and solely receive desired directions in their robot frames thanks     
+
+> (a) The convergence of estimated forces of two robots to desired forces.
+> (b) The convergence of contact angles θi(robot heading errors) for robots 1 and 2 to zero.
+> (c) Object rotation captured by a motion capture and tracking system demonstrating the convergence of motion direction error
+> αiand object’s angular velocity ω.
+
+Fig. 6: Real-world experiment results for case 1 with constant desired moving direction. to the motion-tracking system. Notably, an alternative sensor like a digital compass could replace the motion tracking system’s signal in practice. The coordinate of the moving object is only collected for system performance evaluation. We investigate two distinct scenarios for evaluating control performance: case study 1 with a constant desired direction and case study 2 with a changing desired direction. In our real-world experiments 1, the stability and conver-gence of both the inner and outer loop control objectives were also validated in both scenarios. For the inner loop control, we observed that the force applied by both robots fluctuated about the desired force signal, as depicted in Fig. 6a for case study 1 and Fig. 7a for case study 2. After a 10-second interval, the mean absolute steady-state errors (MAE) in force for Robots 1 and 2 in case study 1 were 0.28N and 0.13N, respectively. In case study 2, the force tracking MAE values were 0.30N for both robots. Considering that the forces exerted by the robots were consistently non-negative, this ensured continuous pushing contact between each robot and the object during transportation tasks. Furthermore, robot heading errors θ1 and θ2 tended to be approximately 
+
+> 1Real-world experiment results: https://youtu.be/tBqVyBXuhgU
+
+(a) The convergence of estimated forces of two robots to desired forces. 
+
+(b) The convergence of the contact angles θi (robot heading errors) for robots 1 and 2 to zero. 
+
+Fig. 7: Real-world experiment results for case 2 with chang-ing desired moving direction. close to zero for case study 1 (Fig. 6b) and case study 2 (Fig. 7b). For the outer loop control objectives, the object’s direction of motion exhibited only minimal deviation from the desired value, as illustrated in Fig. 6c. Moreover, the object’s rotational behaviour remained stable, with its angular velocity approximately zero. 
+
+C. Discussion 
+
+Our simulation and real-world experiments have validated the reasonable convergence time and stability of our pro-posed DCFC control system. Certain system parameters, par-ticularly those related to friction, are subject to uncertainty because the surface conditions in real-world experiments do not remain as constant as they are in the model. The hardware results collectively confirm that our proposed DCFC control scheme successfully overcame these uncertainties, enabling robots to transport the object to the moving target. Although the control policy can handle unknown object mass and friction parameters, f0 and the number of robots are pre-defined to counteract the static friction between the object and the surface. The exact number of robots and their positions are not critical as long as there is sufficient space on the object’s boundary for them. This setup can be exemplified by positioning two robots on the left and right edges of the object. In the near future, we aim to deploy more robots to transport objects with indeterminate masses and to handle asymmetric pushing positions, thereby assessing the robustness of the designed control system. Moreover, we plan to introduce a pre-pushing phase where robots determine suitable pushing positions using their local sensors for more effective object manipulation. The control system currently does not account for the specific shape of the object, provided that the shape allows the distribution of the robots on two sides of the center of mass along a straight edge, such as in triangles or certain polygons. In subsequent developments, we will enhance the algorithm to cater to a wider range of object shapes, especially those with non-polygonal geometries and non-uniform mass distributions. VI. CONCLUSIONS In conclusion, our proposed distributed cascade force control system (DCFC) helps soft-tactile-based robots push an unknown object in a desired direction without commu-nication. Moreover, robots can successfully exert desired force and maintain pushing contact while transporting ob-jects using deformable tactile sensors. The two-loop cascade control system demonstrated coordination capacity among robot groups, enabling precise object transportation with proven convergence and stability theory. The insights gained from this research will advance the field of cooperative object transportation with soft-tactile-based robots, leading to more robust and versatile robotic systems for real-world applications. REFERENCES [1] C. R. Kube and H. Zhang, “Collective robotics: From social insects to robots,” Adaptive Behavior , vol. 2, no. 2, p. 189–218, 1993. [2] C. Kube and H. Zhang, “Stagnation recovery behaviours for collec-tive robotics,” Proceedings of IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS’94) , 1995. [3] C. R. Kube and H. Zhang, “Task modelling in collective robotics,”

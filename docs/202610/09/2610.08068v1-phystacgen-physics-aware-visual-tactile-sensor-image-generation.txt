@@ -1,0 +1,423 @@
+Title: PhysTacGen: Physics-Aware Visual-Tactile Sensor Image Generation
+
+URL Source: https://arxiv.org/pdf/2610.08068v1
+
+Published Time: Wed, 07 Oct 2026 01:13:17 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+# PhysTacGen: Physics-Aware Visual-Tactile Sensor Image Generation 
+
+Guo Tang 1 Yongtao Wang 1,2 ∗
+
+> 1
+
+Wangxuan Institute of Computer Technology, Peking University  
+
+> 2
+
+VGI Labs Co., Ltd. 
+
+confection_tang@stu.pku.edu.cn wyt@pku.edu.cn 
+
+## Abstract 
+
+Realistic physical interaction is a cornerstone of embodied intelligence, yet collect-ing paired visual–tactile data remains costly. Visual-to-tactile synthesis offers a promising approach to augmenting such data, but learning this mapping is compli-cated by the gap between visual appearance and contact-related material properties, as well as spatial misalignment in paired observations. To address these challenges, we present PhysTacGen , a visual-to-optical-tactile image generation framework that integrates material-aware descriptions with geometric conditioning. First, we introduce Group Tactile Policy Optimization (GTPO), a reinforcement learn-ing strategy that refines a vision–language model to generate structured material descriptions using task-specific rewards. Second, we combine DINOv2-based pair curation with monocular relative-depth estimation to select training pairs and provide geometric priors. Finally, an SDXL ControlNet synthesizes optical tactile images conditioned on RGB, relative depth, and GTPO-generated text. Experiments on curated SSVTP data demonstrate improved structural similarity over the compared baselines, while a blinded user study shows a preference for GTPO-generated descriptions. Generated tactile inputs also improve performance on an attribute-derived force-coefficient prediction proxy. Together, these results demonstrate the effectiveness of PhysTacGen for optical tactile image synthesis and its utility in the evaluated downstream task.The code will be available at https://github.com/VDIGPKU/PhysTacGen. 
+
+## 1 Introduction 
+
+High-precision manipulation is the cornerstone of next-generation embodied intelligence. Tasks requiring sub-millimetre accuracy—such as threading a cable, inserting a USB connector [33], or handling deformable tissues [5]—often render vision insufficient due to occlusion or lack of contact information. Consequently, tactile sensing has emerged as an imperative modality for the last centimetre of interaction, providing the temporal feedback and subtle surface deformation cues necessary for complex reasoning [2]. The recent surge in Vision-Tactile-Language Models (VTLMs) further underscores the necessity of integrating touch with semantic understanding to achieve robust robot perception [33]. However, a critical bottleneck impedes this progress: the scarcity of large-scale, paired visual-tactile data. Unlike the web-scale abundance of visual data or the maturity of photorealistic visual rendering, collecting high-fidelity tactile datasets is prohibitively expensive, hardware-dependent, and labour-intensive. Furthermore, as highlighted in recent multi-embodied studies [11], the spatial relationship between external cameras and tactile sensors varies significantly across different robotic platforms. This inconsistency in camera-to-sensor layout introduces severe 
+
+> ∗Corresponding author. Preprint. arXiv:2610.08068v1 [cs.CV] 6 Oct 2026
+
+spatial noise into existing datasets, making it difficult for conventional models to learn a robust mapping from 2D visual pixels to 3D tactile deformations. To address this scarcity, prior works have primarily turned to physical simulation. Simulators such as Tacto [26], Taxim [24], and TacSL [1] leverage rendering engines to generate synthetic tactile images. While scalable, these approaches suffer from a fundamental domain gap. The rendered visual counterparts in simulators often lack the photorealism and diverse textures of real-world objects. Furthermore, the simplified contact physics in simulators frequently fails to capture the complex, non-linear deformations of elastomers found in real optical tactile sensors. Alternatively, data-driven Visual-to-Tactile (V2T) synthesis has gained traction. Approaches like SingleS2R [25] attempt to map visual features directly to tactile responses using pixel-level statistics. However, these methods expose two critical failure modes. First, they fail to distinguish between 
+
+visual texture and physical compliance . A model might erroneously generate deep tactile deformations for a hard, marble-patterned surface simply because the visual texture is complex, or conversely, generate a flat response for a texture-less but soft sponge. Second, real-world visual-tactile pairs suffer from severe spatial misalignment due to mechanical tolerances. For deterministic pixel-wise MSE regression, uncertainty over spatial correspondence can average out detail; stochastic generators may instead produce sharp but misplaced features. Without explicit physical grounding and spatial alignment, these generative models hallucinate interactions that violate physical laws. In this paper, we introduce PhysTacGen , a physics-aware generation framework that bridges the gap between visual appearance and tactile mechanics. PhysTacGen moves beyond simple modality mapping by explicitly modeling physical reasoning, filtering spatial noise, and injecting geometric constraints. On the evaluated curated SSVTP split, our method achieves the highest SSIM among the compared systems; the downstream experiment tests substitution of generated tactile images on a heuristic proxy task rather than robot transfer. These three components form a cohesive pipeline: GTPO acts as the ’physical brain’ to infer latent properties from semantic cues; the Data Curation & Prior stage functions as the ’geometric filter’ to resolve spatial noise; and finally, the SDXL-based Synthesis serves as the ’integrator’ that fuses these semantic and geometric insights into high-fidelity tactile images. To sum up, our system makes three core technical contributions: • Group Tactile Policy Optimization (GTPO) for Physical Grounding. We propose GTPO, a novel alignment approach inspired by reasoning models. GTPO utilizes Reinforcement Learning with a specialized suite of reward functions to refine Large Multimodal Models. By rewarding reasoning chains that align with contact mechanics and tribology, we generate precise, physics-informed textual descriptions. • Semantic-Driven Data Curation and Spatial Visual Prior. To resolve the blurriness caused by spatial misalignment, we introduce a rigorous data curation pipeline using Foun-dation Models (DINOv2) to filter out geometrically mismatched pairs. Concurrently, we utilize monocular depth estimation to provide a relative macro-geometric prior alongside visual texture. • Physics-Driven Multi-Modal Synthesis via SDXL. We propose a generative architecture powered by Stable Diffusion XL (SDXL) that fuses semantic reasoning with geometric guidance. We utilize the physics-rich text generated by GTPO as the prompt for the dual text encoders, while employing the RGB image and its estimated depth map as 4-channel structural conditions for high-frequency detail generation. 
+
+## 2 Related Work 
+
+Optical Tactile Sensing and Simulation. High-resolution optical tactile sensors, such as Gel-Sight [32] and Digit [9], have revolutionized robotic manipulation by providing dense geometric information. Recent advancements have further integrated multimodal fingertips to digitize touch [10]. To mitigate the high cost of real-world data collection, simulators like Tacto [26], Taxim [24] and TacSL [1] leverage rendering engines to synthesize tactile images. Other efforts utilize path tracing and IMPM to simulate complex dynamic contact like slip and rotation [23]. However, these analyti-cal simulators often rely on simplified contact models that fail to capture the complex, non-linear deformations of elastomers found in real-world environments. 2Visual Input     
+
+> (a) GTPO: Physics-aware Reasoning Alignment Visual Language Model (VLM)
+> Reasoning Chains (Physical Properties)
+> •Hardness
+> •Friction
+> Group Tactile Policy Optimization (GTPO)
+> RL alignment with physics-aware rewards
+> Reward
+> (physics-consistent)
+> Physically Grounded Properties
+> Material Agent Environment
+> Sense
+> Policy
+> (b) Semantic-driven Data Curation & Spatial Visual Prior
+> Depth Model
+> Background Subtraction & Geometric Alignment
+> Tactile-image Pairs
+> Dino Similarity Filter
+> Selected Pairs Prepared Data (c) PhysTacGen: Physics-driven Generation Visual Image
+> concatenate Frozen
+> Rough, Fabric, Soft
+> Trainable Prediction GT VLM with GTPO
+
+SDXL 
+
+Controlnet 
+
+(physical conoditoned) Data Flow Depth Image 
+
+> contact loss Modified First Layer
+
+Figure 1: The PhysTacGen Framework. Given a visual observation, our system operates in three sequential stages: (1) Physics-Aware Reasoning: A VLM fine-tuned via GTPO infers latent physical properties. (2) Data Curation & Spatial Prior: The dataset is semantically purified using DINOv2, and input RGB is depth-estimated to form a 4-channel geometric condition. (3) Multi-Modal Synthesis: A physics-driven SDXL ControlNet synthesises the high-fidelity tactile sensor image 
+
+It. Here Iv is the external visual RGB image, Id the estimated relative-depth prior, and cphys the GTPO-generated physical description; the optical tactile image is It.
+
+Tactile Representation and Foundation Models. With the advent of self-supervised learning, models like Sparsh [6] and AnyTouch [2] have established unified representations across diverse sensors. These frameworks often leverage vision foundation models such as MAE [4] or multi-modal alignment strategies like CLIP [19] to bind touch to everything [29]. Specifically, CLTP [14] focuses on 3D contact geometry understanding, while Octopi [31] utilizes Large Multimodal Models for object property reasoning. Our work builds on this trend but shifts the focus from representation to generation, specifically addressing the semantic-physical gap that representation-only models might overlook. 
+
+Visual-to-Tactile (V2T) Synthesis and Force Perception. Mapping external RGB to optical tactile observations has been studied using image translation and reference-conditioned synthesis. Pix2Pix [7] provides a general paired translation baseline; Pix2Pix-Turbo [17] uses a one-step text-to-image backbone. VisGel [12] uses a query RGB image and a reference RGB–tactile pair, whereas Controllable Visual-Tactile Synthesis [3] generates visual and tactile outputs from editable sketches. The latter uses a different input and output protocol from our local optical-tactile prediction. Latent Diffusion Models [20], PolyTouch [34], SingleS2R [25], and contact-force estimation [21] provide further context, but the experiments below assess tactile image synthesis and a heuristic coefficient proxy, not measured-force control. 
+
+Tactile-Aware Manipulation and Real-world Challenges. Dynamic tactile perception is essential for contact-rich tasks, as explored in Reactive Diffusion Policy [28] and ViTacformer [5]. The integra-tion of language has led to the emergence of Vision-Tactile-Language-Action (VTLA) models [33]. Despite these advances, real-world data collection remains plagued by spatial misalignment between cameras and sensors, especially in hardware-independent interfaces like Fast-UMI [27]. Large-scale datasets such as SSVTP [8] highlight the need for robust cross-modal alignment. Our framework contributes to this ecosystem by generating spatially aligned, physics-aware tactile data, motivating future validation in real manipulation tasks. 33 Method 
+
+The goal of PhysTacGen is to synthesise high-fidelity tactile sensor images It ∈ RH×W ×3 given a visual observation Iv ∈ RH×W ×3. As illustrated in Figure 1, the framework operates in three sequential stages to explicitly disentangle semantic physical reasoning from geometric deformation generation . Optical tactile RGB records a deformed, internally illuminated sensor membrane, rather than the contacting object´ s visible color; its color-to-gradient mapping depends on the sensor calibration. The RGB input Iv yields both the physical description cphys and estimated relative depth 
+
+Id, which condition the generator. 
+
+3.1 Group Tactile Policy Optimisation (GTPO) 
+
+Standard Supervised Fine-Tuning (SFT) often leads to superficial alignment where models mimic the style of training captions without grounding the underlying physics. Traditional RLHF requires training a critic model, which is extremely expensive and unstable in multimodal large models since the value model also needs to look at images, leading to memory explosion. To address this, we propose Group Tactile Policy Optimisation (GTPO) , a reinforcement learning framework built upon GRPO [22]. However, standard GRPO is primarily designed for general semantic alignment or mathematical reasoning and lacks the domain-specific physical common sense required for tactile tasks. It cannot inherently parse the subtle relationship between visual textures and latent material mechanics. To bridge this gap, we specialize the framework into GTPO, which adapts the group-based reward mechanism to the nuances of tactile physics. GTPO refines the Large Multimodal Model (LMM) to infer latent physical properties from visual cues by rewarding reasoning chains that strictly adhere to physical laws. Its primary objective is to serve as a semantic physical interpreter, which guides the subsequent image synthesis process. 
+
+Objective Function. Given a visual prompt x, we sample a group of G outputs {y1, y 2, . . . , y G}
+
+from the current policy πθ. Unlike PPO, GRPO eliminates the need for a critic model by using group-based advantage estimation. The optimization objective is formulated as: 
+
+ρi(θ) = πθ (yi|x)
+
+πθold (yi|x) , (1a) 
+
+Li(θ) = min 
+
+
+
+ρi ˆAi, clip (ρi, 1 − ϵ, 1 + ϵ) ˆAi
+
+
+
+, (1b) 
+
+J (θ) = EB
+
+"
+
+1
+
+G
+
+> G
+
+X
+
+> i=1
+
+
+
+Li(θ) − βDKL (πθ || πref )
+
+#
+
+, (1c) where ρi is the importance sampling ratio, ϵ is the clipping coefficient, and ˆAi is the group-normalized advantage. The policy πref is the frozen SFT reference; B is a training batch. The start/end tokens 
+
+trstart , t rend and tsstart , t send delimit reasoning and solution sections, and Vphys is the predefined physical vocabulary. The total reward R(y) is a weighted sum of three distinct physical alignment components: 
+
+R(y) = Rfmt (y) + Rsem (y, y ∗) + Rvocab (y).
+
+Reward Design. Rfmt enforces a structured Chain-of-Thought (CoT) process using reasoning and solution delimiters: 
+
+Rfmt (y) = 0 .5 · I (trstart ∈ y ∧ trend ∈ y) + 0 .5 · I (tsstart ∈ y ∧ tsend ∈ y) , (2) 
+
+Rsem aligns the generated physical description with ground truth physics in a semantic embedding space. We extract the text within the solution tags as ypred and compare it with the ground truth 
+
+y∗. Using a pre-trained sentence encoder E(·), we compute the cosine similarity scos . To penalize hallucinations and reward high-fidelity descriptions, we apply a clamped linear transformation: 
+
+scos = E(ypred ) · E(y∗)
+
+∥E(ypred )∥∥ E(y∗)∥ , Rsem (y) = clip (1 .5 · (scos + 0 .1) , 0.0, 2.0) . (3) Finally, Rvocab measures the density of valid physical terms in the prediction to prevent the generation of useless descriptions: 
+
+Rvocab (y) = 0 .5 ·
+
+P  
+
+> w∈W(ypred )
+
+I(w ∈ V phys )
+
+|W (ypred )| , (4) where W (ypred ) denotes the set of words in the generated solution. 4Algorithm 1 Group Tactile Policy Optimization (GTPO)  
+
+> 1:
+
+Input: Dataset D, Initial Policy πθ , Reference Model πref , Semantic Encoder E(·), Group Size 
+
+G, Learning Rate η, KL Coefficient β, Clip Ratio ϵ. 
+
+> 2:
+
+Initialize πref ← πθ 
+
+> 3:
+
+repeat  
+
+> 4:
+
+Sample a batch of visual prompts and ground truths B ∼ D  
+
+> 5:
+
+Update old policy πθold ← πθ 
+
+> 6:
+
+for each visual prompt x ∈ B do  
+
+> 7:
+
+Sample G outputs {y1, y 2, . . . , y G} ∼ πθold (·| x) 
+
+> 8:
+
+for i = 1 to G do  
+
+> 9:
+
+Rule-based Formatting Reward: rfmt ← Rfmt (yi) 
+
+> 10:
+
+Rule-based Vocabulary Reward: rvocab ← Rvocab (yi) 
+
+> 11:
+
+Model-based Semantic Reward: rsem ← clip (1 .5 · (cos( E(yi), E (y∗)) + 0 .1) , 0, 2)  
+
+> 12:
+
+ri ← rfmt + rsem + rvocab  
+
+> 13:
+
+end for  
+
+> 14:
+
+Compute Mean μ = 1
+
+> G
+
+PGj=1 rj and Std σ =
+
+q 1
+
+> G
+
+PGj=1 (rj − μ)2 
+
+> 15:
+
+for i = 1 to G do  
+
+> 16:
+
+Ai ← (ri − μ)/(σ + δ) 
+
+> 17:
+
+end for  
+
+> 18:
+
+end for  
+
+> 19:
+
+Optimize θ by maximizing the objective JGTPO : 
+
+> 20:
+
+for each yi in group do  
+
+> 21:
+
+ratio ρi = πθ (yi|x)/π θold (yi|x), surrogate Lclip  
+
+> i
+
+= min( ρiAi, clip (ρi, 1 − ϵ, 1 + ϵ)Ai) 
+
+> 22:
+
+end for  
+
+> 23:
+
+Optimize θ by maximizing J in Eq. 1c  
+
+> 24:
+
+until convergence  
+
+> 25:
+
+Output: Optimized Physics-Aware Policy πθ
+
+3.2 Semantic-Driven Data Curation and Visual Prior 
+
+Real-world visual-tactile datasets often suffer from severe spatial misalignment due to mechanical tolerances. Spatial uncertainty can blur the outputs of deterministic pixel-wise regression and displace details in stochastic synthesis. 
+
+DINOv2 Semantic Filtering. To resolve this, we employ DINOv2 [15], a foundation model highly sensitive to material textures, to compute the semantic correlation between visual crops and tactile readings. Let fDINO (·) denote the CLS token feature extraction of DINOv2. For each data pair 
+
+(Iv , I t), we compute the semantic similarity score: 
+
+SDINO = fDINO (Iv ) · fDINO (It)
+
+∥fDINO (Iv )∥2∥fDINO (It)∥2
+
+. (5) We use CLS features from facebook/dinov2-base , rank calibrated RGB–tactile pairs by this cosine score, and discard the bottom 30%. This feature-based heuristic is applied before the split to all pairs; it does not use target labels or evaluation feedback, but it shapes the retained test distribution. Cross-modal DINO similarity is not a calibrated geometric alignment measure. 
+
+Depth Isolation and Calibration. Concurrently, we explicitly model the transformation T : Iv →It to map the visual observation to the tactile sensor space using center-crop operations and rotations. We use the pretrained relative-depth model Depth-Anything-V2-Large-hf [30]. Its output is min–max normalized per image to [0 , 255] , stored as uint8, and scaled to [0 , 1] for ControlNet. This is a macro-geometric prior, not calibrated metric depth or the contact-induced elastomer deformation field. 
+
+3.3 Physics-Driven Multi-Modal Tactile Image Generation 
+
+To synthesize high-fidelity tactile responses that respect both macroscopic geometry and microscopic material properties, we adopt Stable Diffusion XL (SDXL) [18] as our generative backbone. Unlike 5earlier models, SDXL features dual text encoders (CLIP ViT-L and OpenCLIP ViT-bigG), which significantly enhances its comprehension of complex GTPO-generated physical attributes. 
+
+Four-Channel Geometric-Aware Input Representation. We augment the aligned RGB prior Irgb 
+
+with its corresponding depth map Idepth to form a 4-channel control tensor C ∈ RH×W ×4. We modify the first convolutional layer of the SDXL ControlNet to accommodate this input. To preserve the pretrained visual feature extraction capabilities, we employ a channel-wise weight inheritance strategy. Let Wold ∈ RK×3×S×S be the original weights. The new weights Wnew ∈ RK×4×S×S
+
+are initialized as: 
+
+W(c)new =
+
+(
+
+W(c)old if c ∈ { 0, 1, 2},
+
+> 13
+
+P2 
+
+> j=0
+
+W(j)old if c = 3 , (6) This initialization ensures that the depth channel starts with a neutral but feature-aware contribution. The SDXL VAE, U-Net, and text encoders remain frozen; only ControlNet is trained. 
+
+Physically-Grounded Training Strategy. To prevent the model from overfitting to the non-contact background, we propose a Contact-Aware Loss Reweighting strategy. We generate a spatial weight mask M based on the depth prior Idepth ∈ [0 , 1] :
+
+Mu,v =
+
+λboost if Idepth (u, v ) > τ, 
+
+1.0 otherwise , (7) where τ = 0 .5 and λboost = 5 .0. The depth mask is resized to latent resolution. The diffusion training objective incorporates this mask to focus gradient descent on reconstructing fine-grained deformation details: 
+
+L = Ezt,t, ctxt ,C,ϵ
+
+h
+
+∥M ⊙ (ϵ − ϵθ (zt, t, ctxt , C)) ∥22
+
+i
+
+, (8) where ⊙ denotes element-wise multiplication, zt is the noisy latent, and ϵθ is the predicted noise. This forces the model to focus gradient descent steps on reconstructing deformation details. Furthermore, we implement a Classifier-Free Guidance with Text Dropout , randomly dropping the physics-aware text condition ctxt with a probability p = 0 .15 during training. Finally, a Physics-Prompt Normalization protocol is applied to parse the LMM reasoning output into a structured set of concise physical tags. 
+
+## 4 Experiments 
+
+4.1 Implementation Details 
+
+We train PhysTacGen on SSVTP, which contains 4,587 original visual–tactile pairs with human material descriptions. DINOv2 curation retains 70% of calibrated pairs before the train/test split. Paired crop/rotation augmentation yields approximately 13k training instances, and SSIM/LPIPS use approximately 1.2k held-out processed test instances; the separate reasoning benchmark has 452 pairs. All compared image-generation methods use the same retained split. The GTPO model is Qwen3-VL-8B-Instruct with group size 4, learning rate 2 × 10 −6, KL coefficient 0.05, clip ratio 0.2, and 1,000 training steps. The format, semantic, and vocabulary reward scales are 1.0, 1.5, and 0.5. Its vision encoder, vision–language adapter, and output head are frozen, while LoRA trains language-model attention and MLP modules; the reference policy is the frozen SFT model. For the SDXL generator, RGB and relative depth form the four-channel ControlNet condition. We train only ControlNet on 512 ×512 images with AdamW at 10 −5, fp16, batch size 1 with gradient accumulation 8, 10,000 steps, and 15% text dropout. Final GTPO and generator runs used NVIDIA A100 GPUs; RTX 3090/4090 systems were used only for pilot work. SSIM uses aligned RGB images with 
+
+data_range=255 ; LPIPS uses VGG with inputs in [−1, 1] . We report legacy nFD, computed by dividing the Fréchet feature distance by the evaluation-set size,which is not standard FID. 
+
+4.2 Visual-to-Tactile Synthesis Quality 
+
+We compare PhysTacGen with three external baselines and the original generator variants on the same curated SSVTP split. Pix2Pix [7] uses U-Net-256/PatchGAN at 512 ×512 for 200 epochs; 6GT RGB SDXL + phy Ours - phy Mix + phy 
+
+> Smooth Hard Matte
+> Ours
+> Soft Plush Velvety
+> Soft Smooth Cool
+> Rough Uneven Coarse
+
+Figure 2: Qualitative Synthesis Results. Visualisation of generated tactile images across different settings. SDXL (Baseline) fails to ground the contact location. The Mix-Fusion and four-channel variants change both fusion and loss and therefore do not isolate a single cause of their visual differences. The examples illustrate generated contact appearance under the original conditions. Table 1: External baselines and original generator variants. All rows use the same retained SSVTP split. The last column is the legacy Fréchet statistic divided by evaluation-set size (legacy nFD), not 
+
+FID.                             
+
+> Method and condition SSIM ↑LPIPS ↓legacy nFD ↓
+> Pix2Pix / RGB 0.106 0.819 0.829 Pix2Pix-Turbo / RGB + generic prompt 0.417 0.692 0.628 VisGel (adapted) / RGB + train reference 0.715 0.629 0.433 SDXL baseline / physical text only 0.190 0.859 0.838 Mix-Fusion / RGB + depth, physical text 0.938 0.617 0.241
+> Four-channel / RGB + depth, generic text 0.908 0.637 0.349
+> PhysTacGen / RGB + depth, GTPO text 0.964 0.559 0.278
+
+Pix2Pix-Turbo [17] uses one-step SD-Turbo at 512 ×512 for 6,000 steps with a fixed generic prompt. VisGel [12] uses the query RGB plus a reference RGB–tactile pair retrieved using RGB features from the training split only; query tactile data are never accessed. Because SSVTP lacks VisGel’s original temporal/no-contact reference, this baseline is an adaptation. Table 1 shows the highest SSIM and lowest LPIPS for PhysTacGen among the original variants and the evaluated external baselines; Mix-Fusion obtains the lowest legacy nFD. Since Mix-Fusion changes both fusion and loss, that row cannot isolate either effect. The generic-text variant tests the impact of semantic text with the same four-channel architecture and contact-aware training. 
+
+Matched prompt-source comparison. For a matched comparison of prompt sources, we train three separate ControlNet generators from the same pretrained initialization.Classifier, SFT, and GTPO prompts are each used during both training and test time for their own model. The DINO-retained pairs, split, RGB-depth inputs, architecture, contact-aware loss, optimizer, training steps, random seed, and inference settings are held fixed. The seven-label classifier is trained from original SSVTP 7Ours GT RGB Rough Soft Fabric  
+
+> Patterned Rough Fabric
+> Flexible Slippery Smooth
+> Patterned Rough Fabric
+> Ours GT RGB
+
+Figure 3: Material and Textural Consistency under Spatial Misalignment. Red boxes highlight areas for qualitative texture comparison.The details in the areas outlined in red in each set of images are similar. Table 2: Final matched end-to-end prompt-source comparison. Each prompt source trains and tests a separate generator under the same conditions; legacy nFD is not standard FID.                
+
+> Prompt source SSIM ↑LPIPS ↓legacy nFD ↓
+> 7-label classifier 0.919 0.557 0.305 SFT 0.948 0.570 0.255
+> GTPO 0.964 0.559 0.278
+
+human descriptions, not distilled from GTPO; its vocabulary is textured, hard, smooth, rough, soft, flexible, and fabric. Since captions may omit valid properties, absent labels need not be true negatives. Relative to SFT, GTPO improves SSIM from 0.948 to 0.964 and LPIPS from 0.570 to 0.559; SFT has lower legacy nFD. Relative to the classifier, GTPO improves SSIM and legacy nFD, while the classifier has LPIPS lower by 0.002. A simplified lexical consistency check counts descriptions containing both hard and soft or both smooth and rough. Contradiction rates are 7.6% for the classifier, 3.2% for SFT, and 1.3% for GTPO. Figure 3 offers qualitative examples of residual spatial offsets. 
+
+4.3 Downstream Application: Synthetic-Tactile Substitution for Proxy Force-Coefficient Prediction 
+
+The force-coefficient target y ∈ [0 .1, 0.9] is assigned heuristically from normalized SSVTP material descriptions, rather than measured with a force sensor. In the fixed attribute mapping, “slippery” adds 0.25 and “soft” subtracts 0.15. A late-fusion ResNet-18 π(Iv , I t) is trained on real RGB–real tactile pairs with a 90:10 split. At test time we compare RGB-only, RGB plus generated tactile, and RGB plus real tactile (oracle). This tests substitution of a synthetic observation on the same proxy task; it does not test simulator-to-robot transfer or closed-loop manipulation. Generated-tactile input improves on RGB-only in both runs, and its MSE is 0.002 above the real-tactile oracle in each. As the target is built from material attributes also used in the semantic pipeline, these results indicate consistency on a proxy task, not measured-force utility. Two final generator models trained on independently selected 9:1 folds differed by less than 5% in SSIM/LPIPS. 
+
+4.4 Comprehensive Evaluation of Physical Reasoning (GTPO) 
+
+We assess GTPO-generated physical descriptions against SFT and a seven-label classifier on the standardized 452-pair benchmark, using lexical metrics, an auxiliary automatic judge, and blinded human preference. 
+
+Data Curation and Vocabulary Standardization. The raw SSVTP dataset contains unstructured human descriptions often polluted by purely visual adjectives or vague terms. To construct a high-quality ground truth for physical reasoning, we implemented a rigorous text normalization pipeline: (1) Visual Noise Filtering: We constructed a blacklist to discard non-tactile descriptors. (2) Physical 
+
+8Table 3: Test MSE for the heuristic force-coefficient prediction proxy. Sample SD describes variation across from two random seeds; the last column reports their mean and sample standard deviation.                     
+
+> Input modality Run 1 Run 2 Mean ±sample SD RGB only 0.144 0.147 0.1455 ±0.0021
+> RGB + generated tactile 0.132 0.134 0.1330 ±0.0014
+> RGB + real tactile (oracle) 0.130 0.132 0.1310 ±0.0014
+
+Table 4: Description evaluation on 452 pairs. The human column is a blinded forced choice among classifier, SFT, and GTPO descriptions by 22 participants, with randomized presentation and one choice per image.                               
+
+> Method SES ↑BLEU ↑ROUGE ↑PPL ↓Judge ↑Human ↑
+> 7-label classifier 0.732 29.3 52.7 12.9 2.94 16% SFT Qwen 0.461 18.4 32.7 14.3 3.42 27% GTPO Qwen 0.586 26.8 44.5 10.8 4.65 57%
+
+Attribute Normalization: We mapped synonymous adjectives to a standardized physics vocabulary. For instance, terms like “rigid", “stiff", and “ceramic" are mapped to the canonical label “hard" . This process yielded a refined dataset of 452 unique object-material pairs for testing. 
+
+Evaluation Metrics. We employ BLEU [16] and ROUGE [13] to measure linguistic overlap with expert annotations, while Perplexity (PPL) is used to measure fluency. As an auxiliary automatic measure, we use a VLM Physics Judge . We prompt GPT-4o to act as an expert which reviews the generated descriptions for apparent physical plausibility and outputs a Physics Plausibility Score 
+
+between 1-5. Furthermore, we extract the physical keywords from the tags and compute the Semantic Embedding Similarity (SES) using all-MiniLM-L6-v2 to capture objective vector-space alignment. 
+
+Results Analysis. As Table 4 shows, the closed-vocabulary classifier leads SES, BLEU, and ROUGE; this favors frequent canonical words. GTPO has the lowest reported PPL, highest auxiliary judge score (4.65), and highest human preference (57%). The study used 22 participants; every evaluated image was presented to all 22, with descriptions in randomized order and no ties. These measures support the quality of GTPO descriptions but do not directly validate contact mechanics. The matched generator table additionally shows a modest SSIM and LPIPS advantage over SFT, with trade-offs against the classifier. 
+
+## 5 Limitations and Broader Impacts 
+
+Limitations and Future Work. The generation results are limited to one curated SSVTP dataset. DINO filtering occurred before the split, shaping the retained test distribution, and direct DINO feature similarity across camera and optical tactile images is a heuristic. Homogeneous surfaces and residual spatial offsets can still cause errors. The two-seed and two-fold checks show consistency but not formal significance or cross-sensor generalization. The force-coefficient labels are heuristic proxies, so the downstream result cannot demonstrate measured force or real robot transfer. The distributional comparison uses legacy nFD rather than standard FID/KID. The heuristic coefficient mapping is specified only in part, and the current experiments do not isolate every component or assess cross-sensor generalization. 
+
+Broader Impacts. This study investigates synthetic optical tactile observations as a potential sup-plement to costly paired data collection. Generated outputs can be inaccurate, especially outside the curated distribution; applications involving force control or safety-critical contact require validation with calibrated sensors and real robots. 
+
+## 6 Conclusion 
+
+We presented PhysTacGen , which combines GTPO-derived material descriptions, DINOv2-based pair curation, relative-depth conditioning, and an SDXL ControlNet for visual-to-optical-tactile 9synthesis. On the curated SSVTP test split, PhysTacGen achieves an SSIM of 0.964 and an LPIPS of 0.559. In a matched comparison of separately trained generators, GTPO prompts yield the highest SSIM, while seven-label-classifier prompts achieve a marginally lower LPIPS. In a blinded study with 22 participants, GTPO descriptions receive the highest preference rate of 57%. Generated tactile inputs also reduce test MSE relative to RGB-only inputs in both runs of the attribute-derived force-coefficient proxy task. Together, these results demonstrate PhysTacGen’s optical tactile image synthesis performance and its utility for the evaluated proxy task on curated SSVTP data. 
+
+## References 
+
+[1] Iretiayo Akinola, Jie Xu, Jan Carius, Dieter Fox, and Yashraj Narang. Tacsl: A library for visuotactile sensor simulation and learning. IEEE Transactions on Robotics , 2025. [2] Ruoxuan Feng, Jiangyu Hu, Wenke Xia, Tianci Gao, Ao Shen, Yuhao Sun, Bin Fang, and Di Hu. Anytouch: Learning unified static-dynamic representation across multiple visuo-tactile sensors. arXiv preprint arXiv:2502.12191 , 2025. [3] Ruihan Gao, Wenzhen Yuan, and Jun-Yan Zhu. Controllable visual-tactile synthesis. In 2023 IEEE/CVF International Conference on Computer Vision (ICCV) , pages 7017–7029. IEEE, 2023. [4] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 16000–16009, 2022. [5] Liang Heng, Haoran Geng, Kaifeng Zhang, Pieter Abbeel, and Jitendra Malik. Vitacformer: Learning cross-modal representation for visuo-tactile dexterous manipulation. arXiv preprint arXiv:2506.15953 ,2025. [6] Carolina Higuera, Akash Sharma, Chaithanya Krishna Bodduluri, Taosha Fan, Patrick Lancaster, Mrinal Kalakrishnan, Michael Kaess, Byron Boots, Mike Lambeta, Tingfan Wu, et al. Sparsh: Self-supervised touch representations for vision-based tactile sensing. arXiv preprint arXiv:2410.24090 , 2024. [7] Phillip Isola, Jun-Yan Zhu, Tinghui Zhou, and Alexei A Efros. Image-to-image translation with conditional adversarial networks. In 2017 IEEE conference on computer vision and pattern recognition (CVPR) , pages 5967–5976. Ieee, 2017. [8] Justin Kerr, Huang Huang, Albert Wilcox, Ryan Hoque, Jeffrey Ichnowski, Roberto Calandra, and Ken Goldberg. Self-supervised visuo-tactile pretraining to locate and follow garment features. arXiv preprint arXiv:2209.13042 , 2022. [9] Mike Lambeta, Po-Wei Chou, Stephen Tian, Brian Yang, Benjamin Maloon, Victoria Rose Most, Dave Stroud, Raymond Santos, Ahmad Byagowi, Gregg Kammerer, et al. Digit: A novel design for a low-cost compact high-resolution tactile sensor with application to in-hand manipulation. IEEE Robotics and Automation Letters , 5(3):3838–3845, 2020. [10] Mike Lambeta, Tingfan Wu, Ali Sengul, Victoria Rose Most, Nolan Black, Kevin Sawyer, Romeo Mercado, Haozhi Qi, Alexander Sohn, Byron Taylor, et al. Digitizing touch with an artificial multimodal fingertip. 
+
+arXiv preprint arXiv:2411.02479 , 2024. [11] Hongyu Li, Mingxi Jia, Tuluhan Akbulut, Yu Xiang, George Konidaris, and Srinath Sridhar. V-hop: Visuo-haptic 6d object pose tracking. arXiv preprint arXiv:2502.17434 , 2025. [12] Yunzhu Li, Jun-Yan Zhu, Russ Tedrake, and Antonio Torralba. Connecting touch and vision via cross-modal prediction. In 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) ,pages 10601–10610. IEEE, 2019. [13] Chin-Yew Lin. Rouge: A package for automatic evaluation of summaries. In Text summarization branches out , pages 74–81, 2004. [14] Wenxuan Ma, Xiaoge Cao, Yixiang Zhang, Chaofan Zhang, Shaobo Yang, Peng Hao, Bin Fang, Yinghao Cai, Shaowei Cui, and Shuo Wang. Cltp: Contrastive language-tactile pre-training for 3d contact geometry understanding. Biomimetic Intelligence and Robotics , page 100324, 2026. [15] Maxime Oquab, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al. Dinov2: Learning robust visual features without supervision. arXiv preprint arXiv:2304.07193 , 2023. 
+
+10 [16] Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. Bleu: a method for automatic evaluation of machine translation. In Proceedings of the 40th annual meeting of the Association for Computational Linguistics , pages 311–318, 2002. [17] Gaurav Parmar, Taesung Park, Srinivasa Narasimhan, and Jun-Yan Zhu. One-step image translation with text-to-image models. arXiv preprint arXiv:2403.12036 , 2024. [18] Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. Sdxl: Improving latent diffusion models for high-resolution image synthesis. arXiv preprint arXiv:2307.01952 , 2023. [19] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learning transferable visual models from natural language supervision. In International conference on machine learning , pages 8748–8763. PmLR, 2021. [20] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10684–10695, 2022. [21] Amir-Hossein Shahidzadeh, Gabriele M Caddeo, Koushik Alapati, Lorenzo Natale, Cornelia Fermüler, and Yiannis Aloimonos. Feelanyforce: Estimating contact force feedback from tactile sensation for vision-based tactile sensors. In 2025 IEEE International Conference on Robotics and Automation (ICRA) ,pages 251–257. IEEE, 2025. [22] Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Yang Wu, et al. Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. [23] Zirong Shen, Yuhao Sun, Shixin Zhang, Zixi Chen, Heyi Sun, Fuchun Sun, and Bin Fang. Simulation of optical tactile sensors supporting slip and rotation using path tracing and impm. IEEE Robotics and Automation Letters , 9(12):11218–11225, 2024. [24] Zilin Si and Wenzhen Yuan. Taxim: An example-based simulation model for gelsight tactile sensors. IEEE Robotics and Automation Letters , 7(2):2361–2368, 2022. [25] Jing Tang, Zeyu Gong, Bo Tao, and Zhouping Yin. Singles2r: Single sample driven sim-to-real transfer for multi-source visual-tactile information understanding using multi-scale vision transformers. Information Fusion , 108:102390, 2024. [26] Shaoxiong Wang, Mike Lambeta, Po-Wei Chou, and Roberto Calandra. Tacto: A fast, flexible, and open-source simulator for high-resolution vision-based tactile sensors. IEEE Robotics and Automation Letters , 7(2):3930–3937, 2022. [27] Ziniu Wu, Tianyu Wang, Chuyue Guan, Zhongjie Jia, Shuai Liang, Haoming Song, Delin Liu, Dong Wang, Zhigang Wang, Nieqing Cao, et al. Fast-umi: A scalable and hardware-independent universal manipulation interface. 2024. [28] Han Xue, Jieji Ren, Wendi Chen, Gu Zhang, Yuan Fang, Guoying Gu, Huazhe Xu, and Cewu Lu. Reactive diffusion policy: Slow-fast visual-tactile policy learning for contact-rich manipulation. arXiv preprint arXiv:2503.02881 , 2025. [29] Fengyu Yang, Chao Feng, Ziyang Chen, Hyoungseob Park, Daniel Wang, Yiming Dou, Ziyao Zeng, Xien Chen, Rit Gangopadhyay, Andrew Owens, et al. Binding touch to everything: Learning unified multimodal tactile representations. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 26340–26353, 2024. [30] Lihe Yang, Bingyi Kang, Zilong Huang, Zhen Zhao, Xiaogang Xu, Jiashi Feng, and Hengshuang Zhao. Depth anything v2. Advances in neural information processing systems , 37:21875–21911, 2024. [31] Samson Yu, Kelvin Lin, Anxing Xiao, Jiafei Duan, and Harold Soh. Octopi: Object property reasoning with large tactile-language models. arXiv preprint arXiv:2405.02794 , 2024. [32] Wenzhen Yuan, Siyuan Dong, and Edward H Adelson. Gelsight: High-resolution robot tactile sensors for estimating geometry and force. Sensors , 17(12):2762, 2017. [33] Chaofan Zhang, Peng Hao, Xiaoge Cao, Xiaoshuai Hao, Shaowei Cui, and Shuo Wang. Vtla: Vision-tactile-language-action model with preference learning for insertion manipulation. Biomimetic Intelligence and Robotics , page 100333, 2026. 
+
+11 [34] Jialiang Zhao, Naveen Kuppuswamy, Siyuan Feng, Benjamin Burchfiel, and Edward Adelson. Polytouch: A robust multi-modal tactile sensor for contact-rich manipulation using tactile-diffusion policies. In 2025 IEEE International Conference on Robotics and Automation (ICRA) , pages 104–110. IEEE, 2025. 
+
+12

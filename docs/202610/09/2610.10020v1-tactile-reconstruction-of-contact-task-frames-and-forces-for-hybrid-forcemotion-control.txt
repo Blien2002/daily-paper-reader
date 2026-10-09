@@ -1,0 +1,643 @@
+Title: Tactile Reconstruction of Contact Task Frames and Forces for Hybrid Force/Motion Control
+
+URL Source: https://arxiv.org/pdf/2610.10020v1
+
+Published Time: Thu, 08 Oct 2026 01:46:51 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+> 1
+
+# Tactile Reconstruction of Contact Task Frames and Forces for Hybrid Force/Motion Control 
+
+Antonio Rapuano 1, Simone Orelli 1, Barbara Bazzana 2, Antonio Franchi 1,2, and Alessandro De Luca 1
+
+Abstract —Hybrid force/motion control requires knowledge of the interaction force and of a task frame defining the force-and motion-controlled directions. These quantities are usually obtained from force/torque sensing or model-based residuals, often assuming also a nominal environment model. This work addresses the online estimation of the contact force and a possibly time-varying task frame using only soft optical tactile sensing, under the assumption of locally planar contact with a negligible contact moment. The proposed method maps a single image of the deformed elastomer of a soft optical tactile sensor to observable contact variables: indentation depth, two surface-to-sensor tilt angles, and 3D contact force, each with a per-sample uncertainty estimate. The mapping is learned through a self-labeling acquisition procedure, in which a manipulator imposes controlled contacts while an auxiliary Force/Torque sensor is used offline to provide ground-truth labels. The tactile measurement is then fused with robot proprioceptive data in an Extended Kalman Filter, producing a continuously updated estimate of the contact task frame and of the interaction force. Control experiments with a DigiTac sensor mounted on a UR10 manipulator demonstrate closed-loop contact force regulation against a flat rigid board in linear and angular motion by a human operator, with touch as the only exteroceptive feedback. 
+
+Index Terms —Force Control, Force and Tactile Sensing, Com-pliance and Impedance Control, Soft Optical Tactile Sensing 
+
+I. I NTRODUCTION 
+
+# PHYSICAL interaction with the environment is central to many robotic applications, including manufacturing, inspection, service robotics, and human-robot collaboration. When the task specifies both how the robot should move and how it should exchange forces with the environment, stan-dard control tools include admittance, impedance, and hybrid force/motion control. Admittance control reacts to a measured contact force with a velocity command [1]. Impedance control addresses physical interaction by shaping the dynamic rela-tionship between motion and force [2]. Hybrid force/motion control assigns force along selected task directions and motion along the complementary ones, as formalized in the classical task-frame formulation [3]. These approaches and their rela-tion to manipulator interaction control are reviewed in [4]. 
+
+A. Rapuano and S. Orelli contributed equally to this work. 
+
+> 1
+
+Department of Computer, Control and Management Engineering, Sapienza University of Rome, 00185 Rome, Italy. schol@r-rapuano.com , schol@r-orelli.eu ,
+
+schol@r-franchi.eu , deluca@diag.uniroma1.it .
+
+> 2
+
+Robotics and Mechatronics Department, Faculty of Electrical Engineering, Mathematics and Computer Science, University of Twente, 7500 AE Enschede, The Netherlands. b.bazzana@utwente.nl ,
+
+schol@r-franchi.eu .This work has been partly supported by the European Union under Grant AUTOASSESS 101120732, and the 3rd Technology Exchange Programme (SOAR-TOUCH) of the European Union Grant euROBIN 101070596. 
+
+Hybrid Force/Motion Controller Contact State Estimator 
+
+Manipulator 
+
+SOT Sensor + Regressor Offline F/T Sensor 
+
+Environment 
+
+velocity command robot pose tactile measurement, covariance robot pose contact task frame, interaction force offline labels and validation 
+
+Fig. 1. Overview of the proposed system. The control loop uses robot proprioception and soft optical tactile images to continuously estimate the contact task frame and the interaction force. The tactile regressor provides an instantaneous tactile measurement and its covariance, which are fused with the robot pose in the contact state estimator. The auxiliary F/T sensor is physically present during data acquisition and validation, but its signal is not part of the control loop. 
+
+Hybrid force/motion control requires, in addition to robot proprioception, knowledge of the interaction force and of a task frame that defines the local force- and motion-controlled directions. In most implementations, this information is obtained from sources other than local tactile deformation. Force/Torque (F/T) sensors provide accurate wrench measurements, but they add dedicated hardware and return a spatially aggregated signal, which is usually displaced from the actual contact. When such sensors are unavailable, external wrenches can be estimated from proprioception through model-based residuals. Residual-based contact and collision estimation is treated systematically in [5]. Such estimates have also been used to implement sensorless collision detection and hy-brid force/motion control [6]. Their integration into hybrid force/velocity control has been demonstrated for physical human-robot collaboration tasks [7]. However, residual meth-ods estimate generalized forces acting on the robot structure. Recovering the local contact point, surface direction, and task frame from these estimates requires additional assumptions and remains sensitive to modeling errors [8]. The task frame is often specified from a geometric model of the environment [9]. When the contact geometry is not known accurately, several approaches instead estimate its relevant directions during interaction. Dynamic hybrid position/force control estimating unknown environmental constraints was achieved in [10]. Force/position control on an unknown planar surface was addressed in [11] by adapting the estimated arXiv:2610.10020v1 [cs.RO] 7 Oct 2026 2
+
+surface orientation using force and robot motion measure-ments. Contact force and the unknown surface gradient can be jointly estimated using the latter to construct the force-and motion-control subspaces [12]. The surface normal can be also estimated from F/T measurements and commanded motion while compensating for friction-induced bias [13]. These approaches demonstrate that the task frame can be recovered online. However, the geometric information is in-ferred through external force measures, proprioception, and closed-loop motion signals that are themselves influenced by the contact mechanics and the resulting interaction. Tactile sensing offers a complementary route because it observes the contact patch rather than only the net wrench or robot motion. Soft skins provide spatially distributed measure-ments of local contact deformation [14]. Vision-based tactile sensors can use this deformation to estimate both contact geometry and force [15]. Soft Optical Tactile (SOT) sensors encode the deformation of a compliant pad into an image. The TacTip family realizes this principle through the motion of internal markers that follow the deformation of its soft surface [16]. The DigiTac sensor adopted in this work com-bines this biomimetic pin arrangement with a compact optical design [17]. The resulting image contains local geometric information about the contact that is not directly available from a spatially aggregated wrench measurement. Recent tactile servoing methods exploit this information by learning contact pose variables from tactile images and regulating them to a reference condition. Pose servoing using a novel soft optical tactile sensor with learned pose estimates has been demonstrated in [18]. Pose-and-shear tactile servoing extends this approach by incorporating shear information into the regulated tactile representation [19]. Learned tactile predic-tions have also been propagated through a Bayesian filter using an associated estimate of uncertainty [20]. However, these tactile servoing approaches typically shape the interaction force implicitly by regulating a tactile pose or deformation condition, rather than assigning a contact force within a hybrid force/motion decomposition. Force regression methods are also available that estimate interaction forces from tactile images. FeelAnyForce targets 3D contact force estimation across vision-based tactile sensors [21]. Learning supervised by finite element analysis has been used to estimate force distributions from a GelSight Mini sensor [22]. Such force estimates do not provide by themselves the local task frame needed to define force- and motion-controlled directions. While each item stands by itself, the missing part is the integration of tactile pose and 
+
+force estimation into the contact variables required by hybrid force/motion control. This work addresses this gap for locally planar, featureless surfaces with an applied contact force but with negligible con-tact moment. Under these assumptions, different positions on the contact plane as well as different tilted directions forming the same angle with the normal to the plane are not observable (indistinguishable) from tactile images. Nevertheless, these im-ages can encode the observable contact geometry, namely the indentation depth and the surface-to-sensor tilt, together with the 3D contact force transmitted through the contact patch. The proposed method learns a mapping from a single SOT image to this tactile measurement, with an associated per-sample un-certainty estimate. The tactile measurement is then fused with robot proprioceptive data to obtain a continuously updated esti-mate of the contact plane and of the corresponding contact task frame. The same estimator tracks the interaction force while contact is active. These estimates are used by an admittance-based hybrid force/motion controller, closing all three transla-tional channels of force regulation from tactile feedback alone. Figure 1 summarizes the resulting architecture. The auxiliary F/T sensor is excluded from the control loop: it is used only offline as ground truth to construct training labels and to provide an independent measurement for experimental comparison. During operation, the system receives only robot proprioceptive data and tactile images, reconstructs the contact state, and supplies the resulting estimates of task frame and interaction force to the controller. To the best of the authors’ knowledge, this is the first integrated system that reconstructs both a contact task frame and a 3D interaction force from soft optical tactile images, propagates the learned tactile uncertainty through a state estimator, and uses the reconstructed quantities to close a hybrid force/motion control loop without F/T feedback or an environment model. The specific contributions are the following.  
+
+> •
+
+A tactile measurement formulation that retains the contact variables that are observable under the adopted locally pla-nar contact model: indentation depth, two surface-to-sensor tilt angles, and 3D contact force. Using a single image and the regressor, these quantities are estimated together with a per-sample uncertainty for Bayesian state estimation.  
+
+> •
+
+A self-labeling acquisition framework in which the manip-ulator generates controlled contacts and provides the corre-sponding geometric labels, using an auxiliary F/T sensor for ground truth values.  
+
+> •
+
+A tactile-proprioceptive contact state estimator that recon-structs online the local contact plane and the task frame while tracking the interaction force target during contact. The estimated surface geometry is retained, with increasing uncertainty, during brief contact breaks.  
+
+> •
+
+An experimental demonstration of the complete tactile-driven control architecture on a manipulator interacting with a flat rigid board undergoing linear and angular motion imposed by a human operator. The controller simultaneously regulates the three contact force components, the two tan-gential components to zero and the normal component to a nonzero reference, while adapting the sensor orientation to the reconstructed contact frame. Touch is the only source of exteroceptive feedback used by the control loop. The paper is organized as follows. Section II formulates the problem, stating the contact assumptions and the force/motion decomposition they induce. The self-labeling acquisition pro-tocol is described in Sec. III, while Sec. IV discusses the tactile measurement regressor. Section V presents the contact state estimator and the design of the hybrid force/motion controller. The experimental results on training and validation, on con-tact state estimation, and on hybrid force/motion control are reported in Sec. VI. Finally, conclusions and future work are 3
+
+summarized in Sec. VII. A video illustrating the experimental results accompanies the paper. II. P ROBLEM SETTING AND DESIGN RATIONALE 
+
+A hybrid force/motion controller requires, at each time instant, a task frame and knowledge of the interaction force. In the considered setting, these quantities are not assumed from an environment model nor measured by an F/T sensor during the control task. Instead, they are inferred from the image produced by a soft optical tactile sensor. This image encodes the deformation of the elastomer, whose relation to contact geometry and force depends on the pad mechanics, the optical path, and the morphology of the internal pins. An accurate closed-form inverse of this mapping is not available and therefore is extracted from data, and used in real-time control to estimate the observable contact variables. 
+
+Assumption 1 (Planar, featureless contact): The contact surface is locally planar and featureless, its extent is large with respect to the contact patch of the tactile sensor. Its edges do not enter the sensing area. Under Assumption 1, the local task frame associated with the contact plane is determined only up to transformations that leave the tactile image unchanged. Different positions of the sensor over a featureless plane and different tilted directions forming the same angle with the normal to the plane do not modify the local geometry observed by the tactile sensor. Thus, the identifiable parts of the contact are the signed offset d along the surface normal n, together with the two angles that determine the direction of n. Stated differently, among the relative sensor-surface pose variables, touch can resolve the indentation depth and the two tilt angles between the surface normal and the approach direction of the sensor. The tangential position and the twist angle about the normal are structurally unobservable from a single tactile contact with a locally planar, featureless surface [18], [23]. 
+
+Assumption 2 (Negligible contact moment): The moment transmitted at the contact interface is negligible over the intended operating range, because the contact patch is small relative to the characteristic scale of the task. A general contact wrench has six components, three forces and three torques. Under Assumption 2, however, the contact information retained by the measurement model is restricted to the three force components. No contact moment is therefore available for regulation of the torque components. The two assumptions above determine the force/motion decompositions considered in this work. Out of the set of task-space force/motion directions, only the observable ones are subject to control, which discards three components from motion control, namely the two tangential in-plane directions and the angular twist about the normal to the plane. Moreover, due to Assumption 2, the three components of the moment are necessarily set to zero. As a result, the six remaining directions that can be controlled admit the decompositions summarized in Tab. I. Since the tactile measurement provides indentation depth, two surface-to-sensor tilt angles, and a 3D contact force, the implemented controller assigns forces in the three directions of the contact task frame and two degrees                      
+
+> TABLE I. Task-space decompositions induced by the local planar-contact model and realized in this work. The second column counts the number of directional components. The third column lists the nature of those that are observable from sensing under Assumption 1. The fourth column lists the quantities that are estimated under Assumption 2. The last column defines the chosen control task.
+> Direction #Observable Estimated Controlled
+> Tangential 2Force Force Force Normal 1Force/motion Force/motion Force Tilt 2Force/motion Motion Motion Twist 1Force –Task augmentation
+
+of angular motion to align the sensor with the estimated surface normal. The remaining twist angle about the normal is completed by task augmentation. The normal and tangential force directions are not equiva-lent from a contact mechanics point of view. Tangential forces can be transmitted only within the friction cone, whose size is determined by the normal load. In formulating the regulation problem, the admissible range of tangential force depends on the normal force reference. In the frictionless limit, a planar contact would support only a normal force, while the tangential directions would be directions of free motion. Therefore, the present formulation assumes that sufficient friction is present, so that the tangential force components considered in Tab. I are physically realizable within the operating range. The notation used in this paper is fixed as follows. The setting involves a fixed world frame W , a tool frame T at the tactile sensor tip, and a contact task frame C whose z-axis is aligned with the contact normal. The F/T sensor frame is aligned with the tool frame T (although displaced along the z-direction), and bears thus no extra label. Vectors are expressed in the frame in which they are defined. A left superscript indi-cates that the vector is expressed instead in a different frame. All rotation matrices describe orientations with respect to the world frame, i.e., R = WR. Unless a subscript is present, ro-tation matrices refer to the orientation of the tool frame. A hat denotes a quantity inferred from tactile data, either regressed from a single image or estimated by the state estimator. III. S ELF -L ABELING DATASET ACQUISITION 
+
+This section presents the acquisition protocol used to learn the tactile mapping defined in Sec. II. The protocol is designed to excite the observable contact variables while varying the unobservable ones as nuisance variables. Robot proprioception provides the geometric labels, and the auxiliary F/T sensor provides ground-truth force labels. 
+
+A. Physical Setup 
+
+The manipulator both produces the contact and provides the proprioceptive quantities used for labeling. In this work, a DigiTac SOT sensor is mounted at the tool tip of a Universal Robots UR10 manipulator, with an ATI Mini45 F/T sensor placed in series between the two (Tab. II and Fig. 2). The F/T sensor is used only during dataset acquisition to construct the force labels; its measurements are not inputs to the regressor or to the online control loop. The DigiTac is a soft optical 4                                                     
+
+> TABLE II. Experimental setup used for data acquisition and closed-loop validation.
+> Component Model Key specification
+> Manipulator UR10 Repeatability 0.1mm F/T sensor ATI Mini45 Force resolution 1/16 N≈6.25 ×10 −2NTorque resolution 1/752 Nm ≈1.33 ×10 −3Nm SOT sensor DigiTac Data acquisition 640 ×480 @30 fps Real-time control 320 ×240 @60 fps Tool assembly –Mass m= 87 gRobot flange →SOT tip r= (0 ,0,119 .5) mm F/T sensor →SOT tip l= (0 ,0,85 .0) mm
+> UR10
+> Manipulator
+> ATI Mini45
+> F/T sensor
+> DigiTac
+> SOT sensor
+
+xyz 
+
+> Fig. 2. Data acquisition setup with tool reference frame. The auxiliary F/T sensor mounted at the wrist is used offline for labeling only and is not part of the control loop.
+
+tactile sensor composed of a deformable fingertip mounted on a rigid case [17]. Its skin is a consumable part and was replaced during the experimental campaign; for this, the dataset spans three different skins. The contact surface is a rigid, flat and horizontal metal plate. Within the prescribed operational domain, the plate satisfies Assumption 1. The horizontal mounting is an acquisition convenience because it allows the commanded tool pose to be expressed directly relative to the surface. For any other known and fixed surface pose, the same protocol applies after a suitable rotation. 
+
+B. Sampling Design 
+
+Each sample of the dataset pairs one tactile image with the quantities declared observable in Sec. II: the scalar indentation depth, the two surface-to-sensor tilt angles, and the 3D contact force. The sampling protocol spans these quantities while also varying the unobservable tangential position and normal twist. These variables are deliberately omitted from the labels but randomized to reduce the risk that the regressor learns acquisition-specific correlations. Consider a world frame whose z-axis is opposite to gravity and parallel to the normal n of the horizontal surface. Let the target tool position be ˜p = (˜ x, ˜y, ˜z) and its orientation represented by the XYZ Roll-Pitch-Yaw angles ( ˜ϕ, ˜θ, ˜ψ) as 
+
+˜R = Rz ( ˜ψ) Ry (˜θ) Rx( ˜ϕ). (1) Because the plate is horizontal, ( ˜ϕ, ˜θ) determine the surface-to-sensor tilt, up to the π rotation offset associated with the approach direction, and can therefore be directly used as geo-metric labels. One target pose sample is obtained as follows. 1) The position is drawn from an admissible box aligned with the surface, 
+
+˜p ∈ B = [ −¯x, ¯x] × [−¯y, ¯y] × [z, ¯z]. (2) The depth ˜z varies the indentation, with z < 0 and 
+
+¯z ≥ 0, whereas the lateral displacement (˜ x, ˜y) excites the tangential force channels while varying the unobservable contact location. 2) The yaw angle is drawn from ˜ψ ∈ [− ¯ψ, ¯ψ], thereby varying the unobservable twist about the surface normal. 3) The roll and pitch angles are drawn as ˜ϕ ∈ [0 , 2π) and 
+
+˜θ ∈ (−π/ 2, π/ 2] . The resulting rotation is retained only if the tool z-axis lies inside an admissible cone with opening angle ¯γ around the surface normal: 
+
+e⊤ 
+
+> 3
+
+˜R e 3 = cos ˜ϕ cos ˜θ ≤ − cos ¯ γ(˜ z), (3) where e3 = (0 , 0, 1) ; otherwise, the angles are resampled. 4) A second roll-pitch pair ( ˜ϕpre , ˜θpre ) is drawn under the same constraint. This pair determines the orientation from which the surface is approached and varies the loading path of the contact independently of the labeled final pose. For some combinations of tilt and indentation, the contact patch moves from the sensing area toward the rim of the SOT dome. To exclude these contacts from the operational domain, the admissible cone opening angle decreases with depth from 
+
+γmax ∈ [0 , π/ 2) according to 
+
+cos ¯ γ(z) = min {0, z } 1 − cos γmax 
+
+z + cos γmax . (4) Each sample is acquired through a complete approach-release cycle, with the target pose and pre-contact orientation sampled independently for each cycle. Unloading the pad be-tween samples reduces sequential dependence due to persistent deformation, without requiring the stronger assumption that consecutive samples are statistically uncorrelated. 
+
+C. Acquisition Cycle 
+
+Given a target (˜ p, ˜R), define the pre-contact orientation as 
+
+˜Rpre = Rz (π) Ry (˜θpre ) Rx( ˜ϕpre ), (5) where the rotation by π around the fixed z-axis is introduced to align (arbitrarily) the y-axis of the tool frame with the y-axis of the contact frame. The target is realized through the six phases shown in Fig. 3. 1) Home. The tool moves above the surface with hsafe > 0 to 
+
+(hsafe e3, Rz (π)I3Rx(π)) , allowing the tactile pad to relax before the next sample. 2) Pre-rotate. Holding the clearance position, the tool reori-ents to (hsafe e3, ˜Rpre ). Once the robot and sensor read-ings have settled, the out-of-contact F/T measurement 
+
+(fpre , μpre ) is recorded together with the attained roll and pitch (ϕpre , θ pre ). This measurement is used offline to compensate for gravity and for the slowly varying F/T bias. 5                                                 
+
+> 1
+> Home
+> 2
+> Pre-rotate (F/T zero)
+> 3
+> Indent
+> 4
+> Shear
+> 5
+> Post-rotate (label)
+> 6
+> Raise
+> Fig. 3. The six phases of one data acquisition cycle, described in Sec. III-C. Red tags mark the phases in which the out-of-contact F/T measurement and the labeled sample are recorded. TABLE III. Parameters for the data acquisition routine.
+> Scope Description Symbol Value
+> All batches (10 000 )Safe-speed factor ksafe 0.2
+> Post-contact yaw bound ¯ψ15 deg Safe clearance height hsafe 20 mm Lateral translation bounds ¯x, ¯y5mm Batch 1
+> (5 750 )Max contact-cone opening γmax 10 deg Indent depth lower bound z−2mm Indent depth upper bound ¯z0mm Batch 2
+> (2 500 )Max contact-cone opening γmax 25 deg Indent depth lower bound z−2.2mm Indent depth upper bound ¯z0.5mm Batch 3
+> (1 750 )Max contact-cone opening γmax 5deg Indent depth lower bound z−3mm Indent depth upper bound ¯z0.5mm
+
+3) Indent. The tool approaches along the surface normal to 
+
+(˜ ze3, ˜Rpre ), establishing contact without a commanded in-plane displacement. 4) Shear. While maintaining contact, the tool translates in-plane to (˜ p, ˜Rpre ). This displacement excites the tangential force channels. 5) Post-rotate. Still in contact, the tool rotates to (˜ p, ˜R).Reaching the target tilt after indentation varies the loading path independently of the final labeled pose. Once the readings have settled, tactile image, attained robot pose, and F/T measurement are recorded together. 6) Raise. The tool retracts along the surface normal to 
+
+((˜ x, ˜y, h safe ), ˜R), releasing contact without a commanded in-plane dragging motion. Phases 3–5 are executed at the speed which is ksafe < 1
+
+times the maximum speed allowed by the UR10 to limit impact and inertial effects. The clearance height hsafe > 0 separates the Home and Raise poses from the plate. The numerical values used for each dataset batch are reported in Tab. III. The dataset is available at https://doi.org/10.5281/zenodo. 23209032. 
+
+D. Label Extraction 
+
+The geometric labels are obtained from the attained robot pose relative to the known plate frame. The force label is in-stead computed from the F/T measurements. The raw F/T read-ing includes the contact wrench, the weight of the downstream tool assembly, and a slowly varying bias, all expressed in the tool frame. These contributions are separated using the out-of-contact measurement recorded during the Pre-rotate phase. Let m be the mass of the downstream assembly, including the SOT sensor and its mount, and g the gravity acceleration. At the pre-contact orientation Rpre , the F/T sensor reads 
+
+fpre = −mg R⊤
+
+> pre
+
+e3 + bf , (6) where fpre and the bias bf are expressed in the tool frame. At the labeled contact configuration, the measured force is 
+
+f = fgt − mg R⊤e3 + bf , (7) where fgt is the contact force, also expressed in the tool frame. Assuming the bias approximately constant over one acquisition cycle, subtraction of Eq. (6) from Eq. (7) cancels it, yielding 
+
+fgt = f − fpre + mg (R − Rpre )⊤e3, (8) which is used in the final label of the sample. The tactile images are converted to grayscale and down-sampled before training, reducing the computational cost of training and inference. The same image format is used during training and evaluation, and later for control. IV. T ACTILE MEASUREMENT REGRESSOR 
+
+A tactile image represents a spatially structured deformation field, in which information is encoded by the displacement of the pins. Convolution provides a natural inductive bias for this type of signal and therefore forms the basis of the proposed regressor. 
+
+A. Architecture 
+
+The proposed model (Fig. 4) is a ResNet-style regres-sor [24]. It combines a residual convolutional backbone, which learns a representation of the contact, with two parallel multilayer perceptron (MLP) heads that predict the mean and log-variance of the tactile measurement in R6, respectively. The architecture combines elements whose advantages are established in the literature. Residual connections are known to ease the optimization of deep convolutional backbones [24]. Starting from a residual backbone with four stages, candidate modifications were introduced one at a time and retained when they reduced the validation loss. Examples include group normalization (GN) [25] in place of batch normalization, squeeze-and-excitation (SE) [26], trunk depth and width, size of the pooled feature map, width of the hidden layers, dropout rate, and optimization hyperparameters such as the learning rates. Since each retained change became the baseline for the next, these comparisons are not independent and are therefore not reported as an ablation study. The final architecture is described in detail below. 6        
+
+> 320  × 240
+> 16
+> Stem
+> 160  × 120
+> 32 32
+> Stage 1
+> 80  × 60  64 64
+> Stage 2
+> 40  × 30  128 128
+> Stage 3
+> 20  × 15  128
+> Stage 4
+> 8 × 6
+> 6144
+> Flatten
+> 256
+> MLP
+> 6
+> Mean
+> 256
+> MLP
+> 6
+> Log-var
+> Conv + GN + ReLU Residual Block + SE MaxPool Adaptive AvgPool Flatten MLP (Lin + ReLU + Dropout)
+> Fig. 4. Architecture of the proposed ResNet-style convolutional regressor. A residual convolutional backbone with squeeze-and-excitation (SE) blocks feeds two parallel MLP heads, which output the mean and the log-variance of the six-dimensional tactile measurement.
+
+a) Backbone: The backbone is deliberately kept small to support real-time deployment. The input tactile image is nor-malized to the range [−0.5, 0.5] and passed through a shallow stem comprising a 3 × 3 convolution with stride 2, GN, and a rectified linear unit (ReLU). This operation halves the spatial resolution to reduce the computational cost, while retaining a sufficiently small kernel to preserve local deformation patterns. Four residual stages follow. Each stage comprises two blocks, except for the last stage, which comprises a single block. The stage widths are 32 , 64 , 128 , and 128 channels, and the spatial resolution is reduced by 2 × 2 max-pooling. Adaptive average pooling produces a 128 × 8 × 6 feature map at the output of the backbone. The backbone accounts for 1.0 × 10 6 of the 
+
+4.15 × 10 6 parameters of the complete model. 
+
+b) Residual Blocks: Each residual block implements the mapping 
+
+Y = ReLU( F(X) · α(X) + S(X)) , (9) where X and Y are the input and output feature maps of the block, and · denotes channel-wise scaling. The residual function F(·) comprises two 3×3 convolutions with GN using eight groups and an intermediate ReLU. The skip path S(X)
+
+is either an identity mapping or a 1 × 1 convolution when channel expansion is required. A lightweight SE block [26], denoted by α(·) and using a reduction ratio of 8, recalibrates the features channel-wise before the residual addition. 
+
+c) Regression Heads: The pooled features are flattened into a shared 6144 -dimensional vector. After 20% dropout, this vector is processed by two parallel MLP heads, each with dimensions 6144 → 256 → 6 and with ReLU and 20% 
+
+dropout between the two linear layers. The two heads produce the mean prediction and the per-sample log-variance of the tactile measurement, respectively. 
+
+d) Output: The mean head predicts the tactile measure-ment 
+
+ˆy =  ˆz ˆϕ ˆθ (T ˆf c)⊤⊤ ∈ R6, (10) where T ˆf c ∈ R3 is the regressed contact force expressed in the tool frame to minimize cross-talk among the regression channels. The variance head predicts a per-sample log-variance vector 
+
+ˆs ∈ R6, where ˆsi = log(ˆ σ2 
+
+> i
+
+). During inference, ˆs is exponen-tiated element-wise to construct the per-sample covariance 
+
+ˆW = diag(exp(ˆ s)) . (11) The contact state estimator of Sec. V requires a measurement covariance at each update, and the heteroscedastic head provides this covariance on a per-sample basis. The joint prediction of an estimate and its confidence, followed by their propagation through a Bayesian filter, follows the scheme established in [20]. The reduction from the general SE(3) × R6 space is motivated by the decompositions derived in Sec. II. On a locally planar surface, the tangential position and the twist angle around the surface normal are unobservable under Assumption 1, and the contact moment is negligible under Assumption 2. 
+
+B. Training Methodology 
+
+The network is trained on the collected dataset of 10 000 la-beled samples, partitioned at random into training, validation, and test subsets in the proportions 70% /15% /15% reported in Tab. IV. It keeps model selection, performed on the validation subset, separate from the final evaluation, performed on the test subset once the training configuration is fixed. The training procedure is described below. 
+
+a) Loss Function: The regression problem is formulated as maximum-likelihood estimation under a diagonal Gaussian observation model. For each output dimension i, the predicted distribution is N (ˆ yi, exp(ˆ si)) , where ˆsi is the predicted log-variance and yi denotes the corresponding label. Follow-ing [27], the resulting Gaussian negative log-likelihood (NLL) loss is 
+
+L = 16
+
+> 6
+
+X
+
+> i=1
+
+ 12 exp( −ˆsi)(ˆ yi − yi)2 + 12 ˆsi
+
+
+
+. (12) 
+
+b) Two-Stage Training: Training proceeds in two stages. During homoscedastic pretraining , the variance head is frozen, while a single global log-variance vector shared across all input samples is optimized jointly with the remainder of the network as an auxiliary learnable parameter. Warming up the mean while the variance is held fixed has been shown to pre-vent the convergence failures instead observed when both out-puts are optimized from initialization [28]. The failures arise because the NLL loss suppresses the gradient on poorly fitted samples, yielding a stable yet inaccurate mean predictor [29]. 
+
+Heteroscedastic fine-tuning then starts from the Stage 1 early-stopping checkpoint and optimizes all parameters end-to-end, including the log-variance, using a reduced learning rate. In this stage, the network learns input-dependent, per-sample uncertainty estimates, assigning a larger predicted log-variance in ˆs to ambiguous or unusual tactile images. Both single-stage alternatives were evaluated during de-velopment. Homoscedastic training alone converges reliably 7                                
+
+> TABLE IV. Training configuration and hyperparameters.
+> Scope Description Value
+> Dataset Split (train/validation/test) 70% /15% /15%
+> Image dimensions 320 ×240
+> Data augmentation Application probability 50%
+> Contrast-factor interval ±10%
+> Brightness-factor interval ±5%
+> Gaussian-noise standard deviation 0.02
+> Optimization Trainable parameters 4.15 ×10 6
+> Optimizer AdamW Weight decay 5.0×10 −3
+> Batch size 256
+> Base learning rate (Stage 1) 1.0×10 −3
+> Base learning rate (Stage 2) 1.0×10 −4
+> Scheduling Warmup strategy Linear (10 epochs) Decay strategy Reduction on plateau Decay factor 0.5
+> Decay patience 5 epochs Maximum number of epochs 500
+> Early-stopping patience 50 epochs
+
+but can only return a single global variance, missing the per-sample uncertainty requirement. On the other hand, het-eroscedastic training did not converge reliably because of the aforementioned issues. Both stages are therefore necessary. Stage 1 learns the global log-variance rather than fixing it as suggested in [28], so that the loss scale of each output channel is calibrated before per-sample variances are enabled. 
+
+c) Optimization: Online data augmentation combines photometric distortions, representing variations in illumina-tion, with additive Gaussian noise, representing electronic noise. The model is optimized using AdamW [30]. The learning rate increases linearly from zero during the first epochs and is subsequently reduced when the validation loss reaches a plateau. Training stops when the validation loss does not improve for 50 consecutive epochs, and the parameters attaining the lowest validation loss are retained. Table IV reports the complete configuration. V. T ACTILE -D RIVEN HYBRID FORCE /M OTION CONTROL 
+
+The control objective is to regulate a prescribed contact force against a surface whose pose is unknown and slowly time-varying, while keeping the alignment of the tactile sensor with the local surface normal. Touch is the only source of exteroceptive feedback available to the controller. The system consists of a fixed-base manipulator equipped with the SOT sensor at its tool tip, using the same mechanical configuration adopted for data acquisition (Fig. 2). The F/T sensor is still present but no longer used for control. In the architecture shown in Fig. 5, an Extended Kalman Filter (EKF) [31] fuses each instantaneous tactile measurement with robot proprioceptive data to maintain a continuously updated estimate of contact task frame and interaction force. A target generator issues the hybrid target, composed by the desired contact force and the desired sensor orientation. An admittance layer combines these targets with the estimated contact task frame and converts them into smooth motion references, which are tracked by a geometric Cartesian velocity controller. 
+
+A. Estimation of the Contact State 
+
+The regressor of Sec. IV returns only the instantaneous tactile measurement ˆy expressed relative to the sensor. Hybrid force/motion control instead requires a continuously updated representation of the surface geometry and interaction force in a suitable frame for decoupled control [4]. The method obtains this representation by fusing the tactile measurement with the tool pose (p, R) expressed in the world frame, as provided by the robot interface. The EKF updates the contact state estimate 
+
+ˆx =   ˆd ˆα ˆβ ˆf ⊤
+
+> c
+
+⊤ ∈ R6, (13) where ˆd is the signed offset of the estimated contact plane, 
+
+(ˆ α, ˆβ) parameterize its normal ˆn expressed in the world frame, and ˆf c ∈ R3 is the related contact force expressed in the estimated contact task frame. Specifically, 
+
+ˆn =  cos ˆ α sin ˆβ sin ˆ α sin ˆβ cos ˆβ⊤ (14) and the corresponding plane is described by 
+
+ˆn⊤q − ˆd = 0 , (15) for any point q on the plane. This convention makes the first component of the tactile measurement model equal to the signed sensor-to-plane displacement ˆn⊤p − ˆd.The state in Eq. (13) retains the part of the contact geometry observable under the locally planar model of Assumption 1, namely the plane offset and its normal, together with the three force components retained under Assumption 2. Thus, it does not include tangential contact coordinates, rotation about the surface normal, and contact moment. The orientation ˆRC of the estimated contact task frame is parameterized in moving axes as 
+
+ˆRC = Rz (ˆ α)Ry ( ˆβ)Rz (π/ 2) . (16) By construction, the z-axis of ˆRC coincides with ˆn, and the final rotation in Eq. (16) makes its x-axis horizontal. The parameterization in Eq. (14) is singular when sin ˆβ = 0 ,that is, when the estimated normal is aligned with the world vertical axis. Since we have considered in the closed-loop control experiments that the contact surface is moving and rotating around a vertical lateral wall, this choice is appropriate as ˆβ remains away from 0 and π. In any event, this singularity concerns only the selected local coordinates. In the absence of a known model for the motion of the contact surface, the state ˆx in Eq. (13) evolves according to a random walk process 
+
+˙ˆx = Q1/2m1
+
+ˆy = h(ˆ x, p, R) + ˆW 1/2m2, (17) where mi ∼ N (0, I6), i = 1 , 2, Q ∈ R6×6 is a symmetric, positive semidefinite matrix, and ˆW is the diagonal, positive definite matrix in Eq. (11). Since this covariance matrix is provided for each tactile image by the variance head described 8                          
+
+> Target Generator
+> Hybrid force and orientation target
+> 50 Hz
+> Orientation Filter
+> Smooth alignment reference Eqs. (24) and (25) 50 Hz
+> Position Admittance
+> Force-to-motion conversion Eq. (23) 50 Hz
+> Motion Controller
+> Cartesian pose tracking Eq. (28) 20 Hz
+> Manipulator
+> Robot and tactile tool
+> Environment
+> Unknown, slowly varying surface
+> Contact State EKF
+> Tactile-proprioceptive fusion Eqs. (17) and (18) 50 Hz
+> Contact Detection
+> Schmitt trigger on ˆz
+> 50 Hz
+> Tactile Regressor
+> Instantaneous measurement Sec. IV 50 Hz
+> Admittance Layer Tactile Contact State Estimation
+> ϕ⋆, θ ⋆, ψ ⋆
+> f⋆
+> c
+> ˜R,˜ω
+> ˜p,˜vv,ωcontact
+> I
+> ˆzc
+> ˆy,ˆWp,Rp,R
+> ˆRC,ˆfc
+> ˆRC
+> reference/command sensing/estimation physical interaction
+
+Fig. 5. Tactile-driven hybrid force/motion control architecture. The tactile regressor maps each image I to the instantaneous measurement ˆy and covariance 
+
+ˆW . A Schmitt trigger applied to ˆz provides the contact flag c that enables the EKF measurement update. The EKF combines valid tactile measurements with robot proprioceptive pose data (p, R) of the tool to continuously update the estimates of contact task frame ˆRC and interaction force ˆf c. The robot pose is also supplied to the motion controller. The state ξ of the admittance model in Eq. (23) is inside the position admittance block. The estimated contact variables close the loops of force regulation and surface alignment. 
+
+in Sec. IV, the EKF weights each tactile measurement ac-cording to its associated covariance. The tool pose (p, R)
+
+in the measurement function h is treated as a known, time-varying input to the measurement model provided by robot proprioceptive information. Expressing the estimated normal in the tool frame with  
+
+> T
+
+ˆn = R⊤ ˆn, the measurement prediction evaluated at the current state is 
+
+h(ˆ x, p, R) = 
+
+
+
+ˆn⊤p − ˆdπ + arctan  Tˆny /Tˆnz
+
+
+
+− arctan 
+
+Tˆnx/
+
+qTˆn2 
+
+> y
+
++ Tˆn2
+
+> z
+
+
+
+R⊤ ˆRC ˆf c
+
+
+
+. (18) The first component predicts indentation ˆz, the second and third predict the surface-to-sensor tilt angles ( ˆϕ, ˆθ), and the last three express the estimated contact force T ˆf c in the tool frame, all to be compared with the corresponding components of the measurement ˆy in Eq. (10). Thus, Eq. (18) maps the persistent contact state, expressed in the world frame, to the quantities relative to the sensor predicted by the tactile regressor. Contact is detected using a Schmitt trigger applied to the regressed indentation ˆz. Let two thresholds be defined as 
+
+zup thr > z lo thr > 0. (19) Since penetration corresponds to negative indentation, contact is confirmed when ˆz < −zup thr and released when ˆz > −zlo thr .The resulting hysteresis suppresses repeated switching in the proximity of contact onset and detachment situations. When contact is not detected, the EKF measurement update is disabled because the regressor output does not represent a valid contact measurement. The state prediction is retained and the Kalman filter covariance matrix P is propagated according to the process model (17). Therefore, the latest estimated surface geometry remains available during temporary losses of contact, while its uncertainty increases through the process noise. 
+
+B. Control Pipeline 
+
+The estimated task frame provides the directions along/around which the desired contact force and the desired sensor orientation are prescribed. Among the task decompositions summarized in Tab. I, the implemented controller on observable variables assigns the three translational directions to force regulation and the two tilt directions to motion regulation. In particular, prescribing the normal force establishes the normal loading condition and thus the friction cone within which the commanded tangential force components must remain. In the following, denote with a star the desired target values chosen by the user and with a tilde the reference values for the motion controller. With reference to Fig. 5, the following control blocks are defined. 
+
+a) Hybrid Target: The tactile measurement determines the surface normal, but not the twist about that normal. More-over, under Assumption 2, no moment estimate is available for regulating a torque around this direction (see also Tab. I). The orientation task is thus prescribed in three angular coordi-nates, out of which only the two surface-to-sensor tilt angles of Eq. (10) are resolved by the contact state. The target generator issues the hybrid target 
+
+(f ⋆ 
+
+> c
+
+, ϕ ⋆, θ ⋆, ψ ⋆). The desired contact force f ⋆ 
+
+> c
+
+is expressed in the nominal contact frame, (ϕ⋆, θ ⋆) are the desired surface-to-sensor tilt angles, and ψ⋆ is an arbitrary twist angle around the nominal normal to the surface. While the current force and tilt components are being reconstructed by the 9                                                     
+
+> TABLE V. Control and estimation parameters used in the closed-loop interaction experiment.
+> Scope Description Symbol Value
+> Motion controller Position gain KpI3s−1
+> Orientation gain KRI3s−1
+> Position admittance Virtual inertia Mdiag(1 ,1,5) kg Virtual damping B100 diag(1 ,1,2) N s m −1
+> Orientation admittance Virtual inertia JI3kg m 2
+> Virtual stiffness K2I3Nm rad −1
+> Virtual damping D2√2I3Nm s rad −1
+> Contact detection Lower threshold zlo thr 5×10 −4mUpper threshold zup thr 7×10 −4mState estimator (EKF) Initial covariance Pinit
+> diag(2 , π/ 2, π/ 2,
+> 0.1,0.1,0.1) 2
+> Process noise Qdiag(0 .2, π/ 180 , π/ 180 ,
+> 0.2,0.2,0.4) 2∆t/ 9
+> The estimator state is ordered as in Eq. (13), with entries expressed in
+> [m,rad ,rad ,N,N,N]. The quantity ∆tdenotes the EKF update period.
+
+estimator, the angle ψ⋆ has no tactile counterpart. Anyway, the admittance layer combines all references with ˆRC to obtain motion references expressed in the world frame. An admissible tilt target satisfies 
+
+|ϕ⋆ − π| < π
+
+2 |θ⋆| < π
+
+2 . (20) These ranges are the image of the tilt channels of Eq. (18) and define the region in which the sensor approach axis is facing the estimated plane, i.e., 
+
+cos θ⋆ cos ϕ⋆ < 0. (21) Outside this region, the commanded tilt either points the sensor away from the surface or duplicates an admissible pair. The range center (ϕ⋆, θ ⋆) = ( π, 0) corresponds to the approach 
+
+z-axis being opposite to the estimated surface normal, 
+
+Re 3 = − ˆn. (22) Equation (20) is a well-posedness condition, and control operation imposes the tighter restriction already used dur-ing acquisition. Just as the commanded force must remain within the friction cone established by the normal loading, the commanded tilt must remain within the approach open half-space (21). 
+
+b) Admittance Layer: Two complementary admittance channels convert the hybrid targets into translational and rotational motion references, both mapped to the world frame through the estimated contact task frame ˆRC .Force regulation is implemented through the position ad-mittance model 
+
+M ˙ξ + Bξ = ˆf c − f ⋆
+
+> c
+
+˜v = ˆRC ξ
+
+˙˜p = ˜ v,
+
+(23) where M , B ∈ R3×3 are positive definite, virtual inertia and damping matrices, respectively. The admittance state ξ ∈ R3
+
+is a velocity resolved in the estimated contact task frame, whereas ˜v and its integral ˜p are expressed in the world frame. The resulting pair (˜ p, ˜v) defines the translational reference supplied to the motion controller. In the rotational channel, the desired angles are first mapped to the target orientation 
+
+R⋆ = ˆRC Rz (ψ⋆)Ry (θ⋆)Rx(ϕ⋆). (24) The tilt pair (ϕ⋆, θ ⋆) imposes two rotational degrees of free-dom and leaves the twist angle around ˆn free. This remaining degree of freedom is assigned by task augmentation [4, p. 146] through an arbitrary choice of ψ⋆, defined from the horizontal 
+
+x-axis of the rotation matrix in (16). The target orientation is then processed by the orientation filter 
+
+J ˙˜ω + D ˜ω + K˜eR = 0
+
+˙˜R = ˜R [ ˜ ω]×, (25) where 
+
+˜eR = 12 [R⋆⊤ ˜R − ˜R⊤R⋆]∨. (26) Here, J, D, and K are positive definite, virtual inertia, damping, and stiffness matrices, respectively; moreover, [·]×
+
+is the skew-symmetric operator satisfying [u]×v = u × v and the vee operator [·]∨ denotes its inverse. Both ˜ω and ˜eR are expressed in the tool reference frame. Unlike the translational admittance model, the orientation filter is not driven by the contact force. Its role is to generate a smooth, kinematically consistent reference ( ˜R, ˜ω) so as to track R⋆. The translational channel remains compliant under the force error, while the rotational channel maintains alignment with the estimated surface. 
+
+c) Motion Controller: The UR10 manipulator accepts Cartesian velocity commands (v, ω) for its tool. Let the position error and the orientation error be, respectively, 
+
+ep = ˜ p − peR = 12 [R⊤ ˜R − ˜R⊤R]∨. (27) Given positive definite gain matrices Kp, KR ∈ R3×3, the commanded Cartesian velocity is 
+
+v = ˜ v + Kpep, ω = R⊤ ˜R ˜ω + KReR. (28) The linear command v and the position error ep are expressed in the world frame, whereas the angular command ω and the orientation error eR are expressed in the tool frame. Table V reports the control gains, detection thresholds, and estimator parameters used in the experiments of Sec. VI. VI. R ESULTS 
+
+The acquisition protocol of Sec. III produced 10 000 labeled samples in three batches spanning the indentation and tilt ranges reported in Tab. III. This section first shows the evaluation of the tactile measurement regressor on the held-out test set and then the assessment of the integrated estimation and control system in a dynamic contact experiment. 10 epoch        
+
+> 100 200 300 400
+> loss
+> -2 -1 0-2.035 -2.348
+> S1 S2 train (S1) val (S1) train (S2) val (S2) early stop
+> Fig. 6. Training and validation losses of the tactile measurement regressor. Stage 1 performs homoscedastic pretraining, and Stage 2 performs het-eroscedastic fine-tuning from the Stage 1 early-stopping checkpoint.
+
+A. Regressor Performance 
+
+Figure 6 reports the training and validation losses for the two training stages described in Sec. IV-B. During Stage 1, the validation loss follows the training loss and reaches −2.035 
+
+at the early-stopping checkpoint. Starting from this check-point, heteroscedastic fine-tuning reduces the validation loss to −2.348 . Negative values are admissible because Eq. (12) is a Gaussian NLL evaluated up to an additive constant. Training from the 10 000 -sample dataset required 341 epochs in Stage 1 and 94 in Stage 2, approximately 2 h in total on a single NVIDIA Tesla T4 GPU. Figure 7 reports the performance of the resulting model on the held-out test set. The plots of predictions versus labels in Fig. 7a include the root mean square error (RMSE) of each output channel. The indentation RMSE is 0.175 mm, while the two surface-to-sensor tilt angles have RMSEs of 1.767 deg and 
+
+1.993 deg, respectively. The indentation error is of the same order as the 0.1 mm repeatability specified for the manipulator used to construct the geometric labels. This comparison identifies the accuracy scale of the labeling apparatus; it does not by itself separate regressor error from label uncertainty. The three force components have RMSEs of 0.051 N, 
+
+0.054 N, and 0.206 N along the x-, y-, and z-axes of the tool frame, respectively. In particular, the RMSEs of the lateral force components are below the nominal 6.25 × 10 −2 Nresolution of the direct force channels of the labeling sensor. The finer torque resolution of the labeling sensor was also considered as a possible source of additional supervision for the lateral components. Under Assumption 2, the ground-truth contact moment satisfies μgt ≈ [l]×fgt , where l is the position of the contact point, expressed in the tool frame, relative to the F/T measurement origin, so the torque channels provide a redundant measurement of the labeled force. Augmenting the loss with the corresponding consistency term ∥[l]× T ˆf c −μgt ∥2
+
+did not, however, produce a measurable improvement in the accuracy of the lateral force components over training with Eq. (12) alone, and the term is not part of the reported model. Figure 7b compares the predicted standard deviation ˆσi
+
+with the empirical RMSE computed over bins of test samples sorted by ˆσi. For all six outputs, the empirical error generally increases with the predicted standard deviation. The binned curves remain close to the identity over most of the represented ranges, with larger deviations and variability for the orientation channels. These results support using ˆW = diag(ˆ σ21 , . . . , ˆσ26 )           
+
+> TABLE VI. Conditions of the reported closed-loop experiment that differ from those of the dataset acquisition campaign.
+> Condition Acquisition Closed-loop experiment
+> Season Winter Summer Contact surface Polished metal plate Plywood board Surface pose Horizontal, fixed Near vertical, moving Elastomer skin Three skins One further skin
+
+as an input-dependent measurement covariance in the EKF within the tested acquisition domain. 
+
+B. Closed-Loop Control Experiment 
+
+The integrated system was evaluated in a dynamic contact experiment. The tactile regressor, contact state estimator, target generator, and controller operate at the rates reported in Fig. 5. The rate of the Cartesian velocity commands is limited to 
+
+20 Hz by the manipulator interface. The purpose of this experiment is to establish the feasibility of the complete feedback architecture, based on touch only, under Assumptions 1 and 2. It is not intended as an exhaustive characterization across surface materials, contact geometries, friction conditions, or force references. The experiment begins out of contact, with the tool at the initial orientation 
+
+Rinit = Rz (π/ 2) Rx(π/ 2) . (29) During the experiment, an operator continuously translates and rotates a rigid plywood board, as illustrated in Fig. 8a. The resulting board motion produces an unknown, slowly varying pose of the contact plane. The hybrid target is held constant throughout the experiment. Its force component is the vector in the contact task frame 
+
+f ⋆ 
+
+> c
+
+=  0 0 2.5⊤ N, (30) and its orientation component is the angle triple 
+
+(ϕ⋆, θ ⋆, ψ ⋆) = ( π, 0, π ). (31) The value ψ⋆ = π keeps the sensor x-axis along the horizontal line of the estimated contact plane, rotated around the y-axis of that plane by θ⋆. Thus, all three translational force components are actively regulated: the two tangential components are regulated to zero, while the normal component is regulated to 2.5 N. Simultaneously, both observable tilt directions are regulated to the aligned tilt target of Eq. (31), which aligns the sensor approach axis with the estimated surface normal. The experiment therefore jointly exercises tactile measurement, contact detection, contact state estimation, 3D force regulation, and orientation tracking. A video of the experiments is available at https://youtube. com/playlist?list=PLejKMZmW8AvI. The regressor was used without retraining, fine-tuning, or recalibration after dataset acquisition, and the experiment was not run under the acquisition conditions. Table VI lists the differences; these factors are reported only as relevant differences between the training and control conditions. 11 ground truth                                     
+
+> prediction
+> -3 -2.5 -2 -1.5 -1 -0.5 0-3 -2.5 -2 -1.5 -1 -0.5 0^z[mm] | RMSE: 0.175 160 170 180 190 200 160 170 180 190 200 ^?[deg] | RMSE: 1.767 -20 -10 010 20 -20 -10 010 20 ^3[deg] | RMSE: 1.993 -0.5 -0.25 00.25 0.5 -0.5 -0.25 00.25 0.5
+> T^fc;x [N] | RMSE: 0.051 -0.75 -0.5 -0.25 00.25 0.5 0.75 -0.75 -0.5 -0.25 00.25 0.5 0.75
+> T^fc;y [N] | RMSE: 0.054 -5 -4 -3 -2 -1 0-5 -4 -3 -2 -1 0
+> T^fc;z [N] | RMSE: 0.206
+
+(a) Predictions versus labels on the held-out test set. Each point represents one test sample, and the dashed line denotes ideal agreement. The RMSE is reported separately on the top right for each output channel. predicted standard deviation                                 
+
+> empirical RMSE
+> 00.1 0.2 0.3 0.4 00.1 0.2 0.3 0.4
+> ^z[mm]
+> 012345012345
+> ^?[deg]
+> 012345012345
+> ^3[deg]
+> 00.025 0.05 0.075 0.1 0.125 00.025 0.05 0.075 0.1 0.125
+> T^fc;x [N]
+> 00.05 0.1 0.15 00.05 0.1 0.15
+> T^fc;y [N]
+> 00.2 0.4 0.6 00.2 0.4 0.6
+> T^fc;z [N]
+
+(b) Empirical RMSE versus predicted standard deviation on the held-out test set. Samples are grouped according to their predicted standard deviation; the solid curves report the binned empirical values, and the dashed lines denote ideal agreement. Fig. 7. Performance of the tactile measurement regressor for the six observable output variables retained by the contact model. 
+
+The shaded intervals in Figs. 8b–8f indicate the contact phases detected by the Schmitt trigger. Outside these inter-vals, the EKF measurement update is disabled because the tactile output does not represent a valid contact measurement. During contact, the EKF force estimate ˆf c is supplied to the translational admittance controller. Figure 8c compares the estimated force with the prescribed reference in the contact task frame. The experiment demon-strates simultaneous 3D force regulation: the estimated normal component approaches its 2.5 N reference, while the two tangential components remain distributed around their zero references. Deviations occur principally during changes in the board pose, when the estimated contact frame, admittance dynamics, and manipulator motion respond to the externally imposed surface motion. The signals remain bounded and contact regulation is maintained throughout the reported ex-periment. Figure 8b compares the instantaneous tactile force prediction T ˆf c with the force Tfgt reconstructed offline from the F/T sensor, both expressed in the tool frame. The F/T measurements are used for evaluation only and are not supplied to the regressor, EKF, target generator, or controller. The two signals exhibit similar temporal evolution during contact, with the largest discrepancies occurring during force excursions and contact transients. The principal aggregate results are summarized in Tab. VII. All force metrics are computed over the samples for which contact is detected. Finally, Fig. 8f reports the measured tool orientation R,the filtered reference ˜R, and the target orientation R⋆, all expressed relative to Rinit . As the board orientation varies, the constant orientation target is mapped by Eq. (24) into a time-varying R⋆ that follows the contact task frame reconstructed by the EKF. The filtered reference follows this 
+
+TABLE VII. Aggregate results for the control experiment. 
+
+Quantity Error RMSE 
+
+Tactile-F/T fgt − T ˆf c (0 .271 , 0.755 , 1.069) NForce regulation f ⋆ 
+
+> c
+
+− ˆf c (0 .272 , 0.466 , 0.850) NContact tilt wrt normal (ϕ⋆ − ˆϕ, θ ⋆ − ˆθ) (2 .434 , 2.992) deg 
+
+target, and the measured tool orientation follows the filtered reference. This behavior shows that the orientation channel continuously adapts the sensor alignment to the estimated surface tilt during the experiment. Between the acquisition campaign and the experiment reported above, the same regressor was also tested, again without any retraining, on a different manipulator contacting a vertical plastic panel in a different laboratory at the University of Twente (Fig. 9). Those trials used a skin of their own, distinct from the three of the dataset and from the one of the experiment above. They addressed different tasks and are not documented here, but rather they are included as visual evidence that the system was operated outside the setup of Tab. II, with qualitatively comparable behavior. Footage of these trials is included in the video referenced above. VII. C ONCLUSIONS 
+
+Hybrid force/motion control requires knowledge of the interaction force and of a task frame that suitably defines force- and motion-controlled directions. This work addresses their online estimation from soft optical tactile sensing alone, under the assumptions of locally planar, featureless contact surface and negligible contact moment. A ResNet-style convolutional regressor maps each tactile image to an instantaneous measurement including indentation depth, two surface-to-sensor tilt angles, and 3D contact force, 12 
+
+(a) Interaction snapshots and corresponding raw tactile images at t = 8 , 24 , 40 s. The rigid board is translated and rotated continuously during the experiment. x-force [N]              
+
+> -1 -0.75 -0.5 -0.25 00.25 0.5 0.75 1
+> y-force [N]
+> -1 -0.5 00.5 11.5 22.5 3
+> time [s]
+> 0510 15 20 25 30 35 40 45 50 55
+> z-force [N]
+> -6 -5 -4 -3 -2 -1 0
+> measurement ground truth contact
+
+(b) Instantaneous tactile force regression T ˆf c and force Tfgt measured offline by the F/T sensor. The latter is not used in the control loop. x-force [N]              
+
+> -0.5 -0.25 00.25 0.5 0.75 1
+> y-force [N]
+> -1 -0.75 -0.5 -0.25 00.25 0.5 0.75 1
+> time [s]
+> 0510 15 20 25 30 35 40 45 50 55
+> z-force [N]
+> 00.5 11.5 22.5 33.5 4
+> estimate target contact
+
+(c) EKF force estimate ˆf c and prescribed force f ⋆
+
+> c
+
+in the contact task frame. x-position [cm]              
+
+> -5 -2.5 02.5 57.5 10
+> y-position [cm]
+> -3 -2.5 -2 -1.5 -1 -0.5 0
+> time [s]
+> 0510 15 20 25 30 35 40 45 50 55
+> z-position [cm]
+> -2 -1 0123456
+> measurement reference contact
+
+(d) Tool position p and admittance reference ˜p.roll  ? [deg]               
+
+> 170 172.5 175 177.5 180 182.5 185 187.5 190
+> time [s]
+> 0510 15 20 25 30 35 40 45 50 55
+> pitch  3 [deg]
+> -10 -7.5 -5 -2.5 02.5 57.5 10 12.5
+> measurement estimate reference target contact
+
+(e) Sensor-to-surface tilt angles: regressor output 
+
+( ˆϕ, ˆθ), EKF estimate from ˆR⊤ 
+
+> C
+
+R, filtered reference from ˆR⊤ 
+
+> C
+
+˜R, and constant target (ϕ⋆, θ ⋆) = ( π, 0) .roll [deg]               
+
+> -0.075 -0.05 -0.025 00.025 0.05
+> pitch [deg]
+> 0510 15 20 25 30 35 40
+> time [s]
+> 0510 15 20 25 30 35 40 45 50 55
+> yaw [deg]
+> -10 -5 0510 15 20
+> measurement reference target contact
+
+(f) Current, filtered reference, and target orienta-tions, expressed relative to Rinit in Eq. (29): R⊤
+
+> init
+
+R,
+
+R⊤ 
+
+> init
+
+˜R, and R⊤
+
+> init
+
+R⋆, respectively. Fig. 8. Experiment of closed-loop tactile force regulation and surface alignment against a rigid board moved continuously by a human operator. Shaded intervals in the plots over time denote the contact phases detected from the regressed indentation depth. 
+
+together with a per-sample uncertainty estimate. An auxiliary F/T sensor is used offline to construct the ground-truth training labels and to provide an independent validation reference. The dataset is publicly available (see Sec. III). The tactile measurement returned by the regressor is fused with robot proprioceptive data in a contact state estimator based on EKF, producing a continuously updated estimate of contact task frame and interaction force used in an admittance-based hybrid force/motion controller. Control experiments have demonstrated contact force regulation against a flat, rigid board undergoing linear and angular motion imposed by a human operator. Within the tested operating conditions, the system was able to keep the prescribed contact force while adapting the sensor orientation to the estimated surface normal, using touch provided by the SOT sensor as the only exteroceptive feedback in the control loop. The same trained regressor was additionally tested, without any change, on a different manipulator, touching a different material, in a different laboratory environment, with qualitatively comparable behavior (see Fig. 9). 13 
+
+Fig. 9. Two snapshots from trials performed on a different laboratory setup than that of Tab. II. The regressor of Sec. IV was deployed without any retraining on a different manipulator contacting a panel of plastic material. 
+
+The scope of the obtained results is defined by the contact model and acquisition domain considered in this work. The dataset covers rigid, planar, featureless surfaces under moderate indentation and within the prescribed contact cone. Thus, we do not claim a priori generalization to larger shear-to-normal force ratios or to curved, textured, or compliant sur-faces. Extending acquisition and measurement models to such contact conditions is an important direction of future work. The decomposition in Tab. I also identifies directions that remain available for extending the control formulation. Rotation about the surface normal is unobservable under the adopted contact model and is currently fixed through an arbitrary task augmentation. This remaining degree of freedom could instead be assigned to a secondary objective, such as avoidance of kinematic singularities or joint limits of the manipulator. Furthermore, although tangential contact position is structurally unobservable on a featureless plane, tangential motion may leave observable signatures through shear and incipient slip [32]. A tactile velocity observer could therefore support motion control along tangential directions when the desired interaction cannot be realized within the friction cone. We remark that the considered contact task, and in particular the reconstructed contact variables, is not specific to fixed-base manipulators. Its integration on a floating-base robotic system (such as an aerial platform) would require fusion with the corresponding onboard state estimator and an interaction controller accounting for coupled base and robot dynamics. Investigating this extension is particularly relevant to operations in which physical contact is essential and dedicated environment or contact wrench sensing through a F/T sensor is unavailable. Finally, beyond force/motion regulation, the same SOT-based estimate of the contact geometry may constitute an additional local exteroceptive measurement that could be fused into the platform localization and mapping pipeline, complementing vision- or lidar-based estimation in visually degraded or feature-poor environments. ACKNOWLEDGMENTS 
+
+The authors thank Nicol` o Botteghi for his valuable feedback on the learning methodology. REFERENCES [1] D. E. Whitney, “Force feedback control of manipulator fine motions,” 
+
+ASME J. of Dynamic Systems, Measurement, and Control , vol. 99, no. 2, pp. 91–97, 1977. [2] N. Hogan, “Impedance control: An approach to manipulation: Part I— Theory,” ASME J. of Dynamic Systems, Measurement, and Control , vol. 107, no. 1, pp. 1–7, 1985. [3] M. H. Raibert and J. J. Craig, “Hybrid position/force control of manip-ulators,” ASME J. of Dynamic Systems, Measurement, and Control , vol. 103, no. 2, pp. 126–133, 1981. [4] B. Siciliano, L. Villani, G. Oriolo, and A. De Luca, Foundations of Robotics . Springer Cham, 2025. [5] S. Haddadin, A. De Luca, and A. Albu-Sch¨ affer, “Robot collisions: A survey on detection, isolation, and identification,” IEEE Trans. on Robotics , vol. 33, no. 6, pp. 1292–1312, 2017. [6] A. De Luca and R. Mattone, “Sensorless robot collision detection and hybrid force/motion control,” in Proc. IEEE Int. Conf. on Robotics and Automation , 2005, pp. 999–1004. [7] E. Magrini and A. De Luca, “Hybrid force/velocity control for physical human–robot collaboration tasks,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots and Systems , 2016, pp. 857–863. [8] E. Magrini, F. Flacco, and A. De Luca, “Estimation of contact forces using a virtual force sensor,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots and Systems , 2014, pp. 2126–2133. [9] H. Bruyninckx and J. De Schutter, “Specification of force-controlled actions in the “task frame formalism”—A synthesis,” IEEE Trans. on Robotics and Automation , vol. 12, no. 4, pp. 581–589, 1996. [10] T. Yoshikawa and A. Sudou, “Dynamic hybrid position/force control of robot manipulators—On-line estimation of unknown constraint,” IEEE Trans. on Robotics and Automation , vol. 9, no. 2, pp. 220–226, 1993. [11] Y. Karayiannidis and Z. Doulgeri, “Blind force/position control on unknown planar surfaces,” IET Control Theory & Applications , vol. 3, no. 5, pp. 595–603, 2009. [12] A. Guti´ errez-Giles and M. Arteaga-P´ erez, “Output feedback hybrid force/motion control for robotic manipulators interacting with unknown rigid surfaces,” Robotica , vol. 38, no. 1, pp. 136–158, 2020. [13] E. Nasiri and L. Wang, “Hybrid force motion control with estimated surface normal for manufacturing applications,” in Proc. 21st Int. Conf. on Ubiquitous Robots , 2024, pp. 125–132. [14] R. S. Dahiya, G. Metta, M. Valle, and G. Sandini, “Tactile sensing— From humans to humanoids,” IEEE Trans. on Robotics , vol. 26, no. 1, pp. 1–20, 2010. [15] W. Yuan, S. Dong, and E. H. Adelson, “GelSight: High-resolution robot tactile sensors for estimating geometry and force,” Sensors , vol. 17, no. 12, p. 2762, 2017. [16] B. Ward-Cherrier, N. Pestell, L. Cramphorn, B. Winstone, M. E. Giannaccini, J. Rossiter, and N. F. Lepora, “The TacTip family: Soft optical tactile sensors with 3D-printed biomimetic morphologies,” Soft Robotics , vol. 5, no. 2, pp. 216–227, 2018. [17] N. F. Lepora, Y. Lin, B. Money-Coomes, and J. Lloyd, “DigiTac: A DIGIT–TacTip hybrid tactile sensor for comparing low-cost high-resolution robot touch,” IEEE Robotics and Automation Lett. , vol. 7, no. 4, pp. 9382–9388, 2022. [18] N. F. Lepora and J. Lloyd, “Pose-based tactile servoing: Controlled soft touch using deep learning,” IEEE Robotics & Automation Mag. , vol. 28, no. 4, pp. 43–55, 2021. [19] J. Lloyd and N. F. Lepora, “Pose-and-shear-based tactile servoing,” Int. J. of Robotics Research , vol. 43, no. 7, pp. 1024–1055, 2024. [20] M. F. V´ azquez and N. F. Lepora, “Uncertainty-aware deep learning for robot touch: Application to Bayesian tactile servo control,” in Proc. IEEE Int. Conf. on Robotics and Automation , 2021, pp. 1615–1621. [21] A.-H. Shahidzadeh, G. M. Caddeo, K. Alapati, L. Natale, C. Ferm¨ uller, and Y. Aloimonos, “FeelAnyForce: Estimating contact force feedback from tactile sensation for vision-based tactile sensors,” in Proc. IEEE Int. Conf. on Robotics and Automation , 2025, pp. 251–257. [22] E. Helmut, L. Dziarski, N. Funk, B. Belousov, and J. Peters, “Learning force distribution estimation for the GelSight Mini optical tactile sensor based on finite element analysis,” in Proc. IEEE/RSJ Int. Conf. on Intelligent Robots and Systems , 2025, pp. 8553–8560. [23] N. F. Lepora and J. Lloyd, “Optimal deep learning for robot touch: Training accurate pose models of 3D surfaces and edges,” IEEE Robotics & Automation Mag. , vol. 27, no. 2, pp. 66–77, 2020. [24] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proc. IEEE Conf. on Computer Vision and Pattern Recognition , 2016, pp. 770–778. [25] Y. Wu and K. He, “Group normalization,” in Proc. 15th European Conf. on Computer Vision , 2018, pp. 3–19. [26] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in Proc. IEEE/CVF Conf. on Computer Vision and Pattern Recognition , 2018, pp. 7132–7141. 14 
+
+[27] A. Kendall and Y. Gal, “What uncertainties do we need in Bayesian deep learning for computer vision?” in Proc. 31st Int. Conf. on Neural Information Processing Systems , 2017, pp. 5580–5590. [28] L. Sluijterman, E. Cator, and T. Heskes, “Optimal training of mean variance estimation neural networks,” Neurocomputing , vol. 597, p. 127929, 2024. [29] M. Seitzer, A. Tavakoli, D. Antic, and G. Martius, “On the pitfalls of het-eroscedastic uncertainty estimation with probabilistic neural networks,” in Proc. Int. Conf. on Learning Representations , 2022. [30] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in Proc. Int. Conf. on Learning Representations , 2019. [31] B. D. O. Anderson, J. B. Moore, and M. Eslami, “Optimal filtering,” 
+
+IEEE Trans. on Systems, Man, and Cybernetics , vol. 12, no. 2, pp. 235– 236, 1982. [32] J. W. James, N. Pestell, and N. F. Lepora, “Slip detection with a biomimetic tactile sensor,” IEEE Robotics and Automation Lett. , vol. 3, no. 4, pp. 3340–3346, 2018.
